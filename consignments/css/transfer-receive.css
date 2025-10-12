@@ -1,0 +1,20 @@
+/* Receive page tweaks (Bootstrap-safe) */
+.vs-transfer--receive .vt-confidence .progress{background:#f3f4f6;}
+.vs-transfer--receive .vt-confidence .progress-bar{background:#16a34a;}
+
+.vs-transfer--receive .vt-confidence .progress{
+  height:8px;
+  background:var(--vt-soft-2);
+  border-radius:999px;
+  overflow:hidden;
+}
+.vs-transfer--receive .vt-confidence .progress-bar{
+  height:100%;
+  background:var(--vt-success);
+  transition:width .2s ease-in-out;
+}
+
+.vs-transfer--receive .vt-exceptions textarea{resize:vertical;}
+
+/* IMPORTANT: No global .modal overrides here.
+   The custom fallback overlay styles live in transfer-core.css scoped to #receiveSuccess. */

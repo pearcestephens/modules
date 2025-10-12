@@ -1,0 +1,11 @@
+/* Pack page tweaks (Bootstrap-safe) */
+.vs-transfer--pack .vt-block--header .vt-actions .btn{margin-left:8px;}
+.vs-transfer--pack .vt-parcels .vt-parcel{background:#f8fafc;}
+.vs-transfer--pack .vt-parcel .form-label{margin-bottom:4px;}
+.vs-transfer--pack .vt-alloc-panel{
+  border:1px dashed var(--vt-border);
+  border-radius:8px;
+  padding:8px;
+  background:#fff;
+}
+.vs-transfer--pack .vt-alloc-panel .table{margin-bottom:0;}

@@ -1,0 +1,88 @@
+# CIS Modules - Git Ignore File
+# For Ecigdis Limited / The Vape Shed modules system
+
+# Environment and secrets
+.env
+.env.local
+.env.production
+*.key
+config/secrets.php
+
+# System files
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+*.cache
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+/backups/
+*.backup
+*.bak
+*.old
+
+# Temporary development files
+/temp/
+/tmp/
+test.php
+debug.php
+temp_*.php
+
+# Compiled assets (if using build tools)
+/assets/build/
+/assets/dist/
+node_modules/
+package-lock.json
+
+# PHP specific
+vendor/
+composer.lock
+*.phar
+
+# Database dumps and sensitive data
+*.sql
+*.dump
+/data/
+
+# Logs
+/logs/
+error.log
+access.log
+*.log.*
+
+# Cache directories
+/cache/
+/storage/cache/
+
+# Upload directories (if containing sensitive data)
+/uploads/sensitive/
+/uploads/temp/
+
+# Module-specific ignores
+modules/*/cache/
+modules/*/logs/
+modules/*/temp/
+
+# OS generated files
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Security - never commit these patterns
+*password*
+*secret*
+*private*
+*credential*
+
+# Allow specific files that might match patterns above
+!assets/css/
+!assets/js/
+!assets/images/

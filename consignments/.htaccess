@@ -1,0 +1,34 @@
+RewriteEngine On
+
+# Base for this module subtree
+RewriteBase /modules/consignments/
+
+# Disable directory indexing
+Options -Indexes
+
+# Block direct access to private/internal PHP libs and views
+RewriteRule ^_shared/ - [R=404,L]
+RewriteRule ^transfers/(lib|controllers|views)/.*\.php$ - [R=404,L]
+
+# Serve existing files/directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route everything else to front controller
+RewriteRule ^ index.php [L]
+
+# Security headers as fallback if not set upstream
+<IfModule mod_headers.c>
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+AddType text/javascript .js .mjs
+# Cache static assets
+<FilesMatch "\.(js|css)$">
+  FileETag MTime Size
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
