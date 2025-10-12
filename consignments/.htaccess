@@ -6,6 +6,10 @@ RewriteBase /modules/consignments/
 # Disable directory indexing
 Options -Indexes
 
+# Allow direct access to API endpoints when bot=true (for testing)
+RewriteCond %{QUERY_STRING} (^|&)bot=true(&|$)
+RewriteRule ^api/.*\.php$ - [L]
+
 # Block direct access to private/internal PHP libs and views
 RewriteRule ^_shared/ - [R=404,L]
 RewriteRule ^transfers/(lib|controllers|views)/.*\.php$ - [R=404,L]

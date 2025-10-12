@@ -14,8 +14,8 @@ $transfer = $transfer ?? null;
 $items = $items ?? [];
 
 // Load legacy libs used by component blocks
-require_once dirname(__DIR__, 3) . '/lib/Db.php';
-require_once dirname(__DIR__, 3) . '/lib/Security.php';
+require_once dirname(__DIR__, 2) . '/lib/Db.php';
+require_once dirname(__DIR__, 2) . '/lib/Security.php';
 
 // Variables expected by container and components
 $kind = 'receive';

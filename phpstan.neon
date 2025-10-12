@@ -1,0 +1,42 @@
+# PHPStan Configuration for CIS Modules
+# Enforces type safety and detects bugs
+
+parameters:
+    level: 5
+    paths:
+        - consignments
+        - _base
+        - core
+    
+    excludePaths:
+        - */vendor/*
+        - */node_modules/*
+        - */_copilot/*
+        - */tests/*
+        - */CIS TEMPLATE/*
+    
+    ignoreErrors:
+        # Legacy compatibility - to be fixed in future refactor
+        - '#Function mysql_.*\(\) is deprecated#'
+        - '#Access to an undefined property mysqli::\$.*#'
+    
+    # Check for missing type hints
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: false
+    
+    # Report unused variables and parameters
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    checkUninitializedProperties: true
+    
+    # Strict rules
+    strictRules:
+        disallowedLooseComparison: true
+        booleansInConditions: true
+        uselessCast: true
+        requireParentConstructorCall: false
+    
+    # Report mixed type usage
+    treatPhpDocTypesAsCertain: true
+    
+    # Custom error messages
+    reportUnmatchedIgnoredErrors: true

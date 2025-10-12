@@ -1,0 +1,291 @@
+/**
+ * Consignment Hub Styles
+ * 
+ * Dashboard UI styles for the consignment hub interface
+ * Including status cards, metrics, analytics, and tool buttons
+ * 
+ * @package Consignments
+ * @author CIS Development Team
+ * @date 2025-10-12
+ * @version 1.0.0
+ */
+
+/* ========================================================================
+   Gradients & Backgrounds
+   ======================================================================== */
+
+.bg-gradient-consignment {
+  background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+}
+
+/* ========================================================================
+   Consignment Status Grid
+   ======================================================================== */
+
+.consignment-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.consignment-status-card {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fcff 0%, #e8f4fd 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(23, 162, 184, 0.1);
+  transition: all 0.3s ease;
+}
+
+.consignment-status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(23, 162, 184, 0.15);
+}
+
+/* ========================================================================
+   Consignment Indicators (Status Icons)
+   ======================================================================== */
+
+.consignment-indicator {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1.5rem;
+  background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+  position: relative;
+}
+
+.consignment-indicator.pending {
+  background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.consignment-indicator.in-transit {
+  background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+  animation: pulse 2s infinite;
+}
+
+.consignment-indicator.delivered {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.consignment-indicator.issues {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+}
+
+.consignment-icon {
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+/* Pulse animation for in-transit status */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(0, 123, 255, 0);
+  }
+}
+
+/* ========================================================================
+   Consignment Content & Details
+   ======================================================================== */
+
+.consignment-content h5 {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.consignment-details .metric {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.consignment-details .label {
+  color: #6c757d;
+}
+
+.consignment-details .value {
+  font-weight: 600;
+  color: #495057;
+}
+
+/* ========================================================================
+   Transfer Tools Grid
+   ======================================================================== */
+
+.transfer-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.transfer-tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f8fcff 0%, #e8f4fd 100%);
+  border: 1px solid rgba(23, 162, 184, 0.2);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.transfer-tool-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(23, 162, 184, 0.2);
+  background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+  color: #fff;
+}
+
+.transfer-tool-btn i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.transfer-tool-btn span {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.transfer-tool-btn small {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Hover effect - change icon and text color */
+.transfer-tool-btn:hover i,
+.transfer-tool-btn:hover span,
+.transfer-tool-btn:hover small {
+  color: #fff;
+}
+
+/* ========================================================================
+   Transfer Analytics
+   ======================================================================== */
+
+.transfer-analytics {
+  padding: 1.5rem;
+  min-height: 400px;
+}
+
+.analytics-metrics {
+  margin-top: 1.5rem;
+}
+
+.metric-box {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fcff 0%, #e8f4fd 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(23, 162, 184, 0.1);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.metric-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(23, 162, 184, 0.15);
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #17a2b8;
+  margin-bottom: 0.5rem;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* ========================================================================
+   Outlet Status Map
+   ======================================================================== */
+
+.outlet-map {
+  min-height: 400px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.map-legend {
+  padding: 1rem 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  margin-right: 0.75rem;
+}
+
+.legend-color.healthy {
+  background: #28a745;
+}
+
+.legend-color.low-stock {
+  background: #ffc107;
+}
+
+.legend-color.pending-transfers {
+  background: #17a2b8;
+}
+
+.legend-color.issues {
+  background: #dc3545;
+}
+
+/* ========================================================================
+   Responsive Adjustments
+   ======================================================================== */
+
+@media (max-width: 768px) {
+  .consignment-status-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  
+  .transfer-tools-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metric-value {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .consignment-indicator {
+    width: 50px;
+    height: 50px;
+    margin-right: 1rem;
+  }
+  
+  .consignment-icon {
+    font-size: 1.4rem;
+  }
+  
+  .transfer-tool-btn {
+    padding: 1rem;
+  }
+}

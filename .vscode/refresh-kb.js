@@ -16,7 +16,17 @@ const CONFIG = {
     docsDir: path.join(process.cwd(), 'docs'),
     searchIndex: path.join(process.cwd(), '_copilot/SEARCH/index.json'),
     statusFile: path.join(process.cwd(), '_copilot/STATUS.md'),
-    serverMode: process.argv.includes('--server-mode')
+    serverMode: process.argv.includes('--server-mode'),
+    
+    // Auto-cleanup settings
+    autoCleanup: {
+        enabled: true,
+        oldDocsAge: 30,              // Days - delete docs not updated in 30 days
+        logRetention: 7,              // Days - keep logs for 7 days
+        maxLogSize: 10 * 1024 * 1024, // 10MB - rotate logs above this size
+        orphanedModuleDocs: true,     // Remove docs for deleted modules
+        emptyDirs: true               // Remove empty directories
+    }
 };
 
 class KnowledgeBaseRefresher {
@@ -26,7 +36,14 @@ class KnowledgeBaseRefresher {
             filesScanned: 0,
             docsGenerated: 0,
             docsUnchanged: 0,
-            errors: []
+            errors: [],
+            cleanupStats: {
+                orphanedDocs: 0,
+                oldDocs: 0,
+                oldLogs: 0,
+                emptyDirs: 0,
+                totalFreed: 0
+            }
         };
         this.searchEntries = [];
         this.lintIssues = {
@@ -35,6 +52,7 @@ class KnowledgeBaseRefresher {
             rawIncludes: 0,
             oversizedFiles: 0
         };
+        this.activeModules = new Set(); // Track which modules exist
     }
 
     async run() {
@@ -43,6 +61,11 @@ class KnowledgeBaseRefresher {
             
             // Ensure directory structure exists
             this.ensureDirectories();
+            
+            // Auto-cleanup (before scanning)
+            if (CONFIG.autoCleanup.enabled) {
+                await this.autoCleanup();
+            }
             
             // Scan modules
             await this.scanModules();
@@ -58,7 +81,11 @@ class KnowledgeBaseRefresher {
             // Update status file
             await this.updateStatus();
             
-            this.log(`✅ Refresh complete: ${this.stats.modulesScanned} modules, ${this.stats.filesScanned} files scanned, ${this.stats.docsGenerated} docs generated`);
+            // Cleanup report
+            const cleanupMsg = CONFIG.autoCleanup.enabled ? 
+                `, cleaned ${this.stats.cleanupStats.orphanedDocs + this.stats.cleanupStats.oldDocs + this.stats.cleanupStats.oldLogs} items` : '';
+            
+            this.log(`✅ Refresh complete: ${this.stats.modulesScanned} modules, ${this.stats.filesScanned} files scanned, ${this.stats.docsGenerated} docs generated${cleanupMsg}`);
             
         } catch (error) {
             this.error('❌ Refresh failed:', error.message);
@@ -87,15 +114,197 @@ class KnowledgeBaseRefresher {
         for (const item of items) {
             if (item.isDirectory() && this.isModuleDirectory(item.name)) {
                 await this.processModule(item.name);
+                this.activeModules.add(item.name); // Track active modules
                 this.stats.modulesScanned++;
             }
         }
     }
 
+    async autoCleanup() {
+        this.log('🧹 Running auto-cleanup...');
+        
+        // 1. Remove orphaned module docs (modules that no longer exist)
+        if (CONFIG.autoCleanup.orphanedModuleDocs) {
+            await this.cleanOrphanedModuleDocs();
+        }
+        
+        // 2. Remove old docs (not updated in X days)
+        if (CONFIG.autoCleanup.oldDocsAge > 0) {
+            await this.cleanOldDocs();
+        }
+        
+        // 3. Clean old logs
+        if (CONFIG.autoCleanup.logRetention > 0) {
+            await this.cleanOldLogs();
+        }
+        
+        // 4. Remove empty directories
+        if (CONFIG.autoCleanup.emptyDirs) {
+            await this.cleanEmptyDirs();
+        }
+    }
+
+    async cleanOrphanedModuleDocs() {
+        const modulesDocsDir = path.join(CONFIG.copilotDir, 'MODULES');
+        if (!fs.existsSync(modulesDocsDir)) return;
+        
+        const docDirs = fs.readdirSync(modulesDocsDir, { withFileTypes: true })
+            .filter(d => d.isDirectory())
+            .map(d => d.name);
+        
+        // Get list of actual modules
+        const actualModules = fs.readdirSync(CONFIG.modulesDir, { withFileTypes: true })
+            .filter(item => item.isDirectory() && this.isModuleDirectory(item.name))
+            .map(item => item.name);
+        
+        // Remove docs for modules that no longer exist
+        for (const docDir of docDirs) {
+            if (!actualModules.includes(docDir)) {
+                const orphanPath = path.join(modulesDocsDir, docDir);
+                const size = this.getDirectorySize(orphanPath);
+                
+                try {
+                    fs.rmSync(orphanPath, { recursive: true, force: true });
+                    this.stats.cleanupStats.orphanedDocs++;
+                    this.stats.cleanupStats.totalFreed += size;
+                    this.log(`   🗑️  Removed orphaned docs: ${docDir}`);
+                } catch (error) {
+                    this.error(`   Failed to remove ${docDir}:`, error.message);
+                }
+            }
+        }
+    }
+
+    async cleanOldDocs() {
+        const now = Date.now();
+        const maxAge = CONFIG.autoCleanup.oldDocsAge * 24 * 60 * 60 * 1000; // Convert days to ms
+        
+        const checkDirectory = (dir) => {
+            if (!fs.existsSync(dir)) return;
+            
+            const items = fs.readdirSync(dir, { withFileTypes: true });
+            
+            for (const item of items) {
+                const fullPath = path.join(dir, item.name);
+                
+                if (item.isDirectory()) {
+                    checkDirectory(fullPath); // Recurse
+                } else if (item.isFile() && item.name.endsWith('.md')) {
+                    try {
+                        const stats = fs.statSync(fullPath);
+                        const age = now - stats.mtime.getTime();
+                        
+                        // Skip core docs (README, STATUS, VERIFICATION_REPORT, FILE_RELATIONSHIPS)
+                        const protectedFiles = ['README.md', 'STATUS.md', 'VERIFICATION_REPORT.md', 'FILE_RELATIONSHIPS.md'];
+                        if (protectedFiles.includes(item.name)) continue;
+                        
+                        if (age > maxAge) {
+                            const size = stats.size;
+                            fs.unlinkSync(fullPath);
+                            this.stats.cleanupStats.oldDocs++;
+                            this.stats.cleanupStats.totalFreed += size;
+                            this.log(`   🗑️  Removed old doc: ${path.relative(CONFIG.rootDir, fullPath)} (${Math.round(age / (24 * 60 * 60 * 1000))} days old)`);
+                        }
+                    } catch (error) {
+                        // File not accessible, skip
+                    }
+                }
+            }
+        };
+        
+        checkDirectory(CONFIG.docsDir);
+    }
+
+    async cleanOldLogs() {
+        const logsDir = path.join(CONFIG.copilotDir, 'logs');
+        if (!fs.existsSync(logsDir)) return;
+        
+        const now = Date.now();
+        const maxAge = CONFIG.autoCleanup.logRetention * 24 * 60 * 60 * 1000;
+        
+        const logFiles = fs.readdirSync(logsDir, { withFileTypes: true })
+            .filter(item => item.isFile());
+        
+        for (const file of logFiles) {
+            const fullPath = path.join(logsDir, file.name);
+            try {
+                const stats = fs.statSync(fullPath);
+                const age = now - stats.mtime.getTime();
+                
+                if (age > maxAge) {
+                    const size = stats.size;
+                    fs.unlinkSync(fullPath);
+                    this.stats.cleanupStats.oldLogs++;
+                    this.stats.cleanupStats.totalFreed += size;
+                    this.log(`   🗑️  Removed old log: ${file.name}`);
+                }
+            } catch (error) {
+                // File not accessible, skip
+            }
+        }
+    }
+
+    async cleanEmptyDirs() {
+        const removeEmptyDirs = (dir) => {
+            if (!fs.existsSync(dir)) return;
+            
+            const items = fs.readdirSync(dir, { withFileTypes: true });
+            
+            // Recurse into subdirectories first
+            for (const item of items) {
+                if (item.isDirectory()) {
+                    removeEmptyDirs(path.join(dir, item.name));
+                }
+            }
+            
+            // After recursion, check if this directory is now empty
+            const remainingItems = fs.readdirSync(dir);
+            if (remainingItems.length === 0 && dir !== CONFIG.copilotDir) {
+                try {
+                    fs.rmdirSync(dir);
+                    this.stats.cleanupStats.emptyDirs++;
+                    this.log(`   🗑️  Removed empty dir: ${path.relative(CONFIG.rootDir, dir)}`);
+                } catch (error) {
+                    // Directory not empty or not accessible
+                }
+            }
+        };
+        
+        removeEmptyDirs(path.join(CONFIG.copilotDir, 'MODULES'));
+        removeEmptyDirs(CONFIG.docsDir);
+    }
+
+    getDirectorySize(dir) {
+        let size = 0;
+        try {
+            const items = fs.readdirSync(dir, { withFileTypes: true });
+            for (const item of items) {
+                const fullPath = path.join(dir, item.name);
+                if (item.isDirectory()) {
+                    size += this.getDirectorySize(fullPath);
+                } else {
+                    size += fs.statSync(fullPath).size;
+                }
+            }
+        } catch (error) {
+            // Directory not accessible
+        }
+        return size;
+    }
+
     isModuleDirectory(name) {
         // Skip special directories
-        const skipDirs = ['.git', '.vscode', '_copilot', '_kb', 'node_modules'];
-        return !skipDirs.includes(name) && !name.startsWith('.');
+        const skipDirs = ['.git', '.vscode', '_copilot', '_kb', 'node_modules', 'docs', 'tools'];
+        if (skipDirs.includes(name) || name.startsWith('.')) {
+            return false;
+        }
+        
+        // Must have index.php or module_bootstrap.php to be considered a module
+        const modulePath = path.join(CONFIG.modulesDir, name);
+        const hasIndex = fs.existsSync(path.join(modulePath, 'index.php'));
+        const hasBootstrap = fs.existsSync(path.join(modulePath, 'module_bootstrap.php'));
+        
+        return hasIndex || hasBootstrap;
     }
 
     async processModule(moduleName) {
@@ -471,6 +680,17 @@ Documentation for ${moduleName} module ${title.toLowerCase()}.
     async updateStatus() {
         const timestamp = new Date().toISOString().replace('T', ' ').split('.')[0] + ' UTC';
         
+        // Cleanup summary
+        const cleanupSummary = CONFIG.autoCleanup.enabled ? `
+
+## Auto-Cleanup Results
+- **Orphaned Module Docs:** ${this.stats.cleanupStats.orphanedDocs} removed
+- **Old Docs (>${CONFIG.autoCleanup.oldDocsAge}d):** ${this.stats.cleanupStats.oldDocs} removed
+- **Old Logs (>${CONFIG.autoCleanup.logRetention}d):** ${this.stats.cleanupStats.oldLogs} removed
+- **Empty Directories:** ${this.stats.cleanupStats.emptyDirs} removed
+- **Total Space Freed:** ${(this.stats.cleanupStats.totalFreed / 1024).toFixed(2)}KB
+` : '';
+        
         const status = `# Knowledge Base Status Report
 
 ## Last Refresh
@@ -480,7 +700,7 @@ Documentation for ${moduleName} module ${title.toLowerCase()}.
 - **Files Scanned:** ${this.stats.filesScanned}
 - **Docs Generated:** ${this.stats.docsGenerated}
 - **Docs Unchanged:** ${this.stats.docsUnchanged}
-
+${cleanupSummary}
 ## Lint Results
 ### Bootstrap 4/5 Mixing Issues
 - ${this.lintIssues.bootstrapMixing === 0 ? '✅' : '❌'} Found ${this.lintIssues.bootstrapMixing} instances of data-dismiss vs data-bs-dismiss mixing

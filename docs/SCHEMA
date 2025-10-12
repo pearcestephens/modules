@@ -1,0 +1,657 @@
+/* =============================================================================
+   0)  HANDY SESSION VARS (for examples)
+   ============================================================================= */
+SET @from_date  = DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY);
+SET @to_date    = CURRENT_DATE() + INTERVAL 1 DAY;
+SET @outlet_from = 'OUTLET_UUID_FROM';
+SET @outlet_to   = 'OUTLET_UUID_TO';
+SET @transfer_id = 12345;
+SET @shipment_id = 67890;
+
+/* =============================================================================
+   1)  TRANSFERS — LISTS, COUNTS, DASHBOARDS (MOST USED)
+   ============================================================================= */
+
+/* 1.1 Newest 50 active transfers (not deleted) */
+SELECT t.*
+FROM transfers t
+WHERE t.deleted_at IS NULL
+ORDER BY t.created_at DESC
+LIMIT 50;
+
+/* 1.2 Latest “work queue” — transfers in progress (by state) */
+SELECT t.id, t.public_id, t.transfer_category, t.state, t.outlet_from, t.outlet_to, t.created_at
+FROM transfers t
+WHERE t.deleted_at IS NULL
+  AND t.state IN ('OPEN','PACKING','PACKAGED','SENT','RECEIVING','PARTIAL')
+ORDER BY t.created_at DESC
+LIMIT 100;
+
+/* 1.3 State breakdown (last 30 days) */
+SELECT t.state, COUNT(*) AS cnt
+FROM transfers t
+WHERE t.deleted_at IS NULL
+  AND t.created_at >= @from_date
+GROUP BY t.state
+ORDER BY cnt DESC;
+
+/* 1.4 Category + state breakdown (for dashboard tiles) */
+SELECT t.transfer_category, t.state, COUNT(*) AS cnt
+FROM transfers t
+WHERE t.deleted_at IS NULL
+  AND t.created_at BETWEEN @from_date AND @to_date
+GROUP BY t.transfer_category, t.state
+ORDER BY cnt DESC;
+
+/* 1.5 Outlet pair traffic (who sends to whom, last 30 days) */
+SELECT t.outlet_from, t.outlet_to, COUNT(*) AS transfers
+FROM transfers t
+WHERE t.deleted_at IS NULL
+  AND t.created_at >= @from_date
+GROUP BY t.outlet_from, t.outlet_to
+ORDER BY transfers DESC
+LIMIT 50;
+
+/* 1.6 Find by Vend references */
+SELECT t.*
+FROM transfers t
+WHERE (t.vend_transfer_id = :vend_uuid
+    OR t.vend_number = :vend_number)
+  AND t.deleted_at IS NULL;
+
+/* 1.7 Find by public token */
+SELECT t.* FROM transfers t
+WHERE t.public_id = :public_id AND t.deleted_at IS NULL;
+
+/* 1.8 Keyset pagination (faster than OFFSET for long lists) */
+-- first page:
+SELECT t.id, t.public_id, t.state, t.created_at
+FROM transfers t
+WHERE t.deleted_at IS NULL
+ORDER BY t.id DESC
+LIMIT 50;
+
+-- next page after you captured last_id:
+SELECT t.id, t.public_id, t.state, t.created_at
+FROM transfers t
+WHERE t.deleted_at IS NULL
+  AND t.id < :last_seen_id
+ORDER BY t.id DESC
+LIMIT 50;
+
+/* 1.9 Transfers due for receiving (shipments sent) */
+SELECT t.id, t.public_id, t.state, MAX(s.created_at) AS last_packed_or_sent
+FROM transfers t
+JOIN transfer_shipments s ON s.transfer_id = t.id
+WHERE t.deleted_at IS NULL
+  AND s.status IN ('packed','in_transit','partial')
+  AND t.state IN ('SENT','RECEIVING','PARTIAL')
+GROUP BY t.id
+ORDER BY last_packed_or_sent DESC;
+
+/* 1.10 “JUICE” vs “STOCK” vs “STAFF” quick filters */
+SELECT id, public_id, state, created_at
+FROM transfers
+WHERE transfer_category = 'JUICE' AND deleted_at IS NULL
+ORDER BY created_at DESC
+LIMIT 100;
+
+/* =============================================================================
+   2)  ITEMS — REQUESTED / SENT / RECEIVED / OUTSTANDING
+   ============================================================================= */
+
+/* 2.1 Per-transfer rollup: requested / sent / received */
+SELECT
+  ti.transfer_id,
+  SUM(ti.qty_requested)      AS requested,
+  SUM(ti.qty_sent_total)     AS sent,
+  SUM(ti.qty_received_total) AS received,
+  SUM(ti.qty_requested - ti.qty_sent_total)      AS outstanding_to_send,
+  SUM(ti.qty_sent_total - ti.qty_received_total) AS outstanding_to_receive
+FROM transfer_items ti
+WHERE ti.transfer_id = @transfer_id
+GROUP BY ti.transfer_id;
+
+/* 2.2 Item detail list for a transfer (pack screen) */
+SELECT
+  ti.id AS item_id,
+  ti.product_id,
+  ti.qty_requested,
+  ti.qty_sent_total,
+  ti.qty_received_total,
+  ti.confirmation_status,
+  (ti.qty_requested - ti.qty_sent_total)      AS to_send,
+  (ti.qty_sent_total - ti.qty_received_total) AS to_receive
+FROM transfer_items ti
+WHERE ti.transfer_id = @transfer_id
+ORDER BY ti.created_at ASC;
+
+/* 2.3 Items awaiting supplier-store confirmation */
+SELECT ti.*
+FROM transfer_items ti
+WHERE ti.transfer_id = @transfer_id
+  AND ti.confirmation_status = 'pending'
+ORDER BY ti.created_at;
+
+/* 2.4 Items that still need sending (positive “to_send”) */
+SELECT *
+FROM (
+  SELECT ti.*, (ti.qty_requested - ti.qty_sent_total) AS to_send
+  FROM transfer_items ti
+  WHERE ti.transfer_id = @transfer_id
+) x
+WHERE x.to_send > 0
+ORDER BY x.to_send DESC;
+
+/* 2.5 Items that still need receiving (positive “to_receive”) */
+SELECT *
+FROM (
+  SELECT ti.*, (ti.qty_sent_total - ti.qty_received_total) AS to_receive
+  FROM transfer_items ti
+  WHERE ti.transfer_id = @transfer_id
+) x
+WHERE x.to_receive > 0
+ORDER BY x.to_receive DESC;
+
+/* 2.6 Top SKUs moved in last 30 days (by qty_sent_total) */
+SELECT ti.product_id, SUM(ti.qty_sent_total) AS qty
+FROM transfer_items ti
+JOIN transfers t ON t.id = ti.transfer_id
+WHERE t.deleted_at IS NULL
+  AND t.created_at >= @from_date
+GROUP BY ti.product_id
+ORDER BY qty DESC
+LIMIT 50;
+
+/* =============================================================================
+   3)  SHIPMENTS / PARCELS / LABELS / TRACKING
+   ============================================================================= */
+
+/* 3.1 Shipments for a transfer + parcel counts & last update */
+SELECT
+  s.id AS shipment_id,
+  s.status,
+  s.delivery_mode,
+  s.packed_at,
+  s.received_at,
+  COUNT(p.id)            AS parcel_count,
+  MAX(p.updated_at)      AS last_parcel_update
+FROM transfer_shipments s
+LEFT JOIN transfer_parcels p ON p.shipment_id = s.id
+WHERE s.transfer_id = @transfer_id
+GROUP BY s.id
+ORDER BY s.created_at;
+
+/* 3.2 Parcels in a shipment, with physicals and tracking */
+SELECT
+  p.id AS parcel_id,
+  p.box_number,
+  p.weight_kg, p.weight_grams,
+  p.length_mm, p.width_mm, p.height_mm,
+  p.tracking_number, p.courier, p.status,
+  p.label_url, p.updated_at
+FROM transfer_parcels p
+WHERE p.shipment_id = @shipment_id
+ORDER BY p.box_number;
+
+/* 3.3 Parcels that need labels/tracking */
+SELECT p.*
+FROM transfer_parcels p
+JOIN transfer_shipments s ON s.id = p.shipment_id
+WHERE p.tracking_number IS NULL
+  AND p.label_url IS NULL
+  AND s.transfer_id = @transfer_id
+ORDER BY p.updated_at DESC;
+
+/* 3.4 Labels for a transfer (dedup by tracking) */
+SELECT tl.*
+FROM transfer_labels tl
+WHERE tl.transfer_id = @transfer_id
+ORDER BY tl.created_at DESC;
+
+/* 3.5 Tracking events (last 48h) for this transfer */
+SELECT te.*
+FROM transfer_tracking_events te
+WHERE te.transfer_id = @transfer_id
+  AND te.occurred_at >= NOW() - INTERVAL 2 DAY
+ORDER BY te.occurred_at DESC;
+
+/* 3.6 Parcels with exceptions / missing/damaged */
+SELECT p.*
+FROM transfer_parcels p
+WHERE p.status IN ('missing','damaged','exception')
+ORDER BY p.updated_at DESC;
+
+/* =============================================================================
+   4)  RECEIVING — RECEIPTS & PARCEL ITEMS
+   ============================================================================= */
+
+/* 4.1 Receipts (header) for a transfer */
+SELECT r.*
+FROM transfer_receipts r
+WHERE r.transfer_id = @transfer_id
+ORDER BY r.created_at DESC;
+
+/* 4.2 Received lines per transfer item (with totals) */
+SELECT
+  tri.transfer_item_id,
+  SUM(tri.qty_received) AS qty_received,
+  COUNT(*)              AS receipt_lines
+FROM transfer_receipt_items tri
+JOIN transfer_receipts r ON r.id = tri.receipt_id
+WHERE r.transfer_id = @transfer_id
+GROUP BY tri.transfer_item_id;
+
+/* 4.3 Parcel items (box-by-box receive view) */
+SELECT
+  tpi.parcel_id, tpi.item_id, tpi.qty, tpi.qty_received, tpi.locked_at
+FROM transfer_parcel_items tpi
+JOIN transfer_parcels p ON p.id = tpi.parcel_id
+WHERE p.shipment_id = @shipment_id
+ORDER BY tpi.created_at;
+
+/* =============================================================================
+   5)  NOTES / DISCREPANCIES / MEDIA
+   ============================================================================= */
+
+/* 5.1 Notes for a transfer (most recent first) */
+SELECT n.*
+FROM transfer_notes n
+WHERE n.transfer_id = @transfer_id
+  AND n.deleted_at IS NULL
+ORDER BY n.created_at DESC;
+
+/* 5.2 Open discrepancies per transfer, by type */
+SELECT d.type, COUNT(*) AS open_count, SUM(d.qty) AS total_qty
+FROM transfer_discrepancies d
+WHERE d.transfer_id = @transfer_id
+  AND d.status = 'open'
+GROUP BY d.type
+ORDER BY open_count DESC;
+
+/* 5.3 Media attachments (photos/videos) by kind */
+SELECT m.kind, COUNT(*) AS files, SUM(m.size_bytes) AS total_bytes
+FROM transfer_media m
+WHERE m.transfer_id = @transfer_id
+GROUP BY m.kind;
+
+/* =============================================================================
+   6)  LOCKS — WHO IS PACKING, REQUESTS, AUDIT
+   ============================================================================= */
+
+/* 6.1 Who currently holds the pack lock? (if any) */
+SELECT pl.*
+FROM transfer_pack_locks pl
+WHERE pl.transfer_id = @transfer_id
+  AND pl.expires_at > NOW();
+
+/* 6.2 Pending lock requests (expiring soonest first) */
+SELECT lr.*
+FROM transfer_pack_lock_requests lr
+WHERE lr.transfer_id = @transfer_id
+  AND lr.status = 'pending'
+ORDER BY lr.expires_at ASC;
+
+/* 6.3 Lock audit trail for this transfer */
+SELECT la.*
+FROM transfer_pack_lock_audit la
+WHERE la.transfer_id = @transfer_id
+ORDER BY la.created_at DESC;
+
+/* =============================================================================
+   7)  LOGS — UNIFIED LOG + AUDIT LOG
+   ============================================================================= */
+
+/* 7.1 Recent log events for a transfer (unified) */
+SELECT l.*
+FROM transfer_unified_log l
+WHERE l.transfer_id = @transfer_id
+ORDER BY l.created_at DESC
+LIMIT 200;
+
+/* 7.2 Full-text search in unified log (last 7 days) */
+SELECT l.*
+FROM transfer_unified_log l
+WHERE l.created_at >= NOW() - INTERVAL 7 DAY
+  AND MATCH(l.message) AGAINST ('+"pack" +"error"' IN BOOLEAN MODE)
+ORDER BY l.created_at DESC
+LIMIT 100;
+
+/* 7.3 Error rate by category (last 30 days) */
+SELECT l.category,
+       SUM(l.severity IN ('error','critical','alert','emergency')) AS error_like,
+       COUNT(*) AS total,
+       ROUND(SUM(l.severity IN ('error','critical','alert','emergency')) / COUNT(*), 4) AS error_rate
+FROM transfer_unified_log l
+WHERE l.created_at >= @from_date
+GROUP BY l.category
+ORDER BY error_rate DESC, total DESC;
+
+/* 7.4 Audit trail (who did what, when) */
+SELECT a.entity_type, a.action, a.status, a.actor_type, a.actor_id, a.created_at
+FROM transfer_audit_log a
+WHERE (a.transfer_pk = @transfer_id OR a.transfer_id = CAST(@transfer_id AS CHAR))
+ORDER BY a.created_at DESC
+LIMIT 200;
+
+/* 7.5 Archive lookup (compliance) */
+SELECT al.*
+FROM transfer_log_archive al
+WHERE al.category = 'transfer'
+  AND al.trace_id = :trace_id
+ORDER BY al.archived_at DESC;
+
+/* =============================================================================
+   8)  AI — INSIGHTS / AUDIT / OVERRIDES
+   ============================================================================= */
+
+/* 8.1 Freshest, non-expired insight per transfer */
+WITH ranked AS (
+  SELECT i.*,
+         ROW_NUMBER() OVER (PARTITION BY i.transfer_id ORDER BY i.generated_at DESC) AS rn
+  FROM transfer_ai_insights i
+  WHERE i.expires_at > NOW()
+)
+SELECT *
+FROM ranked
+WHERE rn = 1
+  AND transfer_id = @transfer_id;
+
+/* 8.2 Last 10 AI audit decisions for a transfer */
+SELECT al.*
+FROM transfer_ai_audit_log al
+WHERE al.transfer_id = @transfer_id
+ORDER BY al.created_at DESC
+LIMIT 10;
+
+/* 8.3 AI override rate (last 30 days) */
+SELECT
+  COUNT(*)                               AS total_decisions,
+  SUM(al.was_overridden = 1)             AS overrides,
+  ROUND(SUM(al.was_overridden = 1)/COUNT(*), 4) AS override_rate
+FROM transfer_ai_audit_log al
+WHERE al.created_at >= @from_date;
+
+/* 8.4 Pull a feature from JSON (example) */
+SELECT
+  al.id,
+  JSON_UNQUOTE(JSON_EXTRACT(al.input_features, '$.demand.score')) AS demand_score
+FROM transfer_ai_audit_log al
+WHERE al.transfer_id = @transfer_id
+ORDER BY al.created_at DESC
+LIMIT 20;
+
+/* =============================================================================
+   9)  QUEUE — BACKLOG, RETRIES, FAILURES
+   ============================================================================= */
+
+/* 9.1 Next jobs to process (ready + by priority) */
+SELECT q.*
+FROM transfer_queue_log q
+WHERE q.status = 'pending'
+  AND (q.next_retry_at IS NULL OR q.next_retry_at <= NOW())
+ORDER BY q.priority ASC, q.created_at ASC
+LIMIT 100;
+
+/* 9.2 “Stuck” processing (no update for N minutes) */
+SELECT q.*
+FROM transfer_queue_log q
+WHERE q.status = 'processing'
+  AND q.updated_at < NOW() - INTERVAL 15 MINUTE
+ORDER BY q.updated_at;
+
+/* 9.3 Fail reasons (top) in last 7 days */
+SELECT q.error_code, COUNT(*) AS fails, MAX(q.updated_at) AS last_seen
+FROM transfer_queue_log q
+WHERE q.status = 'failed'
+  AND q.updated_at >= NOW() - INTERVAL 7 DAY
+GROUP BY q.error_code
+ORDER BY fails DESC
+LIMIT 20;
+
+/* 9.4 Idempotency lookups (avoid dupes) */
+SELECT q.*
+FROM transfer_queue_log q
+WHERE q.idempotency_key = :idem_key
+ORDER BY q.created_at DESC;
+
+/* =============================================================================
+   10)  METRICS — PERFORMANCE, USER EFFICIENCY, QUEUE
+   ============================================================================= */
+
+/* 10.1 BI: transfer metrics by status (last 30 days) */
+SELECT tm.status, COUNT(*) AS cnt,
+       SUM(tm.total_items) AS items, SUM(tm.total_quantity) AS qty
+FROM transfer_metrics tm
+WHERE tm.created_at BETWEEN @from_date AND @to_date
+GROUP BY tm.status
+ORDER BY cnt DESC;
+
+/* 10.2 Aggregated performance metrics by day */
+SELECT metric_date, category, operation,
+       SUM(total_operations) AS ops,
+       SUM(error_count)      AS errors,
+       ROUND(SUM(error_count)/NULLIF(SUM(total_operations),0), 4) AS error_rate,
+       AVG(avg_duration_ms) AS avg_ms, MAX(p95_duration_ms) AS p95_ms, MAX(p99_duration_ms) AS p99_ms
+FROM transfer_performance_metrics
+WHERE metric_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 14 DAY) AND CURRENT_DATE()
+GROUP BY metric_date, category, operation
+ORDER BY metric_date DESC, ops DESC;
+
+/* 10.3 User efficiency leaderboard (today) */
+SELECT ue.user_id,
+       ue.transfers_packed, ue.items_packed,
+       ue.accuracy_score, ue.efficiency_score, ue.daily_rank
+FROM transfer_user_efficiency ue
+WHERE ue.date = CURRENT_DATE()
+ORDER BY ue.daily_rank IS NULL, ue.daily_rank ASC, ue.efficiency_score DESC
+LIMIT 50;
+
+/* 10.4 Queue metrics — backlog trend (last 24h) */
+SELECT DATE_FORMAT(recorded_at, '%Y-%m-%d %H:00') AS hr,
+       SUM(value) FILTER (WHERE metric_type='pending_count') AS pending_count
+FROM transfer_queue_metrics
+WHERE recorded_at >= NOW() - INTERVAL 1 DAY
+GROUP BY hr
+ORDER BY hr;
+
+/* 10.5 Session analytics: average active time by page (7d) */
+SELECT page_type,
+       AVG(active_duration_seconds) AS avg_active_s,
+       AVG(total_interactions)      AS avg_interactions
+FROM transfer_session_analytics
+WHERE session_start >= NOW() - INTERVAL 7 DAY
+GROUP BY page_type
+ORDER BY avg_active_s DESC;
+
+/* 10.6 Performance logs → time-to-pack (example: start→complete) */
+SELECT
+  start.transfer_id,
+  TIMESTAMPDIFF(SECOND, start.event_timestamp, done.event_timestamp) AS seconds_to_pack
+FROM transfer_performance_logs start
+JOIN transfer_performance_logs done
+  ON done.transfer_id = start.transfer_id
+ AND done.event_type = 'PACKING_COMPLETED'
+WHERE start.event_type = 'PACKING_STARTED'
+  AND start.event_timestamp >= @from_date;
+
+/* =============================================================================
+   11)  VALIDATION CACHE / CONFIG / EXECUTIONS / ALLOCATIONS
+   ============================================================================= */
+
+/* 11.1 Transfers pending approval in validation cache */
+SELECT vc.*
+FROM transfer_validation_cache vc
+WHERE vc.requires_approval = 1
+  AND vc.status IN ('valid','invalid')  -- “error” often needs different handling
+ORDER BY vc.created_at DESC
+LIMIT 100;
+
+/* 11.2 Validation cache by outlet pair & freshness */
+SELECT vc.*
+FROM transfer_validation_cache vc
+WHERE vc.outlet_from = @outlet_from
+  AND vc.outlet_to   = @outlet_to
+  AND vc.expires_at  > NOW()
+ORDER BY vc.created_at DESC
+LIMIT 10;
+
+/* 11.3 Active configurations (presets first) */
+SELECT *
+FROM transfer_configurations
+WHERE is_active = 1
+ORDER BY is_preset DESC, name;
+
+/* 11.4 Execution history for a transfer */
+SELECT x.*
+FROM transfer_executions x
+WHERE x.transfer_id = @transfer_id
+ORDER BY x.created_at DESC;
+
+/* 11.5 Allocations produced by an execution */
+SELECT a.*
+FROM transfer_allocations a
+WHERE a.execution_id = :execution_id
+ORDER BY a.created_at;
+
+/* =============================================================================
+   12)  ALERTS — RULES, CONFIGS, OPEN ALERTS
+   ============================================================================= */
+
+/* 12.1 Active alert rules */
+SELECT *
+FROM transfer_alert_rules
+WHERE is_active = 1
+ORDER BY severity DESC, threshold_count DESC;
+
+/* 12.2 Alert configs (enabled only) */
+SELECT *
+FROM transfer_alert_config
+WHERE active = 1
+ORDER BY severity DESC, created_at DESC;
+
+/* 12.3 Unacknowledged alerts (recent first) */
+SELECT al.*
+FROM transfer_alerts_log al
+WHERE al.acknowledged = 0
+ORDER BY al.triggered_at DESC
+LIMIT 200;
+
+/* =============================================================================
+   13)  COMPOSITE “DETAIL” QUERIES (ONE-SHOT PAGES)
+   ============================================================================= */
+
+/* 13.1 Transfer header + progress rollup (single query) */
+SELECT
+  t.id, t.public_id, t.transfer_category, t.state, t.outlet_from, t.outlet_to,
+  t.created_at, t.updated_at,
+  COALESCE(SUM(ti.qty_requested),0)      AS qty_requested,
+  COALESCE(SUM(ti.qty_sent_total),0)     AS qty_sent,
+  COALESCE(SUM(ti.qty_received_total),0) AS qty_received,
+  ROUND(
+    CASE WHEN COALESCE(SUM(ti.qty_requested),0) = 0 THEN 0
+         ELSE COALESCE(SUM(ti.qty_sent_total),0) / SUM(ti.qty_requested)
+    END * 100, 1) AS pack_progress_pct,
+  ROUND(
+    CASE WHEN COALESCE(SUM(ti.qty_sent_total),0) = 0 THEN 0
+         ELSE COALESCE(SUM(ti.qty_received_total),0) / SUM(ti.qty_sent_total)
+    END * 100, 1) AS receive_progress_pct
+FROM transfers t
+LEFT JOIN transfer_items ti ON ti.transfer_id = t.id
+WHERE t.id = @transfer_id
+GROUP BY t.id;
+
+/* 13.2 Transfer “activity feed” from unified log + notes (last 200) */
+(
+  SELECT 'LOG' AS k, l.created_at, l.severity, l.event_type AS title, l.message AS body
+  FROM transfer_unified_log l
+  WHERE l.transfer_id = @transfer_id
+)
+UNION ALL
+(
+  SELECT 'NOTE' AS k, n.created_at, 'info' AS severity, 'Note' AS title, n.note_text AS body
+  FROM transfer_notes n
+  WHERE n.transfer_id = @transfer_id AND n.deleted_at IS NULL
+)
+ORDER BY created_at DESC
+LIMIT 200;
+
+/* =============================================================================
+   14)  HOUSEKEEPING / RETENTION / SAFETY REPORTS
+   ============================================================================= */
+
+/* 14.1 Old logs ready for archival (example: > 180 days) */
+SELECT id
+FROM transfer_unified_log
+WHERE created_at < NOW() - INTERVAL 180 DAY
+LIMIT 10000;
+
+/* 14.2 Queue metrics cleanup (older than 90 days) — preview */
+SELECT COUNT(*) AS to_delete
+FROM transfer_queue_metrics
+WHERE recorded_at < NOW() - INTERVAL 90 DAY;
+
+/* 14.3 Find duplicate label trackings within a transfer (shouldn’t happen) */
+SELECT tracking, COUNT(*) AS c
+FROM transfer_labels
+WHERE transfer_id = @transfer_id
+GROUP BY tracking
+HAVING COUNT(*) > 1;
+
+/* =============================================================================
+   15)  JSON WORK (MariaDB/MySQL compatible examples)
+   ============================================================================= */
+
+/* 15.1 Pull structured fields from validation_result JSON */
+SELECT
+  vc.id,
+  JSON_UNQUOTE(JSON_EXTRACT(vc.validation_result, '$.summary.status')) AS v_status,
+  JSON_UNQUOTE(JSON_EXTRACT(vc.economic_analysis, '$.estimated_courier_cost')) AS est_courier_cost
+FROM transfer_validation_cache vc
+WHERE vc.transfer_data IS NOT NULL
+  AND vc.created_at >= @from_date
+ORDER BY vc.created_at DESC
+LIMIT 100;
+
+/* 15.2 Does event_data contain a tag? (array contains) */
+SELECT l.*
+FROM transfer_unified_log l
+WHERE JSON_CONTAINS(l.tags, JSON_QUOTE('pack'), '$')  -- tags is an array
+  AND l.created_at >= @from_date
+ORDER BY l.created_at DESC;
+
+/* =============================================================================
+   16)  WRITE EXAMPLES (SAFE PATTERNS) — USE WITH CARE
+   ============================================================================= */
+
+/* 16.1 Insert a note on a transfer */
+INSERT INTO transfer_notes (transfer_id, note_text, created_by)
+VALUES (:transfer_id, :note_text, :user_id);
+
+/* 16.2 Acknowledge an alert */
+UPDATE transfer_alerts_log
+SET acknowledged = 1,
+    acknowledged_by = :user_id,
+    acknowledged_at = NOW()
+WHERE id = :alert_id
+  AND acknowledged = 0;
+
+/* 16.3 Resolve an alert with notes */
+UPDATE transfer_alerts_log
+SET resolved = 1,
+    resolution_notes = :notes
+WHERE id = :alert_id;
+
+/* 16.4 Upsert queue metric (idempotent “counter” style) */
+INSERT INTO transfer_queue_metrics
+  (metric_type, queue_name, job_type, value, unit, metadata, recorded_at)
+VALUES
+  ('pending_count', :queue, :job_type, :val, 'count', :meta_json, NOW())
+ON DUPLICATE KEY UPDATE
+  value = VALUES(value),
+  metadata = VALUES(metadata),
+  recorded_at = VALUES(recorded_at);
+
+/* 16.5 Insert a unified log entry */
+INSERT INTO transfer_unified_log
+(trace_id, category, event_type, severity, message, transfer_id, actor_user_id, source_system, created

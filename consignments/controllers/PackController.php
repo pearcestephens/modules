@@ -5,7 +5,7 @@ namespace Modules\Consignments\controllers;
 
 use Modules\Base\Controller\PageController;
 use Modules\Base\Helpers;
-use Modules\Consignments\Transfers\lib\Db;
+use Transfers\Lib\Db;
 
 final class PackController extends PageController
 {

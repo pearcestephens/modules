@@ -1,0 +1,195 @@
+┌─────────────────────────────────────────────────────────────────────┐
+│                 CIS MODULES CODING STANDARDS                        │
+│                     Quick Reference Card                            │
+└─────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  🔴 CRITICAL RULES (Never Violate)                               ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  1. All user input MUST be validated (allowlist preferred)
+  2. All output MUST be escaped (htmlspecialchars)
+  3. All SQL MUST use prepared statements
+  4. All forms MUST have CSRF tokens
+  5. NO inline JavaScript (onclick, onerror, etc.)
+  6. NO secrets in code (use .env)
+  7. declare(strict_types=1) on ALL files
+  8. NO business logic in views
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  📐 STRUCTURE REQUIREMENTS                                        ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  modules/MODULE_NAME/
+  ├── controllers/        ← Request handling ONLY
+  ├── services/          ← Business logic
+  ├── repositories/      ← Database access
+  ├── models/            ← Domain entities
+  ├── views/             ← Templates (no logic)
+  ├── components/        ← Reusable UI parts
+  ├── lib/               ← Utilities
+  └── tests/             ← Test suite
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  ⚡ QUICK COMMANDS                                                ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Check code style:
+  $ vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  Fix code style:
+  $ vendor/bin/php-cs-fixer fix
+
+  Run static analysis:
+  $ vendor/bin/phpstan analyse --level=5
+
+  Run tests:
+  $ vendor/bin/phpunit
+
+  Generate quality report:
+  $ bash tools/quality-report.sh
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  🎯 NAMING CONVENTIONS                                            ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Classes:         PascalCase       TransferService
+  Methods:         camelCase        getTransferById()
+  Variables:       camelCase        $transferId
+  Constants:       UPPER_SNAKE      MAX_ITEMS
+  DB Tables:       snake_case       transfer_lines
+  DB Columns:      snake_case       outlet_from_id
+  Namespaces:      PascalCase       Modules\Consignments
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  🔒 SECURITY PATTERNS                                             ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Input Validation:
+  ✅ $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+  ❌ $id = $_GET['id'];
+
+  Output Escaping:
+  ✅ <?= htmlspecialchars($var, ENT_QUOTES, 'UTF-8') ?>
+  ❌ <?= $var ?>
+
+  SQL Queries:
+  ✅ $stmt = $pdo->prepare("SELECT * FROM t WHERE id = ?");
+     $stmt->execute([$id]);
+  ❌ $sql = "SELECT * FROM t WHERE id = {$id}";
+
+  Event Handlers:
+  ✅ <button class="js-action" data-id="123">Click</button>
+  ❌ <button onclick="action(123)">Click</button>
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  📝 FILE HEADER TEMPLATE                                          ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  <?php
+  declare(strict_types=1);
+
+  namespace Modules\Consignments\Services;
+
+  use Modules\Consignments\Repositories\TransferRepository;
+
+  /**
+   * Transfer business logic service
+   *
+   * @package Modules\Consignments
+   * @author  Ecigdis Engineering <dev@ecigdis.co.nz>
+   * @since   2.0.0
+   */
+  final class TransferService
+  {
+      public function __construct(
+          private readonly TransferRepository $repository
+      ) {}
+  }
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  🧪 TESTING REQUIREMENTS                                          ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Coverage Target:     ≥80%
+  Test File Naming:    *Test.php
+  Test Method Naming:  test_method_does_something()
+  
+  Before Merge:
+  ✅ All tests passing
+  ✅ PHPStan level 5 clean
+  ✅ Code coverage ≥80%
+  ✅ Peer review approved
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  📊 PERFORMANCE TARGETS                                           ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Page Load (p95):     <1000ms
+  API Call (p95):      <500ms
+  DB Query (p95):      <200ms
+  
+  Always:
+  • Paginate large datasets (max 100 rows)
+  • Use indexes for WHERE/JOIN/ORDER BY
+  • Eager load relationships (avoid N+1)
+  • Queue heavy operations
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  🚀 GIT WORKFLOW                                                  ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Branch Names:
+  feature/TICKET-123-description
+  bugfix/fix-validation-error
+  hotfix/critical-security-patch
+
+  Commit Format:
+  type(scope): subject
+
+  Examples:
+  feat(pack): add bulk update
+  fix(csrf): validate all forms
+  refactor(views): extract helpers
+
+  Types: feat, fix, refactor, docs, test, chore, perf, style
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  ⚙️ PRE-COMMIT HOOK                                              ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Automatically checks before each commit:
+  1. PHP syntax errors
+  2. PHPStan violations
+  3. Code style (PSR-12)
+  4. Security patterns
+  5. Required declarations
+
+  Bypass (emergency only):
+  $ git commit --no-verify -m "hotfix: emergency"
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  📚 RESOURCES                                                     ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  Full Standards:  docs/CODING_STANDARDS.md
+  Quality Tools:   docs/QUALITY_TOOLS.md
+  Architecture:    docs/architecture/
+  API Docs:        docs/api/
+  
+  Support:         dev@ecigdis.co.nz
+  Wiki:            https://wiki.vapeshed.co.nz
+
+╔═══════════════════════════════════════════════════════════════════╗
+║  🎓 REMEMBER                                                      ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+  • Security First - Never compromise for convenience
+  • Separation of Concerns - MVC strictly enforced
+  • Explicit Over Implicit - No magic, no surprises
+  • Test Before Deploy - All changes need tests
+  • Document as You Build - Code read 100x more than written
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  Version 2.0 | Effective October 12, 2025 | Ecigdis Limited       │
+└─────────────────────────────────────────────────────────────────────┘

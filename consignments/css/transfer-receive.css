@@ -1,3 +1,92 @@
+/* =============================================================================
+   RECEIVE CONTAINER - Enterprise-Grade Receive Operations
+   ============================================================================= */
+
+.receive-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--vt-bg-subtle, #f8fafc);
+  position: relative;
+}
+
+.receive-container .receive-header {
+  background: var(--vt-primary, #2563eb);
+  color: white;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.receive-container .receive-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.receive-container .receive-footer {
+  background: white;
+  border-top: 1px solid var(--vt-border, #e2e8f0);
+  padding: 1.5rem 2rem;
+  position: sticky;
+  bottom: 0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+}
+
+.receive-container .receive-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.receive-container .receive-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.receive-container .receive-progress {
+  height: 6px;
+  background: var(--vt-soft-2, #f1f5f9);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.receive-container .receive-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--vt-success, #16a34a), var(--vt-success-dark, #15803d));
+  transition: width 0.3s ease;
+  border-radius: 999px;
+}
+
+/* Responsive design for receive container */
+@media (max-width: 768px) {
+  .receive-container .receive-header,
+  .receive-container .receive-footer {
+    padding: 1rem;
+  }
+  
+  .receive-container .receive-content {
+    padding: 1rem;
+  }
+  
+  .receive-container .receive-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* =============================================================================
+   EXISTING RECEIVE STYLES
+   ============================================================================= */
+
 /* Receive page tweaks (Bootstrap-safe) */
 .vs-transfer--receive .vt-confidence .progress{background:#f3f4f6;}
 .vs-transfer--receive .vt-confidence .progress-bar{background:#16a34a;}

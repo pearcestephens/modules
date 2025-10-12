@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Modules\Consignments\controllers\Api;
 
 use Modules\Base\Controller\ApiController;
-use Modules\Consignments\Transfers\lib\Db;
+use Transfers\Lib\Db;
 
 final class PackApiController extends ApiController
 {

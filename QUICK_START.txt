@@ -1,0 +1,57 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║  CIS MODULES - QUICK START GUIDE                                 ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+📁 STRUCTURE
+modules/
+├── _base/              Infrastructure (DO NOT ROUTE DIRECTLY)
+│   ├── assets/
+│   │   ├── css/
+│   │   │   └── cis-modules.css
+│   │   └── js/
+│   ├── lib/
+│   │   └── Controller/
+│   └── views/
+│       └── layouts/
+│           └── master.php    ← USE THIS FOR ALL MODULES
+│
+└── your_module/        Your feature module
+    ├── controllers/
+    ├── views/
+    ├── lib/
+    └── assets/
+
+🎯 CREATE A NEW MODULE
+
+1. Copy template:
+   cp -r modules/_module_template modules/your_module
+
+2. Update controller:
+   vim modules/your_module/controllers/HomeController.php
+
+3. Use master layout:
+   <?php
+   $pageTitle = 'Your Module';
+   $content = 'Hello World!';
+   include __DIR__ . '/../../_base/views/layouts/master.php';
+
+4. Test:
+   curl https://staff.vapeshed.co.nz/modules/your_module/
+
+📝 CODING STANDARDS
+- See: docs/CODING_STANDARDS.md
+- Run: vendor/bin/phpstan analyse --level=5
+- Fix:  vendor/bin/php-cs-fixer fix
+
+🔍 QUALITY TOOLS
+- Quality report: bash tools/quality-report.sh
+- Pre-commit hook: .git/hooks/pre-commit (auto-runs)
+
+📚 DOCUMENTATION
+- Quick reference: docs/QUICK_REFERENCE.txt
+- Module naming: docs/MODULE_NAMING_STANDARDS.md
+- Architecture: docs/architecture/
+
+🆘 SUPPORT
+- Email: dev@ecigdis.co.nz
+- Wiki: https://wiki.vapeshed.co.nz

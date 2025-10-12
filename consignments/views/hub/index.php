@@ -258,24 +258,6 @@ $__modals = $_SERVER['DOCUMENT_ROOT'] . '/modules/consignment-control-modals.php
 if (is_file($__modals)) { require $__modals; }
 ?>
 
-<!-- Styles (from provided hub) -->
-<style>
-.bg-gradient-consignment { background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%); }
-.consignment-status-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.5rem; padding:1.5rem; }
-.consignment-status-card { display:flex; align-items:center; padding:1.5rem; background:linear-gradient(135deg,#f8fcff 0%,#e8f4fd 100%); border-radius:12px; border:1px solid rgba(23,162,184,.1); transition: all .3s ease; }
-.consignment-status-card:hover { transform: translateY(-2px); box-shadow:0 8px 25px rgba(23,162,184,.15); }
-.consignment-indicator { width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:1.5rem; background:linear-gradient(135deg,#17a2b8 0%,#007bff 100%); position:relative; }
-.consignment-indicator.pending { background:linear-gradient(135deg,#ffc107 0%, #fd7e14 100%); }
-.consignment-indicator.in-transit { background:linear-gradient(135deg,#007bff 0%, #6610f2 100%); animation:pulse 2s infinite; }
-.consignment-indicator.delivered { background:linear-gradient(135deg,#28a745 0%, #20c997 100%); }
-.consignment-indicator.issues { background:linear-gradient(135deg,#dc3545 0%, #fd7e14 100%); }
-.consignment-icon { font-size:1.8rem; color:#fff; }
-.consignment-content h5 { margin-bottom:.75rem; font-weight:600; color:#495057; }
-.consignment-details .metric { display:flex; justify-content:space-between; margin-bottom:.5rem; font-size:.9rem; }
-.consignment-details .label { color:#6c757d; }
-.consignment-details .value { font-weight:600; color:#495057; }
-.transfer-tools-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; }
-.transfer-tool-btn { display:flex; flex-direction:column; align-items:center; padding:1.25rem; background:linear-gradient(135deg,#f8fcff 0%,#e8f4fd 100%); border:1px solid rgba(23,162,184,.2); border-radius:12px; transition:all .2s ease; cursor:pointer; }
-.transfer-tool-btn:hover { transform: translateY(-2px); box-shadow:0 10px 30px rgba(23,162,184,.2); background:linear-gradient(135deg,#17a2b8 0%,#007bff 100%); color:#fff; }
-</style>
+<!-- Hub-specific styles -->
+<link rel="stylesheet" href="<?= Modules\Base\Helpers::url('/modules/consignments/css/hub.css'); ?>">
 </script>

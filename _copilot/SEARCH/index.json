@@ -1,144 +1,6 @@
 {
-  "generated": "2025-10-12T09:57:32.443Z",
+  "generated": "2025-10-12T13:25:37.911Z",
   "entries": [
-    {
-      "path": "_copilot/MODULES/_base/README.md",
-      "title": "_base - README",
-      "headings": [
-        "_base Module",
-        "Overview",
-        "Statistics",
-        "Key Files",
-        "Quick Start",
-        "Related Documentation"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "_base module functionality.",
-        "**Module Path:** `./${moduleName}/`",
-        "**Module Type:** MVC Module"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/_base/controllers.md",
-      "title": "_base - controllers",
-      "headings": [
-        "_base Module - Controllers",
-        "Controller Files"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "- `lib/Controller/ApiController.php`",
-        "- `lib/Controller/BaseController.php`",
-        "- `lib/Controller/PageController.php`"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/_base/data-flows.md",
-      "title": "_base - data-flows",
-      "headings": [
-        "_base Module - Data Flows",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for _base module data flows.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/_base/routes.md",
-      "title": "_base - routes",
-      "headings": [
-        "_base Module - Routes",
-        "API Endpoints",
-        "Route Files"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "No API endpoints found",
-        "No explicit route files found",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/_base/templates.md",
-      "title": "_base - templates",
-      "headings": [
-        "_base Module - Templates",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for _base module templates.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/_base/testing-notes.md",
-      "title": "_base - testing-notes",
-      "headings": [
-        "_base Module - Testing Notes",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for _base module testing notes.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/_base/views.md",
-      "title": "_base - views",
-      "headings": [
-        "_base Module - Views",
-        "View Files"
-      ],
-      "tags": [
-        "modules",
-        "_base",
-        "documentation"
-      ],
-      "snippets": [
-        "- `views/layouts/cis-template-bare.php`",
-        "- `views/layouts/cis-template.php`",
-        "- `views/partials/footer.php`"
-      ],
-      "mtime": 1760263052
-    },
     {
       "path": "_copilot/MODULES/consignments/README.md",
       "title": "consignments - README",
@@ -160,7 +22,7 @@
         "**Module Path:** `./${moduleName}/`",
         "**Module Type:** Full-stack MVC"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
       "path": "_copilot/MODULES/consignments/controllers.md",
@@ -179,7 +41,7 @@
         "- `controllers/Api/ReceiveApiController.php`",
         "- `controllers/HomeController.php`"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
       "path": "_copilot/MODULES/consignments/data-flows.md",
@@ -195,10 +57,10 @@
       ],
       "snippets": [
         "Documentation for consignments module data flows.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "**Last Updated:** 2025-10-12 13:25:37 UTC",
         "---"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
       "path": "_copilot/MODULES/consignments/routes.md",
@@ -218,7 +80,7 @@
         "- `api/autosave.php`",
         "- `api/autosave_load.php`"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
       "path": "_copilot/MODULES/consignments/templates.md",
@@ -234,10 +96,10 @@
       ],
       "snippets": [
         "Documentation for consignments module templates.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "**Last Updated:** 2025-10-12 13:25:37 UTC",
         "---"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
       "path": "_copilot/MODULES/consignments/testing-notes.md",
@@ -253,10 +115,10 @@
       ],
       "snippets": [
         "Documentation for consignments module testing notes.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "**Last Updated:** 2025-10-12 13:25:37 UTC",
         "---"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
       "path": "_copilot/MODULES/consignments/views.md",
@@ -275,283 +137,245 @@
         "- `views/hub/index.php`",
         "- `views/pack/full.php`"
       ],
-      "mtime": 1760263052
+      "mtime": 1760275537
     },
     {
-      "path": "_copilot/MODULES/core/README.md",
-      "title": "core - README",
+      "path": "docs/CODING_STANDARDS.md",
+      "title": "CODING_STANDARDS",
       "headings": [
-        "Core Module",
-        "Overview",
-        "Statistics",
-        "Key Files",
-        "Quick Start",
-        "Related Documentation"
+        "🏆 CIS Modules: Enterprise Coding Standards",
+        "📋 Table of Contents",
+        "Core Principles",
+        "Golden Rules",
+        "Quality Metrics",
+        "PHP Standards",
+        "PSR Compliance",
+        "File Structure",
+        "Naming Conventions",
+        "Type Declarations",
+        "Error Handling",
+        "Security Requirements",
+        "Input Validation",
+        "Output Escaping",
+        "SQL Injection Prevention",
+        "CSRF Protection",
+        "Authentication & Authorization",
+        "Content Security Policy",
+        "Architecture Patterns",
+        "MVC Structure",
+        "Dependency Injection",
+        "Single Responsibility Principle",
+        "View Layer Standards",
+        "Separation of Concerns",
+        "Component Pattern",
+        "No Business Logic",
+        "JavaScript Standards",
+        "Modern ES6+ Syntax",
+        "Event Delegation",
+        "Error Handling",
+        "Database Standards",
+        "Schema Design",
+        "Query Optimization",
+        "Testing Requirements",
+        "Unit Tests",
+        "Integration Tests",
+        "Documentation Standards",
+        "File Headers",
+        "Method Documentation",
+        "Performance Standards",
+        "Response Time Targets",
+        "Optimization Requirements",
+        "Deployment & Git Standards",
+        "Branch Strategy",
+        "Commit Messages",
+        "Pull Request Requirements",
+        "Code Review Checklist",
+        "Security",
+        "Architecture",
+        "Code Quality",
+        "Testing",
+        "Documentation",
+        "Performance",
+        "Enforcement",
+        "Automated Checks (CI/CD)",
+        ".github/workflows/ci.yml",
+        "Pre-commit Hooks",
+        ".git/hooks/pre-commit",
+        "References",
+        "Version History"
       ],
       "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "Core system utilities and bootstrapping functionality.",
-        "**Module Path:** `./${moduleName}/`",
-        "**Module Type:** PHP Module"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/core/controllers.md",
-      "title": "core - controllers",
-      "headings": [
-        "Core Module - Controllers",
-        "Controller Files"
-      ],
-      "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "No controller files found",
-        "---",
-        "*Generated by CIS Knowledge Base System*"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/core/data-flows.md",
-      "title": "core - data-flows",
-      "headings": [
-        "Core Module - Data Flows",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for core module data flows.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/core/routes.md",
-      "title": "core - routes",
-      "headings": [
-        "Core Module - Routes",
-        "API Endpoints",
-        "Route Files"
-      ],
-      "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "No API endpoints found",
-        "No explicit route files found",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/core/templates.md",
-      "title": "core - templates",
-      "headings": [
-        "Core Module - Templates",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for core module templates.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/core/testing-notes.md",
-      "title": "core - testing-notes",
-      "headings": [
-        "Core Module - Testing Notes",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for core module testing notes.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/core/views.md",
-      "title": "core - views",
-      "headings": [
-        "Core Module - Views",
-        "View Files"
-      ],
-      "tags": [
-        "modules",
-        "core",
-        "documentation"
-      ],
-      "snippets": [
-        "No view files found",
-        "---",
-        "*Generated by CIS Knowledge Base System*"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/docs/README.md",
-      "title": "docs - README",
-      "headings": [
-        "Docs Module",
-        "Overview",
-        "Statistics",
-        "Key Files",
-        "Quick Start",
-        "Related Documentation"
-      ],
-      "tags": [
-        "modules",
         "docs",
         "documentation"
       ],
       "snippets": [
-        "docs module functionality.",
-        "**Module Path:** `./${moduleName}/`",
-        "**Module Type:** Static Assets"
+        "**Version:** 2.0",
+        "**Effective Date:** October 12, 2025",
+        "**Scope:** All modules within `/public_html/modules/`"
       ],
-      "mtime": 1760263052
+      "mtime": 1760271309
     },
     {
-      "path": "_copilot/MODULES/docs/controllers.md",
-      "title": "docs - controllers",
+      "path": "docs/ERROR_HANDLER_GUIDE.md",
+      "title": "ERROR_HANDLER_GUIDE",
       "headings": [
-        "Docs Module - Controllers",
-        "Controller Files"
+        "Enterprise Error Handler - Usage Guide",
+        "🎯 Quick Start",
+        "**Basic Setup (Development)**",
+        "**Production Setup**",
+        "🔥 Features",
+        "**1. Beautiful Debug Screen** (Development Mode)",
+        "**2. User-Friendly Production Screen**",
+        "**3. Comprehensive Logging**",
+        "**4. Context System**",
+        "📖 Usage Examples",
+        "**Example 1: Module Initialization**",
+        "**Example 2: With Database Context**",
+        "**Example 3: API Debugging**",
+        "**Example 4: Custom Error Pages**",
+        "🎨 What You See in Debug Mode",
+        "**Error Header**",
+        "**Stack Trace**",
+        "**Context Information** (if added)",
+        "**Request Information**",
+        "**Environment**",
+        "🔍 What You See in Production Mode",
+        "📝 Log File Format",
+        "🛠️ Configuration",
+        "**Environment Variables**",
+        ".env file",
+        "**PHP Code**",
+        "🎯 Best Practices",
+        "**DO:**",
+        "**DON'T:**",
+        "🔐 Security Notes",
+        "🚀 Integration with Existing Code",
+        "**Replace Old Handler**",
+        "**No Breaking Changes**",
+        "📊 Performance Impact",
+        "🐛 Debugging Tips",
+        "**1. Add Context Early**",
+        "**2. Catch and Re-throw**",
+        "**3. Use Error IDs**",
+        "✅ Acceptance Criteria"
       ],
       "tags": [
-        "modules",
         "docs",
         "documentation"
       ],
       "snippets": [
-        "No controller files found",
-        "---",
-        "*Generated by CIS Knowledge Base System*"
+        "```php",
+        "<?php",
+        "use Modules\\Core\\ErrorHandler;"
       ],
-      "mtime": 1760263052
+      "mtime": 1760273315
     },
     {
-      "path": "_copilot/MODULES/docs/data-flows.md",
-      "title": "docs - data-flows",
+      "path": "docs/QUALITY_TOOLS.md",
+      "title": "QUALITY_TOOLS",
       "headings": [
-        "Docs Module - Data Flows",
-        "Overview"
+        "CIS Modules Quality & Standards",
+        "📚 Documentation",
+        "🛠 Quality Tools",
+        "PHP CS Fixer (PSR-12 Enforcement)",
+        "Check code style violations",
+        "Auto-fix code style",
+        "Check specific file",
+        "PHPStan (Static Analysis)",
+        "Analyze entire codebase (level 5)",
+        "Analyze specific module",
+        "Generate baseline (ignore existing issues)",
+        "Quality Report",
+        "Generate comprehensive quality report",
+        "🔍 Pre-commit Hooks",
+        "Install hook (one-time setup)",
+        "Hook runs automatically on git commit",
+        "📊 Quality Metrics",
+        "Current Targets",
+        "🚀 Quick Start",
+        "1. Install Dependencies",
+        "2. Run Quality Checks",
+        "Full quality suite",
+        "Individual checks",
+        "3. Fix Issues",
+        "Auto-fix code style",
+        "Review PHPStan errors manually",
+        "🔐 Security Standards",
+        "Critical Rules",
+        "📝 Git Workflow",
+        "Branch Naming",
+        "Commit Messages",
+        "Pull Request Checklist",
+        "🐛 Troubleshooting",
+        "PHPStan Errors",
+        "View detailed error",
+        "Generate baseline to track improvements",
+        "Code Style Failures",
+        "See what will be changed",
+        "Apply fixes",
+        "Pre-commit Hook Blocking",
+        "Bypass hook for emergency commits only",
+        "Then fix and commit properly",
+        "📖 Resources",
+        "🆘 Support"
       ],
       "tags": [
-        "modules",
         "docs",
         "documentation"
       ],
       "snippets": [
-        "Documentation for docs module data flows.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "This directory contains coding standards, quality tools, and enforcement configurations.",
+        "- **[CODING_STANDARDS.md](./CODING_STANDARDS.md)** - Complete coding standards guide",
+        "- **[ARCHITECTURE.md](./architecture/)** - System architecture documentation"
+      ],
+      "mtime": 1760271310
+    },
+    {
+      "path": "docs/TEMPLATE_ARCHITECTURE.md",
+      "title": "TEMPLATE_ARCHITECTURE",
+      "headings": [
+        "CIS Modules - Template Architecture",
+        "🎯 **Overview**",
+        "📁 **File Structure**",
+        "🏗️ **How It Works**",
+        "**1. Master Template (wrapper)**",
+        "✅ **Key Principles**",
+        "**1. DRY (Don't Repeat Yourself)**",
+        "**2. Single Source of Truth**",
+        "**3. Separation of Concerns**",
+        "📖 **Usage Examples**",
+        "**Example 1: Simple Module Page**",
+        "**Example 2: With Module-Specific CSS/JS**",
+        "**Example 3: Using PageController**",
+        "🔧 **Template Variables**",
+        "**Required:**",
+        "**Optional:**",
+        "🎨 **Asset Management**",
+        "**Global Assets (Stay in /assets/)**",
+        "**Module-Specific Assets**",
+        "🔐 **Security**",
+        "**Context Check:**",
+        "**Safe Variable Extraction:**",
+        "**Output Escaping:**",
+        "📊 **Benefits**",
+        "✅ **Checklist for New Modules**",
+        "🚫 **Anti-Patterns (DON'T DO THIS)**",
+        "**❌ Don't recreate the UI:**",
+        "**❌ Don't hardcode navigation:**",
+        "**✅ Do this instead:**",
+        "🎯 **Summary**",
+        "📚 **Related Documentation**"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Date:** October 12, 2025",
+        "**Status:** ✅ PRODUCTION READY",
         "---"
       ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/docs/routes.md",
-      "title": "docs - routes",
-      "headings": [
-        "Docs Module - Routes",
-        "API Endpoints",
-        "Route Files"
-      ],
-      "tags": [
-        "modules",
-        "docs",
-        "documentation"
-      ],
-      "snippets": [
-        "No API endpoints found",
-        "No explicit route files found",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/docs/templates.md",
-      "title": "docs - templates",
-      "headings": [
-        "Docs Module - Templates",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "docs",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for docs module templates.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/docs/testing-notes.md",
-      "title": "docs - testing-notes",
-      "headings": [
-        "Docs Module - Testing Notes",
-        "Overview"
-      ],
-      "tags": [
-        "modules",
-        "docs",
-        "documentation"
-      ],
-      "snippets": [
-        "Documentation for docs module testing notes.",
-        "**Last Updated:** 2025-10-12 09:57:32 UTC",
-        "---"
-      ],
-      "mtime": 1760263052
-    },
-    {
-      "path": "_copilot/MODULES/docs/views.md",
-      "title": "docs - views",
-      "headings": [
-        "Docs Module - Views",
-        "View Files"
-      ],
-      "tags": [
-        "modules",
-        "docs",
-        "documentation"
-      ],
-      "snippets": [
-        "No view files found",
-        "---",
-        "*Generated by CIS Knowledge Base System*"
-      ],
-      "mtime": 1760263052
+      "mtime": 1760273317
     },
     {
       "path": "docs/analysis/module-analysis.md",
@@ -636,11 +460,180 @@
         "- **inventory**: 5"
       ],
       "mtime": 1760249964
+    },
+    {
+      "path": "docs/knowledge-base/decisions/DECISIONS_LOG.md",
+      "title": "DECISIONS_LOG",
+      "headings": [
+        "Project Decisions Log",
+        "October 12, 2025",
+        "✅ DECISION: Use Wrapper Template Approach",
+        "✅ DECISION: Rename `_base/` to `base/`",
+        "✅ DECISION: Strict Module Detection",
+        "✅ DECISION: Auto-Cleanup in Knowledge Base",
+        "✅ DECISION: One Master Documentation File",
+        "Decision Template (For Future Use)",
+        "✅/❌ DECISION: [Title]"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Purpose:** Track all architectural and technical decisions with rationale",
+        "---",
+        "**Context:** Template was recreating entire CIS UI (header, sidebar, footer)"
+      ],
+      "mtime": 1760275309
+    },
+    {
+      "path": "docs/knowledge-base/integrations/EXTERNAL_SYSTEMS.md",
+      "title": "EXTERNAL_SYSTEMS",
+      "headings": [
+        "Integration Patterns & External Systems",
+        "1. CIS Template System (UI Components)",
+        "Location",
+        "Integration Pattern",
+        "Variables Required",
+        "External Dependencies",
+        "2. Database Connection (`/app.php`)",
+        "Factory Function",
+        "Module Wrapper",
+        "Environment Variables",
+        "Key Tables",
+        "3. Session Management (`/app.php`)",
+        "Auto-Started Sessions",
+        "Available Session Variables",
+        "Authentication Check",
+        "CIS Auth Functions",
+        "4. Vend API Integration",
+        "Connection Details",
+        "Common Endpoints Used",
+        "Sync Pattern",
+        "Tables Synced",
+        "5. Navigation Menu (Sidebar)",
+        "Dynamic Menu",
+        "Integration",
+        "6. Logging System",
+        "CIS Logger",
+        "Module Logger",
+        "7. Error Reporting",
+        "Production Errors",
+        "Error Handler Integration",
+        "8. Queue System (Future)",
+        "Planned Integration",
+        "Integration Checklist"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Purpose:** Document how modules integrate with external CIS systems",
+        "---",
+        "```"
+      ],
+      "mtime": 1760275310
+    },
+    {
+      "path": "docs/knowledge-base/lessons-learned/LESSONS_LEARNED.md",
+      "title": "LESSONS_LEARNED",
+      "headings": [
+        "Lessons Learned - Development Notes",
+        "Template & UI",
+        "❌ Lesson: Don't Recreate External Components",
+        "❌ Lesson: Underscore Prefix Not Standard for Directories",
+        "Knowledge Base & Documentation",
+        "❌ Lesson: Multiple Docs Cause Confusion",
+        "❌ Lesson: Auto-Scanners Need Strict Rules",
+        "Database & Sessions",
+        "❌ Lesson: Don't Assume Sessions Are Started",
+        "❌ Lesson: Global Functions Can Be Hard to Track",
+        "Routing & Controllers",
+        "❌ Lesson: Base Path Must Match URL Structure",
+        "Auto-Cleanup & Maintenance",
+        "✅ Lesson: Auto-Cleanup Needs Protection",
+        "✅ Lesson: Empty Dirs Can Accumulate",
+        "Performance & Optimization",
+        "💡 Lesson: File Size Matters for AI Search",
+        "Testing & Debugging",
+        "💡 Lesson: Health Check Endpoints Are Essential",
+        "💡 Lesson: Bot Bypass for Testing",
+        "Code Quality",
+        "💡 Lesson: Lint Early, Lint Often",
+        "File Corruption",
+        "❌ Lesson: File Editors Can Corrupt Files",
+        "1. Backup",
+        "2. Remove",
+        "3. Recreate using heredoc (safer than editors)",
+        "4. Verify",
+        "Gotchas to Remember",
+        "1. **Cloudways Paths**",
+        "2. **NZ Timezone**",
+        "3. **CoreUI v2 + Bootstrap 4.2**",
+        "4. **Session Cookie Settings**",
+        "5. **PSR-4 Autoloading**",
+        "Questions to Ask Before Coding"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Purpose:** Capture mistakes, gotchas, and \"I wish I knew that earlier\" moments",
+        "---",
+        "**What Happened:** Original template recreated entire CIS UI (header, sidebar, footer) - 418 lines o"
+      ],
+      "mtime": 1760275527
+    },
+    {
+      "path": "docs/memory/AI_MEMORY.md",
+      "title": "AI_MEMORY",
+      "headings": [
+        "AI Memory System - Session Context",
+        "🧠 Recent Decisions (Last 30 Days)",
+        "October 12, 2025",
+        "📚 Key Patterns Established",
+        "1. Template Pattern (FINAL)",
+        "2. Database Pattern",
+        "3. Session Pattern",
+        "4. Routing Pattern",
+        "🚨 Anti-Patterns (DON'T DO THIS)",
+        "❌ Recreating CIS Templates",
+        "❌ Direct PDO Instantiation",
+        "❌ Manual Session Management",
+        "❌ SQL Concatenation",
+        "🎯 Module Structure Standard",
+        "🔍 Common Gotchas & Solutions",
+        "Issue: \"Class not found\"",
+        "Issue: Template not loading",
+        "Issue: Routes not working",
+        "Issue: Database connection fails",
+        "📝 Documentation Philosophy",
+        "What to Keep:",
+        "What to Delete:",
+        "🔄 Auto-Maintenance Settings",
+        "🎓 Lessons Learned",
+        "Lesson 1: Template Architecture",
+        "Lesson 2: Knowledge Base Accuracy",
+        "Lesson 3: Module Detection",
+        "🚀 Future Improvements (Ideas)"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Last Updated:** October 12, 2025",
+        "**Purpose:** Track decisions, changes, and context across coding sessions",
+        "---"
+      ],
+      "mtime": 1760275309
     }
   ],
   "stats": {
-    "totalEntries": 32,
-    "modules": 4,
-    "size": 9978
+    "totalEntries": 19,
+    "modules": 1,
+    "size": 13221
   }
 }
