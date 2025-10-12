@@ -1,0 +1,646 @@
+{
+  "generated": "2025-10-12T09:57:32.443Z",
+  "entries": [
+    {
+      "path": "_copilot/MODULES/_base/README.md",
+      "title": "_base - README",
+      "headings": [
+        "_base Module",
+        "Overview",
+        "Statistics",
+        "Key Files",
+        "Quick Start",
+        "Related Documentation"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "_base module functionality.",
+        "**Module Path:** `./${moduleName}/`",
+        "**Module Type:** MVC Module"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/_base/controllers.md",
+      "title": "_base - controllers",
+      "headings": [
+        "_base Module - Controllers",
+        "Controller Files"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "- `lib/Controller/ApiController.php`",
+        "- `lib/Controller/BaseController.php`",
+        "- `lib/Controller/PageController.php`"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/_base/data-flows.md",
+      "title": "_base - data-flows",
+      "headings": [
+        "_base Module - Data Flows",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for _base module data flows.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/_base/routes.md",
+      "title": "_base - routes",
+      "headings": [
+        "_base Module - Routes",
+        "API Endpoints",
+        "Route Files"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "No API endpoints found",
+        "No explicit route files found",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/_base/templates.md",
+      "title": "_base - templates",
+      "headings": [
+        "_base Module - Templates",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for _base module templates.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/_base/testing-notes.md",
+      "title": "_base - testing-notes",
+      "headings": [
+        "_base Module - Testing Notes",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for _base module testing notes.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/_base/views.md",
+      "title": "_base - views",
+      "headings": [
+        "_base Module - Views",
+        "View Files"
+      ],
+      "tags": [
+        "modules",
+        "_base",
+        "documentation"
+      ],
+      "snippets": [
+        "- `views/layouts/cis-template-bare.php`",
+        "- `views/layouts/cis-template.php`",
+        "- `views/partials/footer.php`"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/README.md",
+      "title": "consignments - README",
+      "headings": [
+        "Consignments Module",
+        "Overview",
+        "Statistics",
+        "Key Files",
+        "Quick Start",
+        "Related Documentation"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "Transfer and inventory management system with pack/receive operations.",
+        "**Module Path:** `./${moduleName}/`",
+        "**Module Type:** Full-stack MVC"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/controllers.md",
+      "title": "consignments - controllers",
+      "headings": [
+        "Consignments Module - Controllers",
+        "Controller Files"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "- `controllers/Api/PackApiController.php`",
+        "- `controllers/Api/ReceiveApiController.php`",
+        "- `controllers/HomeController.php`"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/data-flows.md",
+      "title": "consignments - data-flows",
+      "headings": [
+        "Consignments Module - Data Flows",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for consignments module data flows.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/routes.md",
+      "title": "consignments - routes",
+      "headings": [
+        "Consignments Module - Routes",
+        "API Endpoints",
+        "Route Files"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "- `api/add_line.php`",
+        "- `api/autosave.php`",
+        "- `api/autosave_load.php`"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/templates.md",
+      "title": "consignments - templates",
+      "headings": [
+        "Consignments Module - Templates",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for consignments module templates.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/testing-notes.md",
+      "title": "consignments - testing-notes",
+      "headings": [
+        "Consignments Module - Testing Notes",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for consignments module testing notes.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/consignments/views.md",
+      "title": "consignments - views",
+      "headings": [
+        "Consignments Module - Views",
+        "View Files"
+      ],
+      "tags": [
+        "modules",
+        "consignments",
+        "documentation"
+      ],
+      "snippets": [
+        "- `views/home/index.php`",
+        "- `views/hub/index.php`",
+        "- `views/pack/full.php`"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/README.md",
+      "title": "core - README",
+      "headings": [
+        "Core Module",
+        "Overview",
+        "Statistics",
+        "Key Files",
+        "Quick Start",
+        "Related Documentation"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "Core system utilities and bootstrapping functionality.",
+        "**Module Path:** `./${moduleName}/`",
+        "**Module Type:** PHP Module"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/controllers.md",
+      "title": "core - controllers",
+      "headings": [
+        "Core Module - Controllers",
+        "Controller Files"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "No controller files found",
+        "---",
+        "*Generated by CIS Knowledge Base System*"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/data-flows.md",
+      "title": "core - data-flows",
+      "headings": [
+        "Core Module - Data Flows",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for core module data flows.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/routes.md",
+      "title": "core - routes",
+      "headings": [
+        "Core Module - Routes",
+        "API Endpoints",
+        "Route Files"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "No API endpoints found",
+        "No explicit route files found",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/templates.md",
+      "title": "core - templates",
+      "headings": [
+        "Core Module - Templates",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for core module templates.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/testing-notes.md",
+      "title": "core - testing-notes",
+      "headings": [
+        "Core Module - Testing Notes",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for core module testing notes.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/core/views.md",
+      "title": "core - views",
+      "headings": [
+        "Core Module - Views",
+        "View Files"
+      ],
+      "tags": [
+        "modules",
+        "core",
+        "documentation"
+      ],
+      "snippets": [
+        "No view files found",
+        "---",
+        "*Generated by CIS Knowledge Base System*"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/README.md",
+      "title": "docs - README",
+      "headings": [
+        "Docs Module",
+        "Overview",
+        "Statistics",
+        "Key Files",
+        "Quick Start",
+        "Related Documentation"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "docs module functionality.",
+        "**Module Path:** `./${moduleName}/`",
+        "**Module Type:** Static Assets"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/controllers.md",
+      "title": "docs - controllers",
+      "headings": [
+        "Docs Module - Controllers",
+        "Controller Files"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "No controller files found",
+        "---",
+        "*Generated by CIS Knowledge Base System*"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/data-flows.md",
+      "title": "docs - data-flows",
+      "headings": [
+        "Docs Module - Data Flows",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for docs module data flows.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/routes.md",
+      "title": "docs - routes",
+      "headings": [
+        "Docs Module - Routes",
+        "API Endpoints",
+        "Route Files"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "No API endpoints found",
+        "No explicit route files found",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/templates.md",
+      "title": "docs - templates",
+      "headings": [
+        "Docs Module - Templates",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for docs module templates.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/testing-notes.md",
+      "title": "docs - testing-notes",
+      "headings": [
+        "Docs Module - Testing Notes",
+        "Overview"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "Documentation for docs module testing notes.",
+        "**Last Updated:** 2025-10-12 09:57:32 UTC",
+        "---"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "_copilot/MODULES/docs/views.md",
+      "title": "docs - views",
+      "headings": [
+        "Docs Module - Views",
+        "View Files"
+      ],
+      "tags": [
+        "modules",
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "No view files found",
+        "---",
+        "*Generated by CIS Knowledge Base System*"
+      ],
+      "mtime": 1760263052
+    },
+    {
+      "path": "docs/analysis/module-analysis.md",
+      "title": "module-analysis",
+      "headings": [
+        "Module Analysis Report",
+        "consignments"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Generated**: 2025-10-12 19:19:24",
+        "- **Files**: 164",
+        "- **API Endpoints**: 9"
+      ],
+      "mtime": 1760249964
+    },
+    {
+      "path": "docs/api/consignments.md",
+      "title": "consignments",
+      "headings": [
+        "consignments Module - API Documentation",
+        "Base URL",
+        "Endpoints",
+        "add_line",
+        "autosave",
+        "autosave_load",
+        "pack_lock",
+        "pack_submit",
+        "receive_submit",
+        "remove_line",
+        "search_products",
+        "update_line_qty"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Generated**: 2025-10-12 19:19:24",
+        "**Module**: consignments",
+        "**Endpoints**: 9"
+      ],
+      "mtime": 1760249964
+    },
+    {
+      "path": "docs/architecture/dependency-map.md",
+      "title": "dependency-map",
+      "headings": [
+        "Dependency Map",
+        "consignments",
+        "inventory"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Generated**: 2025-10-12 19:19:24",
+        "**Dependencies**: core, shared",
+        "**Dependencies**: core, consignments"
+      ],
+      "mtime": 1760249964
+    },
+    {
+      "path": "docs/knowledge-base/cross-reference-index.md",
+      "title": "cross-reference-index",
+      "headings": [
+        "Cross-Reference Index",
+        "Api endpoints",
+        "Controllers"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Generated**: 2025-10-12 19:19:24",
+        "- **consignments**: 9",
+        "- **inventory**: 5"
+      ],
+      "mtime": 1760249964
+    }
+  ],
+  "stats": {
+    "totalEntries": 32,
+    "modules": 4,
+    "size": 9978
+  }
+}

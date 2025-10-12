@@ -14,6 +14,7 @@ use Modules\Consignments\controllers\Api\ReceiveApiController;
 
 require __DIR__ . '/module_bootstrap.php';
 
+require_once dirname(__DIR__) . '/_base/lib/ErrorHandler.php';
 require_once dirname(__DIR__) . '/_base/lib/Kernel.php';
 
 // Register error handler (debug mode from env)

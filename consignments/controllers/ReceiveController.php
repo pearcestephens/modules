@@ -4,16 +4,11 @@ declare(strict_types=1);
 namespace Modules\Consignments\controllers;
 
 use Modules\Base\Controller\PageController;
+use Modules\Base\Helpers;
 use Modules\Consignments\Transfers\lib\Db;
 
 final class ReceiveController extends PageController
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->layout = dirname(__DIR__, 2) . '/_base/views/layouts/cis-template-bare.php';
-    }
-
     private function countTransfers(): int
     {
         try {
@@ -55,7 +50,7 @@ final class ReceiveController extends PageController
         $pageTitle = $transferId > 0 ? ('Receive Transfer #' . (string)$transferId) : 'Receive';
         $pageBlurb = 'Total transfers: ' . (string)$count;
         $breadcrumbs = [
-            ['label' => 'Transfers', 'href' => \Modules\Shared\Helpers::url('/transfers')],
+            ['label' => 'Transfers', 'href' => Helpers::url('/transfers')],
             ['label' => $pageTitle, 'active' => true],
         ];
         return $this->view(dirname(__DIR__) . '/views/receive/full.php', [

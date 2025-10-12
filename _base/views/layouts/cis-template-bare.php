@@ -64,12 +64,12 @@ $body_class = trim(($body_class ?? '') . ' app header-fixed sidebar-fixed aside-
     <?php include $_SERVER['DOCUMENT_ROOT'].'/assets/template/sidemenu.php'; ?>
 
     <main class="main">
-      <!-- Breadcrumb (optional) -->
+      <!--Breadcrumb (keeps same public look)-->
       <ol class="breadcrumb">
         <?php if (!empty($breadcrumbs) && is_array($breadcrumbs)): ?>
           <?php foreach ($breadcrumbs as $bc):
-            $label  = htmlspecialchars((string)($bc['label'] ?? ''), ENT_QUOTES, 'UTF-8');
-            $href   = (string)($bc['href'] ?? '');
+            $label = htmlspecialchars((string)($bc['label'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $href  = (string)($bc['href'] ?? '');
             $active = !empty($bc['active']);
           ?>
             <?php if ($active || $href === ''): ?>
@@ -80,7 +80,7 @@ $body_class = trim(($body_class ?? '') . ' app header-fixed sidebar-fixed aside-
           <?php endforeach; ?>
         <?php else: ?>
           <li class="breadcrumb-item">Home</li>
-          <li class="breadcrumb-item active"><?= $__pageTitle ?></li>
+          <li class="breadcrumb-item active"><?= $__pageTitle !== '' ? $__pageTitle : 'CIS' ?></li>
         <?php endif; ?>
         <li class="breadcrumb-menu d-md-down-none">
           <?php include $_SERVER['DOCUMENT_ROOT'].'/assets/template/quick-product-search.php'; ?>

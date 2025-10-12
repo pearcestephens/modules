@@ -11,8 +11,9 @@ abstract class PageController extends BaseController
 
     public function __construct()
     {
-    parent::__construct();
-    $this->layout = __DIR__ . '/../../views/layouts/cis-template.php';
+        parent::__construct();
+        // Force every inheriting controller to render through the bare CIS template
+        $this->layout = __DIR__ . '/../../views/layouts/cis-template-bare.php';
     }
 
     protected function view(string $absViewPath, array $data = []): string

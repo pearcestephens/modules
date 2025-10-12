@@ -1,5 +1,15 @@
 # Base Module Refactor - Change Log
 
+## 2025-10-12: Layout Normalisation & Health Endpoint
+
+### ✅ Summary
+- Standardised `PageController` to always use `views/layouts/cis-template-bare.php`
+- Removed deprecated layouts (`cis-template.php`, `base-coreui.php`) and duplicate module views
+- Added unauthenticated health probe at `modules/consignments/health.php`
+- Updated consignments controllers to rely on the shared layout and `Modules\Base\Helpers`
+
+---
+
 ## 2025-10-12: Base Module Creation & Migration
 
 ### 🎯 Goals Accomplished
@@ -28,8 +38,6 @@
 
 ### Views & Templates
 - `_base/views/layouts/cis-template-bare.php` - Full CIS chrome layout
-- `_base/views/layouts/cis-template.php` - Standard template
-- `_base/views/layouts/base-coreui.php` - Minimal CoreUI layout
 - `_base/views/partials/head.php` - HTML head section
 - `_base/views/partials/topbar.php` - Top navigation bar
 - `_base/views/partials/sidebar.php` - Side menu

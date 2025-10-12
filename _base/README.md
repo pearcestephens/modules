@@ -33,9 +33,7 @@ _base/
 │   └── Shared.php                  # Common utilities
 └── views/
     ├── layouts/                    # Page templates
-    │   ├── cis-template-bare.php   # Full CIS chrome (header/sidebar/footer)
-    │   ├── cis-template.php        # Standard template
-    │   └── base-coreui.php         # Minimal CoreUI layout
+    │   └── cis-template-bare.php   # Full CIS chrome (header/sidebar/footer)
     └── partials/                   # Reusable components
         ├── head.php
         ├── topbar.php
@@ -107,13 +105,6 @@ use Modules\Base\Helpers;
 
 class HomeController extends PageController
 {
-    public function __construct()
-    {
-        parent::__construct();
-        // Use the CIS chrome layout
-        $this->layout = dirname(__DIR__, 2) . '/_base/views/layouts/cis-template-bare.php';
-    }
-
     public function index(): string
     {
         return $this->view(dirname(__DIR__) . '/views/home.php', [
