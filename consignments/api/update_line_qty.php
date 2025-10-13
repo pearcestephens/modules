@@ -23,7 +23,7 @@ try {
 
     $pdo->beginTransaction();
 
-    $row = $pdo->prepare("SELECT id, transfer_id, qty_requested FROM transfer_items WHERE id = ? AND transfer_id = ? AND deleted_at IS NULL");
+    $row = $pdo->prepare("SELECT id, transfer_id, qty_requested FROM transfer_items WHERE id = ? AND transfer_id = ? AND deleted_by IS NULL");
     $row->execute([$itemId, $transferId]);
     $line = $row->fetch();
     if (!$line) throw new RuntimeException('Line not found');

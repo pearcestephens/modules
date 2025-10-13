@@ -36,7 +36,7 @@ try {
     if (!$t->fetch()) throw new RuntimeException('Transfer not found');
 
     // Upsert transfer_items (unique transfer_id + product_id)
-    $sel = $pdo->prepare("SELECT id, qty_requested, qty_sent_total, qty_received_total FROM transfer_items WHERE transfer_id = ? AND product_id = ? AND deleted_at IS NULL LIMIT 1");
+    $sel = $pdo->prepare("SELECT id, qty_requested, qty_sent_total, qty_received_total FROM transfer_items WHERE transfer_id = ? AND product_id = ? AND deleted_by IS NULL LIMIT 1");
     $sel->execute([$transferId, $productId]);
     $row = $sel->fetch();
 

@@ -182,7 +182,7 @@ try {
     // Update transfer aggregates
     $totWeightG = array_sum(array_map('intval', $weights ?: []));
     $pdo->prepare("UPDATE transfers
-                   SET total_boxes = total_boxes + ?, total_weight_g = total_weight_g + ?, state = 'PACKAGED', status = IF(status='draft','open',status), updated_at = NOW()
+                   SET total_boxes = total_boxes + ?, total_weight_g = total_weight_g + ?, state = 'PACKAGED', updated_at = NOW()
                    WHERE id = ?")
         ->execute([$boxCount, $totWeightG, $transferId]);
 
@@ -219,7 +219,14 @@ try {
 
     $pdo->commit();
 
-    $resp = ['ok'=>true,'transfer_id'=>$transferId,'shipment_id'=>$shipmentId,'queue_log_id'=>$qid];
+    $resp = [
+        'ok' => true,
+        'transfer_id' => $transferId,
+        'shipment_id' => $shipmentId,
+        'queue_log_id' => $qid,
+        // Optional client-side redirect; UI will prefer this if present
+        'redirect_url' => "/modules/consignments/?flash=pack_success&tx={$transferId}"
+    ];
     Idem::finish($pdo, $idemKey, 200, $resp);
     echo json_encode($resp);
 

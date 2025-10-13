@@ -357,7 +357,7 @@ final class TransfersService
 
             $this->db->prepare(
                 "UPDATE transfers
-                    SET status='sent', state='PACKAGED', updated_at = NOW()
+                    SET state='PACKAGED', updated_at = NOW()
                   WHERE id = :tid"
             )->execute(['tid' => $transferId]);
 

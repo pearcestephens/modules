@@ -37,7 +37,7 @@ try {
                    o_from.name as from_outlet,
                    o_to.name as to_outlet
             FROM transfers t
-            LEFT JOIN transfer_items ti ON t.id = ti.transfer_id AND ti.deleted_at IS NULL
+            LEFT JOIN transfer_items ti ON t.id = ti.transfer_id AND ti.deleted_by IS NULL
             LEFT JOIN vend_outlets o_from ON t.from_outlet_id = o_from.id
             LEFT JOIN vend_outlets o_to ON t.to_outlet_id = o_to.id
             WHERE t.id = ?

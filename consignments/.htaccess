@@ -6,6 +6,10 @@ RewriteBase /modules/consignments/
 # Disable directory indexing
 Options -Indexes
 
+# Optional HTTPS enforcement (Cloudways usually handles this)
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 # Allow direct access to API endpoints when bot=true (for testing)
 RewriteCond %{QUERY_STRING} (^|&)bot=true(&|$)
 RewriteRule ^api/.*\.php$ - [L]
@@ -20,7 +24,7 @@ RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
 # Route everything else to front controller
-RewriteRule ^ index.php [L]
+RewriteRule ^(.+)$ index.php [QSA,L]
 
 # Security headers as fallback if not set upstream
 <IfModule mod_headers.c>
@@ -31,8 +35,12 @@ RewriteRule ^ index.php [L]
 </IfModule>
 
 AddType text/javascript .js .mjs
+
 # Cache static assets
-<FilesMatch "\.(js|css)$">
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp|woff2?)$">
   FileETag MTime Size
   Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
+
+# Environment variable override (uncomment if needed)
+# SetEnv APP_ENV prod

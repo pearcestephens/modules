@@ -23,7 +23,7 @@ try {
     $pdo->beginTransaction();
 
     // Check not received/sent already
-    $line = $pdo->prepare("SELECT id, qty_sent_total, qty_received_total FROM transfer_items WHERE id = ? AND transfer_id = ? AND deleted_at IS NULL FOR UPDATE");
+    $line = $pdo->prepare("SELECT id, qty_sent_total, qty_received_total FROM transfer_items WHERE id = ? AND transfer_id = ? AND deleted_by IS NULL FOR UPDATE");
     $line->execute([$itemId,$transferId]);
     $li = $line->fetch();
     if (!$li) throw new RuntimeException('Line not found');

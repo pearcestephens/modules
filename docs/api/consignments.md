@@ -7,6 +7,57 @@
 ## Base URL
 `/modules/consignments/api/`
 
+Full API endpoint prefix:
+https://staff.vapeshed.co.nz/modules/consignments/api/
+
+## Client Contract: Idempotency & Redirects
+
+The Pack and Receive submit endpoints implement idempotency and may return a redirect hint the client should honor.
+
+Affected endpoints (POST):
+- https://staff.vapeshed.co.nz/modules/consignments/api/pack_submit.php
+- https://staff.vapeshed.co.nz/modules/consignments/api/receive_submit.php
+
+Shared request fields:
+- csrf: string (required) — session CSRF token
+- transfer_id: int (required)
+- nonce: string (recommended) — client-generated unique token for idempotency. Use crypto.randomUUID() when available; fallback to a timestamp string.
+
+Shared response fields:
+- ok: boolean
+- redirect_url: string (optional) — absolute or module-relative URL to navigate to after success. If not present, clients should fall back to their default flash route.
+
+Example (client → pack_submit.php):
+POST https://staff.vapeshed.co.nz/modules/consignments/api/pack_submit.php
+Body (application/x-www-form-urlencoded or multipart/form-data):
+    csrf=...&transfer_id=123&nonce=8e1a2b8e-4a34-4d61-9c55-6f9f8a1e7bcd&box_count=2&tracking[0]=TRK1&tracking[1]=TRK2
+
+Example success (server → client):
+{
+    "ok": true,
+    "transfer_id": 123,
+    "shipment_id": 456,
+    "redirect_url": "/modules/consignments/?flash=pack_success&tx=123"
+}
+
+Example (client → receive_submit.php):
+POST https://staff.vapeshed.co.nz/modules/consignments/api/receive_submit.php
+Body: csrf=...&transfer_id=123&nonce=1697083200000&lines[1001][qty_received]=5
+
+Example success (server → client):
+{
+    "ok": true,
+    "transfer_id": 123,
+    "receipt_id": 789,
+    "complete": false,
+    "redirect_url": "/modules/consignments/?flash=receive_partial&tx=123&rid=789"
+}
+
+Notes:
+- Clients must not re-submit while a previous request is in flight; the UI should disable the submit button and set an in-flight guard.
+- If a duplicate request with the same nonce is sent, the server will return the cached response (idempotent behavior).
+- Always verify auth and CSRF; these endpoints are staff-only.
+
 ## Endpoints
 
 ### add_line

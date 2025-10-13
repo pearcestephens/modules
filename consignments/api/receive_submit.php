@@ -176,8 +176,8 @@ try {
     $agg = $row->fetch();
     $isComplete = ((int)$agg['s'] > 0 && (int)$agg['s'] === (int)$agg['r']);
 
-    $pdo->prepare("UPDATE transfers SET status = ?, state = ?, updated_at = NOW() WHERE id = ?")
-        ->execute([$isComplete ? 'received' : 'partial', $isComplete ? 'RECEIVED' : 'RECEIVING', $transferId]);
+    $pdo->prepare("UPDATE transfers SET state = ?, updated_at = NOW() WHERE id = ?")
+        ->execute([$isComplete ? 'RECEIVED' : 'RECEIVING', $transferId]);
 
     // Auto discrepancies for shortages
     if (!$isComplete) {
@@ -248,8 +248,16 @@ try {
         
         $resp = $response;
     } else {
-        // Traditional format
-        $resp = ['ok'=>true,'transfer_id'=>$transferId,'receipt_id'=>$receiptId,'complete'=>$isComplete,'queue_log_id'=>$qid];
+        // Traditional format with optional redirect_url for UI convenience
+        $flash = $isComplete ? 'receive_complete' : 'receive_partial';
+        $resp = [
+            'ok' => true,
+            'transfer_id' => $transferId,
+            'receipt_id' => $receiptId,
+            'complete' => $isComplete,
+            'queue_log_id' => $qid,
+            'redirect_url' => "/modules/consignments/?flash={$flash}&tx={$transferId}"
+        ];
     }
     
     Idem::finish($pdo, $idemKey, 200, $resp);

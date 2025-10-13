@@ -35,9 +35,8 @@ export function bindFilters(root) {
       btn.classList.toggle('active');
     });
   });
-}
+};
 
-;
 export function mountConfidence(root) {
   const bar = root.querySelector('.js-confidence');
   const digest = root.querySelector('.js-digest');
@@ -50,36 +49,69 @@ export function mountConfidence(root) {
   };
   root.addEventListener('input', update);
   update();
-}
+};
 
-;
+
 import { post } from '../core/api.js';
-import { showModal } from '../core/ui.js';
+import { toast } from '../core/ui.js';
 
 export function bindReceiveActions(root, c) {
   const form = root.querySelector('#receiveForm');
+  const setLoading = (btn, on) => {
+    if (!btn) return;
+    if (on) {
+      btn.setAttribute('disabled', 'disabled');
+      btn.setAttribute('aria-busy', 'true');
+      let sp = btn.querySelector('.vt-btn-spinner');
+      if (!sp) {
+        sp = document.createElement('span');
+        sp.className = 'vt-btn-spinner spinner-border spinner-border-sm me-1';
+        sp.setAttribute('role', 'status');
+        sp.setAttribute('aria-hidden', 'true');
+        btn.prepend(sp);
+      }
+    } else {
+      btn.removeAttribute('disabled');
+      btn.setAttribute('aria-busy', 'false');
+      btn.querySelector('.vt-btn-spinner')?.remove();
+    }
+  };
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
+    // Consistent idempotency key from UI
+    fd.append('nonce', (crypto?.randomUUID?.() || String(Date.now())));
+    // Prevent double-submit
+    if (form.dataset.inFlight === '1') return;
+    form.dataset.inFlight = '1';
+  const submitBtn = form.querySelector('[type="submit"]');
+  setLoading(submitBtn, true);
+
     try {
-      const res = await post(`${c.apiBase}/receive_submit.php`, fd);
-      const el = document.getElementById('receiveSuccess');
-      const summary = el.querySelector('.js-receive-summary');
-      summary.textContent = `Receipt #${res.receipt_id} ${res.complete ? 'complete' : 'partial'}.`;
-      showModal(el);
+      const res   = await post(`${c.apiBase}/receive_submit.php`, fd);
+      const flash = res.complete ? 'receive_complete' : 'receive_partial';
+      const rid   = res.receipt_id ? `&rid=${encodeURIComponent(res.receipt_id)}` : '';
+      // Prefer server-provided redirect_url if present
+      const next  = res?.redirect_url || `/modules/consignments/?flash=${flash}&tx=${encodeURIComponent(c.transferId)}${rid}`;
+      toast(root, `✅ Receive ${res.complete ? 'complete' : 'partial'} saved. Redirecting…`, 'success');
+      window.location.href = next;
     } catch (err) {
-      alert('Receive failed: ' + err.message);
+      toast(root, `Receive failed: ${err.message}`, 'error');
+      setLoading(submitBtn, false);
+      delete form.dataset.inFlight;
     }
   });
 
-  // Fallback close if Bootstrap not present:
-  document.querySelector('#receiveSuccess [data-bs-dismiss="modal"]')
-    ?.addEventListener('click', () => {
+  // keep existing modal close hook if the DOM has it
+  document.querySelectorAll('#receiveSuccess [data-bs-dismiss="modal"], #receiveSuccess [data-dismiss="modal"]').forEach((el) => {
+    el.addEventListener('click', () => {
       document.getElementById('receiveSuccess')?.classList.remove('vt-modal--open');
     });
-}
+  });
+};
 
-;
+
 import { cfg } from '../core/config.js';
 import { mountDraftControls } from '../core/storage.js';
 import { bindReceiveTable } from './table-receive.js';
@@ -105,7 +137,8 @@ export function initReceive(options) {
       root,
       onCode: (code) => {
         // Try to match a row by SKU or product_id stored as data attributes.
-        const row = root.querySelector(`tr[data-sku="${CSS.escape(code)}"], tr[data-product-id="${CSS.escape(code)}"]`)
+        const esc = (s) => (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/[^a-zA-Z0-9_\-]/g, '\\$&');
+        const row = root.querySelector(`tr[data-sku="${esc(code)}"], tr[data-product-id="${esc(code)}"]`)
           || root.querySelector('.js-receive-table tbody tr'); // fallback: first row
         const input = row?.querySelector('.qty-input');
         if (!input) return;

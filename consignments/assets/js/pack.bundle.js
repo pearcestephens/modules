@@ -91,24 +91,59 @@ export function bindShipping(root) {
 
   boxCountInput?.addEventListener('input', render);
   render();
-}
+};
 
-;
+
+
+
 import { post } from '../core/api.js';
 import { toast } from '../core/ui.js';
 
 export function bindPackActions(root, c) {
   const form = root.querySelector('#packForm');
+  const setLoading = (btn, on) => {
+    if (!btn) return;
+    if (on) {
+      btn.setAttribute('disabled', 'disabled');
+      btn.setAttribute('aria-busy', 'true');
+      let sp = btn.querySelector('.vt-btn-spinner');
+      if (!sp) {
+        sp = document.createElement('span');
+        sp.className = 'vt-btn-spinner spinner-border spinner-border-sm me-1';
+        sp.setAttribute('role', 'status');
+        sp.setAttribute('aria-hidden', 'true');
+        btn.prepend(sp);
+      }
+    } else {
+      btn.removeAttribute('disabled');
+      btn.setAttribute('aria-busy', 'false');
+      btn.querySelector('.vt-btn-spinner')?.remove();
+    }
+  };
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
+    // Consistent idempotency key from UI
+    fd.append('nonce', (crypto?.randomUUID?.() || String(Date.now())));
+    // Prevent double-submit
+    if (form.dataset.inFlight === '1') return;
+    form.dataset.inFlight = '1';
+  const submitBtn = form.querySelector('[type="submit"]');
+  setLoading(submitBtn, true);
+
     try {
       const res = await post(`${c.apiBase}/pack_submit.php`, fd);
-      toast(root, `Packed. Queue Log #${res.queue_log_id}`, 'success');
-      setTimeout(() => location.reload(), 600);
+      // Success UX + redirect back to Consignments home with a flash banner
+      toast(root, `✅ Packed transfer #${c.transferId}. Redirecting…`, 'success');
+      setTimeout(() => {
+        const next = res?.redirect_url || `/modules/consignments/?flash=pack_success&tx=${encodeURIComponent(c.transferId)}`;
+        window.location.href = next;
+      }, 1200);
     } catch (err) {
       toast(root, `Pack failed: ${err.message}`, 'error');
+      setLoading(submitBtn, false);
+      delete form.dataset.inFlight;
     }
   });
 
@@ -116,34 +151,6 @@ export function bindPackActions(root, c) {
     window.print();
   });
 }
-
-;
-import { post } from '../core/api.js';
-import { toast } from '../core/ui.js';
-
-export function bindAddProducts(root, c) {
-  const openBtn = root.querySelector('.js-add-product');
-  const modal = document.getElementById('addProductsModal');
-  const input = modal?.querySelector('.js-ap-search');
-  const btnSearch = modal?.querySelector('.js-ap-search-btn');
-  const tbody = modal?.querySelector('.js-ap-tbody');
-  const bulkBtn = modal?.querySelector('.js-ap-bulk-add');
-
-  const renderRow = (p) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><code>${p.sku ?? ''}</code></td>
-      <td>${p.name ?? p.product_id}</td>
-      <td>${parseInt(p.stock ?? 0,10)}</td>
-      <td><input type="number" class="form-control form-control-sm js-ap-qty" min="0" value="1" style="width:110px"></td>
-      <td><button type="button" class="btn btn-sm btn-primary js-ap-add-one">Add</button></td>
-    `;
-    tr.dataset.productId = p.product_id;
-    tr.dataset.sku = p.sku ?? '';
-    tr.dataset.name = p.name ?? p.product_id;
-    tr.dataset.stock = String(p.stock ?? 0);
-    return tr;
-  };
 
   const doSearch = async () => {
     const q = input.value.trim();
@@ -277,7 +284,6 @@ export function bindAddProducts(root, c) {
 }
 
 ;
-import { toast } from '../core/ui.js';
 
 const LS_KEY = 'vs_default_printer';
 
