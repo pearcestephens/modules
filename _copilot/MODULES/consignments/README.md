@@ -5,14 +5,14 @@ Transfer and inventory management system with pack/receive operations.
 
 **Module Path:** `./${moduleName}/`  
 **Module Type:** Full-stack MVC  
-**Last Updated:** 2025-10-12 13:25:37 UTC
+**Last Updated:** 2025-10-13 15:16:53 UTC
 
 ## Statistics
-- **Total Files:** 79
-- **PHP Files:** 48
-- **JavaScript Files:** 22
-- **CSS Files:** 4
-- **API Endpoints:** 9
+- **Total Files:** 134
+- **PHP Files:** 82
+- **JavaScript Files:** 24
+- **CSS Files:** 7
+- **API Endpoints:** 10
 - **Controllers:** 6
 
 ## Key Files

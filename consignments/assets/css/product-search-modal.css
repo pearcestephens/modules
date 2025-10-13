@@ -1,0 +1,692 @@
+/**
+ * Advanced Product Search Modal - Google-Level UX
+ * 
+ * Features:
+ * - Live search with instant results
+ * - Bulk selection with Shift+Click
+ * - Stock level indicators
+ * - SKU/Brand/Supplier filtering
+ * - Keyboard navigation (Arrow keys, Enter, Escape)
+ * - Touch-friendly mobile interface
+ * 
+ * Based on base-receive.css design system
+ * 
+ * @author CIS Development Team
+ * @version 1.0.0
+ * @created 2025-10-13
+ */
+
+/* ========================================
+   PRODUCT SEARCH MODAL - GOOGLE STYLE
+======================================== */
+.vs-product-search-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--vs-transition-base);
+}
+
+.vs-product-search-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.vs-product-search-container {
+    background: white;
+    border-radius: var(--vs-radius-xl);
+    box-shadow: var(--vs-shadow-xl);
+    width: 90vw;
+    max-width: 1000px;
+    height: 80vh;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    transition: all var(--vs-transition-base);
+}
+
+.vs-product-search-modal.show .vs-product-search-container {
+    transform: scale(1) translateY(0);
+}
+
+/* ========================================
+   SEARCH HEADER
+======================================== */
+.vs-search-header {
+    background: linear-gradient(135deg, var(--vs-primary) 0%, var(--vs-primary-dark) 100%);
+    color: white;
+    padding: var(--vs-space-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.vs-search-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    pointer-events: none;
+}
+
+.vs-search-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 var(--vs-space-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--vs-space-md);
+}
+
+.vs-search-title .icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--vs-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.vs-search-close {
+    position: absolute;
+    top: var(--vs-space-lg);
+    right: var(--vs-space-lg);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--vs-radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--vs-transition-fast);
+    backdrop-filter: blur(10px);
+}
+
+.vs-search-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* ========================================
+   GOOGLE-STYLE SEARCH INPUT
+======================================== */
+.vs-search-input-container {
+    position: relative;
+    margin-bottom: var(--vs-space-md);
+}
+
+.vs-search-input {
+    width: 100%;
+    padding: 15px 20px 15px 50px;
+    font-size: 1.1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--vs-radius-xl);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    backdrop-filter: blur(10px);
+    transition: all var(--vs-transition-fast);
+}
+
+.vs-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.vs-search-input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.vs-search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+}
+
+.vs-search-loading {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    animation: spin 1s linear infinite;
+    opacity: 0;
+    transition: opacity var(--vs-transition-fast);
+}
+
+.vs-search-loading.show {
+    opacity: 1;
+}
+
+@keyframes spin {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* ========================================
+   FILTER TABS (GOOGLE STYLE)
+======================================== */
+.vs-search-filters {
+    display: flex;
+    gap: var(--vs-space-sm);
+    margin-bottom: var(--vs-space-md);
+}
+
+.vs-filter-tab {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 8px 16px;
+    border-radius: var(--vs-radius-lg);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--vs-transition-fast);
+    backdrop-filter: blur(10px);
+}
+
+.vs-filter-tab:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.vs-filter-tab.active {
+    background: rgba(255, 255, 255, 0.4);
+    color: white;
+    font-weight: 600;
+}
+
+/* ========================================
+   RESULTS CONTAINER
+======================================== */
+.vs-search-results {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--vs-gray-50);
+}
+
+.vs-results-header {
+    padding: var(--vs-space-md) var(--vs-space-lg);
+    background: white;
+    border-bottom: 1px solid var(--vs-gray-200);
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.vs-results-count {
+    color: var(--vs-gray-600);
+    font-size: 0.9rem;
+}
+
+.vs-bulk-actions {
+    display: flex;
+    gap: var(--vs-space-sm);
+    align-items: center;
+}
+
+.vs-selection-count {
+    color: var(--vs-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.vs-clear-selection {
+    background: none;
+    border: none;
+    color: var(--vs-gray-500);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--vs-radius-sm);
+    transition: all var(--vs-transition-fast);
+}
+
+.vs-clear-selection:hover {
+    color: var(--vs-danger);
+    background: var(--vs-gray-100);
+}
+
+/* ========================================
+   PRODUCT RESULTS LIST
+======================================== */
+.vs-results-list {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--vs-gray-300) transparent;
+}
+
+.vs-results-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.vs-results-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.vs-results-list::-webkit-scrollbar-thumb {
+    background: var(--vs-gray-300);
+    border-radius: 4px;
+}
+
+.vs-results-list::-webkit-scrollbar-thumb:hover {
+    background: var(--vs-gray-400);
+}
+
+.vs-product-item {
+    display: flex;
+    align-items: center;
+    padding: var(--vs-space-md) var(--vs-space-lg);
+    background: white;
+    border-bottom: 1px solid var(--vs-gray-100);
+    cursor: pointer;
+    transition: all var(--vs-transition-fast);
+    position: relative;
+}
+
+.vs-product-item:hover {
+    background: var(--vs-gray-50);
+    border-left: 4px solid var(--vs-primary);
+    padding-left: calc(var(--vs-space-lg) - 4px);
+}
+
+.vs-product-item.selected {
+    background: rgba(37, 99, 235, 0.08);
+    border-left: 4px solid var(--vs-primary);
+    padding-left: calc(var(--vs-space-lg) - 4px);
+}
+
+.vs-product-item.focused {
+    outline: 2px solid var(--vs-primary);
+    outline-offset: -2px;
+}
+
+/* ========================================
+   PRODUCT ITEM LAYOUT
+======================================== */
+.vs-product-checkbox {
+    width: 20px;
+    height: 20px;
+    margin-right: var(--vs-space-md);
+    accent-color: var(--vs-primary);
+    cursor: pointer;
+}
+
+.vs-product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.vs-product-name {
+    font-weight: 600;
+    color: var(--vs-gray-900);
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.vs-product-meta {
+    display: flex;
+    gap: var(--vs-space-md);
+    font-size: 0.85rem;
+    color: var(--vs-gray-600);
+    align-items: center;
+}
+
+.vs-product-sku {
+    font-family: var(--vs-font-mono);
+    background: var(--vs-gray-100);
+    padding: 2px 6px;
+    border-radius: var(--vs-radius-sm);
+}
+
+.vs-product-brand {
+    color: var(--vs-primary);
+    font-weight: 500;
+}
+
+.vs-product-supplier {
+    color: var(--vs-gray-500);
+}
+
+/* ========================================
+   STOCK INDICATORS
+======================================== */
+.vs-product-stock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-left: var(--vs-space-lg);
+    min-width: 80px;
+}
+
+.vs-stock-level {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+}
+
+.vs-stock-level.in-stock {
+    color: var(--vs-success);
+}
+
+.vs-stock-level.low-stock {
+    color: var(--vs-warning);
+}
+
+.vs-stock-level.out-of-stock {
+    color: var(--vs-danger);
+}
+
+.vs-stock-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vs-gray-500);
+}
+
+.vs-stock-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+}
+
+.vs-stock-indicator.in-stock {
+    background: var(--vs-success);
+}
+
+.vs-stock-indicator.low-stock {
+    background: var(--vs-warning);
+}
+
+.vs-stock-indicator.out-of-stock {
+    background: var(--vs-danger);
+}
+
+/* ========================================
+   PRODUCT PRICE
+======================================== */
+.vs-product-price {
+    margin-left: var(--vs-space-lg);
+    text-align: right;
+    min-width: 80px;
+}
+
+.vs-price-retail {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--vs-gray-900);
+}
+
+.vs-price-cost {
+    font-size: 0.8rem;
+    color: var(--vs-gray-500);
+    margin-top: 2px;
+}
+
+/* ========================================
+   MODAL FOOTER
+======================================== */
+.vs-search-footer {
+    background: white;
+    border-top: 1px solid var(--vs-gray-200);
+    padding: var(--vs-space-lg);
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.vs-footer-info {
+    display: flex;
+    gap: var(--vs-space-lg);
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--vs-gray-600);
+}
+
+.vs-keyboard-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--vs-space-sm);
+}
+
+.vs-key {
+    background: var(--vs-gray-100);
+    border: 1px solid var(--vs-gray-300);
+    border-radius: var(--vs-radius-sm);
+    padding: 2px 6px;
+    font-family: var(--vs-font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.vs-footer-actions {
+    display: flex;
+    gap: var(--vs-space-md);
+}
+
+.vs-btn-add-selected {
+    background: var(--vs-primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--vs-radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--vs-transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--vs-space-sm);
+}
+
+.vs-btn-add-selected:hover {
+    background: var(--vs-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--vs-shadow-md);
+}
+
+.vs-btn-add-selected:disabled {
+    background: var(--vs-gray-300);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.vs-btn-cancel {
+    background: var(--vs-gray-100);
+    color: var(--vs-gray-700);
+    border: 1px solid var(--vs-gray-300);
+    padding: 12px 24px;
+    border-radius: var(--vs-radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--vs-transition-fast);
+}
+
+.vs-btn-cancel:hover {
+    background: var(--vs-gray-200);
+    border-color: var(--vs-gray-400);
+}
+
+/* ========================================
+   EMPTY STATE
+======================================== */
+.vs-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--vs-space-2xl);
+    color: var(--vs-gray-500);
+    text-align: center;
+}
+
+.vs-empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--vs-space-lg);
+    opacity: 0.5;
+}
+
+.vs-empty-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: var(--vs-space-sm);
+    color: var(--vs-gray-700);
+}
+
+.vs-empty-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* ========================================
+   LOADING STATE
+======================================== */
+.vs-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--vs-space-2xl);
+}
+
+.vs-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--vs-gray-200);
+    border-top: 4px solid var(--vs-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--vs-space-lg);
+}
+
+.vs-loading-text {
+    color: var(--vs-gray-600);
+    font-weight: 500;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+@media (max-width: 768px) {
+    .vs-product-search-container {
+        width: 95vw;
+        height: 90vh;
+        margin: 0;
+    }
+
+    .vs-search-header {
+        padding: var(--vs-space-md);
+    }
+
+    .vs-search-title {
+        font-size: 1.2rem;
+    }
+
+    .vs-product-item {
+        padding: var(--vs-space-md);
+    }
+
+    .vs-product-meta {
+        flex-wrap: wrap;
+        gap: var(--vs-space-sm);
+    }
+
+    .vs-product-stock,
+    .vs-product-price {
+        margin-left: var(--vs-space-md);
+        min-width: 60px;
+    }
+
+    .vs-search-footer {
+        padding: var(--vs-space-md);
+        flex-direction: column;
+        gap: var(--vs-space-md);
+    }
+
+    .vs-footer-info {
+        order: 2;
+    }
+
+    .vs-footer-actions {
+        order: 1;
+    }
+
+    .vs-keyboard-hint {
+        display: none;
+    }
+}
+
+/* ========================================
+   DARK MODE SUPPORT (FUTURE)
+======================================== */
+@media (prefers-color-scheme: dark) {
+    /* Will be implemented when dark mode is added */
+}
+
+/* ========================================
+   HIGH CONTRAST MODE
+======================================== */
+@media (prefers-contrast: high) {
+    .vs-product-item {
+        border-bottom: 2px solid var(--vs-gray-300);
+    }
+
+    .vs-product-item:hover,
+    .vs-product-item.selected {
+        border-left: 6px solid var(--vs-primary);
+    }
+
+    .vs-search-input {
+        border-width: 3px;
+    }
+}
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+@media (prefers-reduced-motion: reduce) {
+    .vs-product-search-modal,
+    .vs-product-search-container,
+    .vs-product-item,
+    .vs-search-input,
+    .vs-btn-add-selected,
+    .vs-btn-cancel {
+        transition: none;
+    }
+
+    .vs-loading-spinner,
+    .vs-search-loading {
+        animation: none;
+    }
+}

@@ -6,8 +6,11 @@ RewriteBase /modules/consignments/
 # Disable directory indexing
 Options -Indexes
 
-# Optional HTTPS enforcement (Cloudways usually handles this)
+# HTTPS enforcement (safe behind reverse proxy)
+# Cloudways terminates TLS at Nginx; Apache may see HTTPS=off even for HTTPS requests.
+# Respect X-Forwarded-Proto to avoid self-redirect loops.
 RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # Allow direct access to API endpoints when bot=true (for testing)

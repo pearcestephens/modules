@@ -6,6 +6,7 @@
 - `api/autosave_load.php`
 - `api/pack_lock.php`
 - `api/pack_submit.php`
+- `api/receive_autosave.php`
 - `api/receive_submit.php`
 - `api/remove_line.php`
 - `api/search_products.php`

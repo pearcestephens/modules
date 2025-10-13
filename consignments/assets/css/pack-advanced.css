@@ -1,0 +1,446 @@
+/* =========================
+   Pack Transfer - Advanced UI Extensions
+   SCOPED TO: .vs-pack-container (no global pollution)
+   ========================= */
+
+.vs-pack-container {
+  /* Design tokens */
+  --vt-shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --vt-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+  --vt-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+  --vt-shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1);
+  --vt-gradient-primary: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  --vt-gradient-success: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  --vt-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Inherit tokens from transfer-core */
+  --vt-bg: #ffffff;
+  --vt-border: #e5e7eb;
+  --vt-border-strong: #d1d5db;
+  --vt-muted: #6b7280;
+  --vt-text: #111827;
+  --vt-primary: #2563eb;
+  --vt-success: #16a34a;
+  --vt-warning: #f59e0b;
+  --vt-error: #dc2626;
+  --vt-soft: #f9fafb;
+  --vt-soft-2: #f3f4f6;
+}
+
+/* ========================= DELIVERY MODES ========================= */
+.vs-pack-container .delivery-modes {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.vs-pack-container .delivery-mode {
+  flex: 1;
+  padding: 20px;
+  border: 2px solid var(--vt-border);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--vt-transition);
+  background: var(--vt-bg);
+}
+
+.vs-pack-container .delivery-mode:hover {
+  border-color: var(--vt-primary);
+  box-shadow: var(--vt-shadow-md);
+  transform: translateY(-2px);
+}
+
+.vs-pack-container .delivery-mode.active {
+  border-color: var(--vt-primary);
+  background: linear-gradient(135deg, rgba(37,99,235,0.05) 0%, rgba(37,99,235,0.1) 100%);
+  box-shadow: var(--vt-shadow-lg);
+}
+
+.vs-pack-container .delivery-mode-icon {
+  font-size: 2.5rem;
+  color: var(--vt-primary);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.vs-pack-container .delivery-mode-title {
+  font-weight: 600;
+  color: var(--vt-text);
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.vs-pack-container .delivery-mode-desc {
+  font-size: 0.9rem;
+  color: var(--vt-muted);
+  line-height: 1.4;
+}
+
+/* ========================= PRODUCT SEARCH MODAL ========================= */
+.vs-pack-container .product-search-modal .modal-dialog {
+  max-width: 920px;
+  margin: 1.75rem auto;
+}
+
+.vs-pack-container .product-search-modal .modal-content {
+  border: none;
+  border-radius: 12px;
+  box-shadow: var(--vt-shadow-xl);
+  overflow: hidden;
+}
+
+.product-search-header {
+  background: var(--vt-gradient-primary);
+  color: white;
+  padding: 20px 24px;
+  position: relative;
+}
+
+.product-search-header h4 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.product-search-header .close {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: white;
+  opacity: 0.8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: var(--vt-transition);
+}
+
+.product-search-header .close:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.search-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--vt-soft);
+  border-bottom: 1px solid var(--vt-border);
+}
+
+.search-input-group {
+  flex: 1;
+  position: relative;
+}
+
+.search-input-group input {
+  padding: 12px 16px 12px 44px;
+  border: 1px solid var(--vt-border);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: var(--vt-transition);
+  width: 100%;
+}
+
+.search-input-group input:focus {
+  outline: none;
+  border-color: var(--vt-primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+.search-input-group .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--vt-muted);
+  font-size: 16px;
+}
+
+.product-grid {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.product-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f1f1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.product-item:hover {
+    background: #f8f9fa;
+}
+
+.product-item.selected {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+.product-checkbox {
+    margin-right: 12px;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.product-sku {
+    font-size: 0.85rem;
+    color: #666;
+    font-family: monospace;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.product-stock {
+    font-size: 0.9rem;
+    color: #28a745;
+    font-weight: 500;
+}
+
+.product-stock.low {
+    color: #ffc107;
+}
+
+.product-stock.out {
+    color: #dc3545;
+}
+
+/* Delivery Mode Selector */
+.delivery-modes {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.delivery-mode {
+    flex: 1;
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.delivery-mode:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+}
+
+.delivery-mode.active {
+    border-color: #007bff;
+    background: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.2);
+}
+
+.delivery-mode-icon {
+    font-size: 2rem;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.delivery-mode-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.delivery-mode-desc {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Validation States */
+.form-group.has-error .form-control {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.form-group.has-success .form-control {
+    border-color: #28a745;
+    background: #f8fff9;
+}
+
+.validation-message {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.validation-message.error {
+    color: #721c24;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.validation-message.success {
+    color: #155724;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+/* Progress Indicators */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 1;
+}
+
+.progress-step {
+    background: white;
+    border: 3px solid #e9ecef;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #6c757d;
+    position: relative;
+    z-index: 2;
+}
+
+.progress-step.active {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.progress-step.completed {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+/* Chips and Badges */
+.chip {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    margin: 0.2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chip-primary {
+    background: #e3f2fd;
+    color: #1976d2;
+    border-color: #bbdefb;
+}
+
+.chip-success {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border-color: #c8e6c8;
+}
+
+.chip-warning {
+    background: #fff3e0;
+    color: #f57c00;
+    border-color: #ffcc02;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-only {
+        display: block !important;
+    }
+    
+    body {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    
+    .card {
+        border: 1px solid #000;
+        break-inside: avoid;
+    }
+    
+    .card-header {
+        background: #f5f5f5 !important;
+        border-bottom: 1px solid #000;
+    }
+    
+    table {
+        border-collapse: collapse;
+    }
+    
+    th, td {
+        border: 1px solid #000;
+        padding: 8px;
+    }
+    
+    .page-break {
+        page-break-before: always;
+    }
+}
+
+/* Keyboard Shortcuts Help */
+.keyboard-shortcuts {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    z-index: 1000;
+    max-width: 300px;
+    display: none;
+}
+
+.keyboard-shortcuts.show {
+    display: block;
+}
+
+.kbd-shortcut {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.kbd-key {
+    background: #555;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+}

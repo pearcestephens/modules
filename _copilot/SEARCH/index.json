@@ -1,5 +1,5 @@
 {
-  "generated": "2025-10-12T13:25:37.911Z",
+  "generated": "2025-10-13T15:16:53.912Z",
   "entries": [
     {
       "path": "_copilot/MODULES/consignments/README.md",
@@ -22,7 +22,7 @@
         "**Module Path:** `./${moduleName}/`",
         "**Module Type:** Full-stack MVC"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
     },
     {
       "path": "_copilot/MODULES/consignments/controllers.md",
@@ -41,7 +41,7 @@
         "- `controllers/Api/ReceiveApiController.php`",
         "- `controllers/HomeController.php`"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
     },
     {
       "path": "_copilot/MODULES/consignments/data-flows.md",
@@ -57,10 +57,10 @@
       ],
       "snippets": [
         "Documentation for consignments module data flows.",
-        "**Last Updated:** 2025-10-12 13:25:37 UTC",
+        "**Last Updated:** 2025-10-13 15:16:53 UTC",
         "---"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
     },
     {
       "path": "_copilot/MODULES/consignments/routes.md",
@@ -80,7 +80,7 @@
         "- `api/autosave.php`",
         "- `api/autosave_load.php`"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
     },
     {
       "path": "_copilot/MODULES/consignments/templates.md",
@@ -96,10 +96,10 @@
       ],
       "snippets": [
         "Documentation for consignments module templates.",
-        "**Last Updated:** 2025-10-12 13:25:37 UTC",
+        "**Last Updated:** 2025-10-13 15:16:53 UTC",
         "---"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
     },
     {
       "path": "_copilot/MODULES/consignments/testing-notes.md",
@@ -115,10 +115,10 @@
       ],
       "snippets": [
         "Documentation for consignments module testing notes.",
-        "**Last Updated:** 2025-10-12 13:25:37 UTC",
+        "**Last Updated:** 2025-10-13 15:16:53 UTC",
         "---"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
     },
     {
       "path": "_copilot/MODULES/consignments/views.md",
@@ -133,11 +133,46 @@
         "documentation"
       ],
       "snippets": [
+        "- `templates/base-transfer.php`",
         "- `views/home/index.php`",
-        "- `views/hub/index.php`",
-        "- `views/pack/full.php`"
+        "- `views/hub/index.php`"
       ],
-      "mtime": 1760275537
+      "mtime": 1760368613
+    },
+    {
+      "path": "docs/BOOTSTRAP_GUIDE.md",
+      "title": "BOOTSTRAP_GUIDE",
+      "headings": [
+        "🚀 CIS Module Bootstrap Guide",
+        "How to Properly Load app.php and Use Templates",
+        "⚠️ Critical Rule: Load app.php ONCE",
+        "✅ CORRECT Pattern",
+        "❌ WRONG Patterns",
+        "Don't load app.php in every file:",
+        "Don't load app.php in templates:",
+        "📋 What app.php Should Contain",
+        "🗺️ Request Flow Diagram",
+        "🔍 Debugging Bootstrap Issues",
+        "Problem: \"HTTPS_URL constant not defined\"",
+        "Problem: \"Session not started\"",
+        "Problem: \"Call to undefined function getUserInformation()\"",
+        "Problem: \"Headers already sent\" (session issues)",
+        "📝 Template Prerequisites Checklist",
+        "🎯 Module Entry Point Template",
+        "✅ Quick Verification",
+        "🚨 Common Mistakes to Avoid",
+        "📚 Related Documentation"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Last Updated:** October 12, 2025",
+        "**Purpose:** Prevent bootstrap errors and ensure proper initialization order",
+        "---"
+      ],
+      "mtime": 1760281022
     },
     {
       "path": "docs/CODING_STANDARDS.md",
@@ -401,6 +436,7 @@
       "headings": [
         "consignments Module - API Documentation",
         "Base URL",
+        "Client Contract: Idempotency & Redirects",
         "Endpoints",
         "add_line",
         "autosave",
@@ -421,7 +457,7 @@
         "**Module**: consignments",
         "**Endpoints**: 9"
       ],
-      "mtime": 1760249964
+      "mtime": 1760302498
     },
     {
       "path": "docs/architecture/dependency-map.md",
@@ -441,6 +477,76 @@
         "**Dependencies**: core, consignments"
       ],
       "mtime": 1760249964
+    },
+    {
+      "path": "docs/database/shipping-outlet-config.md",
+      "title": "shipping-outlet-config",
+      "headings": [
+        "Transfer System Shipping & Outlet Configuration",
+        "NZ Post Integration Fields",
+        "Per-Outlet Shipping Configuration",
+        "Complete Address Data",
+        "Full Outlet Address Query",
+        "Transfer System Address Usage",
+        "From/To Address Resolution",
+        "Address Formatting Functions",
+        "NZ Address Format",
+        "Shipping Label Data",
+        "API Integration Requirements",
+        "NZ Post API Usage",
+        "Google Services Integration",
+        "Validation Rules",
+        "Address Completeness Check",
+        "Critical Notes"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Updated:** October 12, 2025",
+        "**Context:** Critical shipping fields for transfer operations",
+        "```sql"
+      ],
+      "mtime": 1760293731
+    },
+    {
+      "path": "docs/database/vend-schema-reference.md",
+      "title": "vend-schema-reference",
+      "headings": [
+        "CIS Database Schema Documentation",
+        "Core Vend Tables for Transfer System",
+        "1. `vend_products` Table",
+        "2. `vend_inventory` Table",
+        "3. `vend_outlets` Table",
+        "4. vend_outlets",
+        "Complete Schema:",
+        "Query Pattern:",
+        "4. `vend_suppliers` Table",
+        "5. `vend_brands` Table",
+        "Critical Product Search Queries",
+        "Current Search Function (FIXED)",
+        "Transfer System Queries",
+        "Get Transfer Details",
+        "Get Transfer Items with Product Details",
+        "Add Transfer Line",
+        "Product Search with Stock",
+        "Performance Indexes",
+        "Key Indexes for Transfer Queries",
+        "Query Optimization Notes",
+        "Common Mistakes to Avoid",
+        "Schema Validation"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Updated:** October 12, 2025",
+        "**Context:** Transfer/Receive Module Database Queries",
+        "**Purpose:** All products available for sale and transfer"
+      ],
+      "mtime": 1760294338
     },
     {
       "path": "docs/knowledge-base/cross-reference-index.md",
@@ -584,7 +690,369 @@
         "---",
         "**What Happened:** Original template recreated entire CIS UI (header, sidebar, footer) - 418 lines o"
       ],
-      "mtime": 1760275527
+      "mtime": 1760275761
+    },
+    {
+      "path": "docs/knowledge-base/transfers/BASE_TRANSFER_COMPLETION_GUIDE.md",
+      "title": "BASE_TRANSFER_COMPLETION_GUIDE",
+      "headings": [
+        "BASE Transfer Template - System Integration Guide",
+        "🚀 Complete Product Ready for Deployment",
+        "📋 What's Been Delivered",
+        "✅ Core Template (`base-transfer.php`)",
+        "✅ Enterprise-Grade CSS (`css/base-transfer.css`)",
+        "✅ Advanced JavaScript (`js/base-transfer.js`)",
+        "✅ Backend API Integration",
+        "🎯 Key Features & Benefits",
+        "🔧 Technical Excellence",
+        "🎨 Design Leadership",
+        "⚡ Business Value",
+        "🔌 Lightspeed Integration Status",
+        "✅ Ready Components",
+        "🔄 Integration Points",
+        "📁 File Structure Summary",
+        "🚀 Deployment Instructions",
+        "Step 1: Copy Files to Production",
+        "Copy template",
+        "Copy assets",
+        "Update API (backup first!)",
+        "Step 2: Database Verification",
+        "Step 3: Configuration",
+        "Step 4: Testing Checklist",
+        "🎯 Usage Examples",
+        "URL Patterns",
+        "General stock transfers",
+        "Juice/e-liquid transfers",
+        "Staff personal orders",
+        "Supplier purchase orders",
+        "Integration Examples",
+        "🔮 Future Enhancements (Ready to Build)",
+        "Phase 2: Advanced Features",
+        "Phase 3: Mode-Specific Features",
+        "Phase 4: Enterprise Features",
+        "🎉 Conclusion",
+        "📞 Support & Maintenance",
+        "Monitoring Points",
+        "Logs to Monitor",
+        "Key Performance Indicators"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "Your BASE Transfer Template is now **100% complete** and ready for Lightspeed Queue integration. Thi",
+        "---",
+        "- **Universal HTML Structure**: Works for GENERAL, JUICE, STAFF, SUPPLIER modes"
+      ],
+      "mtime": 1760287173
+    },
+    {
+      "path": "docs/knowledge-base/transfers/FREIGHT_SYSTEM_ANALYSIS.md",
+      "title": "FREIGHT_SYSTEM_ANALYSIS",
+      "headings": [
+        "🚚 FREIGHT & CARRIER SYSTEM - COMPREHENSIVE ANALYSIS",
+        "📋 SYSTEM OVERVIEW",
+        "🗄️ **CORE DATABASE SCHEMA ANALYSIS**",
+        "**1. Product Dimensioning & Classification**",
+        "**Product Weight & Dimensions**",
+        "**Sophisticated Fallback Hierarchy**",
+        "**2. Carrier & Container Infrastructure**",
+        "**Carrier Management**",
+        "**Dynamic Pricing System**",
+        "**3. Transfer Integration Points**",
+        "**Transfer Tables (Core System)**",
+        "**User & Permission System**",
+        "🧠 **FREIGHT CALCULATION ENGINE**",
+        "**1. CisFreight Class - Core API**",
+        "**Primary Methods**",
+        "**Smart Input Validation**",
+        "**Container Selection Algorithm**",
+        "**2. BoxAllocationService - AI Packing**",
+        "**Sophisticated Auto-Sorting**",
+        "**Product Compatibility Rules**",
+        "**Box Templates**",
+        "**3. CarrierContainerOptimizer - Cost Optimization**",
+        "**Multi-Pass Optimization**",
+        "**Utilization Scoring**",
+        "🎯 **KEY INTEGRATION POINTS FOR BASE TEMPLATE**",
+        "**1. Product Weight Resolution**",
+        "**2. Freight Cost Calculation**",
+        "**3. Container Selection UI**",
+        "📊 **CRITICAL MYSQL VIEWS FOR BASE TEMPLATE**",
+        "**1. v_product_pack_profile**",
+        "**2. v_carrier_container_prices**",
+        "**3. v_freight_rules_catalog**",
+        "🚨 **GOTCHAS & CRITICAL NOTES**",
+        "**Database Column Names (EXACT)**",
+        "**Weight Units Consistency**",
+        "**Container Code Standards**",
+        "🎯 **BASE TEMPLATE INTEGRATION STRATEGY**",
+        "**1. Freight Panel Enhancement**",
+        "**2. Smart Validation**",
+        "**3. Mode-Specific Behavior**",
+        "🚀 **READY FOR BASE TEMPLATE IMPLEMENTATION**"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Advanced Product Sizing, Categorization & Freight Calculation System**",
+        "**Date:** October 12, 2025",
+        "**Purpose:** Deep understanding of sophisticated freight calculation infrastructure"
+      ],
+      "mtime": 1760285784
+    },
+    {
+      "path": "docs/knowledge-base/transfers/TRANSFER_DATABASE_SCHEMA.md",
+      "title": "TRANSFER_DATABASE_SCHEMA",
+      "headings": [
+        "Transfer System Database Schema",
+        "📋 Table of Contents",
+        "🎯 System Overview",
+        "What This System Does",
+        "4 Transfer Modes",
+        "Architecture Highlights",
+        "📦 Core Transfer Tables",
+        "`transfers` (Main Entity)",
+        "`transfer_items` (Product Lines)",
+        "🚚 Transfer Lifecycle Tables",
+        "`transfer_shipments` (Partial Shipments)",
+        "`transfer_parcels` (Box-Level Tracking)",
+        "`transfer_shipment_items` (Wave Items)",
+        "`transfer_parcel_items` (Box Contents)",
+        "🧠 AI & Analytics Tables",
+        "`transfer_ai_audit_log` (AI Decision Tracking)",
+        "`transfer_ai_insights` (GPT/Claude Insights)",
+        "`transfer_behavior_patterns` (ML Features)",
+        "📊 Logging & Audit Tables",
+        "`transfer_unified_log` (Central Event Log)",
+        "`transfer_audit_log` (Compliance Audit)",
+        "`transfer_log_archive` (Historical Archive)",
+        "⚡ Queue & Performance Tables",
+        "`transfer_queue_log` (Vend Sync Queue)",
+        "`transfer_performance_metrics` (Aggregated Metrics)",
+        "`transfer_session_analytics` (User Session Metrics)",
+        "📸 Media & Upload Tables",
+        "`transfer_media` (Photos/Videos)",
+        "`transfer_upload_tokens` (Secure Upload Links)",
+        "✅ Validation & Configuration Tables",
+        "`transfer_validation_cache` (Validation Results Cache)",
+        "`transfer_configurations` (Allocation Config)",
+        "🔄 Transfer Modes (Detailed)",
+        "Mode 1: GENERAL (Standard Stock)",
+        "Mode 2: JUICE (E-Liquid Compliance)",
+        "Mode 3: STAFF (Employee Orders)",
+        "Mode 4: AUTOMATED (AI-Driven)",
+        "🔗 Table Relationships",
+        "Entity Relationship Diagram (Simplified)",
+        "Key Relationships",
+        "🔍 Key Indexes",
+        "High-Traffic Query Patterns",
+        "Composite Index Strategy",
+        "📈 Performance Considerations",
+        "Table Sizes (Current Production)",
+        "Optimization Strategies",
+        "🛡️ Security & Compliance",
+        "Data Protection",
+        "Regulatory Compliance",
+        "📝 Notes for Developers",
+        "Common Patterns",
+        "Performance Tips",
+        "🚀 Future Enhancements",
+        "Planned Improvements",
+        "📚 Related Documentation"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Complete Table Documentation**",
+        "**Last Updated:** October 12, 2025",
+        "**Status:** Production Schema v2.0"
+      ],
+      "mtime": 1760285783
+    },
+    {
+      "path": "docs/knowledge-base/transfers/TRANSFER_SYSTEM_MASTER_GUIDE.md",
+      "title": "TRANSFER_SYSTEM_MASTER_GUIDE",
+      "headings": [
+        "🎯 TRANSFER SYSTEM MASTER GUIDE",
+        "📋 Table of Contents",
+        "🎯 System Overview",
+        "**What This System Does**",
+        "**Architecture Principles**",
+        "📦 Core Objects & Mapping",
+        "**1. Stock Transfer (outlet→outlet)**",
+        "**2. Supplier Purchase Order (HQ→supplier)**",
+        "**3. Inventory Mirrors & Outlets**",
+        "**4. Stock Corrections**",
+        "🔌 Lightspeed (Vend) Consignment Model",
+        "**What It Is**",
+        "**Status Workflows**",
+        "**OUTLET Workflow (transfers)**",
+        "**SUPPLIER Workflow (POs)**",
+        "**Where It's Great**",
+        "**Where It's Prickly**",
+        "🔄 4 Transfer Modes",
+        "**Mode 1: GENERAL (stock)**",
+        "**Mode 2: JUICE**",
+        "**Mode 3: STAFF**",
+        "**Mode 4: SUPPLIER**",
+        "📋 Complete Lifecycles",
+        "**A) Stock Transfer (Pack → Receive)**",
+        "**1. Draft (Create Header & Lines)**",
+        "**2. Open (Lock & Pick)**",
+        "**3. Pack & Dispatch**",
+        "Create OUTLET consignment",
+        "Add products/quantities",
+        "**4. Partial Receive(s)**",
+        "**5. Complete**",
+        "**B) Staff Transfers (Special Workflow)**",
+        "**C) Supplier PO (Create → Multi-delivery → Finalize)**",
+        "**1. Create PO in CIS**",
+        "**2. Send to Supplier / Lightspeed**",
+        "If pushing to Lightspeed as SUPPLIER",
+        "**3. Receive Deliveries (Partial Allowed)**",
+        "**4. Finalize**",
+        "Only when all deliveries complete",
+        "📊 Page-by-Page Feature Checklists",
+        "**A) Transfers › Pack**",
+        "**Pick & Pack Grid**",
+        "**Carton Builder**",
+        "**Labeling/Manifest Hooks**",
+        "**Error Handling**",
+        "**Session Management**",
+        "**State Controls**",
+        "**B) Transfers › Receive**",
+        "**Fast Scan Mode**",
+        "**Exceptions Panel**",
+        "**Partial Completion**",
+        "**Quick Actions**",
+        "**C) Transfers › Outlet Board (Store View)**",
+        "**Inbound Pane**",
+        "**Outbound Pane**",
+        "**Quick Actions**",
+        "**Filtering**",
+        "**D) Transfers › Management (HQ View)**",
+        "**Executive Rollups**",
+        "**Bulk Operations**",
+        "**Drill-Down Path**",
+        "**E) POs › Receive**",
+        "**Slip Capture**",
+        "**Multi-Delivery Interface**",
+        "**Discrepancy Tools**",
+        "**Finalization**",
+        "🎛️ Dashboard Specifications",
+        "**Outlet-Only Dashboard**",
+        "**Today's Actions Panel**",
+        "**Scan & Go Panel**",
+        "**SLA Countdown**",
+        "**Device Optimization**",
+        "**Management-Only Dashboard**",
+        "**Network Heatmap**",
+        "**Exception Leaderboards**",
+        "**Carrier Scorecard**",
+        "**Sync Health Monitor**",
+        "⚠️ Production Gotchas",
+        "**1. Status Mapping Drift**",
+        "**2. Finality Rules**",
+        "**3. Partial Receipt Timing**",
+        "**4. Eventual Consistency**",
+        "**5. Consignment Stock Isolation**",
+        "🔌 API Playbook",
+        "**Create OUTLET Transfer**",
+        "1. Create consignment",
+        "2. Add products",
+        "3. Mark sent (or dispatched)",
+        "4. Receive products (when ready)",
+        "5. Finalize (IMMUTABLE after this!)",
+        "**Create SUPPLIER Order**",
+        "1. Create supplier consignment",
+        "2. Add order lines",
+        "3. Send to supplier",
+        "4. Multi-delivery receipts (repeat as needed)",
+        "5. Finalize when complete (IMMUTABLE!)",
+        "**Useful Helper Endpoints**",
+        "List products on consignment",
+        "Get consignment totals for audit",
+        "Bulk product operations (up to 500 products)",
+        "🎯 Summary"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Complete Business Logic & Implementation Reference**",
+        "**Last Updated:** October 12, 2025",
+        "**Status:** Definitive Reference Document"
+      ],
+      "mtime": 1760285784
+    },
+    {
+      "path": "docs/knowledge-base/transfers/TRANSFER_TEMPLATE_ANALYSIS.md",
+      "title": "TRANSFER_TEMPLATE_ANALYSIS",
+      "headings": [
+        "🎯 TRANSFER TEMPLATE ANALYSIS & BASE MVP DESIGN",
+        "📊 EXISTING TEMPLATE ANALYSIS",
+        "**Templates Analyzed:**",
+        "🎨 **DESIGN ELEMENTS INVENTORY**",
+        "**Common UI Patterns**",
+        "**1. Layout Structure**",
+        "**2. Card Header Pattern**",
+        "**3. Transfer Info Box**",
+        "**Advanced UI Features Found**",
+        "**1. Row Color System (receive-stock-transfer.php)**",
+        "**2. Input Validation Patterns**",
+        "**3. Modal Systems**",
+        "**4. Session Management**",
+        "**Freight Management Features**",
+        "**1. Delivery Mode Selection**",
+        "**2. Box/Carton Tracking**",
+        "**3. Evidence Capture**",
+        "🚀 **BASE TRANSFER MVP SPECIFICATION**",
+        "**Core Requirements**",
+        "**1. Universal Data Flow**",
+        "**2. Table Structure (Universal)**",
+        "**3. Input Validation System**",
+        "**4. Auto-save Implementation**",
+        "**Mode-Specific Customizations**",
+        "**1. GENERAL (Stock)**",
+        "**2. JUICE**",
+        "**3. STAFF**",
+        "**4. SUPPLIER (PO)**",
+        "🎯 **BASE TEMPLATE FEATURES**",
+        "**1. Universal Header**",
+        "**2. Smart Product Input**",
+        "**3. Action Buttons**",
+        "**4. Freight Management Panel**",
+        "🔧 **IMPLEMENTATION ROADMAP**",
+        "**Phase 1: BASE Template (Week 1)**",
+        "**Phase 2: Core Functionality (Week 2)**",
+        "**Phase 3: Mode Customization (Week 3)**",
+        "**Phase 4: Advanced Features (Week 4)**",
+        "📱 **MOBILE CONSIDERATIONS**",
+        "**Responsive Design**",
+        "**Productivity Features**",
+        "🎯 **SUCCESS CRITERIA**",
+        "**Performance Targets**",
+        "**User Experience**",
+        "**Technical Requirements**",
+        "🚀 **NEXT STEPS**"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Analysis of Existing Templates & BASE Transfer MVP Specification**",
+        "**Date:** October 12, 2025",
+        "**Purpose:** Create unified BASE template for 4 transfer modes"
+      ],
+      "mtime": 1760285784
     },
     {
       "path": "docs/memory/AI_MEMORY.md",
@@ -629,11 +1097,56 @@
         "---"
       ],
       "mtime": 1760275309
+    },
+    {
+      "path": "docs/troubleshooting/database-access-resolution.md",
+      "title": "database-access-resolution",
+      "headings": [
+        "Database Access Resolution - Critical Discoveries",
+        "Problem Summary",
+        "Root Cause Analysis",
+        "1. App.php Dependency Chain",
+        "2. Database Connection Architecture",
+        "Solution Implementation",
+        "1. Independent Database Class",
+        "2. Module Bootstrap Integration",
+        "3. API File Updates",
+        "Critical Discoveries",
+        "1. Environment File Location",
+        "2. Database Configuration",
+        "3. Session Management",
+        "4. Module Independence Requirements",
+        "Files Requiring Updates",
+        "Testing Validation",
+        "Database Connection Test",
+        "Test database connectivity",
+        "Expected Success Response",
+        "Performance Considerations",
+        "1. Singleton Pattern",
+        "2. Environment Loading",
+        "3. Session Handling",
+        "Future Maintenance Notes",
+        "1. Database Schema Changes",
+        "2. Security Updates",
+        "3. Module Expansion",
+        "Lessons Learned",
+        "Resolution Status"
+      ],
+      "tags": [
+        "docs",
+        "documentation"
+      ],
+      "snippets": [
+        "**Date:** October 12, 2025",
+        "**Context:** Transfer/Receive Module Independence Project",
+        "**Status:** RESOLVED - Independent Database Access Working"
+      ],
+      "mtime": 1760292535
     }
   ],
   "stats": {
-    "totalEntries": 19,
+    "totalEntries": 28,
     "modules": 1,
-    "size": 13221
+    "size": 27319
   }
 }

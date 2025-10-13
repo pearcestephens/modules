@@ -1,6 +1,7 @@
 # Consignments Module - Views
 
 ## View Files
+- `templates/base-transfer.php`
 - `views/home/index.php`
 - `views/hub/index.php`
 - `views/pack/full.php`

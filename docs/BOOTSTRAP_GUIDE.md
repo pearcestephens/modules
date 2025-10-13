@@ -1,257 +1,54 @@
-# 🚀 CIS Module Bootstrap Guide
-## How to Properly Load app.php and Use Templates
+# 🚀 Module Bootstrap Usage Guide
 
-**Last Updated:** October 12, 2025  
-**Purpose:** Prevent bootstrap errors and ensure proper initialization order  
+## What is `bootstrap.php`?
 
----
-
-## ⚠️ Critical Rule: Load app.php ONCE
-
-**app.php should be loaded ONCE per request, at the entry point only.**
-
-### ✅ CORRECT Pattern
-
-```php
-// FILE: modules/consignments/index.php (ENTRY POINT)
-<?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';  // ← Load ONCE here
-define('CIS_MODULE_CONTEXT', true);
-
-// Route to appropriate page
-$action = $_GET['action'] ?? 'list';
-
-switch ($action) {
-    case 'pack':
-        require __DIR__ . '/pack.php';  // ← Does NOT load app.php
-        break;
-    case 'receive':
-        require __DIR__ . '/receive.php';  // ← Does NOT load app.php
-        break;
-    default:
-        require __DIR__ . '/pages/list.php';  // ← Does NOT load app.php
-}
-```
-
-```php
-// FILE: modules/consignments/pack.php (PAGE FILE)
-<?php
-// NO app.php here! It was already loaded by index.php
-
-$pageTitle = 'Pack Transfer';
-$breadcrumbs = [
-    ['label' => 'Home', 'href' => '/index.php'],
-    ['label' => 'Transfers', 'href' => '/modules/consignments/'],
-    ['label' => 'Pack', 'active' => true]
-];
-
-ob_start();
-?>
-<h1>Pack Transfer Content</h1>
-<p>Your page content here...</p>
-<?php
-$content = ob_get_clean();
-
-// Use the template (which assumes app.php is already loaded)
-require __DIR__ . '/../base/views/layouts/master.php';
-```
+A **lightweight initialization file** that loads ONLY what your modules need, without pulling in the entire CIS application.
 
 ---
 
-### ❌ WRONG Patterns
+## ✅ What It Loads
 
-#### Don't load app.php in every file:
-```php
-// FILE: modules/consignments/pack.php
-<?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';  // ❌ WRONG!
-// This will cause session issues, duplicate constants, etc.
-```
-
-#### Don't load app.php in templates:
-```php
-// FILE: base/views/layouts/master.php
-<?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';  // ❌ WRONG!
-// Templates should assume bootstrap is already done
-```
+1. **Constants** - HTTPS_URL, paths, etc.
+2. **Session** - Secure session with CSRF tokens
+3. **Database** - MySQLi connection
+4. **Essential Functions** - User, permissions, navigation
+5. **Authentication** - Auto-checks if user is logged in
+6. **Error Handling** - Production-safe error logging
+7. **Helper Functions** - Common utilities
 
 ---
 
-## 📋 What app.php Should Contain
+## ❌ What It Does NOT Load
 
-Your `app.php` bootstrap file should load (in this order):
+1. ❌ Main CIS routing system
+2. ❌ Heavy legacy functions
+3. ❌ Old template system
+4. ❌ Unnecessary global state
+5. ❌ Non-module dependencies
+
+**Result:** Fast, clean, module-focused initialization!
+
+---
+
+## 📖 Usage Pattern
+
+### ✅ CORRECT - Load Once at Entry Point
 
 ```php
 <?php
 /**
- * CIS Application Bootstrap
+ * Module Entry Point - index.php
  * 
- * Load this ONCE per request at the entry point.
- * Never load this in page files or templates.
+ * This is the ONLY place you load bootstrap.php
  */
 
-// 1. Constants (HTTPS_URL, DB credentials, etc.)
-require_once __DIR__ . '/assets/functions/constants.php';
+// Load bootstrap ONCE
+require_once __DIR__ . '/../bootstrap.php';
 
-// 2. Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Now route to your module pages
+$page = $_GET['page'] ?? 'home';
 
-// 3. Database connection
-require_once __DIR__ . '/assets/functions/db.php';
-
-// 4. Core functions
-require_once __DIR__ . '/assets/functions/core.php';
-require_once __DIR__ . '/assets/functions/users.php';
-require_once __DIR__ . '/assets/functions/permissions.php';
-require_once __DIR__ . '/assets/functions/navigation.php';
-
-// 5. Error handler (optional but recommended)
-require_once __DIR__ . '/core/ErrorHandler.php';
-
-// 6. Autoloader (if using namespaces/classes)
-require_once __DIR__ . '/vendor/autoload.php';  // Composer
-// OR
-spl_autoload_register(function($class) {
-    // Your PSR-4 autoloader
-});
-```
-
----
-
-## 🗺️ Request Flow Diagram
-
-```
-User Request: /modules/consignments/?action=pack
-    ↓
-┌─────────────────────────────────────────────┐
-│ modules/consignments/index.php              │
-│ ↓                                           │
-│ require app.php (BOOTSTRAP - ONCE)          │
-│   ├─ constants.php (HTTPS_URL, etc.)        │
-│   ├─ session_start()                        │
-│   ├─ db connection                          │
-│   └─ core functions                         │
-│ ↓                                           │
-│ Route to pack.php                           │
-└─────────────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────────────┐
-│ modules/consignments/pack.php               │
-│ (NO app.php - already loaded!)              │
-│ ↓                                           │
-│ Build page content                          │
-│ ↓                                           │
-│ require master.php                          │
-└─────────────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────────────┐
-│ base/views/layouts/master.php               │
-│ (NO app.php - already loaded!)              │
-│ ↓                                           │
-│ Check: HTTPS_URL defined? ✓                 │
-│ Check: Session started? ✓                   │
-│ ↓                                           │
-│ Include partials:                           │
-│   ├─ head.php                               │
-│   ├─ topbar.php                             │
-│   ├─ sidebar.php                            │
-│   ├─ footer.php                             │
-│   └─ scripts.php                            │
-└─────────────────────────────────────────────┘
-    ↓
-HTML Output to Browser
-```
-
----
-
-## 🔍 Debugging Bootstrap Issues
-
-### Problem: "HTTPS_URL constant not defined"
-
-**Cause:** app.php not loaded, or constants.php not included in app.php
-
-**Fix:**
-```php
-// In your entry point (index.php):
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
-
-// In app.php:
-require_once __DIR__ . '/assets/functions/constants.php';
-```
-
-### Problem: "Session not started"
-
-**Cause:** app.php doesn't call session_start()
-
-**Fix:**
-```php
-// In app.php:
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-```
-
-### Problem: "Call to undefined function getUserInformation()"
-
-**Cause:** Core functions not loaded in app.php
-
-**Fix:**
-```php
-// In app.php:
-require_once __DIR__ . '/assets/functions/users.php';
-```
-
-### Problem: "Headers already sent" (session issues)
-
-**Cause:** app.php loaded multiple times (once in index.php, again in page file)
-
-**Fix:** Remove duplicate `require app.php` from page files. Only load at entry point.
-
----
-
-## 📝 Template Prerequisites Checklist
-
-Before using `master.php`, ensure these are loaded:
-
-- [ ] **constants.php** → Defines `HTTPS_URL`
-- [ ] **session_start()** → For `$_SESSION["userID"]`
-- [ ] **Database connection** → For `getUserInformation()`, etc.
-- [ ] **Core functions** → `getUserInformation()`, `getNavigationMenus()`, etc.
-- [ ] **Permission functions** → `getCurrentUserPermissions()`
-- [ ] **Notification functions** → `userNotifications_getAllUnreadNotifications()`
-
-**All of these should be in app.php, loaded ONCE at entry point.**
-
----
-
-## 🎯 Module Entry Point Template
-
-Use this pattern for every module's `index.php`:
-
-```php
-<?php
-/**
- * [Module Name] - Entry Point
- * 
- * This is the ONLY file in this module that loads app.php
- */
-
-// 1. Bootstrap application (ONCE)
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
-
-// 2. Define module context
-define('CIS_MODULE_CONTEXT', true);
-
-// 3. Load module-specific bootstrap (optional)
-require_once __DIR__ . '/module_bootstrap.php';
-
-// 4. Route to appropriate page
-$action = $_GET['action'] ?? 'default';
-
-switch ($action) {
+switch ($page) {
     case 'pack':
         require __DIR__ . '/pages/pack.php';
         break;
@@ -259,60 +56,337 @@ switch ($action) {
         require __DIR__ . '/pages/receive.php';
         break;
     default:
-        require __DIR__ . '/pages/list.php';
+        require __DIR__ . '/pages/home.php';
 }
 ```
 
----
-
-## ✅ Quick Verification
-
-To verify your bootstrap is correct, add this at the top of `master.php`:
+### ✅ CORRECT - Module Page (No Bootstrap)
 
 ```php
-// Debug: Check prerequisites (remove in production)
-$checks = [
-    'HTTPS_URL defined' => defined('HTTPS_URL'),
-    'Session started' => session_status() === PHP_SESSION_ACTIVE,
-    'DB functions available' => function_exists('getUserInformation'),
-    'CIS_MODULE_CONTEXT defined' => defined('CIS_MODULE_CONTEXT'),
-];
+<?php
+/**
+ * Module Page - pages/pack.php
+ * 
+ * Bootstrap is ALREADY LOADED by index.php
+ * Just check the flag and use what's available
+ */
 
-foreach ($checks as $check => $passed) {
-    if (!$passed) {
-        trigger_error("Bootstrap check failed: {$check}", E_USER_WARNING);
+// Safety check - ensure bootstrap was loaded
+if (!defined('CIS_MODULE_CONTEXT')) {
+    die('This file must be accessed through the module entry point');
+}
+
+// Now you have access to:
+// - $_SESSION (already started)
+// - Database connection ($GLOBALS['db_connection'])
+// - HTTPS_URL constant
+// - get_user_id(), get_user_details(), has_permission(), etc.
+
+$userId = get_user_id();
+$userDetails = get_user_details();
+
+// Build your page content
+ob_start();
+?>
+<h1>Pack Transfer</h1>
+<p>Welcome, <?= htmlspecialchars($userDetails['first_name'] ?? 'User') ?>!</p>
+
+<!-- CSRF token available -->
+<form method="POST">
+    <?= csrf_token_input() ?>
+    <!-- form fields -->
+</form>
+<?php
+$content = ob_get_clean();
+
+// Use the template (also doesn't need bootstrap)
+require __DIR__ . '/../views/layouts/master.php';
+```
+
+### ✅ CORRECT - Template (No Bootstrap)
+
+```php
+<?php
+/**
+ * Master Template - views/layouts/master.php
+ * 
+ * Bootstrap is ALREADY LOADED
+ * Just check the flag
+ */
+
+if (!defined('CIS_MODULE_CONTEXT')) {
+    http_response_code(403);
+    exit('Direct access forbidden');
+}
+
+// Now use what's available from bootstrap
+$userId = get_user_id();
+$userDetails = get_user_details();
+
+// Include partials (they also don't need bootstrap)
+require __DIR__ . '/../partials/head.php';
+require __DIR__ . '/../partials/topbar.php';
+// etc.
+```
+
+---
+
+## ❌ WRONG - Loading Bootstrap Everywhere
+
+```php
+<?php
+// ❌ WRONG - Don't do this in pages/pack.php
+require_once __DIR__ . '/../../bootstrap.php'; // NO!
+
+// ❌ WRONG - Don't do this in master.php
+require_once __DIR__ . '/../../../bootstrap.php'; // NO!
+
+// ❌ WRONG - Don't do this in partials/head.php
+require_once __DIR__ . '/../../../../bootstrap.php'; // HELL NO!
+```
+
+**Why?** Because bootstrap is already loaded! Loading it multiple times causes:
+- ❌ Duplicate session starts
+- ❌ Duplicate database connections
+- ❌ Redefined constants/functions
+- ❌ Performance hit
+
+---
+
+## 🔒 Security Features
+
+### 1. Automatic Authentication Check
+```php
+// By default, bootstrap requires authentication
+// User will be redirected to login if not authenticated
+```
+
+### 2. Skip Authentication (Public Pages)
+```php
+<?php
+// For public pages, skip auth check
+define('SKIP_AUTH_CHECK', true);
+require_once __DIR__ . '/../bootstrap.php';
+```
+
+### 3. CSRF Protection
+```php
+// In forms
+<form method="POST">
+    <?= csrf_token_input() ?>
+    <!-- fields -->
+</form>
+
+// In POST handlers
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        http_response_code(403);
+        die('Invalid CSRF token');
     }
+    // Process form
+}
+```
+
+### 4. Permission Checks
+```php
+// Check if user has permission
+if (!has_permission('consignments.pack')) {
+    http_response_code(403);
+    die('Access denied');
 }
 ```
 
 ---
 
-## 🚨 Common Mistakes to Avoid
+## 🛠️ Helper Functions Available
 
-1. ❌ **Loading app.php in multiple files per request**
-   - Causes: Duplicate sessions, constant redefinition, performance issues
+After bootstrap loads, you have access to:
 
-2. ❌ **Loading app.php in template files**
-   - Templates should be "dumb" - they just render, not bootstrap
+### Authentication
+```php
+is_authenticated()              // Returns bool
+require_authentication()        // Redirects if not authenticated
+get_user_id()                  // Returns int|null
+get_user_details()             // Returns array|null
+has_permission('permission')   // Returns bool
+```
 
-3. ❌ **Hardcoding constants in templates**
-   - Never do: `define('HTTPS_URL', '...')` in templates
-   - Always define in constants.php loaded by app.php
+### Security
+```php
+verify_csrf_token($token)      // Returns bool
+csrf_token_input()             // Returns HTML input string
+safe_redirect($url)            // Redirects safely
+```
 
-4. ❌ **Skipping session_start() in app.php**
-   - Templates/partials use `$_SESSION` - it must be started first
+### Utilities
+```php
+load_function_file('file.php') // Load additional function files
+```
 
-5. ❌ **Not checking prerequisites**
-   - Add safety checks in templates to catch bootstrap issues early
+### Constants
+```php
+HTTPS_URL                      // https://staff.vapeshed.co.nz/
+SITE_URL                       // Same as HTTPS_URL
+APP_ROOT                       // /home/master/.../public_html
+MODULES_ROOT                   // /home/master/.../public_html/modules
+CIS_MODULE_CONTEXT             // True if bootstrap loaded
+```
 
 ---
 
-## 📚 Related Documentation
+## 🏗️ Module Structure Example
 
-- [Module Architecture](../docs/architecture/modules.md)
-- [Template System](../docs/guides/templates.md)
-- [Constants Reference](../docs/api/constants.md)
+```
+modules/
+├── bootstrap.php               # ← Load this ONCE at entry point
+│
+├── consignments/
+│   ├── index.php               # ← Entry point - loads bootstrap
+│   ├── module_bootstrap.php    # ← Optional module-specific init
+│   │
+│   ├── pages/
+│   │   ├── pack.php            # ← No bootstrap needed
+│   │   └── receive.php         # ← No bootstrap needed
+│   │
+│   ├── api/
+│   │   ├── pack_submit.php     # ← Check CIS_MODULE_CONTEXT flag
+│   │   └── receive_submit.php  # ← Check CIS_MODULE_CONTEXT flag
+│   │
+│   └── views/
+│       └── layouts/
+│           └── master.php      # ← No bootstrap needed
+│
+└── base/
+    └── views/
+        ├── layouts/
+        │   └── master.php      # ← Shared template, no bootstrap
+        └── partials/
+            ├── head.php        # ← No bootstrap needed
+            ├── topbar.php      # ← No bootstrap needed
+            └── sidebar.php     # ← No bootstrap needed
+```
 
 ---
 
-**Remember:** app.php = Entry point ONLY, ONCE per request. Everything else flows from there! 🚀
+## 🎯 Key Principles
+
+### 1. **One Bootstrap Per Request**
+Load `bootstrap.php` ONCE at your module's entry point (usually `index.php`)
+
+### 2. **Check the Flag**
+Other files should check `CIS_MODULE_CONTEXT` to ensure bootstrap was loaded:
+```php
+if (!defined('CIS_MODULE_CONTEXT')) {
+    die('Bootstrap not loaded');
+}
+```
+
+### 3. **Use What's Available**
+After bootstrap:
+- ✅ Session is started
+- ✅ Database is connected
+- ✅ Constants are defined
+- ✅ Functions are loaded
+- ✅ User is authenticated
+
+### 4. **Module-Specific Init**
+If your module needs extra setup, create `module_bootstrap.php`:
+```php
+<?php
+// modules/consignments/module_bootstrap.php
+// This runs automatically after main bootstrap
+
+// Load module-specific libraries
+require_once __DIR__ . '/lib/Db.php';
+require_once __DIR__ . '/lib/Validation.php';
+
+// Set module constants
+define('CONSIGNMENTS_VERSION', '1.0.0');
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Problem: "Undefined constant HTTPS_URL"
+**Solution:** Bootstrap not loaded. Check that your entry point includes it:
+```php
+require_once __DIR__ . '/../bootstrap.php';
+```
+
+### Problem: "Session already started"
+**Solution:** You're loading bootstrap multiple times. Load it ONCE.
+
+### Problem: "Cannot modify header information"
+**Solution:** You're outputting content before bootstrap. Put bootstrap at the very top:
+```php
+<?php
+require_once __DIR__ . '/../bootstrap.php'; // First thing!
+```
+
+### Problem: "User not authenticated" but they are logged in
+**Solution:** Check that session cookies are being sent. Bootstrap uses `CIS_SESSION` as session name.
+
+---
+
+## 🚀 Migration from Old System
+
+### Old Way (app.php everywhere):
+```php
+<?php
+// OLD - pack.php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php'; // ❌
+```
+
+### New Way (bootstrap once):
+```php
+<?php
+// NEW - index.php (entry point)
+require_once __DIR__ . '/../bootstrap.php'; // ✅ Once
+
+// NEW - pack.php (routed to from index)
+if (!defined('CIS_MODULE_CONTEXT')) {
+    die('Use entry point');
+}
+// Now you have everything you need
+```
+
+---
+
+## ✅ Checklist
+
+When setting up a new module:
+
+- [ ] Create `index.php` as entry point
+- [ ] Load `bootstrap.php` ONCE in `index.php`
+- [ ] Add routing logic in `index.php`
+- [ ] Create page files that check `CIS_MODULE_CONTEXT`
+- [ ] Use helper functions (get_user_id, has_permission, etc.)
+- [ ] Add CSRF tokens to all forms
+- [ ] Use `master.php` template (it doesn't need bootstrap)
+- [ ] Test authentication/permissions
+- [ ] Check error logs during development
+
+---
+
+## 📚 Related Files
+
+- `bootstrap.php` - Main bootstrap file
+- `module_bootstrap.php` - Module-specific init (optional)
+- `base/views/layouts/master.php` - Shared template
+- `base/views/partials/*.php` - Template partials
+
+---
+
+## 🎉 Benefits
+
+✅ **Fast** - Only loads what you need  
+✅ **Clean** - No legacy baggage  
+✅ **Secure** - Built-in auth, CSRF, session hardening  
+✅ **Consistent** - Same pattern for all modules  
+✅ **Maintainable** - Easy to understand and debug  
+✅ **Scalable** - Add middleware/features easily  
+
+---
+
+**Questions?** Check `bootstrap.php` source code - it's heavily documented!
