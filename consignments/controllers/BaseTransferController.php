@@ -22,6 +22,37 @@ abstract class BaseTransferController extends PageController
         parent::__construct();
         // Use the new master layout with partials
         $this->layout = dirname(__DIR__, 2) . '/base/views/layouts/master.php';
+        
+        // CRITICAL: Ensure database connection is active
+        $this->ensureDatabaseConnection();
+    }
+    
+    /**
+     * Ensure database connection is active
+     * Fallback if app.php didn't load properly
+     */
+    private function ensureDatabaseConnection(): void
+    {
+        try {
+            // Test if connection works
+            $mysqli = Db::mysqli();
+            if (!$mysqli->ping()) {
+                throw new \Exception('Database ping failed');
+            }
+        } catch (\Throwable $e) {
+            // Connection failed - try to establish it
+            global $con;
+            if (!$con instanceof \mysqli) {
+                // Load mysql.php if available
+                $mysqlPath = $_SERVER['DOCUMENT_ROOT'] . '/assets/functions/mysql.php';
+                if (file_exists($mysqlPath)) {
+                    require_once $mysqlPath;
+                    if (function_exists('connectToSQL')) {
+                        connectToSQL();
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -61,27 +92,47 @@ abstract class BaseTransferController extends PageController
     {
         try {
             $mysqli = Db::mysqli();
-            // CRITICAL: vend_outlets.deleted_at is '' (empty string) when active, not NULL!
+            // CRITICAL: Join on vend_outlets.id (varchar PK), use vend_outlets.name for outlet names
+            // CRITICAL: vend_outlets.deleted_at is '0000-00-00 00:00:00' when active
             $stmt = $mysqli->prepare("
                 SELECT transfers.*, 
-                       outlet_from.name as outlet_from_name,
-                       outlet_from.physical_city as outlet_from_city,
-                       outlet_from.is_warehouse as outlet_from_warehouse,
-                       outlet_to.name as outlet_to_name,
-                       outlet_to.physical_city as outlet_to_city,
-                       outlet_to.is_warehouse as outlet_to_warehouse,
-                       users.name as created_by_name
+                       vend_outlets_from.name as outlet_from_name,
+                       vend_outlets_from.physical_city as outlet_from_city,
+                       vend_outlets_from.is_warehouse as outlet_from_warehouse,
+                       vend_outlets_to.name as outlet_to_name,
+                       vend_outlets_to.physical_city as outlet_to_city,
+                       vend_outlets_to.is_warehouse as outlet_to_warehouse,
+                       CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as created_by_name
                 FROM transfers
-                LEFT JOIN vend_outlets outlet_from ON transfers.outlet_from = outlet_from.id AND outlet_from.deleted_at = ''
-                LEFT JOIN vend_outlets outlet_to ON transfers.outlet_to = outlet_to.id AND outlet_to.deleted_at = ''
+                LEFT JOIN vend_outlets vend_outlets_from ON transfers.outlet_from = vend_outlets_from.id 
+                                                         AND vend_outlets_from.deleted_at = '0000-00-00 00:00:00'
+                LEFT JOIN vend_outlets vend_outlets_to ON transfers.outlet_to = vend_outlets_to.id 
+                                                       AND vend_outlets_to.deleted_at = '0000-00-00 00:00:00'
                 LEFT JOIN users ON transfers.created_by = users.id
                 WHERE transfers.id = ? AND transfers.deleted_at IS NULL
             ");
+            
+            if (!$stmt) {
+                error_log("BaseTransferController: Prepare failed - " . $mysqli->error);
+                return null;
+            }
+            
             $stmt->bind_param('i', $id);
-            $stmt->execute();
+            if (!$stmt->execute()) {
+                error_log("BaseTransferController: Execute failed - " . $stmt->error);
+                return null;
+            }
+            
             $result = $stmt->get_result();
-            return $result->fetch_assoc() ?: null;
-        } catch (\Throwable) {
+            $transfer = $result->fetch_assoc();
+            
+            if (!$transfer) {
+                error_log("BaseTransferController: Transfer #$id not found or filtered out");
+            }
+            
+            return $transfer ?: null;
+        } catch (\Throwable $e) {
+            error_log("BaseTransferController: Exception in loadTransfer() - " . $e->getMessage());
             return null;
         }
     }
@@ -100,7 +151,8 @@ abstract class BaseTransferController extends PageController
             if (!$transfer) return [];
 
             $mysqli = Db::mysqli();
-            // CRITICAL: vend_products has 2 delete methods, vend_suppliers deleted_at is varchar
+            // CRITICAL: vend_products uses deleted_at = '0000-00-00 00:00:00' for active (NOT IS NULL!)
+            // CRITICAL: transfer_items uses deleted_by IS NULL for active (NOT deleted_at!)
             $stmt = $mysqli->prepare("
                 SELECT transfer_items.*, 
                        vend_products.name as product_name,
@@ -120,7 +172,8 @@ abstract class BaseTransferController extends PageController
                        vend_categories.name as category_name
                 FROM transfer_items
                 LEFT JOIN vend_products ON transfer_items.product_id = vend_products.id 
-                                       AND vend_products.deleted_at IS NULL 
+                                       AND vend_products.deleted_at = '0000-00-00 00:00:00'
+                                       AND vend_products.is_active = 1
                                        AND vend_products.is_deleted = 0
                 LEFT JOIN vend_suppliers ON vend_products.supplier_id = vend_suppliers.id 
                                          AND vend_suppliers.deleted_at IS NULL
@@ -132,7 +185,7 @@ abstract class BaseTransferController extends PageController
                                                   AND stock_to.deleted_at IS NULL
                 LEFT JOIN vend_categories ON vend_products.brand_id = vend_categories.categoryID 
                                           AND vend_categories.deleted_at IS NULL
-                WHERE transfer_items.transfer_id = ? AND transfer_items.deleted_at IS NULL
+                WHERE transfer_items.transfer_id = ? AND transfer_items.deleted_by IS NULL
                 ORDER BY vend_products.name ASC
             ");
             $stmt->bind_param('ssi', $transfer['outlet_from'], $transfer['outlet_to'], $transferId);
@@ -192,7 +245,7 @@ abstract class BaseTransferController extends PageController
             $mysqli = Db::mysqli();
             $searchTerm = '%' . $query . '%';
             
-            // CRITICAL: vend_products has 2 delete methods, vend_suppliers deleted_at is varchar
+            // CRITICAL: vend_products uses deleted_at = '0000-00-00 00:00:00' for active (NOT IS NULL!)
             $stmt = $mysqli->prepare("
                 SELECT vend_products.id,
                        vend_products.name,
@@ -224,10 +277,10 @@ abstract class BaseTransferController extends PageController
                                         AND vend_inventory.deleted_at IS NULL
                 LEFT JOIN vend_categories ON vend_products.brand_id = vend_categories.categoryID 
                                           AND vend_categories.deleted_at IS NULL
-                WHERE vend_products.deleted_at IS NULL 
+                WHERE vend_products.deleted_at = '0000-00-00 00:00:00'
+                  AND vend_products.is_active = 1
                   AND vend_products.is_deleted = 0
                   AND vend_products.active = 1 
-                  AND vend_products.is_active = 1
                   AND (vend_products.name LIKE ? OR vend_products.sku LIKE ? OR vend_products.brand LIKE ? OR vend_suppliers.name LIKE ?)
                 ORDER BY relevance_score ASC, vend_products.name ASC
                 LIMIT ?
@@ -260,11 +313,11 @@ abstract class BaseTransferController extends PageController
     {
         try {
             $mysqli = Db::mysqli();
-            // CRITICAL: vend_outlets.deleted_at is timestamp NULL
+            // CRITICAL: vend_outlets.deleted_at is '0000-00-00 00:00:00' for active outlets
             $result = $mysqli->query("
                 SELECT id, name, physical_city, is_warehouse, physical_address_1
                 FROM vend_outlets 
-                WHERE deleted_at IS NULL
+                WHERE deleted_at = '0000-00-00 00:00:00'
                 ORDER BY is_warehouse DESC, name ASC
             ");
             

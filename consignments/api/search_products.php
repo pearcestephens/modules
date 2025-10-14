@@ -26,7 +26,7 @@ try {
         $outlet_check = $mysqli->prepare("
             SELECT outlet_id, outlet_name 
             FROM vend_outlets 
-            WHERE outlet_id = ? AND deleted_at = ''
+            WHERE outlet_id = ? AND deleted_at = '0000-00-00 00:00:00'
         ");
         $outlet_check->bind_param('i', $outlet_id);
         $outlet_check->execute();

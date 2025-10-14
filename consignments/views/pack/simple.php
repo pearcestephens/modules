@@ -22,8 +22,8 @@ $items = $items ?? [];
                 <?php if ($transfer): ?>
                 <p class="text-muted mb-0">
                     <i class="fa fa-arrow-right"></i> 
-                    From: <strong><?= htmlspecialchars($transfer['outlet_from'] ?? 'Unknown') ?></strong> 
-                    → To: <strong><?= htmlspecialchars($transfer['outlet_to'] ?? 'Unknown') ?></strong>
+                    From: <strong><?= htmlspecialchars($transfer['outlet_from_name'] ?? $transfer['outlet_from'] ?? 'Unknown') ?></strong> 
+                    → To: <strong><?= htmlspecialchars($transfer['outlet_to_name'] ?? $transfer['outlet_to'] ?? 'Unknown') ?></strong>
                 </p>
                 <?php endif; ?>
             </div>
