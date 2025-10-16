@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../bootstrap.php';
+
 /**
  * ========================================================================
  * VEND LIGHTSPEED API GATEWAY - ENTERPRISE EDITION
@@ -54,19 +56,11 @@ const REQUEST_TIMEOUT = 30;
 const RATE_LIMIT_PER_MINUTE = 60;
 
 /**
- * Get Lightspeed API token from config table
+ * Get Lightspeed API token from CIS config
  */
 function getLightspeedApiToken(): ?string {
-    global $db;
-    try {
-        $stmt = $db->prepare("SELECT configValue FROM config WHERE configID = 23 LIMIT 1");
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['configValue'] ?? null;
-    } catch (Exception $e) {
-        error_log("Failed to get Lightspeed API token: " . $e->getMessage());
-        return null;
-    }
+    // Use CIS bootstrap function directly
+    return cis_vend_access_token();
 }
 
 // Lightspeed API Configuration
@@ -166,33 +160,12 @@ if (!function_exists('logSecurityEvent')) {
 // ========================================================================
 
 /**
- * Robust database connection with fallback resolution
+ * Get database connection using CIS bootstrap (PDO)
  * NOTE: Only declare if not already declared in global connection.php
  */
 if (!function_exists('getDatabaseConnection')) {
-    function getDatabaseConnection(): mysqli {
-        // Environment variable resolution with fallbacks
-        $host = getenv('DB_HOST') ?: (defined('DB_HOST') ? constant('DB_HOST') : '127.0.0.1');
-        $user = getenv('DB_USER') ?: (defined('DB_USERNAME') ? constant('DB_USERNAME') : 
-               (defined('DB_USER') ? constant('DB_USER') : 'jcepnzzkmj'));
-        $pass = getenv('DB_PASS') ?: (defined('DB_PASSWORD') ? constant('DB_PASSWORD') : 
-               (defined('DB_PASS') ? constant('DB_PASS') : 'wprKh9Jq63'));
-        $name = getenv('DB_NAME') ?: (defined('DB_DATABASE') ? constant('DB_DATABASE') : 
-               (defined('DB_NAME') ? constant('DB_NAME') : 'jcepnzzkmj'));
-        
-        $connection = new mysqli($host, $user, $pass, $name);
-        
-        if ($connection->connect_errno) {
-            logError('DATABASE_CONNECTION_FAILED', [
-                'error' => $connection->connect_error,
-                'host' => $host,
-                'database' => $name
-            ]);
-            throw new Exception('Database connection failed: ' . $connection->connect_error);
-        }
-        
-        $connection->set_charset('utf8mb4');
-        return $connection;
+    function getDatabaseConnection(): PDO {
+        return cis_resolve_pdo(); // Uses CIS bootstrap
     }
 }
 
