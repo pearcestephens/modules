@@ -17,7 +17,7 @@ header('Content-Type: application/json');
 
 try {
     // Get request data
-    $input = ApiResponse::getRequestData();
+    $input = getRequestData();
     
     // Validate required fields
     $requiredFields = ['level', 'message'];
