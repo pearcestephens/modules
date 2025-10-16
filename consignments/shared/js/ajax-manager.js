@@ -122,6 +122,10 @@
           beforeSend: (xhr) => {
             xhr.setRequestHeader('X-Request-ID', requestId);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            // 🔒 CSRF Protection (from risk register)
+            if (window.CSRF_TOKEN) {
+              xhr.setRequestHeader('X-CSRF-Token', window.CSRF_TOKEN);
+            }
           },
           success: (response) => {
             this.pendingRequests.delete(requestId);

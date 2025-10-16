@@ -2,62 +2,99 @@
 declare(strict_types=1);
 
 /**
- * Consignments API Central Router
- * 
- * Routes API requests to specific endpoint files based on action parameter
- * Uses StandardResponse envelope for consistent API responses (v1.0.0)
- * 
- * @package CIS\Consignments\API
- * @version 2.1.0 - Migrated to StandardResponse
+ * Consignments API Router (JSON)
+ * - POST only, JSON or form-data
+ * - action=submit_transfer
+ *
+ * Returns an "upload contract" for the JS pipeline:
+ *   - upload_session_id
+ *   - upload_url
+ *   - progress_url
  */
 
 header('Content-Type: application/json');
 
-// Bootstrap: Loads app.php, StandardResponse, ApiResponse, Session, and all shared files
-require_once __DIR__ . '/../bootstrap.php';
+try {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Method Not Allowed', 'error_code' => 'METHOD_NOT_ALLOWED']);
+        exit;
+    }
 
-// Get request data using standardized helper (handles JSON, POST, GET)
-$data = getRequestData();
+    // Always bootstrap CIS (one source of truth for DB + sessions)
+    require_once dirname(__DIR__) . '/bootstrap.php';
+    require_once dirname(__DIR__) . '/lib/LightspeedClient.php';
+    require_once dirname(__DIR__) . '/lib/ConsignmentsService.php';
 
-// Get action parameter
-$action = $data['action'] ?? null;
+    // JSON preferred, fallback to POST fields
+    $raw  = file_get_contents('php://input') ?: '';
+    $data = json_decode($raw, true);
+    if (!is_array($data)) { $data = $_POST; }
 
-if (!$action) {
-    StandardResponse::error('Missing action parameter', 400, 'MISSING_ACTION');
-}
+    $action = (string)($data['action'] ?? '');
+    $requestId = 'req_' . bin2hex(random_bytes(6));
 
-// Route to specific endpoint based on action
-switch ($action) {
-    case 'autosave_transfer':
-        require_once __DIR__ . '/autosave_transfer.php';
-        break;
-        
-    case 'get_draft_transfer':
-        require_once __DIR__ . '/get_draft_transfer.php';
-        break;
-        
-    case 'submit_transfer':
-    case 'create_consignment':
-    case 'save_transfer':  // 🔧 FIX: Route save_transfer to same handler as submit_transfer
-        require_once __DIR__ . '/submit_transfer_simple.php';  // SIMPLE VERSION - Works NOW!
-        break;
-        
-    case 'lightspeed':
-    case 'vend':
-    case 'sync':
-        require_once __DIR__ . '/lightspeed.php';
-        break;
-        
-    case 'universal_transfer':
-    case 'get_transfer':
-    case 'update_transfer':
-        require_once __DIR__ . '/universal_transfer_api.php';
-        break;
-        
-    case 'log_error':
-        require_once __DIR__ . '/log_error.php';
-        break;
-        
-    default:
-        StandardResponse::error('Unknown action: ' . $action, 404, 'UNKNOWN_ACTION');
+    // Optional: CSRF + XHR checks (use CIS helpers if present)
+    if (function_exists('cis_require_xhr') && !cis_require_xhr()) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'XHR required', 'error_code' => 'XHR_ONLY', 'request_id' => $requestId]);
+        exit;
+    }
+    if (function_exists('cis_csrf_verify') && !cis_csrf_verify()) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Invalid CSRF token', 'error_code' => 'CSRF', 'request_id' => $requestId]);
+        exit;
+    }
+
+    // Prepare dependencies
+    $pdo = cis_resolve_pdo(); // from CIS app bootstrap
+    $vendBase  = \ConsignmentsService::resolveVendBaseUrl($pdo);
+    $vendToken = \ConsignmentsService::resolveLightspeedToken($pdo);
+    $ls = new \LightspeedClient($vendBase, $vendToken);
+
+    switch ($action) {
+        case 'submit_transfer': {
+            $transferId = (int)($data['transfer_id'] ?? 0);
+            $items = $data['items'] ?? $data['products'] ?? [];
+            $notes = (string)($data['notes']['internal'] ?? $data['notes'] ?? '');
+
+            if ($transferId <= 0 || !is_array($items) || !$items) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Invalid input',
+                    'error_code' => 'INVALID_INPUT',
+                    'request_id' => $requestId
+                ]);
+                exit;
+            }
+
+            $svc = new \ConsignmentsService($pdo, $ls);
+            $contract = $svc->submitTransferAndPrepareUpload($transferId, $items, $notes);
+
+            echo json_encode([
+                'success' => true,
+                'request_id' => $requestId,
+                'message' => 'Transfer saved. Ready to upload to Lightspeed.',
+                'upload_mode' => 'direct',
+                'upload_session_id' => $contract['upload_session_id'],
+                'upload_url' => $contract['upload_url'],
+                'progress_url' => $contract['progress_url'],
+            ]);
+            exit;
+        }
+
+        case 'ping': {
+            echo json_encode(['success' => true, 'pong' => true, 'request_id' => $requestId]); exit;
+        }
+
+        default: {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Unknown action', 'error_code' => 'UNKNOWN_ACTION', 'request_id' => $requestId]);
+            exit;
+        }
+    }
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => $e->getMessage(), 'error_code' => 'SERVER_ERROR']);
 }

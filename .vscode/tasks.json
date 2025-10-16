@@ -4,14 +4,14 @@
 {
 "label": "Tail: Apache error log",
 "type": "shell",
-"command": "ssh master@master_anjzctzjhr "stdbuf -oL tail -F /home/master/applications/jcepnzzkmj/logs/apache_phpstack-*.error.log | sed -u -e 's/\x1b\[[0-9;]m//g'"",
+"command": "ssh master_anjzctzjhr@45.32.241.246 "stdbuf -oL tail -F /home/master/applications/jcepnzzkmj/logs/apache_phpstack-*.error.log | sed -u -e 's/\x1b\[[0-9;]m//g'"",
 "isBackground": true,
 "problemMatcher": []
 },
 {
 "label": "Tail: PHP-FPM (if present)",
 "type": "shell",
-"command": "ssh master@master_anjzctzjhr "stdbuf -oL tail -F /home/master/applications/jcepnzzkmj/logs/php-fpm.log | sed -u -e 's/\x1b\[[0-9;]*m//g'"",
+"command": "ssh master_anjzctzjhr@45.32.241.246 "stdbuf -oL tail -F /home/master/applications/jcepnzzkmj/logs/php-fpm.log | sed -u -e 's/\x1b\[[0-9;]*m//g'"",
 "isBackground": true,
 "problemMatcher": []
 }
