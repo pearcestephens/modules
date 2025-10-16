@@ -5,42 +5,25 @@ declare(strict_types=1);
  * Consignments API Central Router
  * 
  * Routes API requests to specific endpoint files based on action parameter
- * Uses shared ApiResponse envelope for consistent responses
+ * Uses StandardResponse envelope for consistent API responses (v1.0.0)
  * 
  * @package CIS\Consignments\API
- * @version 2.0.0
+ * @version 2.1.0 - Migrated to StandardResponse
  */
 
 header('Content-Type: application/json');
 
-// Bootstrap: Loads app.php, ApiResponse, Session, and all shared files
+// Bootstrap: Loads app.php, StandardResponse, ApiResponse, Session, and all shared files
 require_once __DIR__ . '/../bootstrap.php';
 
-// Get request data from POST or GET
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-$data = [];
-
-if ($requestMethod === 'POST') {
-    // Try to get JSON from request body first
-    $rawInput = file_get_contents('php://input');
-    if (!empty($rawInput)) {
-        $jsonData = json_decode($rawInput, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $data = $jsonData;
-        }
-    }
-    // Merge with $_POST (for form data)
-    $data = array_merge($data, $_POST);
-} else {
-    // GET request
-    $data = $_GET;
-}
+// Get request data using standardized helper (handles JSON, POST, GET)
+$data = getRequestData();
 
 // Get action parameter
-$action = $data['action'] ?? $_GET['action'] ?? null;
+$action = $data['action'] ?? null;
 
 if (!$action) {
-    ApiResponse::error('Missing action parameter', 400, 'MISSING_ACTION');
+    StandardResponse::error('Missing action parameter', 400, 'MISSING_ACTION');
 }
 
 // Route to specific endpoint based on action
@@ -76,5 +59,5 @@ switch ($action) {
         break;
         
     default:
-        ApiResponse::error('Unknown action: ' . $action, 404, 'UNKNOWN_ACTION');
+        StandardResponse::error('Unknown action: ' . $action, 404, 'UNKNOWN_ACTION');
 }

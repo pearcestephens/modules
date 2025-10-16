@@ -10,6 +10,8 @@ declare(strict_types=1);
  * - Updates qty_sent_total (clamped to qty_requested), marks transfer SENT
  * - Writes audit (transfer_audit_log), immutable event (transfer_logs),
  *   and idempotency row (transfer_idempotency) using your real columns.
+ * 
+ * @version 2.1.0 - Migrated to StandardResponse (API Contract v1.0)
  */
 
 // Start session only if not already active (bootstrap.php may have started it)
@@ -282,8 +284,11 @@ try {
     // 14) Commit
     $pdo->commit();
 
-    // 15) Response
-    echo json_encode($responseData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    // 15) Success Response using StandardResponse
+    StandardResponse::success($responseData, "Transfer submitted successfully", [
+        'upload_mode' => $uploadMode,
+        'items_count' => $processedCount
+    ]);
 
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
@@ -325,14 +330,12 @@ try {
         }
     } catch (Throwable $ignored) {}
 
-    http_response_code(400);
-    echo json_encode([
-        'success'     => false,
-        'error'       => $e->getMessage(),
-        'transfer_id' => $transferId,
-        'request_id'  => $requestId,
-        'timestamp'   => date('Y-m-d H:i:s'),
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
+    // Error Response using StandardResponse
     error_log("Submit Transfer Error: " . $e->getMessage());
+    StandardResponse::error(
+        $e->getMessage(), 
+        400, 
+        'SUBMIT_TRANSFER_ERROR',
+        ['transfer_id' => $transferId]
+    );
 }

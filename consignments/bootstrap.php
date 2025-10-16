@@ -78,7 +78,14 @@ if (file_exists(ROOT_PATH . '/modules/base/lib/Session.php')) {
 // 4. LOAD SHARED API COMPONENTS
 // ============================================================================
 
-// Shared API Response envelope (enterprise AJAX protocol)
+// 🆕 NEW STANDARD: CIS API Response Contract (v1.0.0)
+// ALL APIs must use this standardized response envelope
+if (file_exists(ROOT_PATH . '/modules/shared/api/StandardResponse.php')) {
+    require_once ROOT_PATH . '/modules/shared/api/StandardResponse.php';
+}
+
+// Legacy API Response envelope (backwards compatibility)
+// TODO: Migrate all endpoints to StandardResponse, then remove this
 if (file_exists(ROOT_PATH . '/modules/shared/api/ApiResponse.php')) {
     require_once ROOT_PATH . '/modules/shared/api/ApiResponse.php';
 }
