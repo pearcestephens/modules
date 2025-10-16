@@ -1,0 +1,629 @@
+/**
+ * Pack Transfer Page Styles
+ * Auto-save indicator animations and effects
+ */
+
+/* Auto-save indicator animations */
+#autosave-indicator {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#autosave-indicator .save-icon i {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#autosave-indicator .save-status {
+  transition: color 0.3s ease;
+}
+
+/* Pulse animation for saving state */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Success bounce animation */
+@keyframes success-bounce {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Smooth fade in for timestamp */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.save-timestamp {
+  animation: fadeInUp 0.3s ease;
+}
+
+/* Remove hover effects - keep it static */
+#autosave-indicator {
+  cursor: default;
+}
+
+/* Ripple effect for save completion */
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+#autosave-indicator.saved-ripple {
+  animation: ripple 0.6s ease-out;
+}
+
+/* Spinning animation for save icon */
+.fa-spin {
+  animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Additional utility classes for smooth interactions */
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+/* ============================================================================
+   COUNTED QTY INPUT - Remove spinner arrows and make compact
+   ============================================================================ */
+
+/* Hide number input spinner arrows (Chrome, Safari, Edge, Opera) */
+input.counted-qty::-webkit-outer-spin-button,
+input.counted-qty::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide number input spinner arrows (Firefox) */
+input.counted-qty[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Make input more compact */
+input.counted-qty {
+  height: 28px !important;
+  padding: 2px 6px !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+/* Product image hover zoom effect */
+#transfer-table tbody tr td img {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+#transfer-table tbody tr td img:hover:not(.no-zoom) {
+  transform: scale(4);
+  z-index: 1000;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+/* No zoom for placeholder images */
+#transfer-table tbody tr td img.no-zoom {
+  cursor: default;
+}
+
+#transfer-table tbody tr td img.no-zoom:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================================================
+   ROW VALIDATION COLORS (Bootstrap standard colors)
+   ============================================================================ */
+
+/* Perfect match - Green (Bootstrap success) */
+#transfer-table tbody tr.table-success {
+  background-color: #d4edda !important; /* Bootstrap $success-light */
+}
+
+#transfer-table tbody tr.table-success:hover {
+  background-color: #c3e6cb !important; /* Slightly darker on hover */
+}
+
+/* Under-count - Yellow (Bootstrap warning) */
+#transfer-table tbody tr.table-warning {
+  background-color: #fff3cd !important; /* Bootstrap $warning-light */
+}
+
+#transfer-table tbody tr.table-warning:hover {
+  background-color: #ffe8a1 !important; /* Slightly darker on hover */
+}
+
+/* Over-count - Red (Bootstrap danger) */
+#transfer-table tbody tr.table-danger {
+  background-color: #f8d7da !important; /* Bootstrap $danger-light */
+}
+
+#transfer-table tbody tr.table-danger:hover {
+  background-color: #f5c6cb !important; /* Slightly darker on hover */
+}
+
+/* Smooth transition for row color changes */
+#transfer-table tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+/* Ensure text remains readable on colored backgrounds */
+#transfer-table tbody tr.table-success td,
+#transfer-table tbody tr.table-warning td,
+#transfer-table tbody tr.table-danger td {
+  color: #212529 !important; /* Bootstrap dark text */
+}
+
+/* Border enhancement for validation states */
+#transfer-table tbody tr.table-success {
+  border-left: 4px solid #28a745; /* Bootstrap $success */
+}
+
+#transfer-table tbody tr.table-warning {
+  border-left: 4px solid #ffc107; /* Bootstrap $warning */
+}
+
+#transfer-table tbody tr.table-danger {
+  border-left: 4px solid #dc3545; /* Bootstrap $danger */
+}
+
+/* ============================================================================
+       🎆 EPIC SUBMISSION OVERLAY STYLES
+       ============================================================================ */
+    
+    /* Shimmer animation for progress bars */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    /* Pulse ring animation for logo */
+    .pulse-ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      border: 2px solid rgba(0,212,255,0.4);
+      border-radius: 50%;
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    
+    @keyframes pulse-ring {
+      0% {
+        width: 100px;
+        height: 100px;
+        opacity: 1;
+      }
+      100% {
+        width: 180px;
+        height: 180px;
+        opacity: 0;
+      }
+    }
+    
+    /* Progress Step Styling */
+    .progress-step {
+      margin-bottom: 20px;
+      opacity: 0.6;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .progress-step.active {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+    
+    .progress-step.complete {
+      opacity: 1;
+    }
+    
+    .step-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-step.active .step-content {
+      background: linear-gradient(135deg, rgba(0,212,255,0.1) 0%, rgba(0,153,255,0.05) 100%);
+      border-color: rgba(0,212,255,0.3);
+      box-shadow: 0 4px 20px rgba(0,212,255,0.2);
+    }
+    
+    .progress-step.complete .step-content {
+      background: linear-gradient(135deg, rgba(76,217,100,0.1) 0%, rgba(52,199,89,0.05) 100%);
+      border-color: rgba(76,217,100,0.3);
+    }
+    
+    .progress-step.error .step-content {
+      background: linear-gradient(135deg, rgba(255,59,48,0.1) 0%, rgba(255,69,58,0.05) 100%);
+      border-color: rgba(255,59,48,0.3);
+    }
+    
+    /* Step Number */
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      color: #8b92a8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    
+    .progress-step.active .step-number {
+      background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+      color: #000;
+      border-color: #00d4ff;
+      box-shadow: 0 0 20px rgba(0,212,255,0.5);
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    .progress-step.complete .step-number {
+      background: linear-gradient(135deg, #4cd964 0%, #34c759 100%);
+      color: #000;
+      border-color: #4cd964;
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.5); }
+      50% { box-shadow: 0 0 30px rgba(0,212,255,0.8); }
+    }
+    
+    /* Step Info */
+    .step-info {
+      flex: 1;
+    }
+    
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    
+    .step-details {
+      font-size: 13px;
+      color: #8b92a8;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    
+    .progress-step.active .step-details {
+      color: #b8dce8;
+    }
+    
+    .progress-step.complete .step-details {
+      color: #a8e6b7;
+    }
+    
+    /* Step Progress Bar */
+    .step-progress-bar {
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    
+    .step-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00d4ff 0%, #0099ff 100%);
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(0,212,255,0.5);
+    }
+    
+    .progress-step.complete .step-progress-fill {
+      width: 100% !important;
+      background: linear-gradient(90deg, #4cd964 0%, #34c759 100%);
+    }
+    
+    /* Step Icon */
+    .step-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+    
+    .step-icon i {
+      font-size: 20px;
+      color: #8b92a8;
+    }
+    
+    .progress-step.active .step-icon {
+      opacity: 1;
+      animation: icon-spin 2s linear infinite;
+    }
+    
+    .progress-step.active .step-icon i {
+      color: #00d4ff;
+    }
+    
+    .progress-step.complete .step-icon {
+      opacity: 1;
+    }
+    
+    .progress-step.complete .step-icon i {
+      color: #4cd964;
+    }
+    
+    @keyframes icon-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Live Feedback Messages */
+    .feedback-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .feedback-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      animation: slideInLeft 0.3s ease-out;
+      border-left: 3px solid transparent;
+    }
+    
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .feedback-message.info { 
+      color: #5ac8fa; 
+      border-left-color: #5ac8fa;
+    }
+    
+    .feedback-message.success { 
+      color: #4cd964; 
+      border-left-color: #4cd964;
+    }
+    
+    .feedback-message.warning { 
+      color: #ffcc00; 
+      border-left-color: #ffcc00;
+    }
+    
+    .feedback-message.error { 
+      color: #ff3b30; 
+      border-left-color: #ff3b30;
+    }
+    
+    .feedback-message .timestamp {
+      color: #666;
+      font-size: 11px;
+      flex-shrink: 0;
+      min-width: 60px;
+    }
+    
+    .feedback-message .icon {
+      flex-shrink: 0;
+      width: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Connection Status */
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4cd964;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-dot {
+      0%, 100% { 
+        opacity: 1; 
+        box-shadow: 0 0 8px rgba(76,217,100,0.5);
+      }
+      50% { 
+        opacity: 0.5; 
+        box-shadow: 0 0 12px rgba(76,217,100,0.8);
+      }
+    }
+    
+    /* Scrollbar Styling */
+    #live-feedback-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #live-feedback-container::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+    }
+    
+    #live-feedback-container::-webkit-scrollbar-thumb {
+      background: rgba(0,212,255,0.3);
+      border-radius: 10px;
+    }
+    
+    #live-feedback-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,212,255,0.5);
+    }
+
+    /* Fixed Position Auto-Save Indicator */
+    .auto-save-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(-10px);
+    }
+    
+    .auto-save-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .auto-save-badge {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border: 1px solid #e9ecef;
+      border-radius: 24px;
+      padding: 8px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #495057;
+      min-width: 140px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+    }
+    
+    .save-status-icon {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6c757d;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-shrink: 0;
+    }
+    
+    .save-status-text {
+      flex: 1;
+      text-align: left;
+      line-height: 1.2;
+    }
+    
+    .save-status {
+      display: block;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+    
+    .save-timestamp {
+      display: block;
+      font-size: 11px;
+      color: #868e96;
+      margin-top: 2px;
+      font-weight: 400;
+    }
+
+    /* Enhanced Auto-Save Indicator Animations */
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .auto-save-badge.saving-pulse {
+      animation: badge-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes badge-pulse {
+      0% { transform: translateY(0); box-shadow: 0 2px 8px rgba(33,150,243,0.3); }
+      50% { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.4); }
+      100% { transform: translateY(0); box-shadow: 0 2px 8px rgba(33,150,243,0.3); }
+    }
+
+    .auto-save-badge.saved-glow {
+      animation: success-glow 0.6s ease-out;
+    }
+
+    @keyframes success-glow {
+      0% { transform: scale(1); box-shadow: 0 2px 8px rgba(76,175,80,0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 4px 16px rgba(76,175,80,0.5); }
+      100% { transform: scale(1); box-shadow: 0 2px 8px rgba(76,175,80,0.3); }
+    }
+
+    /* Print optimizations */
+    @media print {
+      .auto-save-container { display: none !important; }
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .auto-save-badge {
+        font-size: 12px !important;
+        padding: 4px 8px !important;
+      }
+      .save-timestamp {
+        font-size: 10px !important;
+      }
+    }

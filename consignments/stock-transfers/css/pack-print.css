@@ -1,0 +1,435 @@
+/**
+ * Pack Transfer Print Styles
+ * Professional packing slip / receiving document
+ */
+
+@media print {
+  /* Reset and hide everything by default */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+  
+  /* Hide all non-essential elements */
+  .app-header,
+  .sidebar,
+  .sidemenu,
+  .breadcrumb,
+  .aside-menu,
+  nav,
+  .modal,
+  .modal-backdrop,
+  button,
+  .btn,
+  #autosave-indicator,
+  .no-print,
+  input[type="number"],
+  .form-control,
+  .card-header,
+  .alert,
+  #transfer-alerts,
+  textarea {
+    display: none !important;
+  }
+  
+  /* Main container full width */
+  .app-body,
+  .main,
+  main,
+  .container,
+  .container-fluid {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Print header on every page */
+  .print-header {
+    display: block !important;
+    position: relative;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-bottom: 3px solid #000;
+    page-break-after: avoid;
+  }
+  
+  .print-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 22pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .print-header .transfer-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 10pt;
+  }
+  
+  .print-header .transfer-info > div {
+    flex: 1;
+  }
+  
+  .print-header strong {
+    font-weight: 700;
+  }
+  
+  /* Table styling for print */
+  .card,
+  .card-body {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  #transfer-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 0 !important;
+    page-break-inside: auto;
+    font-size: 10pt;
+  }
+  
+  #transfer-table thead {
+    display: table-header-group;
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  #transfer-table thead th {
+    padding: 8px 6px !important;
+    border: 1px solid #000 !important;
+    font-weight: bold !important;
+    text-align: left !important;
+    font-size: 9pt !important;
+    background: #e0e0e0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Hide screen text in first column header, show tick */
+  #transfer-table thead th:first-child span {
+    display: none !important;
+  }
+  
+  /* Tick icon in first column header */
+  #transfer-table thead th:first-child::before {
+    content: '✓';
+    display: block;
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1;
+  }
+  
+  #transfer-table tbody {
+    display: table-row-group;
+  }
+  
+  #transfer-table tbody tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+    border: 1px solid #ccc !important;
+    background: white !important; /* Override any validation colors */
+  }
+  
+  /* Remove validation colors in print */
+  #transfer-table tbody tr.table-success,
+  #transfer-table tbody tr.table-warning,
+  #transfer-table tbody tr.table-danger {
+    background: white !important;
+    border-left: none !important;
+  }
+  
+  #transfer-table tbody tr:nth-child(even) {
+    background: #f9f9f9 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  #transfer-table tbody td {
+    padding: 6px 6px !important;
+    border: 1px solid #ccc !important;
+    vertical-align: middle !important;
+    font-size: 9pt;
+  }
+  
+  /* Hide product image in print, replace with tick box */
+  #transfer-table tbody td:first-child {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  
+  #transfer-table tbody td img {
+    display: none !important;
+  }
+  
+  /* Show tick box instead of image */
+  #transfer-table tbody td:first-child::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #000;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  
+  /* Tick icon in header */
+  #transfer-table thead th:first-child::before {
+    content: '✓';
+    display: block;
+    font-size: 16pt;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  /* Hide inputs and print values in counted column */
+  #transfer-table .counted-qty,
+  #transfer-table .counted-print-value,
+  #transfer-table .validation-message {
+    display: none !important;
+  }
+  
+  /* Black line for manual writing in counted column */
+  #transfer-table .counted-td::after {
+    content: '';
+    display: inline-block;
+    width: 60px;
+    height: 1px;
+    border-bottom: 2px solid #000;
+    margin: 0 auto;
+    vertical-align: middle;
+  }
+  
+  #transfer-table .counted-td {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  
+  /* Hide badges and extra info in print */
+  .badge {
+    display: none !important;
+  }
+  
+  /* Keep SKU visible but subtle */
+  .text-muted {
+    color: #666 !important;
+    font-size: 8pt !important;
+  }
+  
+  /* Column widths optimized for print */
+  #transfer-table thead th:nth-child(1), /* Tick Box */
+  #transfer-table tbody td:nth-child(1) {
+    width: 30px !important;
+    text-align: center !important;
+  }
+  
+  #transfer-table thead th:nth-child(2), /* Product Name */
+  #transfer-table tbody td:nth-child(2) {
+    width: auto !important;
+    min-width: 180px !important;
+  }
+  
+  #transfer-table thead th:nth-child(3), /* Qty In Stock */
+  #transfer-table tbody td:nth-child(3) {
+    width: 70px !important;
+    text-align: center !important;
+  }
+  
+  #transfer-table thead th:nth-child(4), /* Planned */
+  #transfer-table tbody td:nth-child(4) {
+    width: 70px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+  }
+  
+  #transfer-table thead th:nth-child(5), /* Counted */
+  #transfer-table tbody td:nth-child(5) {
+    width: 90px !important;
+    text-align: center !important;
+  }
+  
+  #transfer-table thead th:nth-child(6), /* Source */
+  #transfer-table tbody td:nth-child(6) {
+    width: 90px !important;
+    font-size: 8pt !important;
+  }
+  
+  #transfer-table thead th:nth-child(7), /* Destination */
+  #transfer-table tbody td:nth-child(7) {
+    width: 90px !important;
+    font-size: 8pt !important;
+  }
+  
+  #transfer-table thead th:nth-child(8), /* ID */
+  #transfer-table tbody td:nth-child(8) {
+    width: 70px !important;
+    text-align: center !important;
+    font-size: 8pt !important;
+  }
+  
+  /* Print footer on every page */
+  .print-footer {
+    display: block !important;
+    margin-top: 30px;
+    padding: 15px 0;
+    border-top: 3px solid #000;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  
+  /* Number of boxes section */
+  .print-footer .boxes-section {
+    display: block !important;
+    margin-bottom: 25px;
+    padding: 10px 0;
+    border-bottom: 1px dotted #999;
+  }
+  
+  .print-footer .boxes-line {
+    display: flex;
+    align-items: center;
+    font-size: 11pt;
+    font-weight: bold;
+  }
+  
+  .print-footer .boxes-line span:first-child {
+    margin-right: 10px;
+  }
+  
+  .print-footer .boxes-line .line-blank {
+    display: inline-block;
+    width: 80px;
+    border-bottom: 2px solid #000;
+    height: 18px;
+    margin: 0 5px;
+  }
+  
+  .print-footer .signature-line {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    text-align: left;
+    gap: 20px;
+  }
+  
+  .print-footer .signature-box {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .print-footer .signature-box strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+  
+  .print-footer .signature-box .line {
+    display: block;
+    border-top: 2px solid #000;
+    margin-top: 45px;
+    padding-top: 5px;
+    font-size: 8pt;
+    color: #666;
+  }
+  
+  /* Page breaks */
+  @page {
+    margin: 0.75in 0.5in;
+    size: A4 portrait;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+  }
+  
+  /* Summary section at end */
+  .print-summary {
+    display: block !important;
+    margin-top: 20px;
+    padding: 15px;
+    border: 2px solid #000;
+    page-break-before: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .print-summary h3 {
+    margin: 0 0 10px 0;
+    font-size: 14pt;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+  }
+  
+  .print-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dotted #ccc;
+  }
+  
+  .print-summary .summary-row:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 12pt;
+    margin-top: 5px;
+    padding-top: 10px;
+    border-top: 2px solid #000;
+  }
+  
+  /* Notes section */
+  .print-notes {
+    display: block !important;
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #000;
+    page-break-inside: avoid;
+  }
+  
+  .print-notes h4 {
+    margin: 0 0 10px 0;
+    font-size: 11pt;
+    font-weight: bold;
+  }
+  
+  .print-notes .notes-content {
+    min-height: 60px;
+    border-top: 1px dotted #ccc;
+    padding-top: 10px;
+    white-space: pre-wrap;
+  }
+  
+  /* Barcode/QR code area */
+  .print-barcode {
+    display: block !important;
+    text-align: right;
+    margin-top: 10px;
+    font-size: 8pt;
+  }
+  
+  .print-barcode strong {
+    display: block;
+    font-size: 18pt;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 3px;
+  }
+}

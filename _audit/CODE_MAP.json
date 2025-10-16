@@ -1,0 +1,249 @@
+{
+  "$schema": "audit:codemap:v1",
+  "generated": "2025-10-16",
+  "repository": "/modules",
+  "total_files": 99,
+  "total_lines": 15248,
+  "languages": {
+    "PHP": {"files": 46, "lines": 10202},
+    "JavaScript": {"files": 3, "lines": 2523},
+    "CSS": {"files": 4, "lines": 892},
+    "SQL": {"files": 2, "lines": 349},
+    "Markdown": {"files": 44, "lines": 1282}
+  },
+  
+  "critical_files": [
+    {
+      "path": "consignments/api/lightspeed.php",
+      "lang": "PHP",
+      "size": 1272,
+      "purpose": "Vend/Lightspeed API client with HTTP wrapper",
+      "symbols": [
+        {"type": "class", "name": "LightspeedHttpClient", "start": 250, "end": 433, "methods": 8},
+        {"type": "class", "name": "VendLightspeedAPI", "start": 435, "end": 1272, "methods": 15}
+      ],
+      "imports": [],
+      "exports": ["LightspeedHttpClient", "VendLightspeedAPI"],
+      "complexity": {"cyclomatic": 45, "functions_over_50_lines": 8},
+      "issues": [
+        "P0: Authorization header format inconsistency (line 265)",
+        "P2: No retry logic for transient failures",
+        "P2: No circuit breaker pattern"
+      ]
+    },
+    {
+      "path": "consignments/api/simple-upload-direct.php",
+      "lang": "PHP",
+      "size": 364,
+      "purpose": "Direct Vend upload bypassing queue - emergency fix for conflicts",
+      "symbols": [
+        {"type": "function", "name": "callVendAPI", "start": 42, "end": 88},
+        {"type": "function", "name": "main_upload_logic", "start": 90, "end": 360}
+      ],
+      "imports": ["PDO", "Exception"],
+      "exports": [],
+      "complexity": {"cyclomatic": 18, "functions_over_50_lines": 1},
+      "issues": [
+        "P0: Fixed - Authorization header now correct (line 50)",
+        "P0: Fixed - Uses outlet_from/outlet_to columns (line 193)",
+        "P1: Writes to consignment_upload_progress for real SSE",
+        "P2: No rollback on partial Vend product upload failure"
+      ]
+    },
+    {
+      "path": "consignments/api/consignment-upload-progress.php",
+      "lang": "PHP",
+      "size": 145,
+      "purpose": "SSE endpoint for real-time upload progress tracking",
+      "symbols": [
+        {"type": "function", "name": "sse_send", "start": 30, "end": 39}
+      ],
+      "imports": ["PDO"],
+      "exports": [],
+      "complexity": {"cyclomatic": 8, "functions_over_50_lines": 0},
+      "issues": [
+        "P1: FIXED - Now reads from consignment_upload_progress table",
+        "P2: No heartbeat/keepalive for long uploads",
+        "P3: No backpressure control"
+      ]
+    },
+    {
+      "path": "consignments/stock-transfers/pack.php",
+      "lang": "PHP",
+      "size": 1109,
+      "purpose": "Pack/ship transfer UI - main workflow page",
+      "symbols": [
+        {"type": "inline_function", "name": "manuallyOrderedByStaff_obj", "start": 221, "end": 228}
+      ],
+      "imports": ["transfers.php", "pack.php (functions)", "bootstrap.php"],
+      "exports": [],
+      "complexity": {"cyclomatic": 35, "functions_over_50_lines": 0, "mixed_php_html": true},
+      "issues": [
+        "P2: 1109 lines - should be split into MVC components",
+        "P2: Mixed PHP/HTML makes testing difficult",
+        "P3: Inline SQL queries should use shared functions"
+      ]
+    },
+    {
+      "path": "consignments/stock-transfers/js/pack.js",
+      "lang": "JavaScript",
+      "size": 1757,
+      "purpose": "Pack page frontend logic - SSE, modal, autosave, validation",
+      "symbols": [
+        {"type": "function", "name": "openSimpleProgressModal", "start": 1510, "end": 1540},
+        {"type": "function", "name": "connectModalSSE", "start": 1778, "end": 1890},
+        {"type": "function", "name": "closeSimpleProgressModal", "start": 1909, "end": 1915},
+        {"type": "function", "name": "submitPackForm", "start": 540, "end": 730}
+      ],
+      "imports": ["jQuery", "Bootstrap"],
+      "exports": [],
+      "complexity": {"cyclomatic": 52, "functions_over_100_lines": 3},
+      "issues": [
+        "P1: FIXED - Modal opens only once now (line 644)",
+        "P1: FIXED - Redirects to home page on close (line 1911)",
+        "P2: 1757 lines - needs modularization",
+        "P2: Global functions - should use module pattern",
+        "P3: No TypeScript - type safety would prevent many bugs"
+      ]
+    },
+    {
+      "path": "consignments/shared/functions/transfers.php",
+      "lang": "PHP",
+      "size": 600,
+      "purpose": "Shared transfer data access functions",
+      "symbols": [
+        {"type": "function", "name": "getUniversalTransfer", "start": 22, "end": 238},
+        {"type": "function", "name": "getCompleteTransferDataById", "start": 240, "end": 349},
+        {"type": "function", "name": "getTransferItems", "start": 351, "end": 373},
+        {"type": "function", "name": "getTransferById", "start": 535, "end": 541},
+        {"type": "function", "name": "calculateTransferSummary", "start": 488, "end": 533}
+      ],
+      "imports": ["PDO"],
+      "exports": ["getUniversalTransfer", "getCompleteTransferDataById", "getTransferItems", "etc"],
+      "complexity": {"cyclomatic": 28, "functions_over_50_lines": 2},
+      "issues": [
+        "P2: getUniversalTransfer 216 lines - god function",
+        "P2: Multiple query patterns should be consolidated",
+        "P3: Missing pagination for large result sets"
+      ]
+    },
+    {
+      "path": "consignments/api/submit_transfer_simple.php",
+      "lang": "PHP",
+      "size": 338,
+      "purpose": "Submit/save transfer data before upload",
+      "symbols": [],
+      "imports": ["PDO", "transfers.php"],
+      "exports": [],
+      "complexity": {"cyclomatic": 15, "functions_over_50_lines": 0},
+      "issues": [
+        "P0: FIXED - Now sets state to PACKING not SENT (line 151)",
+        "P2: Validation should be in separate class",
+        "P3: Error messages not i18n ready"
+      ]
+    },
+    {
+      "path": "consignments/api/process-consignment-upload.php",
+      "lang": "PHP",
+      "size": 303,
+      "purpose": "Process queued consignment uploads (worker endpoint)",
+      "symbols": [
+        {"type": "class", "name": "VendLightspeedClient", "start": 50, "end": 280}
+      ],
+      "imports": ["PDO", "lightspeed.php"],
+      "exports": ["VendLightspeedClient"],
+      "complexity": {"cyclomatic": 20, "functions_over_50_lines": 2},
+      "issues": [
+        "P0: Authorization header format - verify after latest changes",
+        "P2: No dead letter queue for permanent failures",
+        "P2: No exponential backoff on retries"
+      ]
+    }
+  ],
+  
+  "entry_points": [
+    {
+      "type": "HTTP",
+      "path": "consignments/stock-transfers/pack.php",
+      "method": "GET",
+      "auth": "session",
+      "purpose": "Pack/ship transfer UI"
+    },
+    {
+      "type": "HTTP_API",
+      "path": "consignments/api/submit_transfer_simple.php",
+      "method": "POST",
+      "auth": "session + CSRF",
+      "purpose": "Save transfer data, change state to PACKING"
+    },
+    {
+      "type": "HTTP_API",
+      "path": "consignments/api/simple-upload-direct.php",
+      "method": "POST",
+      "auth": "session",
+      "purpose": "Direct Vend upload (emergency bypass)"
+    },
+    {
+      "type": "SSE",
+      "path": "consignments/api/consignment-upload-progress.php",
+      "method": "GET",
+      "auth": "session",
+      "purpose": "Real-time upload progress stream"
+    },
+    {
+      "type": "HTTP_API",
+      "path": "consignments/api/universal_transfer_api.php",
+      "method": "POST",
+      "auth": "session",
+      "purpose": "Universal transfer operations endpoint"
+    }
+  ],
+  
+  "dependency_patterns": {
+    "database_access": "Direct PDO via app.php (no ORM)",
+    "api_clients": "Custom HTTP clients (lightspeed.php, simple-upload-direct.php)",
+    "session_management": "PHP native sessions",
+    "error_handling": "Try/catch with JSON responses",
+    "logging": "error_log() calls throughout",
+    "transactions": "PDO transactions with rollback"
+  },
+  
+  "anti_patterns_detected": [
+    "God functions (getUniversalTransfer 216 lines)",
+    "Mixed PHP/HTML templates (pack.php)",
+    "Global functions without namespaces",
+    "Function redeclaration risks (getDatabaseConnection)",
+    "No dependency injection",
+    "Direct superglobal access ($_POST, $_GET)",
+    "Inconsistent error envelopes",
+    "No standardized logging format"
+  ],
+  
+  "security_concerns": [
+    "CSRF protection inconsistent across endpoints",
+    "SQL injection risk if PDO binding fails",
+    "No rate limiting on API endpoints",
+    "Session fixation risk if no regeneration",
+    "Secrets in code (Vend token hardcoded)",
+    "No input sanitization layer",
+    "Stack traces may leak in errors"
+  ],
+  
+  "performance_concerns": [
+    "No query result pagination",
+    "N+1 query risk in getTransferItems loops",
+    "No caching layer",
+    "Large file sizes (lightspeed.php 1272 lines)",
+    "SSE without heartbeat causes connection buildup",
+    "No connection pooling"
+  ],
+  
+  "maintainability_score": {
+    "overall": 45,
+    "readability": 55,
+    "modularity": 40,
+    "testability": 30,
+    "documentation": 50,
+    "notes": "Heavy documentation but poor code organization"
+  }
+}

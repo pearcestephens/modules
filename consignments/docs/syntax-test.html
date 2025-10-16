@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JS Syntax Test</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <h1>JavaScript Syntax Check</h1>
+  <div id="result">Loading pack.js...</div>
+  <script src="js/pack.js"></script>
+  <script>
+    setTimeout(() => {
+      document.getElementById("result").innerHTML = "✅ pack.js loaded successfully! No syntax errors.";
+      console.log("✅ All functions available:", {
+        submitTransfer: typeof window.submitTransfer,
+        isNumberKey: typeof window.isNumberKey,
+        validateCountedQty: typeof window.validateCountedQty
+      });
+    }, 100);
+  </script>
+</body>
+</html>

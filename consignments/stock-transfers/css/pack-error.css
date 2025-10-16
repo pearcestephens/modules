@@ -1,0 +1,100 @@
+/* Pack Error Display Styles */
+.error-display {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.error-display .error-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.error-display .error-icon i {
+    font-size: 50px;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(245, 87, 108, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(245, 87, 108, 0.5);
+    }
+}
+
+.error-display .error-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.error-display .error-message {
+    max-width: 600px;
+    background: #fff3cd;
+    border-left: 5px solid #ffc107;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 0 auto 40px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #856404;
+    text-align: left;
+}
+
+.error-display .error-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.error-display .error-actions .btn {
+    min-width: 180px;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.error-display .error-actions .btn i {
+    margin-right: 8px;
+}
+
+.error-display .error-actions .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.error-display .error-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.error-display .error-actions .btn-secondary {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+}
+
+.error-display .error-actions .btn-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+}
