@@ -1,362 +1,354 @@
 <?php
 /**
  * Auto Asset Loader for CIS Modules (CSS + JavaScript)
- * 
- * Automatically discovers and loads CSS and JS files from module folders in the correct order:
- * 1. Shared/common assets (from /modules/shared/css/ and /modules/shared/js/)
- * 2. Module-specific assets (from /modules/{module}/css/ and /modules/{module}/js/)
- * 3. Page-specific assets (from /modules/{module}/{subfolder}/css/ and /modules/{module}/{subfolder}/js/)
- * 
- * USAGE:
- * ------
- * // CSS only
- * $page_head_extra = autoLoadModuleCSS(__FILE__);
- * 
- * // JavaScript only
- * $page_scripts_before_footer = autoLoadModuleJS(__FILE__);
- * 
- * // Both at once
- * list($css, $js) = autoLoadModuleAssets(__FILE__);
- * $page_head_extra = $css;
- * $page_scripts_before_footer = $js;
- * 
- * // With custom paths
- * $css = autoLoadModuleCSS(__FILE__, [
- *     'additional' => ['/modules/custom/css/extra.css']
- * ]);
- * 
+ *
+ * Discovers and loads CSS/JS from module folders in this priority:
+ * 1) /modules/shared/{css|js}
+ * 2) /modules/{module}/{css|js} and /modules/{module}/shared/{css|js}
+ * 3) /modules/{module}/{subfolder}/{css|js}
+ * 4) additional[] (custom)
+ *
  * @package CIS\Shared\Functions
- * @version 2.0.0
+ * @version 2.1.0
  */
+
+declare(strict_types=1);
 
 /**
  * Auto-load CSS files from module directory structure
- * 
- * Scans the calling file's directory tree and automatically includes:
- * - All shared CSS files
- * - All module CSS files
- * - All page-specific CSS files
- * 
- * @param string $callingFile The __FILE__ constant from calling script
- * @param array $options Options array:
- *                       - 'additional' => array of extra CSS paths to include
- *                       - 'exclude' => array of filenames to exclude
- *                       - 'minified' => bool, prefer .min.css files (default: false)
- *                       - 'cache_bust' => bool, add ?v=timestamp (default: true)
+ *
+ * @param string $callingFile __FILE__ from the calling script
+ * @param array  $options     [
+ *   'additional' => array<string|array>,  // supports string paths, map path=>attrs, or arrays with ['path'=>..,'attrs'=>..]
+ *   'exclude'    => array<string>,        // filenames to exclude
+ *   'minified'   => bool,                 // prefer .min.css
+ *   'cache_bust' => bool                  // add ?v=mtime
+ * ]
  * @return string HTML <link> tags ready for $page_head_extra
  */
 function autoLoadModuleCSS(string $callingFile, array $options = []): string
 {
-    // Default options
     $options = array_merge([
         'additional' => [],
-        'exclude' => [],
-        'minified' => false,
+        'exclude'    => [],
+        'minified'   => false,
         'cache_bust' => true,
     ], $options);
-    
-    // Get document root
+
+    // Document root
     $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
-    if (empty($docRoot)) {
+    if ($docRoot === '') {
         $docRoot = defined('ROOT_PATH') ? ROOT_PATH : realpath(__DIR__ . '/../../..');
     }
-    
-    // Get calling file's directory structure
-    $callingDir = dirname($callingFile);
+
+    // Compute module/subfolder from calling file
+    $callingDir   = dirname($callingFile);
     $relativePath = str_replace($docRoot, '', $callingDir);
-    
-    // Parse path to find module structure
-    // Example: /modules/consignments/stock-transfers/pack.php
-    // Results in: module=consignments, subfolder=stock-transfers
-    preg_match('#/modules/([^/]+)(?:/([^/]+))?#', $relativePath, $matches);
-    $moduleName = $matches[1] ?? null;
-    $subFolder = $matches[2] ?? null;
-    
-    $cssFiles = [];
-    
-    // ========================================================================
-    // 1. SHARED CSS (Highest Priority - Loads First)
-    // ========================================================================
+    preg_match('#/modules/([^/]+)(?:/([^/]+))?#', $relativePath, $m);
+    $moduleName = $m[1] ?? null;
+    $subFolder  = $m[2] ?? null;
+
+    $cssFiles = []; // each item: ['path'=>string,'priority'=>int,'label'=>string,'attrs'=>array]
+
+    // 1) SHARED CSS
     $sharedCssDir = $docRoot . '/modules/shared/css';
     if (is_dir($sharedCssDir)) {
-        $sharedFiles = glob($sharedCssDir . '/*.css');
-        foreach ($sharedFiles as $file) {
+        foreach (glob($sharedCssDir . '/*.css') as $file) {
             $filename = basename($file);
-            if (!in_array($filename, $options['exclude'])) {
+            if (!in_array($filename, $options['exclude'], true)) {
                 $cssFiles[] = [
-                    'path' => '/modules/shared/css/' . $filename,
+                    'path'     => '/modules/shared/css/' . $filename,
                     'priority' => 1,
-                    'label' => 'Shared: ' . $filename
+                    'label'    => 'Shared: ' . $filename,
+                    'attrs'    => []
                 ];
             }
         }
     }
-    
-    // ========================================================================
-    // 2. MODULE CSS (Medium Priority)
-    // ========================================================================
+
+    // 2) MODULE CSS (+ shared CSS under module)
     if ($moduleName) {
         $moduleCssDir = $docRoot . '/modules/' . $moduleName . '/css';
         if (is_dir($moduleCssDir)) {
-            $moduleFiles = glob($moduleCssDir . '/*.css');
-            foreach ($moduleFiles as $file) {
+            foreach (glob($moduleCssDir . '/*.css') as $file) {
                 $filename = basename($file);
-                if (!in_array($filename, $options['exclude'])) {
+                if (!in_array($filename, $options['exclude'], true)) {
                     $cssFiles[] = [
-                        'path' => '/modules/' . $moduleName . '/css/' . $filename,
+                        'path'     => '/modules/' . $moduleName . '/css/' . $filename,
                         'priority' => 2,
-                        'label' => 'Module: ' . $filename
+                        'label'    => 'Module: ' . $filename,
+                        'attrs'    => []
                     ];
                 }
             }
         }
-        
-        // Module shared CSS (if exists)
+
         $moduleSharedCssDir = $docRoot . '/modules/' . $moduleName . '/shared/css';
         if (is_dir($moduleSharedCssDir)) {
-            $moduleSharedFiles = glob($moduleSharedCssDir . '/*.css');
-            foreach ($moduleSharedFiles as $file) {
+            foreach (glob($moduleSharedCssDir . '/*.css') as $file) {
                 $filename = basename($file);
-                if (!in_array($filename, $options['exclude'])) {
+                if (!in_array($filename, $options['exclude'], true)) {
                     $cssFiles[] = [
-                        'path' => '/modules/' . $moduleName . '/shared/css/' . $filename,
+                        'path'     => '/modules/' . $moduleName . '/shared/css/' . $filename,
                         'priority' => 2,
-                        'label' => 'Module Shared: ' . $filename
+                        'label'    => 'Module Shared: ' . $filename,
+                        'attrs'    => []
                     ];
                 }
             }
         }
     }
-    
-    // ========================================================================
-    // 3. SUBFOLDER/PAGE-SPECIFIC CSS (Lowest Priority - Loads Last)
-    // ========================================================================
+
+    // 3) PAGE/SUBFOLDER CSS
     if ($moduleName && $subFolder) {
-        $subfolderCssDir = $docRoot . '/modules/' . $moduleName . '/' . $subFolder . '/css';
-        if (is_dir($subfolderCssDir)) {
-            $subfolderFiles = glob($subfolderCssDir . '/*.css');
-            foreach ($subfolderFiles as $file) {
+        $subCssDir = $docRoot . '/modules/' . $moduleName . '/' . $subFolder . '/css';
+        if (is_dir($subCssDir)) {
+            foreach (glob($subCssDir . '/*.css') as $file) {
                 $filename = basename($file);
-                if (!in_array($filename, $options['exclude'])) {
+                if (!in_array($filename, $options['exclude'], true)) {
                     $cssFiles[] = [
-                        'path' => '/modules/' . $moduleName . '/' . $subFolder . '/css/' . $filename,
+                        'path'     => '/modules/' . $moduleName . '/' . $subFolder . '/css/' . $filename,
                         'priority' => 3,
-                        'label' => 'Page: ' . $filename
+                        'label'    => 'Page: ' . $filename,
+                        'attrs'    => []
                     ];
                 }
             }
         }
     }
-    
-    // ========================================================================
-    // 4. ADDITIONAL CSS (Custom paths from options)
-    // ========================================================================
-    foreach ($options['additional'] as $additionalPath) {
+
+    // 4) ADDITIONAL CSS
+    foreach ($options['additional'] as $key => $val) {
+        $path  = null;
+        $attrs = [];
+
+        if (is_string($val)) {
+            // ['.../file.css', ...]
+            $path = $val;
+        } elseif (is_array($val)) {
+            // [
+            //   ['path'=>'/x.css','attrs'=>['media'=>'print']],
+            //   ['path'=>'/x.css','media'=>'print'], // tolerate flat attrs
+            // ]
+            $path  = $val['path'] ?? ($val[0] ?? null);
+            $attrs = $val['attrs'] ?? array_diff_key($val, ['path'=>true, 0=>true, 'attrs'=>true]);
+        } elseif (is_string($key) && is_array($val)) {
+            // ['/x.css' => ['media'=>'print']]
+            $path  = $key;
+            $attrs = $val;
+        }
+
+        if (!$path || !is_string($path)) { continue; }
+
         $cssFiles[] = [
-            'path' => $additionalPath,
+            'path'     => $path,
             'priority' => 4,
-            'label' => 'Additional: ' . basename($additionalPath)
+            'label'    => 'Additional: ' . basename($path),
+            'attrs'    => is_array($attrs) ? $attrs : []
         ];
     }
-    
-    // ========================================================================
-    // 5. SORT BY PRIORITY (Shared → Module → Page → Additional)
-    // ========================================================================
-    usort($cssFiles, function($a, $b) {
-        return $a['priority'] <=> $b['priority'];
-    });
-    
-    // ========================================================================
-    // 6. GENERATE HTML <link> TAGS
-    // ========================================================================
+
+    // Sort by priority
+    usort($cssFiles, fn($a, $b) => $a['priority'] <=> $b['priority']);
+
+    // Build HTML
     $html = "\n<!-- Auto-loaded Module CSS -->\n";
-    
+
     foreach ($cssFiles as $css) {
         $path = $css['path'];
-        
-        // Check for minified version if requested
+
+        // Minified preference
         if ($options['minified']) {
             $minPath = str_replace('.css', '.min.css', $path);
             $minFile = $docRoot . $minPath;
-            if (file_exists($minFile)) {
+            if (is_file($minFile)) {
                 $path = $minPath;
             }
         }
-        
-        // Add cache busting
+
+        // Cache-busting
         $cacheBust = '';
         if ($options['cache_bust']) {
             $fullPath = $docRoot . $path;
-            if (file_exists($fullPath)) {
-                $mtime = filemtime($fullPath);
-                $cacheBust = '?v=' . $mtime;
+            if (is_file($fullPath)) {
+                $cacheBust = '?v=' . filemtime($fullPath);
             }
         }
-        
-        // Generate <link> tag
+
+        // Extra attributes (safe list + data-*)
+        $extra = '';
+        $allowed = ['media','integrity','crossorigin','referrerpolicy','title','as','disabled','type']; // plus data-*
+        $rel = 'stylesheet';
+        if (!empty($css['attrs']) && is_array($css['attrs'])) {
+            foreach ($css['attrs'] as $name => $value) {
+                $name = strtolower((string)$name);
+                if ($name === 'rel') { $rel = (string)$value ?: 'stylesheet'; continue; }
+                if (in_array($name, $allowed, true) || str_starts_with($name, 'data-')) {
+                    if (is_bool($value)) {
+                        if ($value) { $extra .= ' ' . $name; }
+                    } else {
+                        $extra .= ' ' . $name . '="' . htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8') . '"';
+                    }
+                }
+            }
+        }
+
         $html .= sprintf(
-            '<link rel="stylesheet" href="%s%s" data-source="%s">' . "\n",
+            '<link rel="%s" href="%s%s"%s data-source="%s">' . "\n",
+            htmlspecialchars($rel, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($path, ENT_QUOTES, 'UTF-8'),
             $cacheBust,
+            $extra,
             htmlspecialchars($css['label'], ENT_QUOTES, 'UTF-8')
         );
     }
-    
+
     $html .= "<!-- End Auto-loaded CSS -->\n";
-    
     return $html;
 }
 
 /**
  * Auto-load JavaScript files from module directory structure
- * 
- * Same as autoLoadModuleCSS but for JavaScript files
- * Follows same priority: Shared → Module → Page → Additional
- * 
- * @param string $callingFile The __FILE__ constant from calling script
- * @param array $options Options array (same as autoLoadModuleCSS)
+ *
+ * @param string $callingFile __FILE__ from the calling script
+ * @param array  $options     [
+ *   'additional' => array<string>, // extra script paths (strings only)
+ *   'exclude'    => array<string>,
+ *   'minified'   => bool,
+ *   'cache_bust' => bool,
+ *   'defer'      => bool,
+ *   'async'      => bool
+ * ]
  * @return string HTML <script> tags ready for $page_scripts_before_footer
  */
 function autoLoadModuleJS(string $callingFile, array $options = []): string
 {
-    // Default options
     $options = array_merge([
         'additional' => [],
-        'exclude' => [],
-        'minified' => false,
+        'exclude'    => [],
+        'minified'   => false,
         'cache_bust' => true,
-        'defer' => false,
-        'async' => false,
+        'defer'      => false,
+        'async'      => false,
     ], $options);
-    
-    // Get document root
+
+    // Document root
     $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
-    if (empty($docRoot)) {
+    if ($docRoot === '') {
         $docRoot = defined('ROOT_PATH') ? ROOT_PATH : realpath(__DIR__ . '/../../..');
     }
-    
-    // Get calling file's directory structure
-    $callingDir = dirname($callingFile);
+
+    // Compute module/subfolder
+    $callingDir   = dirname($callingFile);
     $relativePath = str_replace($docRoot, '', $callingDir);
-    
-    // Parse path
-    preg_match('#/modules/([^/]+)(?:/([^/]+))?#', $relativePath, $matches);
-    $moduleName = $matches[1] ?? null;
-    $subFolder = $matches[2] ?? null;
-    
+    preg_match('#/modules/([^/]+)(?:/([^/]+))?#', $relativePath, $m);
+    $moduleName = $m[1] ?? null;
+    $subFolder  = $m[2] ?? null;
+
     $jsFiles = [];
-    
-    // 1. SHARED JS
+
+    // 1) SHARED JS
     $sharedJsDir = $docRoot . '/modules/shared/js';
     if (is_dir($sharedJsDir)) {
-        $sharedFiles = glob($sharedJsDir . '/*.js');
-        foreach ($sharedFiles as $file) {
+        foreach (glob($sharedJsDir . '/*.js') as $file) {
             $filename = basename($file);
-            if (!in_array($filename, $options['exclude'])) {
+            if (!in_array($filename, $options['exclude'], true)) {
                 $jsFiles[] = [
-                    'path' => '/modules/shared/js/' . $filename,
+                    'path'     => '/modules/shared/js/' . $filename,
                     'priority' => 1,
-                    'label' => 'Shared: ' . $filename
+                    'label'    => 'Shared: ' . $filename
                 ];
             }
         }
     }
-    
-    // 2. MODULE JS
+
+    // 2) MODULE JS (+ shared JS under module)
     if ($moduleName) {
         $moduleJsDir = $docRoot . '/modules/' . $moduleName . '/js';
         if (is_dir($moduleJsDir)) {
-            $moduleFiles = glob($moduleJsDir . '/*.js');
-            foreach ($moduleFiles as $file) {
+            foreach (glob($moduleJsDir . '/*.js') as $file) {
                 $filename = basename($file);
-                if (!in_array($filename, $options['exclude'])) {
+                if (!in_array($filename, $options['exclude'], true)) {
                     $jsFiles[] = [
-                        'path' => '/modules/' . $moduleName . '/js/' . $filename,
+                        'path'     => '/modules/' . $moduleName . '/js/' . $filename,
                         'priority' => 2,
-                        'label' => 'Module: ' . $filename
+                        'label'    => 'Module: ' . $filename
                     ];
                 }
             }
         }
-        
-        // Module shared JS
+
         $moduleSharedJsDir = $docRoot . '/modules/' . $moduleName . '/shared/js';
         if (is_dir($moduleSharedJsDir)) {
-            $moduleSharedFiles = glob($moduleSharedJsDir . '/*.js');
-            foreach ($moduleSharedFiles as $file) {
+            foreach (glob($moduleSharedJsDir . '/*.js') as $file) {
                 $filename = basename($file);
-                if (!in_array($filename, $options['exclude'])) {
+                if (!in_array($filename, $options['exclude'], true)) {
                     $jsFiles[] = [
-                        'path' => '/modules/' . $moduleName . '/shared/js/' . $filename,
+                        'path'     => '/modules/' . $moduleName . '/shared/js/' . $filename,
                         'priority' => 2,
-                        'label' => 'Module Shared: ' . $filename
+                        'label'    => 'Module Shared: ' . $filename
                     ];
                 }
             }
         }
     }
-    
-    // 3. SUBFOLDER/PAGE-SPECIFIC JS
+
+    // 3) PAGE/SUBFOLDER JS
     if ($moduleName && $subFolder) {
-        $subfolderJsDir = $docRoot . '/modules/' . $moduleName . '/' . $subFolder . '/js';
-        if (is_dir($subfolderJsDir)) {
-            $subfolderFiles = glob($subfolderJsDir . '/*.js');
-            foreach ($subfolderFiles as $file) {
+        $subJsDir = $docRoot . '/modules/' . $moduleName . '/' . $subFolder . '/js';
+        if (is_dir($subJsDir)) {
+            foreach (glob($subJsDir . '/*.js') as $file) {
                 $filename = basename($file);
-                if (!in_array($filename, $options['exclude'])) {
+                if (!in_array($filename, $options['exclude'], true)) {
                     $jsFiles[] = [
-                        'path' => '/modules/' . $moduleName . '/' . $subFolder . '/js/' . $filename,
+                        'path'     => '/modules/' . $moduleName . '/' . $subFolder . '/js/' . $filename,
                         'priority' => 3,
-                        'label' => 'Page: ' . $filename
+                        'label'    => 'Page: ' . $filename
                     ];
                 }
             }
         }
     }
-    
-    // 4. ADDITIONAL JS
+
+    // 4) ADDITIONAL JS (strings only)
     foreach ($options['additional'] as $additionalPath) {
+        if (!is_string($additionalPath)) { continue; }
         $jsFiles[] = [
-            'path' => $additionalPath,
+            'path'     => $additionalPath,
             'priority' => 4,
-            'label' => 'Additional: ' . basename($additionalPath)
+            'label'    => 'Additional: ' . basename($additionalPath)
         ];
     }
-    
-    // 5. SORT BY PRIORITY
-    usort($jsFiles, function($a, $b) {
-        return $a['priority'] <=> $b['priority'];
-    });
-    
-    // 6. GENERATE HTML <script> TAGS
+
+    // Sort by priority
+    usort($jsFiles, fn($a, $b) => $a['priority'] <=> $b['priority']);
+
+    // Build HTML
     $html = "\n<!-- Auto-loaded Module JavaScript -->\n";
-    
     $deferAttr = $options['defer'] ? ' defer' : '';
     $asyncAttr = $options['async'] ? ' async' : '';
-    
+
     foreach ($jsFiles as $js) {
         $path = $js['path'];
-        
-        // Check for minified version if requested
+
+        // Minified preference
         if ($options['minified']) {
             $minPath = str_replace('.js', '.min.js', $path);
             $minFile = $docRoot . $minPath;
-            if (file_exists($minFile)) {
+            if (is_file($minFile)) {
                 $path = $minPath;
             }
         }
-        
-        // Add cache busting
+
+        // Cache-busting
         $cacheBust = '';
         if ($options['cache_bust']) {
             $fullPath = $docRoot . $path;
-            if (file_exists($fullPath)) {
-                $mtime = filemtime($fullPath);
-                $cacheBust = '?v=' . $mtime;
+            if (is_file($fullPath)) {
+                $cacheBust = '?v=' . filemtime($fullPath);
             }
         }
-        
-        // Generate <script> tag
+
         $html .= sprintf(
             '<script src="%s%s"%s%s data-source="%s"></script>' . "\n",
             htmlspecialchars($path, ENT_QUOTES, 'UTF-8'),
@@ -366,23 +358,20 @@ function autoLoadModuleJS(string $callingFile, array $options = []): string
             htmlspecialchars($js['label'], ENT_QUOTES, 'UTF-8')
         );
     }
-    
+
     $html .= "<!-- End Auto-loaded JavaScript -->\n";
-    
     return $html;
 }
 
 /**
- * Quick helper: Auto-load both CSS and JS
- * 
- * @param string $callingFile The __FILE__ constant
- * @param array $options Options for both CSS and JS
- * @return array ['css' => string, 'js' => string]
+ * Quick helper: load both CSS and JS
+ *
+ * @return array{css:string, js:string}
  */
 function autoLoadModuleAssets(string $callingFile, array $options = []): array
 {
     return [
         'css' => autoLoadModuleCSS($callingFile, $options['css'] ?? []),
-        'js' => autoLoadModuleJS($callingFile, $options['js'] ?? []),
+        'js'  => autoLoadModuleJS($callingFile, $options['js'] ?? []),
     ];
 }
