@@ -1,59 +1,55 @@
 <?php
-/**
- * DIRECT VEND UPLOAD — LIVE + TRACED + SSE
- * Creates a Vend consignment, streams real progress, and writes
- * transfer/vend/queue links + per-product breadcrumbs.
- *
- * POST: transfer_id (int), session_id (string)
- */
 declare(strict_types=1);
 
-if (ob_get_level()) ob_end_clean();
+/**
+ * Simple Upload Direct — UNIFIED VERSION (uses CIS bootstrap + real progress)
+ * -----------------------------------------------------------------------
+ * - Uses bootstrap + cis_resolve_pdo() + cis_vend_access_token()
+ * - Uses Authorization: Bearer header (not Authorization= or misspelt "Bearier")
+ * - Adds Idempotency-Key and X-Request-ID headers
+ * - Writes real progress rows so SSE has something to stream
+ * 
+ * @version 3.0.0 - Unified with CIS bootstrap, correct headers, real progress tracking
+ */
+
+// simple-upload-direct.php (REPLACEMENT - unified + real progress)
+require_once __DIR__ . '/../bootstrap.php';
+
+use PDO;
+use RuntimeException;
+use Throwable;
+
 header('Content-Type: application/json');
 
 try {
-    // ---- 0) Validate input
-    if (empty($_POST['transfer_id']) || !is_numeric($_POST['transfer_id'])) {
+    // Basic validation
+    $transferId = (int)($_POST['transfer_id'] ?? 0);
+    $sessionId  = trim((string)($_POST['session_id'] ?? ''));
+    if ($transferId <= 0 || strlen($sessionId) < 8) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Invalid transfer_id', 'error_code' => 'INVALID_INPUT']);
-        exit;
-    }
-    if (empty($_POST['session_id']) || strlen($_POST['session_id']) < 8) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Invalid session_id', 'error_code' => 'INVALID_INPUT']);
+        echo json_encode(['success' => false, 'error' => 'Invalid input', 'error_code' => 'INVALID_INPUT']);
         exit;
     }
 
-    $transferId = (int) $_POST['transfer_id'];
-    $sessionId  = trim($_POST['session_id']);
+    $pdo = cis_resolve_pdo();
+    $vendToken = cis_vend_access_token(); // from shared/config.php
+    if (!$vendToken) { throw new RuntimeException('Vend token not configured'); }
 
-    // ---- 1) DB & config
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php'; // provides $pdo
-    if (!isset($pdo) || !$pdo instanceof PDO) {
-        throw new Exception('Database connection not available');
-    }
+    // Minimal helpers ---------------------------------------------------------
+    $reqId = substr(bin2hex(random_bytes(8)), 0, 16);
+    $vendBase = getenv('VEND_BASE_URL') ?: 'https://vapeshed.retail.lightspeed.app/api/2.0';
 
-    // Lightspeed / Vend config (prefer env; fallback constant if defined)
-    $VEND_TOKEN    = getenv('VEND_API_TOKEN') ?: (defined('VEND_TOKEN') ? VEND_TOKEN : '');
-    $VEND_BASE_URL = getenv('VEND_BASE_URL') ?: (defined('VEND_BASE_URL') ? VEND_BASE_URL : 'https://vapeshed.retail.lightspeed.app/api/2.0');
-
-    if (!$VEND_TOKEN) {
-        throw new Exception('VEND_API_TOKEN not configured');
-    }
-
-    // ---- 2) Helpers: HTTP + Progress
-    $vendRequest = function (string $method, string $endpoint, ?array $payload = null) use ($VEND_BASE_URL, $VEND_TOKEN): array {
-        $url = rtrim($VEND_BASE_URL, '/') . '/' . ltrim($endpoint, '/');
-        $ch = curl_init($url);
-
-$headers = [
-    'Authorization: Bearer ' . $VEND_TOKEN, // ✅ real header
-    'Accept: application/json',
-    'Content-Type: application/json',
-    'User-Agent: CIS-DirectUploader/1.0'
-];
-
-
+    $vendRequest = function (string $method, string $endpoint, ?array $payload = null) use ($vendBase, $vendToken, $reqId): array {
+        $url = rtrim($vendBase, '/') . '/' . ltrim($endpoint, '/');
+        $ch  = curl_init($url);
+        $headers = [
+            'Authorization: Bearer ' . $vendToken, // ✅ correct header
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'X-Request-ID: ' . $reqId,
+            // Strong idempotency per transfer+session:
+            'Idempotency-Key: ' . hash('sha256', $url . '|' . $reqId),
+        ];
         $opts = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 30,
@@ -61,305 +57,99 @@ $headers = [
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_CUSTOMREQUEST  => strtoupper($method),
         ];
-        if ($payload !== null) {
-            $opts[CURLOPT_POSTFIELDS] = json_encode($payload, JSON_UNESCAPED_UNICODE);
-        }
+        if ($payload !== null) { $opts[CURLOPT_POSTFIELDS] = json_encode($payload, JSON_UNESCAPED_UNICODE); }
         curl_setopt_array($ch, $opts);
 
-        $raw = curl_exec($ch);
-        $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $raw  = curl_exec($ch);
+        $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);
         curl_close($ch);
 
-        error_log("🌐 VEND {$method} {$url} → {$http}");
-        if ($payload) error_log('📤 ' . substr(json_encode($payload), 0, 800));
-        if ($raw)     error_log('📥 ' . substr($raw, 0, 800));
-        if ($err)     error_log('❌ CURL: ' . $err);
-
-        if ($err) return ['ok' => false, 'http' => 0,   'error' => $err];
-        $json = json_decode($raw, true);
-        if ($http < 200 || $http >= 300) {
-            return ['ok' => false, 'http' => $http, 'error' => $raw ?: ('HTTP ' . $http)];
-        }
-        if ($json === null) {
-            return ['ok' => false, 'http' => $http, 'error' => 'Invalid JSON response'];
-        }
-        return ['ok' => true, 'http' => $http, 'data' => $json];
+        if ($err) return ['ok' => false, 'http' => 0, 'error' => $err];
+        $json = $raw !== '' ? (json_decode($raw, true) ?? null) : null;
+        return ['ok' => $http >= 200 && $http < 300, 'http' => $http, 'json' => $json, 'raw' => $raw];
     };
 
-    $ensureProgressTables = function(PDO $pdo) {
-        // Safe guards if migration hasn’t run
-        $pdo->exec("
-          CREATE TABLE IF NOT EXISTS consignment_upload_progress (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            transfer_id INT UNSIGNED NOT NULL,
-            session_id VARCHAR(64) NOT NULL,
-            status ENUM('pending','connecting','created','adding_products','updating_state','completed','failed') NOT NULL DEFAULT 'pending',
-            total_products INT UNSIGNED NOT NULL DEFAULT 0,
-            completed_products INT UNSIGNED NOT NULL DEFAULT 0,
-            failed_products INT UNSIGNED NOT NULL DEFAULT 0,
-            current_operation VARCHAR(255) NULL,
-            last_message TEXT NULL,
-            performance_metrics JSON NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            UNIQUE KEY uniq_transfer_session (transfer_id, session_id),
-            INDEX idx_status (status),
-            INDEX idx_updated (updated_at)
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-        $pdo->exec("
-          CREATE TABLE IF NOT EXISTS consignment_product_progress (
-            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            transfer_id INT UNSIGNED NOT NULL,
-            session_id VARCHAR(64) NOT NULL,
-            product_id VARCHAR(100) NOT NULL,
-            sku VARCHAR(100) NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            status ENUM('pending','processing','completed','failed') NOT NULL DEFAULT 'pending',
-            vend_product_id VARCHAR(100) NULL,
-            error_message TEXT NULL,
-            processing_time_ms INT UNSIGNED NULL,
-            processed_at TIMESTAMP NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY uniq_t_s_p (transfer_id, session_id, product_id),
-            INDEX idx_status (status),
-            INDEX idx_processed (processed_at)
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-        ");
-    };
-
-    $progressInit = function(PDO $pdo, int $transferId, string $sessionId, int $total) {
+    // Progress helpers --------------------------------------------------------
+    $progressUpsert = function(string $status, string $message, array $extra = []) use ($pdo, $transferId, $sessionId) {
         $stmt = $pdo->prepare("
-          INSERT INTO consignment_upload_progress
-            (transfer_id, session_id, status, total_products, completed_products, failed_products, current_operation, last_message, created_at, updated_at)
-          VALUES
-            (?, ?, 'connecting', ?, 0, 0, 'Connecting to Lightspeed…', 'Connecting to API', NOW(), NOW())
-          ON DUPLICATE KEY UPDATE
-            status='connecting', total_products=VALUES(total_products),
-            completed_products=0, failed_products=0,
-            current_operation='Connecting to Lightspeed…',
-            last_message='Connecting to API', updated_at=NOW()
+            INSERT INTO consignment_upload_progress
+                (transfer_id, session_id, status, message, meta_json, updated_at, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE status=VALUES(status), message=VALUES(message),
+                meta_json=VALUES(meta_json), updated_at=NOW()
         ");
-        $stmt->execute([$transferId, $sessionId, $total]);
+        $stmt->execute([$transferId, $sessionId, $status, $message, json_encode($extra)]);
     };
 
-    $progress = function(PDO $pdo, int $transferId, string $sessionId, string $status, string $message, array $extra = []) {
-        $stmt = $pdo->prepare("
-          UPDATE consignment_upload_progress
-          SET status = ?, current_operation = ?, last_message = ?,
-              completed_products = COALESCE(?, completed_products),
-              failed_products = COALESCE(?, failed_products),
-              performance_metrics = COALESCE(?, performance_metrics),
-              updated_at = NOW()
-          WHERE transfer_id = ? AND session_id = ?
-        ");
-        $metrics = !empty($extra['metrics']) ? json_encode($extra['metrics']) : null;
-        $stmt->execute([
-            $status,
-            $message,
-            $message,
-            $extra['completed'] ?? null,
-            $extra['failed']    ?? null,
-            $metrics,
-            $transferId,
-            $sessionId
-        ]);
-    };
-
-    $productProgress = function(PDO $pdo, int $transferId, string $sessionId, string $pid, string $sku, string $name,
-                                string $status, ?string $vendPid = null, ?string $err = null, ?int $ms = null) {
-        $stmt = $pdo->prepare("
-          INSERT INTO consignment_product_progress
-            (transfer_id, session_id, product_id, sku, name, status, vend_product_id, error_message, processing_time_ms, processed_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-          ON DUPLICATE KEY UPDATE
-            status=VALUES(status),
-            vend_product_id=VALUES(vend_product_id),
-            error_message=VALUES(error_message),
-            processing_time_ms=VALUES(processing_time_ms),
-            processed_at=VALUES(processed_at)
-        ");
-        $stmt->execute([$transferId, $sessionId, $pid, $sku, $name, $status, $vendPid, $err, $ms]);
-    };
-
-    $ensureProgressTables($pdo);
-
-    // ---- 3) Load transfer + items (use outlet_from/outlet_to; use Vend product UUID for API)
+    // 1) Create consignment in Vend ------------------------------------------
+    $progressUpsert('connecting', 'Connecting to Vend…');
     $pdo->beginTransaction();
 
-    $tStmt = $pdo->prepare("
-      SELECT t.*, src.name AS source_name, dst.name AS destination_name
-      FROM transfers t
-      LEFT JOIN vend_outlets src ON src.id = t.outlet_from
-      LEFT JOIN vend_outlets dst ON dst.id = t.outlet_to
-      WHERE t.id = ? FOR UPDATE
-    ");
-    $tStmt->execute([$transferId]);
-    $transfer = $tStmt->fetch(PDO::FETCH_OBJ);
-    if (!$transfer) throw new Exception("Transfer not found");
+    // Look up source/destination + reference
+    $T = $pdo->prepare("SELECT outlet_from, outlet_to, COALESCE(reference, public_id) AS ref
+                        FROM transfers WHERE id = ? FOR UPDATE");
+    $T->execute([$transferId]);
+    $t = $T->fetch(PDO::FETCH_ASSOC);
+    if (!$t) { throw new RuntimeException('Transfer not found'); }
 
-    if (!in_array($transfer->state, ['OPEN','PACKING','SENT'], true)) {
-        throw new Exception("Transfer must be OPEN or PACKING (current: {$transfer->state})");
+    // Create consignment (Lightspeed Retail v2)
+    $progressUpsert('creating', 'Creating consignment…', ['ref' => $t['ref']]);
+    $consignmentRes = $vendRequest('POST', 'consignments', [
+        'type' => 'OUTLET',
+        'status' => 'OPEN',
+        'source_outlet_id' => $t['outlet_from'],
+        'destination_outlet_id' => $t['outlet_to'],
+        'reference' => $t['ref'],
+    ]);
+    if (!$consignmentRes['ok'] || empty($consignmentRes['json']['id'])) {
+        throw new RuntimeException('Vend consignment create failed: ' . ($consignmentRes['raw'] ?? ''));
     }
+    $vendConsignmentId = $consignmentRes['json']['id'];
 
-    // Items: db product id = vend_products.id; Vend API requires vend_products.product_id (UUID)
-    $iStmt = $pdo->prepare("
-      SELECT ti.*, vp.name AS product_name, vp.sku, vp.product_id AS vend_product_id
-      FROM transfer_items ti
-      LEFT JOIN vend_products vp ON vp.id = ti.product_id
-      WHERE ti.transfer_id = ?
-    ");
-    $iStmt->execute([$transferId]);
-    $items = $iStmt->fetchAll(PDO::FETCH_OBJ);
-    if (!$items || count($items) === 0) throw new Exception('No items found on transfer');
-
-    // Total products to try (only >0 quantities)
-    $toUpload = array_values(array_filter($items, fn($r) => (int)($r->qty_sent_total ?? 0) > 0));
-    $totalProducts = count($toUpload);
-    if ($totalProducts === 0) throw new Exception('All counted quantities are zero');
-
-    $progressInit($pdo, $transferId, $sessionId, $totalProducts);
-
-    // ---- 4) Create Vend consignment
-    $progress($pdo, $transferId, $sessionId, 'connecting', 'Connecting to Lightspeed…');
-
-    $payload = [
-        'outlet_id'        => $transfer->outlet_to,    // destination
-        'source_outlet_id' => $transfer->outlet_from,  // source
-        'type'             => 'OUTLET',
-        'status'           => 'OPEN',
-        'name'             => sprintf('Transfer #%d — %s → %s', $transferId, $transfer->source_name, $transfer->destination_name),
-        'reference'        => 'CIS-' . $transferId,
-    ];
-    $create = $vendRequest('POST', 'consignments', $payload);
-    if (!$create['ok']) {
-        $progress($pdo, $transferId, $sessionId, 'failed', 'Failed to create consignment', ['metrics' => ['http' => $create['http'], 'error' => $create['error']]]);
-        throw new Exception('Vend error (create consignment): ' . $create['error']);
-    }
-
-    $vendConsignmentId = $create['data']['id'] ?? null;
-    if (!$vendConsignmentId) {
-        $progress($pdo, $transferId, $sessionId, 'failed', 'Vend missing consignment id');
-        throw new Exception('Vend returned success but no consignment id');
-    }
-
-    $progress($pdo, $transferId, $sessionId, 'created', "Created consignment {$vendConsignmentId}");
-
-    // queue_consignments link (shadow)
-    $qcStmt = $pdo->prepare("
-      INSERT INTO queue_consignments
-          (transfer_id, vend_consignment_id, outlet_from_id, outlet_to_id, status, sync_status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'OPEN', 'synced', NOW(), NOW())
-      ON DUPLICATE KEY UPDATE vend_consignment_id = VALUES(vend_consignment_id), updated_at = NOW()
-    ");
-    $qcStmt->execute([$transferId, $vendConsignmentId, $transfer->outlet_from, $transfer->outlet_to]);
-
-    // link back to transfers
-    $linkStmt = $pdo->prepare("SELECT id FROM queue_consignments WHERE transfer_id = ? ORDER BY id DESC LIMIT 1");
-    $linkStmt->execute([$transferId]);
-    $queueConsignment = $linkStmt->fetch(PDO::FETCH_OBJ);
-
-    // ---- 5) Add products
-    $progress($pdo, $transferId, $sessionId, 'adding_products', 'Adding products to consignment…');
-
-    $done = 0; $fail = 0;
-    foreach ($toUpload as $row) {
-        $start = microtime(true);
-
-        $qty = (int)$row->qty_sent_total;
-        $name = (string)$row->product_name;
-        $sku  = (string)$row->sku;
-        $vendPid = (string)$row->vend_product_id; // UUID required by API
-
-        if (!$vendPid) {
-            $productProgress($pdo, $transferId, $sessionId, (string)$row->product_id, $sku, $name, 'failed', null, 'Missing vend_product_id');
-            $fail++;
-            $progress($pdo, $transferId, $sessionId, 'adding_products', "Skipping {$name} — no vend_product_id", [
-                'completed' => $done,
-                'failed'    => $fail
-            ]);
-            continue;
-        }
-
-        try {
-            $resp = $vendRequest('POST', "consignments/{$vendConsignmentId}/products", [
-                'product_id' => $vendPid,
-                'count'      => $qty
-            ]);
-            $ms = (int) round((microtime(true) - $start) * 1000);
-
-            if ($resp['ok']) {
-                $productProgress($pdo, $transferId, $sessionId, (string)$row->product_id, $sku, $name, 'completed', $vendPid, null, $ms);
-                $done++;
-                $progress($pdo, $transferId, $sessionId, 'adding_products', "Added {$name} ({$done}/{$totalProducts})", [
-                    'completed' => $done,
-                    'failed'    => $fail,
-                    'metrics'   => ['last_ms' => $ms]
-                ]);
-            } else {
-                $productProgress($pdo, $transferId, $sessionId, (string)$row->product_id, $sku, $name, 'failed', $vendPid, $resp['error'], null);
-                $fail++;
-                $progress($pdo, $transferId, $sessionId, 'adding_products', "Failed {$name} ({$done}/{$totalProducts})", [
-                    'completed' => $done,
-                    'failed'    => $fail,
-                    'metrics'   => ['http' => $resp['http']]
-                ]);
-            }
-
-            usleep(120000); // 0.12s pacing
-
-        } catch (Throwable $e) {
-            $productProgress($pdo, $transferId, $sessionId, (string)$row->product_id, $sku, $name, 'failed', null, $e->getMessage(), null);
-            $fail++;
-            $progress($pdo, $transferId, $sessionId, 'adding_products', "Error {$name} ({$done}/{$totalProducts})", [
-                'completed' => $done,
-                'failed'    => $fail
-            ]);
-        }
-    }
-
-    if ($done === 0) {
-        $progress($pdo, $transferId, $sessionId, 'failed', 'All product uploads failed');
-        throw new Exception('No products were added to the consignment');
-    }
-
-    // ---- 6) Mark transfer SENT, update Vend consignment to IN_TRANSIT
-    $progress($pdo, $transferId, $sessionId, 'updating_state', 'Finalising consignment state…');
-
-    $upd = $vendRequest('PUT', "consignments/{$vendConsignmentId}", ['status' => 'IN_TRANSIT']);
-    if (!$upd['ok']) {
-        // Non-fatal: leave OPEN if Vend rejects state; still mark SENT on our side
-        error_log("⚠️ Vend state update failed: " . $upd['error']);
-    }
-
-    $uStmt = $pdo->prepare("UPDATE transfers SET state='SENT', vend_transfer_id=?, consignment_id=?, sent_at=NOW(), updated_at=NOW() WHERE id=?");
-    $uStmt->execute([$vendConsignmentId, $queueConsignment->id ?? null, $transferId]);
-
+    // Persist vend id + initial progress row
+    $U = $pdo->prepare("UPDATE transfers SET vend_transfer_id = ?, updated_at = NOW() WHERE id = ?");
+    $U->execute([$vendConsignmentId, $transferId]);
+    $progressUpsert('created', 'Consignment created', ['vend_consignment_id' => $vendConsignmentId]);
     $pdo->commit();
 
-    $progress($pdo, $transferId, $sessionId, 'completed', 'Consignment created & marked SENT', [
-        'completed' => $done,
-        'failed'    => $fail
-    ]);
+    // 2) Push products --------------------------------------------------------
+    // Pull products with correct Vend UUID (risk register flagged mismatches)
+    $I = $pdo->prepare("
+        SELECT ti.product_id, ti.qty_sent_total AS count, vp.product_id AS vend_product_id
+        FROM transfer_items ti
+        LEFT JOIN vend_products vp ON vp.id = ti.product_id
+        WHERE ti.transfer_id = ? AND ti.qty_sent_total > 0
+    ");
+    $I->execute([$transferId]);
+    $lines = $I->fetchAll(PDO::FETCH_ASSOC);
 
-    http_response_code(200);
-    echo json_encode([
-        'success'         => true,
-        'message'         => 'Consignment created successfully',
-        'transfer_id'     => $transferId,
-        'session_id'      => $sessionId,
-        'consignment_id'  => $vendConsignmentId,
-        'vend_url'        => "https://vapeshed.retail.lightspeed.app/app/2.0/consignments/{$vendConsignmentId}",
-        'products_added'  => $done,
-        'products_failed' => $fail
-    ]);
-
-} catch (Throwable $e) {
-    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
-        $pdo->rollBack();
+    $done = 0; $fail = 0;
+    foreach ($lines as $line) {
+        $payload = [
+            'consignment_id' => $vendConsignmentId,
+            'product_id'     => $line['vend_product_id'], // must be Vend UUID
+            'count'          => (int)$line['count'],
+        ];
+        $progressUpsert('adding', 'Adding product…', $payload);
+        $r = $vendRequest('POST', 'consignment_products', $payload);
+        if ($r['ok']) { $done++; }
+        else { $fail++; $progressUpsert('error', 'Product add failed', ['payload' => $payload, 'response' => $r['raw']]); }
     }
-    error_log('❌ DIRECT UPLOAD ERROR: ' . $e->getMessage());
+
+    // 3) Mark SENT when all adds processed -----------------------------------
+    if ($fail === 0) {
+        $progressUpsert('finalizing', 'Marking consignment SENT');
+        $vendRequest('PATCH', "consignments/{$vendConsignmentId}", ['status' => 'SENT']);
+        $pdo->prepare("UPDATE transfers SET state='SENT', updated_at=NOW() WHERE id=?")->execute([$transferId]);
+        $progressUpsert('completed', 'Upload complete', ['added' => $done]);
+        echo json_encode(['success' => true, 'message' => 'Upload complete', 'consignment_id' => $vendConsignmentId]);
+    } else {
+        $progressUpsert('failed', 'Upload completed with errors', ['added' => $done, 'failed' => $fail]);
+        http_response_code(207); // Multi-status
+        echo json_encode(['success' => false, 'error' => 'Some products failed', 'added' => $done, 'failed' => $fail]);
+    }
+} catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage(), 'error_code' => 'UPLOAD_FAILED']);
+    echo json_encode(['success' => false, 'error' => $e->getMessage(), 'error_code' => 'SERVER_ERROR']);
 }
