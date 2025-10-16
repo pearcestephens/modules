@@ -74,30 +74,40 @@ $userDetails = $_SESSION ?? [];
 $transferIdParam = $transferId;
 
 // Template variables for base-layout.php
-$page_title = 'Pack Transfer #' . (int)$transferData->id . ' [REFACTORED VERSION]';
+$page_title = 'Pack Transfer #' . (int)$transferData->id;
 $body_class = 'app header-fixed sidebar-fixed aside-menu-fixed sidebar-lg-show';
 
 // CSRF token for forms
 $csrf = htmlspecialchars($_SESSION['csrf'] ?? '', ENT_QUOTES);
 
+// ============================================================================
+// AUTO-LOAD CSS & JS - Uses auto-load-assets.php
+// ============================================================================
+require_once __DIR__ . '/../../shared/functions/auto-load-assets.php';
+
+// Auto-load CSS from: shared/css, consignments/shared/css, stock-transfers/css
+$autoCSS = autoLoadModuleCSS(__FILE__, [
+    'additional' => [
+        '/modules/consignments/stock-transfers/css/pack-print.css' => ['media' => 'print']
+    ]
+]);
+
+// Auto-load JS from: shared/js, consignments/shared/js, stock-transfers/js
+$autoJS = autoLoadModuleJS(__FILE__, [
+    'additional' => [
+        '/assets/js/cis-toast.js'  // Global CIS toast notifications
+    ],
+    'defer' => false  // Load synchronously for pack.js dependencies
+]);
+
 // Extra head content (CSS + Meta)
 $page_head_extra = <<<HTML
-<link rel="stylesheet" href="/modules/consignments/stock-transfers/css/pack.css">
-<link rel="stylesheet" href="/modules/consignments/stock-transfers/css/pack-print.css" media="print">
+{$autoCSS}
 <meta name="csrf-token" content="{$csrf}">
 HTML;
 
 // JavaScript files to load BEFORE core libraries
-$page_scripts_before_footer = <<<HTML
-<!-- Enterprise AJAX Manager -->
-<script src="/modules/consignments/shared/js/ajax-manager.js"></script>
-<!-- Pack Page Core Functionality -->
-<script src="/modules/consignments/stock-transfers/js/pack.js"></script>
-<!-- Pack Page Auto-Fill Hotfix -->
-<script src="/modules/consignments/stock-transfers/js/pack-fix.js"></script>
-<!-- CIS Toast Notifications -->
-<script src="/assets/js/cis-toast.js"></script>
-HTML;
+$page_scripts_before_footer = $autoJS;
 
 // Breadcrumb configuration
 $show_breadcrumb = true;
