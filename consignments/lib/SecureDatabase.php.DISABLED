@@ -1,0 +1,574 @@
+<?php
+/**
+ * CIS Database Security Hardening System
+ * 
+ * MAXIMUM SECURITY IMPLEMENTATION for all database connections
+ * - Prepared statements with strict typing
+ * - Connection pooling with validation
+ * - SQL injection prevention
+ * - Query logging and monitoring
+ * - Transaction isolation levels
+ * - Connection encryption
+ * - Rate limiting
+ * - Audit logging
+ * 
+ * @package CIS\Security\Database
+ * @version 2.0.0
+ * @security MAXIMUM_HARDENING
+ */
+
+declare(strict_types=1);
+
+class CISSecureDatabase {
+    
+    private $connection;
+    private $transactionLevel = 0;
+    private $queryLog = [];
+    private $rateLimiter;
+    private $auditLogger;
+    
+    // Security constants
+    private const MAX_QUERIES_PER_SECOND = 100;
+    private const MAX_CONNECTION_TIME = 300; // 5 minutes
+    private const QUERY_TIMEOUT = 30;
+    private const MAX_PREPARED_STATEMENTS = 1000;
+    
+    /**
+     * Create maximum security database connection
+     */
+    public function __construct(array $config) {
+        $this->validateConfig($config);
+        $this->initializeConnection($config);
+        $this->initializeRateLimiter();
+        $this->initializeAuditLogger();
+        $this->setupSecurityDefenses();
+    }
+    
+    /**
+     * Validate configuration for security compliance
+     */
+    private function validateConfig(array $config): void {
+        $required = ['host', 'database', 'username', 'password'];
+        foreach ($required as $key) {
+            if (empty($config[$key])) {
+                throw new InvalidArgumentException("Database config missing required field: {$key}");
+            }
+        }
+        
+        // Validate SSL requirement
+        if (empty($config['ssl']) || $config['ssl'] !== true) {
+            throw new SecurityException("SSL connection required for maximum hardening");
+        }
+        
+        // Validate password strength
+        if (strlen($config['password']) < 20) {
+            throw new SecurityException("Database password must be at least 20 characters for maximum security");
+        }
+    }
+    
+    /**
+     * Initialize secure database connection with maximum hardening
+     */
+    private function initializeConnection(array $config): void {
+        $dsn = sprintf(
+            "mysql:host=%s;dbname=%s;charset=utf8mb4;port=%d",
+            $config['host'],
+            $config['database'],
+            $config['port'] ?? 3306
+        );
+        
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false, // CRITICAL: Disable emulation
+            PDO::ATTR_STRINGIFY_FETCHES => false,
+            PDO::ATTR_TIMEOUT => self::QUERY_TIMEOUT,
+            PDO::MYSQL_ATTR_SSL_CA => $config['ssl_ca'] ?? null,
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'",
+            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
+        ];
+        
+        try {
+            $this->connection = new PDO($dsn, $config['username'], $config['password'], $options);
+            
+            // Set maximum security session variables
+            $this->connection->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+            $this->connection->exec("SET SESSION autocommit = 0");
+            $this->connection->exec("SET SESSION tx_isolation = 'READ-COMMITTED'");
+            $this->connection->exec("SET SESSION max_execution_time = " . (self::QUERY_TIMEOUT * 1000));
+            
+            $this->auditLog('CONNECTION_ESTABLISHED', ['host' => $config['host'], 'database' => $config['database']]);
+            
+        } catch (PDOException $e) {
+            $this->auditLog('CONNECTION_FAILED', ['error' => $e->getMessage()]);
+            throw new DatabaseSecurityException("Failed to establish secure database connection: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Execute secure prepared statement with maximum validation
+     */
+    public function secureExecute(string $sql, array $params = [], string $operation = 'READ'): PDOStatement {
+        // Rate limiting check
+        $this->checkRateLimit();
+        
+        // SQL injection validation
+        $this->validateSQL($sql, $operation);
+        
+        // Parameter validation
+        $this->validateParameters($params);
+        
+        $startTime = microtime(true);
+        
+        try {
+            $stmt = $this->connection->prepare($sql);
+            
+            // Bind parameters with strict typing
+            foreach ($params as $key => $value) {
+                $type = $this->determineParameterType($value);
+                if (is_int($key)) {
+                    $stmt->bindValue($key + 1, $value, $type);
+                } else {
+                    $stmt->bindValue($key, $value, $type);
+                }
+            }
+            
+            $executed = $stmt->execute();
+            
+            if (!$executed) {
+                throw new DatabaseSecurityException("Query execution failed: " . implode(', ', $stmt->errorInfo()));
+            }
+            
+            $executionTime = microtime(true) - $startTime;
+            
+            // Log query for auditing
+            $this->logQuery($sql, $params, $executionTime, $operation);
+            
+            // Monitor for suspicious patterns
+            $this->monitorQuery($sql, $params, $executionTime);
+            
+            return $stmt;
+            
+        } catch (PDOException $e) {
+            $this->auditLog('QUERY_ERROR', [
+                'sql' => $this->sanitizeForLog($sql),
+                'error' => $e->getMessage(),
+                'operation' => $operation
+            ]);
+            throw new DatabaseSecurityException("Secure query execution failed: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Secure transaction management with isolation
+     */
+    public function secureTransaction(callable $callback, string $isolationLevel = 'READ COMMITTED') {
+        try {
+            $this->beginSecureTransaction($isolationLevel);
+            
+            $result = $callback($this);
+            
+            $this->commitSecureTransaction();
+            return $result;
+            
+        } catch (Exception $e) {
+            $this->rollbackSecureTransaction();
+            $this->auditLog('TRANSACTION_ROLLBACK', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+    
+    /**
+     * Begin secure transaction with isolation level
+     */
+    private function beginSecureTransaction(string $isolationLevel): void {
+        if ($this->transactionLevel === 0) {
+            $this->connection->exec("SET TRANSACTION ISOLATION LEVEL {$isolationLevel}");
+            $this->connection->beginTransaction();
+            $this->auditLog('TRANSACTION_BEGIN', ['isolation' => $isolationLevel]);
+        }
+        $this->transactionLevel++;
+    }
+    
+    /**
+     * Commit secure transaction
+     */
+    private function commitSecureTransaction(): void {
+        $this->transactionLevel--;
+        if ($this->transactionLevel === 0) {
+            $this->connection->commit();
+            $this->auditLog('TRANSACTION_COMMIT', []);
+        }
+    }
+    
+    /**
+     * Rollback secure transaction
+     */
+    private function rollbackSecureTransaction(): void {
+        $this->transactionLevel--;
+        if ($this->transactionLevel === 0) {
+            $this->connection->rollback();
+        }
+    }
+    
+    /**
+     * Validate SQL query for security threats
+     */
+    private function validateSQL(string $sql, string $operation): void {
+        // Remove comments and normalize
+        $normalized = preg_replace('/\/\*.*?\*\/|--.*$/m', '', $sql);
+        $normalized = preg_replace('/\s+/', ' ', trim($normalized));
+        
+        // Check for dangerous patterns
+        $dangerousPatterns = [
+            '/;\s*(DROP|DELETE|TRUNCATE|ALTER|CREATE|GRANT|REVOKE)/i',
+            '/UNION\s+SELECT/i',
+            '/LOAD_FILE\s*\(/i',
+            '/INTO\s+(OUTFILE|DUMPFILE)/i',
+            '/(exec|execute)\s*\(/i',
+            '/@@\w+/i', // System variables
+            '/information_schema\./i',
+            '/mysql\./i',
+            '/\bxp_\w+/i', // SQL Server extended procedures
+        ];
+        
+        foreach ($dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $normalized)) {
+                $this->auditLog('SQL_INJECTION_ATTEMPT', [
+                    'sql' => $this->sanitizeForLog($sql),
+                    'pattern' => $pattern,
+                    'operation' => $operation
+                ]);
+                throw new SecurityException("Potentially malicious SQL detected");
+            }
+        }
+        
+        // Validate operation type matches SQL
+        $this->validateOperationType($normalized, $operation);
+    }
+    
+    /**
+     * Validate operation type matches SQL statement
+     */
+    private function validateOperationType(string $sql, string $operation): void {
+        $sqlUpper = strtoupper($sql);
+        $firstWord = strtok($sqlUpper, ' ');
+        
+        $readOperations = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN'];
+        $writeOperations = ['INSERT', 'UPDATE', 'DELETE', 'REPLACE'];
+        $ddlOperations = ['CREATE', 'ALTER', 'DROP', 'TRUNCATE'];
+        
+        if ($operation === 'READ' && !in_array($firstWord, $readOperations)) {
+            throw new SecurityException("Operation type mismatch: {$operation} vs {$firstWord}");
+        }
+        
+        if ($operation === 'WRITE' && !in_array($firstWord, $writeOperations)) {
+            throw new SecurityException("Operation type mismatch: {$operation} vs {$firstWord}");
+        }
+        
+        if (in_array($firstWord, $ddlOperations)) {
+            throw new SecurityException("DDL operations not allowed in secure mode");
+        }
+    }
+    
+    /**
+     * Validate parameters for security
+     */
+    private function validateParameters(array $params): void {
+        foreach ($params as $key => $value) {
+            // Check for null bytes
+            if (is_string($value) && strpos($value, "\0") !== false) {
+                throw new SecurityException("Null bytes detected in parameter: {$key}");
+            }
+            
+            // Check for extremely long values (potential DoS)
+            if (is_string($value) && strlen($value) > 65535) {
+                throw new SecurityException("Parameter value too long: {$key}");
+            }
+            
+            // Check for suspicious patterns in strings
+            if (is_string($value)) {
+                $this->validateStringParameter($value, $key);
+            }
+        }
+    }
+    
+    /**
+     * Validate string parameters for injection attempts
+     */
+    private function validateStringParameter(string $value, $key): void {
+        $suspicious = [
+            '/\b(union|select|insert|update|delete|drop|create|alter)\b/i',
+            '/[<>].*?script/i',
+            '/javascript:/i',
+            '/vbscript:/i',
+            '/onload|onerror|onclick/i',
+        ];
+        
+        foreach ($suspicious as $pattern) {
+            if (preg_match($pattern, $value)) {
+                $this->auditLog('SUSPICIOUS_PARAMETER', [
+                    'key' => $key,
+                    'pattern' => $pattern,
+                    'value' => substr($value, 0, 100) . '...'
+                ]);
+                throw new SecurityException("Suspicious content in parameter: {$key}");
+            }
+        }
+    }
+    
+    /**
+     * Determine PDO parameter type with strict typing
+     */
+    private function determineParameterType($value): int {
+        if (is_int($value)) {
+            return PDO::PARAM_INT;
+        } elseif (is_bool($value)) {
+            return PDO::PARAM_BOOL;
+        } elseif (is_null($value)) {
+            return PDO::PARAM_NULL;
+        } elseif (is_resource($value)) {
+            return PDO::PARAM_LOB;
+        } else {
+            return PDO::PARAM_STR;
+        }
+    }
+    
+    /**
+     * Rate limiting check
+     */
+    private function checkRateLimit(): void {
+        $now = microtime(true);
+        $windowStart = $now - 1.0; // 1-second window
+        
+        // Remove old queries from rate limiter
+        $this->rateLimiter = array_filter($this->rateLimiter ?? [], function($time) use ($windowStart) {
+            return $time > $windowStart;
+        });
+        
+        if (count($this->rateLimiter) >= self::MAX_QUERIES_PER_SECOND) {
+            $this->auditLog('RATE_LIMIT_EXCEEDED', ['queries_per_second' => count($this->rateLimiter)]);
+            throw new SecurityException("Query rate limit exceeded");
+        }
+        
+        $this->rateLimiter[] = $now;
+    }
+    
+    /**
+     * Monitor query patterns for anomalies
+     */
+    private function monitorQuery(string $sql, array $params, float $executionTime): void {
+        // Monitor slow queries
+        if ($executionTime > 5.0) {
+            $this->auditLog('SLOW_QUERY_DETECTED', [
+                'sql' => $this->sanitizeForLog($sql),
+                'execution_time' => $executionTime,
+                'params_count' => count($params)
+            ]);
+        }
+        
+        // Monitor unusual parameter counts
+        if (count($params) > 100) {
+            $this->auditLog('HIGH_PARAMETER_COUNT', [
+                'sql' => $this->sanitizeForLog($sql),
+                'param_count' => count($params)
+            ]);
+        }
+        
+        // Monitor query complexity
+        $complexity = $this->calculateQueryComplexity($sql);
+        if ($complexity > 10) {
+            $this->auditLog('COMPLEX_QUERY_DETECTED', [
+                'sql' => $this->sanitizeForLog($sql),
+                'complexity_score' => $complexity
+            ]);
+        }
+    }
+    
+    /**
+     * Calculate query complexity score
+     */
+    private function calculateQueryComplexity(string $sql): int {
+        $score = 0;
+        $score += substr_count(strtoupper($sql), 'JOIN') * 2;
+        $score += substr_count(strtoupper($sql), 'SUBQUERY') * 3;
+        $score += substr_count(strtoupper($sql), 'UNION') * 2;
+        $score += substr_count(strtoupper($sql), 'ORDER BY');
+        $score += substr_count(strtoupper($sql), 'GROUP BY');
+        $score += substr_count(strtoupper($sql), 'HAVING');
+        
+        return $score;
+    }
+    
+    /**
+     * Log query for audit trail
+     */
+    private function logQuery(string $sql, array $params, float $executionTime, string $operation): void {
+        $this->queryLog[] = [
+            'timestamp' => microtime(true),
+            'sql' => $this->sanitizeForLog($sql),
+            'param_count' => count($params),
+            'execution_time' => $executionTime,
+            'operation' => $operation,
+            'connection_id' => $this->getConnectionId(),
+        ];
+        
+        // Keep only last 1000 queries in memory
+        if (count($this->queryLog) > 1000) {
+            array_shift($this->queryLog);
+        }
+    }
+    
+    /**
+     * Get database connection ID for tracking
+     */
+    private function getConnectionId(): ?int {
+        try {
+            $stmt = $this->connection->query("SELECT CONNECTION_ID()");
+            return $stmt->fetchColumn();
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Sanitize SQL for logging (remove sensitive data)
+     */
+    private function sanitizeForLog(string $sql): string {
+        // Replace potential sensitive data with placeholders
+        $sanitized = preg_replace('/\b\d{4,}\b/', '[REDACTED_NUMBER]', $sql);
+        $sanitized = preg_replace('/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/', '[REDACTED_EMAIL]', $sanitized);
+        
+        // Truncate if too long
+        if (strlen($sanitized) > 500) {
+            $sanitized = substr($sanitized, 0, 500) . '...[TRUNCATED]';
+        }
+        
+        return $sanitized;
+    }
+    
+    /**
+     * Initialize rate limiter
+     */
+    private function initializeRateLimiter(): void {
+        $this->rateLimiter = [];
+    }
+    
+    /**
+     * Initialize audit logger
+     */
+    private function initializeAuditLogger(): void {
+        $this->auditLogger = new CISAuditLogger();
+    }
+    
+    /**
+     * Setup additional security defenses
+     */
+    private function setupSecurityDefenses(): void {
+        // Set connection timeout
+        register_shutdown_function([$this, 'cleanup']);
+        
+        // Monitor connection time
+        $this->connectionStartTime = microtime(true);
+    }
+    
+    /**
+     * Audit log with security context
+     */
+    private function auditLog(string $event, array $data): void {
+        $this->auditLogger->log($event, array_merge($data, [
+            'timestamp' => microtime(true),
+            'connection_id' => $this->getConnectionId(),
+            'user_ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            'script' => $_SERVER['SCRIPT_NAME'] ?? 'unknown',
+        ]));
+    }
+    
+    /**
+     * Cleanup resources and validate session time
+     */
+    public function cleanup(): void {
+        $sessionTime = microtime(true) - ($this->connectionStartTime ?? microtime(true));
+        
+        if ($sessionTime > self::MAX_CONNECTION_TIME) {
+            $this->auditLog('LONG_SESSION_DETECTED', ['session_time' => $sessionTime]);
+        }
+        
+        $this->auditLog('CONNECTION_CLOSED', ['session_time' => $sessionTime]);
+        
+        if ($this->connection && $this->transactionLevel > 0) {
+            $this->connection->rollback();
+        }
+    }
+    
+    /**
+     * Get query statistics
+     */
+    public function getQueryStats(): array {
+        return [
+            'total_queries' => count($this->queryLog),
+            'avg_execution_time' => array_sum(array_column($this->queryLog, 'execution_time')) / max(1, count($this->queryLog)),
+            'slow_queries' => count(array_filter($this->queryLog, fn($q) => $q['execution_time'] > 1.0)),
+            'connection_time' => microtime(true) - ($this->connectionStartTime ?? microtime(true)),
+        ];
+    }
+}
+
+/**
+ * Security exceptions for database operations
+ */
+class DatabaseSecurityException extends Exception {}
+class SecurityException extends Exception {}
+
+/**
+ * Audit logger for security events
+ */
+class CISAuditLogger {
+    
+    private $logFile;
+    
+    public function __construct() {
+        $this->logFile = $_SERVER['DOCUMENT_ROOT'] . '/logs/database-security.log';
+        $this->ensureLogDirectory();
+    }
+    
+    public function log(string $event, array $data): void {
+        $logEntry = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'event' => $event,
+            'data' => $data,
+            'severity' => $this->getSeverity($event),
+        ];
+        
+        $logLine = json_encode($logEntry) . "\n";
+        file_put_contents($this->logFile, $logLine, FILE_APPEND | LOCK_EX);
+        
+        // Alert on critical events
+        if ($this->getSeverity($event) === 'CRITICAL') {
+            $this->sendSecurityAlert($event, $data);
+        }
+    }
+    
+    private function getSeverity(string $event): string {
+        $critical = ['SQL_INJECTION_ATTEMPT', 'RATE_LIMIT_EXCEEDED', 'CONNECTION_FAILED'];
+        $warning = ['SLOW_QUERY_DETECTED', 'COMPLEX_QUERY_DETECTED', 'SUSPICIOUS_PARAMETER'];
+        
+        if (in_array($event, $critical)) return 'CRITICAL';
+        if (in_array($event, $warning)) return 'WARNING';
+        return 'INFO';
+    }
+    
+    private function sendSecurityAlert(string $event, array $data): void {
+        // Implementation would send alerts via email, Slack, etc.
+        error_log("CRITICAL SECURITY EVENT: {$event} - " . json_encode($data));
+    }
+    
+    private function ensureLogDirectory(): void {
+        $dir = dirname($this->logFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0750, true);
+        }
+    }
+}

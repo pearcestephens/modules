@@ -1,0 +1,126 @@
+/* CIS Error Display - Shared Styles */
+.cis-error-display {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.cis-error-display .cis-error-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    animation: cisErrorPulse 2s ease-in-out infinite;
+}
+
+.cis-error-display .cis-error-icon i {
+    font-size: 50px;
+    color: white;
+}
+
+@keyframes cisErrorPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.cis-error-display .cis-error-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.cis-error-display .cis-error-message {
+    max-width: 600px;
+    border-left: 5px solid;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 0 auto 40px;
+    font-size: 18px;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.cis-error-display .cis-error-details {
+    max-width: 600px;
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 0 auto 40px;
+    text-align: left;
+}
+
+.cis-error-display .cis-error-details h6 {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cis-error-display .cis-error-details ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.cis-error-display .cis-error-details li {
+    color: #6c757d;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.cis-error-display .cis-error-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cis-error-display .cis-error-actions .btn {
+    min-width: 180px;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.cis-error-display .cis-error-actions .btn i {
+    margin-right: 8px;
+}
+
+.cis-error-display .cis-error-actions .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.cis-error-display .cis-error-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.cis-error-display .cis-error-actions .btn-secondary {
+    background: white;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+}
+
+.cis-error-display .cis-error-actions .btn-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+}

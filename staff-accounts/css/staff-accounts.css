@@ -1,0 +1,1055 @@
+/**
+ * Staff Accounts Module - Centralized CSS
+ * 
+ * Purpose: All styles for staff-accounts module pages
+ * Scope: Targets .container-fluid only (CIS template compatibility)
+ * 
+ * Pages Styled:
+ * - views/make-payment.php (Payment form)
+ * - payment-success.php (Receipt page)
+ * - staff-list.php (Manager staff browser)
+ * - my-account.php (Staff dashboard)
+ * 
+ * @package CIS\Modules\StaffAccounts
+ * @version 2.0.0
+ */
+
+/* ============================================================================
+   CSS VARIABLES (Scoped to module)
+   ============================================================================ */
+.container-fluid.staff-accounts {
+    --primary-color: #2C3E50;
+    --secondary-color: #3498DB;
+    --success-color: #27AE60;
+    --danger-color: #E74C3C;
+    --warning-color: #F39C12;
+    --info-color: #3498DB;
+    --light-bg: #F8F9FA;
+    --border-color: #DEE2E6;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.16);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   EXISTING DASHBOARD STYLES (my-account.php compatibility)
+   ============================================================================ */
+.container-fluid.staff-accounts .text-success { color: #28a745 !important; }
+.container-fluid.staff-accounts .text-danger { color: #dc3545 !important; }
+.container-fluid.staff-accounts .text-warning { color: #ffc107 !important; }
+
+.container-fluid.staff-accounts .balance-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.container-fluid.staff-accounts .balance-card.negative { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.container-fluid.staff-accounts .balance-card.positive { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+.container-fluid.staff-accounts .balance-amount { font-size: 3rem; font-weight: bold; margin: 10px 0; }
+.container-fluid.staff-accounts .balance-label { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; }
+
+.container-fluid.staff-accounts .stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 4px solid #007bff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.container-fluid.staff-accounts .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+.container-fluid.staff-accounts .stat-card.danger { border-left-color: #dc3545; }
+.container-fluid.staff-accounts .stat-card.warning { border-left-color: #ffc107; }
+.container-fluid.staff-accounts .stat-card.success { border-left-color: #28a745; }
+
+.container-fluid.staff-accounts .stat-value { font-size: 2rem; font-weight: bold; margin: 10px 0; color: #333; }
+.container-fluid.staff-accounts .stat-label { font-size: 0.85rem; color: #6c757d; text-transform: uppercase; }
+
+.container-fluid.staff-accounts .content-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.container-fluid.staff-accounts .data-table { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+/* ============================================================================
+   PAYMENT FORM STYLES (views/make-payment.php)
+   ============================================================================ */
+
+/* Payment Container */
+.container-fluid.staff-accounts .payment-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Payment Card */
+.container-fluid.staff-accounts .payment-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+    transition: var(--transition);
+}
+
+.container-fluid.staff-accounts .payment-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+}
+
+/* Card Header */
+.container-fluid.staff-accounts .payment-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #34495E 100%);
+    color: white;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.container-fluid.staff-accounts .payment-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.container-fluid.staff-accounts .payment-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.container-fluid.staff-accounts .payment-header p {
+    margin: 0;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+/* Balance Display */
+.container-fluid.staff-accounts .balance-display {
+    background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+    padding: 24px;
+    border-radius: 12px;
+    margin: -16px 0 24px 0;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.container-fluid.staff-accounts .balance-display.positive {
+    background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+}
+
+.container-fluid.staff-accounts .balance-label {
+    color: rgba(255,255,255,0.9);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.container-fluid.staff-accounts .balance-amount {
+    color: white;
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Payment Form */
+.container-fluid.staff-accounts .payment-body {
+    padding: 32px;
+}
+
+.container-fluid.staff-accounts .form-section {
+    margin-bottom: 32px;
+}
+
+.container-fluid.staff-accounts .form-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Amount Input */
+.container-fluid.staff-accounts .amount-input-group {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.container-fluid.staff-accounts .amount-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.container-fluid.staff-accounts .currency-symbol {
+    position: absolute;
+    left: 20px;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.container-fluid.staff-accounts .amount-input {
+    width: 100%;
+    font-size: 32px;
+    font-weight: 700;
+    padding: 16px 24px 16px 56px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    transition: var(--transition);
+    text-align: left;
+}
+
+.container-fluid.staff-accounts .amount-input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+    outline: none;
+}
+
+.container-fluid.staff-accounts .amount-input.error {
+    border-color: var(--danger-color);
+}
+
+.container-fluid.staff-accounts .amount-suggestions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.container-fluid.staff-accounts .amount-suggestion {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px;
+    background: var(--light-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 600;
+}
+
+.container-fluid.staff-accounts .amount-suggestion:hover {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Payment Method Selection */
+.container-fluid.staff-accounts .payment-methods {
+    display: grid;
+    gap: 16px;
+}
+
+.container-fluid.staff-accounts .payment-method-card {
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+}
+
+.container-fluid.staff-accounts .payment-method-card:hover {
+    border-color: var(--secondary-color);
+    box-shadow: var(--shadow-sm);
+    transform: translateX(4px);
+}
+
+.container-fluid.staff-accounts .payment-method-card.selected {
+    border-color: var(--secondary-color);
+    background: rgba(52, 152, 219, 0.05);
+    box-shadow: var(--shadow-md);
+}
+
+.container-fluid.staff-accounts .payment-method-radio {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+.container-fluid.staff-accounts .payment-method-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.container-fluid.staff-accounts .payment-method-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #2980B9 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.container-fluid.staff-accounts .payment-method-details {
+    flex: 1;
+}
+
+.container-fluid.staff-accounts .payment-method-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+}
+
+.container-fluid.staff-accounts .payment-method-subtitle {
+    font-size: 14px;
+    color: #6C757D;
+}
+
+/* Saved Cards */
+.container-fluid.staff-accounts .saved-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.container-fluid.staff-accounts .card-icon {
+    width: 48px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.container-fluid.staff-accounts .card-number {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.container-fluid.staff-accounts .default-badge {
+    background: var(--success-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Action Buttons */
+.container-fluid.staff-accounts .payment-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.container-fluid.staff-accounts .btn-payment {
+    flex: 1;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.container-fluid.staff-accounts .btn-payment-primary {
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #2980B9 100%);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.container-fluid.staff-accounts .btn-payment-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(52, 152, 219, 0.4);
+}
+
+.container-fluid.staff-accounts .btn-payment-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.container-fluid.staff-accounts .btn-payment-secondary {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--border-color);
+}
+
+.container-fluid.staff-accounts .btn-payment-secondary:hover {
+    background: var(--light-bg);
+    border-color: var(--primary-color);
+    text-decoration: none;
+}
+
+/* Loading Spinner */
+.container-fluid.staff-accounts .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Alert Messages */
+.container-fluid.staff-accounts .alert-custom {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.container-fluid.staff-accounts .alert-info {
+    background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+    color: white;
+}
+
+.container-fluid.staff-accounts .alert-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #C0392B 100%);
+    color: white;
+}
+
+.container-fluid.staff-accounts .alert-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #D68910 100%);
+    color: white;
+}
+
+/* Validation Messages */
+.container-fluid.staff-accounts .validation-message {
+    font-size: 14px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.container-fluid.staff-accounts .validation-error {
+    color: var(--danger-color);
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.container-fluid.staff-accounts .validation-success {
+    color: var(--success-color);
+    background: rgba(39, 174, 96, 0.1);
+}
+
+/* Recent Payments */
+.container-fluid.staff-accounts .recent-payments {
+    background: var(--light-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+}
+
+.container-fluid.staff-accounts .recent-payment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.container-fluid.staff-accounts .recent-payment-item:last-child {
+    border-bottom: none;
+}
+
+.container-fluid.staff-accounts .recent-payment-date {
+    font-size: 13px;
+    color: #6C757D;
+}
+
+.container-fluid.staff-accounts .recent-payment-amount {
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+/* ============================================================================
+   RECEIPT PAGE STYLES (payment-success.php)
+   ============================================================================ */
+
+/* Receipt Container */
+.container-fluid.staff-accounts .receipt-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.container-fluid.staff-accounts .receipt-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+/* Success Header */
+.container-fluid.staff-accounts .receipt-header {
+    background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+    color: white;
+    padding: 48px 32px;
+    text-align: center;
+    position: relative;
+}
+
+.container-fluid.staff-accounts .success-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    animation: successPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255,255,255,0); }
+}
+
+.container-fluid.staff-accounts .success-icon i {
+    font-size: 48px;
+}
+
+.container-fluid.staff-accounts .receipt-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.container-fluid.staff-accounts .receipt-header p {
+    font-size: 16px;
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Receipt Body */
+.container-fluid.staff-accounts .receipt-body {
+    padding: 32px;
+}
+
+.container-fluid.staff-accounts .receipt-section {
+    margin-bottom: 32px;
+}
+
+.container-fluid.staff-accounts .receipt-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6C757D;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
+.container-fluid.staff-accounts .receipt-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.container-fluid.staff-accounts .receipt-info-item {
+    background: var(--light-bg);
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.container-fluid.staff-accounts .receipt-info-label {
+    font-size: 12px;
+    color: #6C757D;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.container-fluid.staff-accounts .receipt-info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.container-fluid.staff-accounts .receipt-info-value.large {
+    font-size: 24px;
+    color: var(--success-color);
+}
+
+/* Amount Display */
+.container-fluid.staff-accounts .amount-display {
+    background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+    padding: 32px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    margin: 24px 0;
+}
+
+.container-fluid.staff-accounts .amount-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.container-fluid.staff-accounts .amount-value {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Transaction Details Table */
+.container-fluid.staff-accounts .transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.container-fluid.staff-accounts .transaction-table tr {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.container-fluid.staff-accounts .transaction-table td {
+    padding: 12px 0;
+}
+
+.container-fluid.staff-accounts .transaction-table td:first-child {
+    color: #6C757D;
+    font-size: 14px;
+}
+
+.container-fluid.staff-accounts .transaction-table td:last-child {
+    text-align: right;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Status Badge */
+.container-fluid.staff-accounts .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.container-fluid.staff-accounts .status-badge.completed {
+    background: rgba(39, 174, 96, 0.1);
+    color: var(--success-color);
+}
+
+.container-fluid.staff-accounts .status-badge.pending {
+    background: rgba(243, 156, 18, 0.1);
+    color: #F39C12;
+}
+
+/* Action Buttons (Receipt) */
+.container-fluid.staff-accounts .receipt-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.container-fluid.staff-accounts .btn-receipt {
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.container-fluid.staff-accounts .btn-receipt-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #34495E 100%);
+    color: white;
+}
+
+.container-fluid.staff-accounts .btn-receipt-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
+    text-decoration: none;
+    color: white;
+}
+
+.container-fluid.staff-accounts .btn-receipt-secondary {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--border-color);
+}
+
+.container-fluid.staff-accounts .btn-receipt-secondary:hover {
+    background: var(--light-bg);
+    border-color: var(--primary-color);
+    text-decoration: none;
+    color: var(--primary-color);
+}
+
+/* ============================================================================
+   STAFF LIST STYLES (staff-list.php)
+   ============================================================================ */
+
+/* Page Header */
+.container-fluid.staff-accounts .page-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #34495E 100%);
+    color: white;
+    padding: 32px;
+    margin: -15px -15px 32px -15px;
+    box-shadow: var(--shadow-md);
+}
+
+.container-fluid.staff-accounts .page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.container-fluid.staff-accounts .page-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Filter Bar */
+.container-fluid.staff-accounts .filter-bar {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+}
+
+.container-fluid.staff-accounts .filter-section {
+    margin-bottom: 16px;
+}
+
+.container-fluid.staff-accounts .filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.container-fluid.staff-accounts .filter-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6C757D;
+    margin-bottom: 8px;
+}
+
+.container-fluid.staff-accounts .filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.container-fluid.staff-accounts .filter-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.container-fluid.staff-accounts .filter-btn:hover {
+    background: var(--light-bg);
+}
+
+.container-fluid.staff-accounts .filter-btn.active {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: white;
+}
+
+/* Staff Table */
+.container-fluid.staff-accounts .staff-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.container-fluid.staff-accounts .staff-table-container .table {
+    margin: 0;
+}
+
+.container-fluid.staff-accounts .staff-table-container .table thead th {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 16px 12px;
+    vertical-align: middle;
+}
+
+.container-fluid.staff-accounts .staff-table-container .table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.container-fluid.staff-accounts .staff-table-container .table tbody tr:hover {
+    background: var(--light-bg);
+}
+
+.container-fluid.staff-accounts .staff-table-container .table tbody td {
+    padding: 16px 12px;
+    vertical-align: middle;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Status Badges */
+.container-fluid.staff-accounts .badge-active {
+    background: rgba(39, 174, 96, 0.1);
+    color: var(--success-color);
+}
+
+.container-fluid.staff-accounts .badge-inactive {
+    background: rgba(149, 165, 166, 0.1);
+    color: #95A5A6;
+}
+
+.container-fluid.staff-accounts .badge-locked {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--danger-color);
+}
+
+.container-fluid.staff-accounts .badge-manager {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--info-color);
+}
+
+/* Balance Display */
+.container-fluid.staff-accounts .balance {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+.container-fluid.staff-accounts .balance.negative {
+    color: var(--danger-color);
+}
+
+.container-fluid.staff-accounts .balance.positive {
+    color: var(--success-color);
+}
+
+/* Action Buttons */
+.container-fluid.staff-accounts .action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 4px;
+}
+
+.container-fluid.staff-accounts .action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.container-fluid.staff-accounts .action-btn-primary {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.container-fluid.staff-accounts .action-btn-secondary {
+    background: var(--light-bg);
+    color: var(--primary-color);
+}
+
+.container-fluid.staff-accounts .action-btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Pagination */
+.container-fluid.staff-accounts .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    background: white;
+    border-top: 1px solid var(--border-color);
+}
+
+.container-fluid.staff-accounts .pagination-info {
+    color: #6C757D;
+    font-size: 14px;
+}
+
+/* Search Bar */
+.container-fluid.staff-accounts .search-container {
+    position: relative;
+}
+
+.container-fluid.staff-accounts .search-input {
+    width: 100%;
+    padding: 12px 44px 12px 44px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.container-fluid.staff-accounts .search-input:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+    outline: none;
+}
+
+.container-fluid.staff-accounts .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6C757D;
+}
+
+.container-fluid.staff-accounts .clear-search {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6C757D;
+    display: none;
+}
+
+.container-fluid.staff-accounts .search-input:not(:placeholder-shown) ~ .clear-search {
+    display: block;
+}
+
+/* ============================================================================
+   RESPONSIVE STYLES
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .container-fluid.staff-accounts .payment-wrapper {
+        padding: 0 12px;
+    }
+    
+    .container-fluid.staff-accounts .payment-header,
+    .container-fluid.staff-accounts .payment-body {
+        padding: 24px;
+    }
+    
+    .container-fluid.staff-accounts .balance-amount {
+        font-size: 36px;
+    }
+    
+    .container-fluid.staff-accounts .amount-input {
+        font-size: 24px;
+        padding: 12px 16px 12px 48px;
+    }
+    
+    .container-fluid.staff-accounts .currency-symbol {
+        font-size: 24px;
+        left: 16px;
+    }
+    
+    .container-fluid.staff-accounts .payment-actions,
+    .container-fluid.staff-accounts .receipt-actions {
+        flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+    
+    .container-fluid.staff-accounts .amount-suggestion {
+        min-width: calc(50% - 6px);
+    }
+    
+    .container-fluid.staff-accounts .receipt-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .container-fluid.staff-accounts .page-header {
+        padding: 24px;
+    }
+}
+
+/* ============================================================================
+   PRINT STYLES (Receipt Page Only)
+   ============================================================================ */
+
+@media print {
+    .container-fluid.staff-accounts .receipt-actions,
+    .container-fluid.staff-accounts .no-print {
+        display: none !important;
+    }
+    
+    .container-fluid.staff-accounts .receipt-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+.data-table th { background: #f8f9fa; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }
+.data-table tr:hover { background: #f8f9fa; }
+
+.btn-custom { border-radius: 6px; padding: 10px 20px; font-weight: 600; transition: all 0.2s; }
+.btn-custom:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+
+.timeline { position: relative; padding-left: 30px; }
+.timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: #e9ecef; }
+.timeline-item { position: relative; padding-bottom: 20px; }
+.timeline-item::before {
+    content: ''; position: absolute; left: -24px; top: 5px; width: 12px; height: 12px;
+    border-radius: 50%; background: #007bff; border: 2px solid white; box-shadow: 0 0 0 2px #e9ecef;
+}
+.timeline-item.success::before { background: #28a745; }
+.timeline-item.danger::before { background: #dc3545; }
+.timeline-content { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+@media (max-width: 768px) {
+    .balance-amount { font-size: 2rem; }
+    .stat-value { font-size: 1.5rem; }
+}

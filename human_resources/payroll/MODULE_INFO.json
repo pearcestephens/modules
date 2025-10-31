@@ -1,0 +1,321 @@
+{
+  "module": {
+    "name": "Payroll",
+    "parent": "Human Resources",
+    "version": "1.0.0",
+    "status": "active",
+    "created": "2025-10-29",
+    "last_updated": "2025-10-29"
+  },
+  "description": {
+    "short": "Complete payroll management with automated snapshots and amendment tracking",
+    "long": "Enterprise-grade payroll system with weekly auto-start, complete state capture, diff engine, amendment workflow, and full audit trail. Integrates with Deputy, Xero, and Vend."
+  },
+  "features": [
+    "Automated weekly payroll runs (Tuesday cron)",
+    "Complete state snapshots (userObjects, Deputy, Vend, Xero)",
+    "Diff engine (calculate changes between any two states)",
+    "Amendment workflow with approval",
+    "Day in lieu implementation (alternative holiday)",
+    "Performance optimizations (caching, bulk operations)",
+    "Full audit trail (every button click logged)",
+    "Visual diff viewer (planned)",
+    "Excel export (planned)"
+  ],
+  "dependencies": {
+    "php": ">=8.0",
+    "mysql": ">=5.7",
+    "xero_php_sdk": "latest",
+    "modules": [
+      "base/lib/Database",
+      "base/lib/Auth"
+    ],
+    "external_apis": [
+      {
+        "name": "Xero Payroll NZ",
+        "version": "2.0",
+        "required": true
+      },
+      {
+        "name": "Deputy",
+        "version": "1.0",
+        "required": true
+      },
+      {
+        "name": "Vend",
+        "version": "2.0",
+        "required": false
+      }
+    ]
+  },
+  "database": {
+    "tables": [
+      {
+        "name": "payroll_runs",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Weekly pay run containers"
+      },
+      {
+        "name": "payroll_run_revisions",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Every button click / action"
+      },
+      {
+        "name": "payroll_snapshots",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Complete state capture (THE GOLD)"
+      },
+      {
+        "name": "payroll_employee_details",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Normalized employee data"
+      },
+      {
+        "name": "payroll_earnings_lines",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Individual earning line items"
+      },
+      {
+        "name": "payroll_deduction_lines",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Individual deduction line items"
+      },
+      {
+        "name": "payroll_public_holidays",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Public holiday tracking"
+      },
+      {
+        "name": "payroll_amendments",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Post-posting corrections"
+      },
+      {
+        "name": "payroll_snapshot_diffs",
+        "records": 0,
+        "size_mb": 0,
+        "description": "Pre-computed diffs"
+      }
+    ],
+    "views": [
+      "payroll_runs_latest_snapshot",
+      "payroll_employee_history"
+    ],
+    "triggers": [
+      "update_run_stats_after_employee_insert",
+      "update_run_stats_after_employee_update"
+    ]
+  },
+  "cron_jobs": [
+    {
+      "name": "Payroll Auto-Start",
+      "schedule": "0 9 * * 2",
+      "description": "Creates new pay run every Tuesday at 9am",
+      "script": "cron/payroll_auto_start.php",
+      "enabled": true
+    }
+  ],
+  "routes": {
+    "web": [
+      {
+        "path": "/human-resources/payroll",
+        "method": "GET",
+        "handler": "views/run_list.php",
+        "description": "List all pay runs",
+        "auth": "admin"
+      },
+      {
+        "path": "/human-resources/payroll/run/:id",
+        "method": "GET",
+        "handler": "views/run_detail.php",
+        "description": "Single run detail",
+        "auth": "admin"
+      },
+      {
+        "path": "/human-resources/payroll/snapshot/:id",
+        "method": "GET",
+        "handler": "views/snapshot_viewer.php",
+        "description": "View snapshot",
+        "auth": "admin"
+      },
+      {
+        "path": "/human-resources/payroll/diff/:from/:to",
+        "method": "GET",
+        "handler": "views/diff_viewer.php",
+        "description": "Visual diff",
+        "auth": "admin"
+      }
+    ],
+    "api": [
+      {
+        "path": "/api/payroll/run/:id",
+        "method": "GET",
+        "handler": "api/get_run.php",
+        "description": "Get run data (JSON)",
+        "auth": "api_key"
+      },
+      {
+        "path": "/api/payroll/snapshot/:id",
+        "method": "GET",
+        "handler": "api/get_snapshot.php",
+        "description": "Get snapshot data (JSON)",
+        "auth": "api_key"
+      },
+      {
+        "path": "/api/payroll/diff",
+        "method": "POST",
+        "handler": "api/calculate_diff.php",
+        "description": "Calculate diff between snapshots",
+        "auth": "api_key"
+      },
+      {
+        "path": "/api/payroll/amendment",
+        "method": "POST",
+        "handler": "api/create_amendment.php",
+        "description": "Create amendment",
+        "auth": "api_key"
+      }
+    ]
+  },
+  "permissions": {
+    "roles": [
+      {
+        "name": "payroll_admin",
+        "description": "Full payroll access",
+        "can": [
+          "view_all_runs",
+          "create_run",
+          "modify_run",
+          "delete_run",
+          "view_snapshots",
+          "create_amendment",
+          "approve_amendment"
+        ]
+      },
+      {
+        "name": "payroll_manager",
+        "description": "Payroll processing",
+        "can": [
+          "view_all_runs",
+          "create_run",
+          "modify_run",
+          "view_snapshots",
+          "create_amendment"
+        ]
+      },
+      {
+        "name": "payroll_viewer",
+        "description": "Read-only access",
+        "can": [
+          "view_all_runs",
+          "view_snapshots"
+        ]
+      },
+      {
+        "name": "auditor",
+        "description": "Audit trail access",
+        "can": [
+          "view_all_runs",
+          "view_snapshots",
+          "view_amendments"
+        ]
+      }
+    ]
+  },
+  "configuration": {
+    "payroll": {
+      "auto_start_enabled": true,
+      "auto_start_day": "Tuesday",
+      "auto_start_time": "09:00",
+      "notification_emails": [
+        "payroll@vapeshed.co.nz",
+        "pearce.stephens@ecigdis.co.nz"
+      ],
+      "dry_run_mode": false,
+      "snapshot_compression": false,
+      "snapshot_retention_days": 365
+    }
+  },
+  "integration_points": [
+    {
+      "file": "assets/functions/xeroAPI/xero-payruns.php",
+      "lines": "524-580, 850-890",
+      "description": "Automatic snapshot capture on push"
+    },
+    {
+      "file": "payroll-process.php",
+      "lines": "TBD",
+      "description": "Initialize run, set global $currentRunId"
+    }
+  ],
+  "testing": {
+    "unit_tests": [],
+    "integration_tests": [],
+    "manual_tests": [
+      "Create test run",
+      "Capture snapshot",
+      "Calculate diff",
+      "Create amendment",
+      "Test cron job"
+    ]
+  },
+  "performance": {
+    "snapshot_size_avg_mb": 1.5,
+    "snapshot_creation_time_sec": 2.5,
+    "diff_calculation_time_sec": 0.8,
+    "monthly_storage_mb": 250,
+    "annual_storage_mb": 3000
+  },
+  "monitoring": {
+    "logs": [
+      "/logs/payroll_cron.log",
+      "payroll_audit_log (table)"
+    ],
+    "metrics": [
+      "Snapshot creation rate",
+      "Average snapshot size",
+      "Diff calculation time",
+      "Amendment approval rate"
+    ],
+    "alerts": [
+      "Cron job failure",
+      "Snapshot too large (>10MB)",
+      "Diff calculation timeout",
+      "Amendment pending >24h"
+    ]
+  },
+  "contacts": {
+    "owner": "Pearce Stephens <pearce.stephens@ecigdis.co.nz>",
+    "maintainer": "CIS Development Team",
+    "support": "payroll@vapeshed.co.nz"
+  },
+  "documentation": {
+    "readme": "README.md",
+    "schema": "_schema/complete_payroll_schema.sql",
+    "api_docs": "api/README.md (TODO)",
+    "user_guide": "docs/USER_GUIDE.md (TODO)"
+  },
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2025-10-29",
+      "changes": [
+        "Initial module creation",
+        "Complete snapshot system (9 tables)",
+        "PayrollSnapshotManager class",
+        "Tuesday auto-start cron",
+        "Integration into xero-payruns.php",
+        "Day in lieu implementation",
+        "Start date caching"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+    "id": "default",
+    "name": "Vape Shed Default",
+    "version": "1.0.0",
+    "active": true,
+    "colors": {
+        "primary": "#8B5CF6",
+        "success": "#10b981",
+        "warning": "#f59e0b",
+        "danger": "#ef4444",
+        "info": "#3b82f6"
+    },
+    "typography": {
+        "base-size": "16px",
+        "base-family": "system-ui, -apple-system, sans-serif"
+    },
+    "spacing": {
+        "base-padding": "1rem",
+        "base-margin": "1rem"
+    }
+}

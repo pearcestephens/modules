@@ -1,0 +1,426 @@
+{
+    "summary": {
+        "total_tests": 45,
+        "passed_tests": 28,
+        "failed_tests": 13,
+        "warning_tests": 18,
+        "success_rate": 62.2,
+        "duration_seconds": 6.15,
+        "timestamp": "2025-10-26 06:24:07"
+    },
+    "results": [
+        {
+            "status": "WARN",
+            "name": "Dashboard Summary Data",
+            "details": "Acceptable response time: 902.13394165039ms",
+            "response_time": 902.13,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Dashboard Data Validation - Blocked Amount",
+            "details": "Valid amount: $9,543.36",
+            "response_time": 902.13,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Dashboard Data Validation - unmapped_count",
+            "details": "Valid count: 56",
+            "response_time": 902.13,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Dashboard Data Validation - auto_matches",
+            "details": "Valid count: 31",
+            "response_time": 902.13,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Dashboard Data Validation - mapped_count",
+            "details": "Valid count: 124",
+            "response_time": 902.13,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Unmapped Employees List",
+            "details": "Response time: 17.359018325806ms",
+            "response_time": 17.36,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Unmapped Employees Validation - Employee Structure",
+            "details": "Valid structure with 2 employees",
+            "response_time": 17.36,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Auto-Match Suggestions",
+            "details": "Response time: 18.410921096802ms",
+            "response_time": 18.41,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Auto Matches Validation - Confidence Score",
+            "details": "Valid confidence: 95.5%",
+            "response_time": 18.41,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Auto Matches Validation - Match Structure",
+            "details": "Valid structure with 2 matches",
+            "response_time": 18.41,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Customer Search",
+            "details": "Response time: 20.899057388306ms",
+            "response_time": 20.9,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Customer Search Validation - Customer Structure",
+            "details": "Valid structure with 2 customers",
+            "response_time": 20.9,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Analytics Dashboard Data",
+            "details": "Response time: 15.199184417725ms",
+            "response_time": 15.2,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Analytics Data Validation - kpis",
+            "details": "Valid kpis data structure",
+            "response_time": 15.2,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Analytics Data Validation - charts",
+            "details": "Valid charts data structure",
+            "response_time": 15.2,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Analytics Data Validation - performance",
+            "details": "Valid performance data structure",
+            "response_time": 15.2,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Approve Auto-Match",
+            "details": "Missing expected field: message",
+            "response_time": 24.94,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Reject Auto-Match",
+            "details": "Missing expected field: message",
+            "response_time": 20.58,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Manual Employee Mapping",
+            "details": "Missing expected field: message",
+            "response_time": 24.96,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "System Health Check",
+            "details": "Response time: 17.344951629639ms",
+            "response_time": 17.34,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Health Check Validation - database",
+            "details": "Status: connected",
+            "response_time": 17.34,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Health Check Validation - vend_api",
+            "details": "Status: connected",
+            "response_time": 17.34,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "Health Check Validation - xero_api",
+            "details": "Status: connected",
+            "response_time": 17.34,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Save System Settings",
+            "details": "Missing expected field: message",
+            "response_time": 21.19,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Bulk Auto-Match Processing",
+            "details": "Missing expected field: processed_count",
+            "response_time": 19.14,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Reset All Mappings",
+            "details": "Missing expected field: reset_count",
+            "response_time": 21.2,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Export System Data",
+            "details": "Missing expected field: data",
+            "response_time": 15.54,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Import System Data",
+            "details": "Missing expected field: imported_count",
+            "response_time": 18.98,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "System Audit Log",
+            "details": "Response time: 15.303134918213ms",
+            "response_time": 15.3,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "System Diagnostics",
+            "details": "Missing expected field: diagnostics",
+            "response_time": 18.2,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "User Management Data",
+            "details": "Missing expected field: users",
+            "response_time": 15.06,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Invalid Action Parameter",
+            "details": "Should have returned error but did not",
+            "response_time": 15.38,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Missing Action Parameter",
+            "details": "Should have returned error but did not",
+            "response_time": 16.66,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Malformed JSON POST",
+            "details": "Should have returned error but did not",
+            "response_time": 20.03,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "SQL Injection Attempt",
+            "details": "Request failed unexpectedly",
+            "response_time": 7.65,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "PASS",
+            "name": "XSS Attempt",
+            "details": "Handled edge case appropriately",
+            "response_time": 19.25,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "FAIL",
+            "name": "Very Long Parameter",
+            "details": "Request failed unexpectedly",
+            "response_time": 5.89,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Unauthenticated Access - unmapped_employees",
+            "details": "May need stronger authentication checks",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Unauthenticated Access - auto_matches",
+            "details": "May need stronger authentication checks",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Unauthenticated Access - customer_search",
+            "details": "May need stronger authentication checks",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Unauthenticated Access - analytics_data",
+            "details": "May need stronger authentication checks",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Unauthenticated Access - save_settings",
+            "details": "May need stronger authentication checks",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:02"
+        },
+        {
+            "status": "WARN",
+            "name": "Unauthenticated Access - bulk_auto_match",
+            "details": "May need stronger authentication checks",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "WARN",
+            "name": "Invalid Authentication Token",
+            "details": "Invalid token may not be properly validated",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "WARN",
+            "name": "Admin-Only Access - save_settings",
+            "details": "May need stronger role-based access control",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "WARN",
+            "name": "Admin-Only Access - bulk_auto_match",
+            "details": "May need stronger role-based access control",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "WARN",
+            "name": "Admin-Only Access - reset_mappings",
+            "details": "May need stronger role-based access control",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "WARN",
+            "name": "Admin-Only Access - system_diagnostics",
+            "details": "May need stronger role-based access control",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "WARN",
+            "name": "Admin-Only Access - user_management",
+            "details": "May need stronger role-based access control",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "PASS",
+            "name": "Performance - dashboard_data",
+            "details": "Excellent avg response: 39.653253555298ms",
+            "response_time": 39.65,
+            "timestamp": "2025-10-26 06:24:03"
+        },
+        {
+            "status": "PASS",
+            "name": "Performance - unmapped_employees",
+            "details": "Excellent avg response: 37.627649307251ms",
+            "response_time": 37.63,
+            "timestamp": "2025-10-26 06:24:04"
+        },
+        {
+            "status": "PASS",
+            "name": "Performance - auto_matches",
+            "details": "Excellent avg response: 34.64674949646ms",
+            "response_time": 34.65,
+            "timestamp": "2025-10-26 06:24:05"
+        },
+        {
+            "status": "PASS",
+            "name": "Performance - customer_search",
+            "details": "Excellent avg response: 34.296751022339ms",
+            "response_time": 34.3,
+            "timestamp": "2025-10-26 06:24:05"
+        },
+        {
+            "status": "PASS",
+            "name": "Performance - analytics_data",
+            "details": "Excellent avg response: 34.381198883057ms",
+            "response_time": 34.38,
+            "timestamp": "2025-10-26 06:24:06"
+        },
+        {
+            "status": "PASS",
+            "name": "Concurrent Request Handling",
+            "details": "5\/5 successful (100%) in 176.96714401245ms",
+            "response_time": 176.97,
+            "timestamp": "2025-10-26 06:24:06"
+        },
+        {
+            "status": "FAIL",
+            "name": "Large Data Handling",
+            "details": "Large dataset invalid JSON response",
+            "response_time": 36.37,
+            "timestamp": "2025-10-26 06:24:06"
+        },
+        {
+            "status": "PASS",
+            "name": "CORS Headers Validation",
+            "details": "CORS preflight handled",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:06"
+        },
+        {
+            "status": "WARN",
+            "name": "Content Security",
+            "details": "Review content security validation",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:06"
+        },
+        {
+            "status": "WARN",
+            "name": "Rate Limiting",
+            "details": "No rate limiting detected - consider implementing",
+            "response_time": 0,
+            "timestamp": "2025-10-26 06:24:07"
+        }
+    ]
+}

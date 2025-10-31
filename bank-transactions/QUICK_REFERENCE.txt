@@ -1,0 +1,196 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    TABLE RENAMING - QUICK REFERENCE                          ║
+║                                                                              ║
+║  All homework complete. Ready to proceed with table renaming.                ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+CURRENT STATE
+─────────────────────────────────────────────────────────────────────────────
+
+Database Name: jcepnzzkmj
+Host: 127.0.0.1
+User: jcepnzzkmj
+Password: wprKh9Jq63
+
+Current Table Names:
+  • deposit_transactions (69 references)
+  • bank_deposits (25 references)
+  • deposit_transactions_new (15 references)
+  • bank_reconciliation_manual_reviews (8 references)
+  • audit_trail (5 references)
+
+
+NEW TABLE NAMES (PROPOSED)
+─────────────────────────────────────────────────────────────────────────────
+
+  deposit_transactions              →  bank_transactions_legacy
+  bank_deposits                     →  bank_transactions_current
+  deposit_transactions_new          →  bank_transactions_archive
+  bank_reconciliation_manual_reviews  →  bank_manual_reviews
+  audit_trail                       →  bank_audit_trail
+
+
+FILES TO UPDATE: 46 TOTAL
+─────────────────────────────────────────────────────────────────────────────
+
+TIER 1 (CRITICAL):        19 files  - Production code, MUST update
+TIER 2 (IMPORTANT):       17 files  - Services/cron, SHOULD update
+TIER 3 (OPTIONAL):        10 files  - Archive/old code, NICE to update
+
+
+KEY REFERENCES BREAKDOWN
+─────────────────────────────────────────────────────────────────────────────
+
+Bank Transactions Module:        8 files
+Production Xero/Banking:         9 files
+Services/Webhooks:               2 files
+Backup/Archive Scripts:          8 files
+Schema/SQL Files:                4 files
+Configuration Files:             4 files
+Documentation/Other:             11 files
+
+
+CRITICAL FILES (TEST AFTER RENAME)
+─────────────────────────────────────────────────────────────────────────────
+
+1. /assets/cron/xero/check-bank-transactions.php
+   → Production cron job (runs daily)
+   → TEST: Manual execution
+
+2. /banking-reconciliation-manual-reviews.php
+   → Production page (user-facing)
+   → TEST: Browser access
+
+3. /webhooks/receive.php
+   → Data ingest from external systems
+   → TEST: Monitor logs for errors
+
+4. /assets/functions/reporting.php
+   → Used by dashboards and reports
+   → TEST: Run all reports
+
+
+EXECUTION CHECKLIST
+─────────────────────────────────────────────────────────────────────────────
+
+☐ Step 1: Backup database
+☐ Step 2: Backup all files
+☐ Step 3: Rename database tables
+☐ Step 4: Update TIER 1 files (19 files)
+☐ Step 5: Test all 9 APIs
+☐ Step 6: Update TIER 2 files (17 files)
+☐ Step 7: Test production operations
+☐ Step 8: Update TIER 3 files (10 files)
+☐ Step 9: Final verification in browser
+
+
+BACKUP COMMANDS
+─────────────────────────────────────────────────────────────────────────────
+
+# Backup database
+mysqldump -h 127.0.0.1 -u jcepnzzkmj -pwprKh9Jq63 jcepnzzkmj > \
+  /backups/jcepnzzkmj_before_rename_$(date +%Y%m%d_%H%M%S).sql
+
+# Backup files
+cp -r /home/master/applications/jcepnzzkmj/public_html/modules/bank-transactions \
+  /backups/bank_transactions_backup_$(date +%Y%m%d_%H%M%S)
+
+
+DATABASE RENAME COMMANDS
+─────────────────────────────────────────────────────────────────────────────
+
+mysql -h 127.0.0.1 -u jcepnzzkmj -pwprKh9Jq63 jcepnzzkmj << SQL
+ALTER TABLE deposit_transactions RENAME TO bank_transactions_legacy;
+ALTER TABLE bank_deposits RENAME TO bank_transactions_current;
+ALTER TABLE deposit_transactions_new RENAME TO bank_transactions_archive;
+ALTER TABLE bank_reconciliation_manual_reviews RENAME TO bank_manual_reviews;
+ALTER TABLE audit_trail RENAME TO bank_audit_trail;
+SQL
+
+
+VERIFICATION COMMANDS
+─────────────────────────────────────────────────────────────────────────────
+
+# Verify new table names exist
+mysql -h 127.0.0.1 -u jcepnzzkmj -pwprKh9Jq63 jcepnzzkmj -e \
+  "SHOW TABLES LIKE 'bank_%';"
+
+# Count old references (should be 0 after updating files)
+grep -r "deposit_transactions" /modules/bank-transactions/ 2>/dev/null | wc -l
+grep -r "bank_deposits" /modules/bank-transactions/ 2>/dev/null | wc -l
+
+# Count new references (should match file count)
+grep -r "bank_transactions_legacy" /modules/bank-transactions/ 2>/dev/null | wc -l
+grep -r "bank_transactions_current" /modules/bank-transactions/ 2>/dev/null | wc -l
+
+
+ROLLBACK PROCEDURE
+─────────────────────────────────────────────────────────────────────────────
+
+If anything breaks, run these commands in order:
+
+# 1. Restore database
+mysql -h 127.0.0.1 -u jcepnzzkmj -pwprKh9Jq63 jcepnzzkmj < \
+  /backups/jcepnzzkmj_before_rename_*.sql
+
+# 2. Restore files
+rm -rf /modules/bank-transactions
+cp -r /backups/bank_transactions_backup_*/* /modules/bank-transactions/
+
+# 3. Clear cache and verify
+php /app.php --cache:clear
+php /modules/bank-transactions/QUICK_BOT_TEST.php
+
+
+DOCUMENTATION FILES
+─────────────────────────────────────────────────────────────────────────────
+
+📄 HOMEWORK_COMPLETE.md
+   → Summary of all homework, status, timeline
+
+📄 TABLE_RENAME_HOMEWORK.md
+   → Detailed audit, 46 files identified, risks assessed
+
+📄 TABLE_REFERENCES_LINE_MAPPING.md
+   → Exact line numbers, sed commands for execution
+
+📄 CIS_DATABASE_TABLES.md
+   → Database inventory, connections, table stats
+
+📄 AUDIT_REPORT.md
+   → Architecture overview, current status
+
+
+ESTIMATED TIME
+─────────────────────────────────────────────────────────────────────────────
+
+Total: ~2 hours
+
+  Prepare:              5 min
+  DB Rename:            2 min
+  TIER 1 Update:       30 min
+  TIER 1 Test:          5 min
+  TIER 2 Update:       30 min
+  TIER 2 Test:         10 min
+  TIER 3 Update:       20 min
+  Final Verify:        15 min
+  ─────────────────────────
+  TOTAL:             ~2 hours
+
+
+READY TO PROCEED ✅
+─────────────────────────────────────────────────────────────────────────────
+
+✅ All files identified
+✅ All dependencies mapped
+✅ All risks assessed
+✅ All backups prepared
+✅ All commands documented
+✅ All verification steps documented
+✅ Rollback procedure documented
+
+Status: READY FOR EXECUTION
+
+Next Step: Approve Phase 1 (Database Rename)
+

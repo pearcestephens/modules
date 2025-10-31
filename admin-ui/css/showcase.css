@@ -1,0 +1,73 @@
+/**
+ * Admin UI Showcase Styles
+ * Component showcase and demo page styling
+ */
+
+body {
+    background: #f5f7fa;
+}
+
+.showcase-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.showcase-header {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+    color: #111827;
+}
+
+.component-group {
+    margin-bottom: 2rem;
+}
+
+.component-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.code-block {
+    background: #1f2937;
+    color: #10b981;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+}
+
+.nav-pills-custom .nav-link {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    margin-right: 0.5rem;
+    transition: all 0.2s;
+}
+
+.nav-pills-custom .nav-link:hover {
+    background: #f3f4f6;
+}
+
+.nav-pills-custom .nav-link.active {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    color: white;
+}

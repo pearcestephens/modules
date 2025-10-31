@@ -1,0 +1,691 @@
+{
+    "users": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(10) unsigned",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "first_name": {
+                "type": "mediumtext",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "last_name": {
+                "type": "mediumtext",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "email": {
+                "type": "mediumtext",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "password": {
+                "type": "mediumtext",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "phone": {
+                "type": "mediumtext",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "image": {
+                "type": "mediumtext",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "last_active": {
+                "type": "timestamp",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "default_outlet": {
+                "type": "mediumtext",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "role_id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "is_manager": {
+                "type": "tinyint(1)",
+                "null": "YES",
+                "key": "MUL",
+                "default": "0"
+            },
+            "stored_dashboard_view": {
+                "type": "mediumtext",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "xero_id": {
+                "type": "varchar(45)",
+                "null": "YES",
+                "key": "UNI",
+                "default": null
+            },
+            "vend_id": {
+                "type": "varchar(45)",
+                "null": "YES",
+                "key": "UNI",
+                "default": null
+            },
+            "vend_sync_at": {
+                "type": "timestamp",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "deputy_id": {
+                "type": "varchar(45)",
+                "null": "YES",
+                "key": "UNI",
+                "default": null
+            },
+            "account_locked": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "",
+                "default": "0"
+            },
+            "staff_active": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "",
+                "default": "1"
+            },
+            "nicknames": {
+                "type": "mediumtext",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "vend_customer_account": {
+                "type": "varchar(45)",
+                "null": "YES",
+                "key": "UNI",
+                "default": null
+            },
+            "gpt_access": {
+                "type": "tinyint(1)",
+                "null": "YES",
+                "key": "",
+                "default": "0"
+            },
+            "gpt_admin": {
+                "type": "tinyint(1)",
+                "null": "YES",
+                "key": "",
+                "default": "0"
+            }
+        },
+        "column_list": [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+            "phone",
+            "image",
+            "last_active",
+            "default_outlet",
+            "role_id",
+            "is_manager",
+            "stored_dashboard_view",
+            "xero_id",
+            "vend_id",
+            "vend_sync_at",
+            "deputy_id",
+            "account_locked",
+            "staff_active",
+            "nicknames",
+            "vend_customer_account",
+            "gpt_access",
+            "gpt_admin"
+        ]
+    },
+    "staff_account_reconciliation": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(10) unsigned",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "user_id": {
+                "type": "int(10) unsigned",
+                "null": "YES",
+                "key": "MUL",
+                "default": null
+            },
+            "vend_customer_id": {
+                "type": "varchar(100)",
+                "null": "NO",
+                "key": "UNI",
+                "default": null
+            },
+            "credit_account_id": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "discount_id": {
+                "type": "varchar(50)",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "employee_name": {
+                "type": "varchar(255)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "total_xero_deductions": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "",
+                "default": "0.00"
+            },
+            "total_allocated": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "",
+                "default": "0.00"
+            },
+            "pending_allocation": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "",
+                "default": "0.00"
+            },
+            "vend_balance": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "",
+                "default": "0.00"
+            },
+            "credit_limit": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "MUL",
+                "default": "0.00"
+            },
+            "vend_balance_updated_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "vend_last_synced_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "MUL",
+                "default": null
+            },
+            "outstanding_amount": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "MUL",
+                "default": "0.00"
+            },
+            "last_payment_date": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "MUL",
+                "default": null
+            },
+            "last_payment_amount": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "last_payment_transaction_id": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "total_payments_ytd": {
+                "type": "decimal(10,2)",
+                "null": "YES",
+                "key": "",
+                "default": "0.00"
+            },
+            "status": {
+                "type": "enum('balanced','overpaid','underpaid','pending')",
+                "null": "YES",
+                "key": "MUL",
+                "default": "pending"
+            },
+            "last_reconciled_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "notes": {
+                "type": "text",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "created_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": "current_timestamp()"
+            },
+            "updated_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": "current_timestamp()"
+            }
+        },
+        "column_list": [
+            "id",
+            "user_id",
+            "vend_customer_id",
+            "credit_account_id",
+            "discount_id",
+            "employee_name",
+            "total_xero_deductions",
+            "total_allocated",
+            "pending_allocation",
+            "vend_balance",
+            "credit_limit",
+            "vend_balance_updated_at",
+            "vend_last_synced_at",
+            "outstanding_amount",
+            "last_payment_date",
+            "last_payment_amount",
+            "last_payment_transaction_id",
+            "total_payments_ytd",
+            "status",
+            "last_reconciled_at",
+            "notes",
+            "created_at",
+            "updated_at"
+        ]
+    },
+    "staff_payment_transactions": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "user_id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "transaction_type": {
+                "type": "enum('session_created','payment_approved','payment_failed','refund')",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "amount": {
+                "type": "decimal(10,2)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "request_id": {
+                "type": "varchar(100)",
+                "null": "NO",
+                "key": "UNI",
+                "default": null
+            },
+            "response_data": {
+                "type": "longtext",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "created_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "MUL",
+                "default": "current_timestamp()"
+            }
+        },
+        "column_list": [
+            "id",
+            "user_id",
+            "transaction_type",
+            "amount",
+            "request_id",
+            "response_data",
+            "created_at"
+        ]
+    },
+    "staff_saved_cards": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "user_id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "card_token": {
+                "type": "varchar(255)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "last_four_digits": {
+                "type": "char(4)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "card_type": {
+                "type": "varchar(20)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "expiry_month": {
+                "type": "tinyint(4)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "expiry_year": {
+                "type": "smallint(6)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "is_default": {
+                "type": "tinyint(1)",
+                "null": "YES",
+                "key": "MUL",
+                "default": "0"
+            },
+            "is_active": {
+                "type": "tinyint(1)",
+                "null": "YES",
+                "key": "",
+                "default": "1"
+            },
+            "created_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": "current_timestamp()"
+            },
+            "last_used_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": null
+            }
+        },
+        "column_list": [
+            "id",
+            "user_id",
+            "card_token",
+            "last_four_digits",
+            "card_type",
+            "expiry_month",
+            "expiry_year",
+            "is_default",
+            "is_active",
+            "created_at",
+            "last_used_at"
+        ]
+    },
+    "staff_payment_plans": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "user_id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "total_amount": {
+                "type": "decimal(10,2)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "installment_amount": {
+                "type": "decimal(10,2)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "frequency": {
+                "type": "enum('weekly','fortnightly','monthly')",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "total_installments": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "completed_installments": {
+                "type": "int(11)",
+                "null": "YES",
+                "key": "",
+                "default": "0"
+            },
+            "next_payment_date": {
+                "type": "date",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "status": {
+                "type": "enum('active','completed','cancelled','defaulted')",
+                "null": "YES",
+                "key": "MUL",
+                "default": "active"
+            },
+            "created_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": "current_timestamp()"
+            },
+            "completed_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": null
+            }
+        },
+        "column_list": [
+            "id",
+            "user_id",
+            "total_amount",
+            "installment_amount",
+            "frequency",
+            "total_installments",
+            "completed_installments",
+            "next_payment_date",
+            "status",
+            "created_at",
+            "completed_at"
+        ]
+    },
+    "staff_payment_plan_installments": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "plan_id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "installment_number": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "amount": {
+                "type": "decimal(10,2)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "due_date": {
+                "type": "date",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "paid_date": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "transaction_id": {
+                "type": "varchar(100)",
+                "null": "YES",
+                "key": "",
+                "default": null
+            },
+            "status": {
+                "type": "enum('pending','paid','failed','skipped')",
+                "null": "YES",
+                "key": "MUL",
+                "default": "pending"
+            },
+            "created_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "",
+                "default": "current_timestamp()"
+            }
+        },
+        "column_list": [
+            "id",
+            "plan_id",
+            "installment_number",
+            "amount",
+            "due_date",
+            "paid_date",
+            "transaction_id",
+            "status",
+            "created_at"
+        ]
+    },
+    "staff_reminder_log": {
+        "exists": true,
+        "columns": {
+            "id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "PRI",
+                "default": null
+            },
+            "user_id": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "reminder_type": {
+                "type": "enum('email','sms','push','in_app')",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "subject": {
+                "type": "varchar(255)",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "message": {
+                "type": "text",
+                "null": "NO",
+                "key": "",
+                "default": null
+            },
+            "sent_by": {
+                "type": "int(11)",
+                "null": "NO",
+                "key": "MUL",
+                "default": null
+            },
+            "sent_at": {
+                "type": "datetime",
+                "null": "YES",
+                "key": "MUL",
+                "default": "current_timestamp()"
+            },
+            "status": {
+                "type": "enum('sent','failed','pending')",
+                "null": "YES",
+                "key": "",
+                "default": "sent"
+            }
+        },
+        "column_list": [
+            "id",
+            "user_id",
+            "reminder_type",
+            "subject",
+            "message",
+            "sent_by",
+            "sent_at",
+            "status"
+        ]
+    },
+    "staff_allocations": {
+        "exists": false
+    }
+}
