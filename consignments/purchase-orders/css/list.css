@@ -1,0 +1,513 @@
+/**
+ * Purchase Orders List View Styles
+ *
+ * Styling for PO list/index page:
+ * - DataTables customization
+ * - Status badges
+ * - Action buttons
+ * - Filters panel
+ * - Responsive design
+ *
+ * @package CIS\Consignments\PurchaseOrders
+ * @version 1.0.0
+ */
+
+/* ========================================================================
+   LIST CONTAINER
+   ======================================================================== */
+
+.po-list-container {
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.po-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.po-list-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.po-list-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ========================================================================
+   FILTERS PANEL
+   ======================================================================== */
+
+.filters-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.filters-toggle {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.filters-toggle:hover {
+    background: #e9ecef;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ========================================================================
+   DATATABLE CUSTOMIZATION
+   ======================================================================== */
+
+.dataTables_wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+table.dataTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100% !important;
+}
+
+table.dataTable thead th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    padding: 12px 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+table.dataTable tbody td {
+    padding: 12px 8px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+table.dataTable tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* ========================================================================
+   STATUS BADGES
+   ======================================================================== */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.status-draft {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.status-badge.status-open,
+.status-badge.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-sent {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-badge.status-receiving {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.status-badge.status-received {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-partial {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.status-closed {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+/* ========================================================================
+   PO CARD (Alternative view)
+   ======================================================================== */
+
+.po-card {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+}
+
+.po-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.po-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.po-card-id {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.po-card-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.po-card-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.po-card-field label {
+    font-size: 11px;
+    color: #6c757d;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+
+.po-card-field value {
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.po-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* ========================================================================
+   ACTION BUTTONS
+   ======================================================================== */
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.action-buttons .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.btn-view {
+    background: #17a2b8;
+    color: white;
+    border: none;
+}
+
+.btn-view:hover {
+    background: #138496;
+    color: white;
+}
+
+.btn-edit {
+    background: #ffc107;
+    color: #212529;
+    border: none;
+}
+
+.btn-edit:hover {
+    background: #e0a800;
+    color: #212529;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+    border: none;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+    color: white;
+}
+
+/* ========================================================================
+   QUICK STATS
+   ======================================================================== */
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card.stat-draft {
+    border-left: 4px solid #6c757d;
+}
+
+.stat-card.stat-pending {
+    border-left: 4px solid #ffc107;
+}
+
+.stat-card.stat-approved {
+    border-left: 4px solid #28a745;
+}
+
+.stat-card.stat-received {
+    border-left: 4px solid #17a2b8;
+}
+
+/* ========================================================================
+   BULK ACTIONS
+   ======================================================================== */
+
+.bulk-actions-bar {
+    background: #17a2b8;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideDown 0.3s ease;
+}
+
+.bulk-actions-bar.show {
+    display: flex;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bulk-actions-info {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.bulk-actions-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.bulk-actions-buttons .btn {
+    background: white;
+    color: #17a2b8;
+    border: none;
+}
+
+.bulk-actions-buttons .btn:hover {
+    background: #f8f9fa;
+}
+
+/* ========================================================================
+   LOADING STATE
+   ======================================================================== */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #17a2b8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================================================
+   RESPONSIVE DESIGN
+   ======================================================================== */
+
+@media (max-width: 768px) {
+    .po-list-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .po-list-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .bulk-actions-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .bulk-actions-buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    table.dataTable {
+        font-size: 12px;
+    }
+
+    table.dataTable thead th,
+    table.dataTable tbody td {
+        padding: 8px 4px;
+    }
+}
+
+/* ========================================================================
+   PRINT STYLES
+   ======================================================================== */
+
+@media print {
+    .po-list-actions,
+    .filters-panel,
+    .bulk-actions-bar,
+    .action-buttons,
+    .dataTables_filter,
+    .dataTables_length,
+    .dataTables_paginate {
+        display: none !important;
+    }
+
+    .po-list-container {
+        background: white;
+    }
+
+    .dataTables_wrapper {
+        box-shadow: none;
+    }
+}

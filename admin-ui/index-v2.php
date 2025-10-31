@@ -61,7 +61,7 @@ if (empty($_SESSION['csrf_token'])) {
                     <i class="fas fa-fire"></i> Template Showcase
                 </a>
                 <a href="theme-builder.php" class="cis-btn cis-btn-light cis-btn-lg">
-                    <i class="fas fa-magic"></i> 🎨 Ultimate Theme Builder
+                    <i class="fas fa-paint-brush"></i> Theme Builder
                 </a>
                 <a href="#documentation" class="cis-btn cis-btn-outline cis-btn-lg">
                     <i class="fas fa-book"></i> Documentation

@@ -1,0 +1,556 @@
+/**
+ * Purchase Order Form Styles
+ *
+ * Styling for create/edit form:
+ * - Form layout
+ * - Line items table
+ * - Product search
+ * - Calculation display
+ * - Validation states
+ *
+ * @package CIS\Consignments\PurchaseOrders
+ * @version 1.0.0
+ */
+
+/* ========================================================================
+   FORM CONTAINER
+   ======================================================================== */
+
+.po-form-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.po-form-header {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.po-form-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+}
+
+.po-form-subtitle {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+.unsaved-indicator {
+    display: none;
+    color: #ffc107;
+    font-size: 14px;
+    margin-left: 15px;
+}
+
+.unsaved-indicator i {
+    margin-right: 5px;
+}
+
+/* ========================================================================
+   FORM SECTIONS
+   ======================================================================== */
+
+.form-section {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.form-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-group label.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.form-control {
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.form-control.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* ========================================================================
+   LINE ITEMS TABLE
+   ======================================================================== */
+
+.line-items-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.line-items-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.line-items-table-wrapper {
+    background: white;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.line-items-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.line-items-table thead th {
+    background: #e9ecef;
+    padding: 12px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.line-items-table tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.line-items-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.line-items-table tbody tr.line-item-row[data-line-id=""] {
+    background: #fff3cd;
+}
+
+.product-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.line-product {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.search-product-btn {
+    padding: 2px 8px;
+    font-size: 11px;
+}
+
+.line-quantity,
+.line-unit-cost {
+    width: 100px;
+    padding: 6px 8px;
+    font-size: 13px;
+}
+
+.line-total {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.remove-line-item {
+    padding: 4px 8px;
+}
+
+/* Empty state */
+.line-items-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.line-items-empty i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.line-items-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ========================================================================
+   TOTALS PANEL
+   ======================================================================== */
+
+.totals-panel {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+}
+
+.totals-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.totals-row.subtotal {
+    border-top: 1px solid #dee2e6;
+    padding-top: 12px;
+    margin-top: 8px;
+}
+
+.totals-row.total {
+    border-top: 2px solid #495057;
+    padding-top: 12px;
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.totals-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.totals-value {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.total .totals-value {
+    color: #28a745;
+}
+
+/* ========================================================================
+   PRODUCT SEARCH MODAL
+   ======================================================================== */
+
+.product-search-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.product-search-modal.show {
+    display: flex;
+}
+
+.product-search-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-search-header {
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.product-search-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.product-search-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.product-search-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.product-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.product-result-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.product-result-item:hover {
+    background: #e9ecef;
+    border-color: #17a2b8;
+}
+
+.product-result-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.product-result-sku {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.product-result-price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #28a745;
+}
+
+/* ========================================================================
+   FORM ACTIONS
+   ======================================================================== */
+
+.form-actions {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    bottom: 20px;
+    z-index: 100;
+}
+
+.form-actions-left {
+    display: flex;
+    gap: 10px;
+}
+
+.form-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+.form-actions .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ========================================================================
+   VALIDATION STATES
+   ======================================================================== */
+
+.field-error {
+    position: relative;
+}
+
+.field-error::after {
+    content: '⚠';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #dc3545;
+    font-size: 18px;
+}
+
+.field-success {
+    position: relative;
+}
+
+.field-success::after {
+    content: '✓';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #28a745;
+    font-size: 18px;
+}
+
+/* ========================================================================
+   TOAST NOTIFICATIONS
+   ======================================================================== */
+
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    min-width: 250px;
+}
+
+.toast-notification.show {
+    transform: translateX(0);
+}
+
+.toast-notification.toast-success {
+    border-left: 4px solid #28a745;
+}
+
+.toast-notification.toast-error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast-notification.toast-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast-notification.toast-info {
+    border-left: 4px solid #17a2b8;
+}
+
+/* ========================================================================
+   RESPONSIVE DESIGN
+   ======================================================================== */
+
+@media (max-width: 768px) {
+    .po-form-container {
+        padding: 10px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .line-items-table {
+        font-size: 12px;
+    }
+
+    .line-items-table thead th,
+    .line-items-table tbody td {
+        padding: 8px 6px;
+    }
+
+    .product-cell {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-actions-left,
+    .form-actions-right {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ========================================================================
+   PRINT STYLES
+   ======================================================================== */
+
+@media print {
+    .po-form-header,
+    .form-actions,
+    .search-product-btn,
+    .remove-line-item,
+    .unsaved-indicator {
+        display: none !important;
+    }
+
+    .form-section {
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+
+    .line-items-table {
+        page-break-inside: auto;
+    }
+
+    .line-items-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+}

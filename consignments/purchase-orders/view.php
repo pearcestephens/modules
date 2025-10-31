@@ -488,12 +488,27 @@ include $_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/shared/blocks/header.
     </div>
 </div>
 
+<!-- Client-side Instrumentation -->
+<script src="js/interaction-logger.js"></script>
+<script src="js/security-monitor.js"></script>
+
 <!-- Page JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
     const poId = <?= $po->id ?>;
     const approvalModal = new bootstrap.Modal(document.getElementById('approvalModal'));
+
+    // Initialize security monitoring for PO view page
+    try {
+        SecurityMonitor.init({
+            poId: poId,
+            page: 'view',
+            enabled: true
+        });
+    } catch (error) {
+        console.error('SecurityMonitor init failed:', error);
+    }
 
     // Submit for Approval
     const submitBtn = document.getElementById('submitForApproval');
@@ -536,6 +551,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const approveBtn = document.getElementById('approveBtn');
     if (approveBtn) {
         approveBtn.addEventListener('click', function() {
+            // Log modal opening
+            try {
+                InteractionLogger.track({
+                    event_type: 'modal_opened',
+                    event_data: {
+                        modal_type: 'approval',
+                        action: 'approve',
+                        po_id: poId
+                    },
+                    page: 'view'
+                });
+            } catch (error) {
+                console.error('Interaction logging failed:', error);
+            }
+
             document.getElementById('approvalModalTitle').textContent = 'Approve Purchase Order';
             document.getElementById('approvalAction').value = 'APPROVED';
             approvalModal.show();
@@ -546,6 +576,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const rejectBtn = document.getElementById('rejectBtn');
     if (rejectBtn) {
         rejectBtn.addEventListener('click', function() {
+            // Log modal opening
+            try {
+                InteractionLogger.track({
+                    event_type: 'modal_opened',
+                    event_data: {
+                        modal_type: 'approval',
+                        action: 'reject',
+                        po_id: poId
+                    },
+                    page: 'view'
+                });
+            } catch (error) {
+                console.error('Interaction logging failed:', error);
+            }
+
             document.getElementById('approvalModalTitle').textContent = 'Reject Purchase Order';
             document.getElementById('approvalAction').value = 'REJECTED';
             approvalModal.show();
@@ -554,6 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Submit Approval
     document.getElementById('submitApproval').addEventListener('click', async function() {
+        const modalOpenedAt = Date.now();
         const action = document.getElementById('approvalAction').value;
         const comments = document.getElementById('approvalComments').value;
 
@@ -576,6 +622,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (result.success) {
+                // Log successful approval decision
+                try {
+                    InteractionLogger.track({
+                        event_type: 'button_clicked',
+                        event_data: {
+                            button_id: 'submitApproval',
+                            action: action,
+                            po_id: poId,
+                            has_comments: comments.length > 0,
+                            decision_time_seconds: Math.round((Date.now() - modalOpenedAt) / 1000)
+                        },
+                        page: 'view'
+                    });
+                } catch (error) {
+                    console.error('Interaction logging failed:', error);
+                }
+
                 alert('Approval decision submitted successfully');
                 window.location.reload();
             } else {

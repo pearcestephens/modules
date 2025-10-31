@@ -1,0 +1,9 @@
+{
+    "id": "test_theme",
+    "name": "Test Theme",
+    "colors": {
+        "primary": "#667eea"
+    },
+    "saved_at": "2025-11-01 07:42:46",
+    "version": "6.0.0"
+}

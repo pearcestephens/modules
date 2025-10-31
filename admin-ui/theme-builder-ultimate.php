@@ -2,7 +2,7 @@
 /**
  * CIS ULTIMATE Theme Builder
  * Professional theme editor with live preview, randomization, and font library
- * 
+ *
  * @package CIS\Modules\AdminUI
  * @version 3.0.0 - ULTIMATE EDITION
  * @date October 2025
@@ -41,32 +41,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎨 CIS Ultimate Theme Builder</title>
-    
+
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css" crossorigin="anonymous" />
-    
+
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-    
+
     <!-- Google Fonts Loader -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link id="google-fonts-heading" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link id="google-fonts-body" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
     <!-- CIS Brand -->
     <link rel="stylesheet" href="/modules/admin-ui/css/cis-brand.css">
-    
+
     <style>
         /* Ultimate Theme Builder Styles */
         body {
             font-family: var(--font-body, 'Inter', sans-serif);
         }
-        
+
         h1, h2, h3, h4, h5, h6 {
             font-family: var(--font-heading, 'Inter', sans-serif);
         }
-        
+
         .ultimate-container {
             display: grid;
             grid-template-columns: 320px 1fr;
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             margin: 0 auto;
             padding: 2rem;
         }
-        
+
         .control-panel {
             position: sticky;
             top: 2rem;
@@ -87,24 +87,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             padding: 1.5rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        
+
         .preview-panel {
             background: white;
             border-radius: 1rem;
             padding: 2rem;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        
+
         .control-section {
             margin-bottom: 2rem;
             padding-bottom: 2rem;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .control-section:last-child {
             border-bottom: none;
         }
-        
+
         .control-title {
             font-size: 0.875rem;
             font-weight: 700;
@@ -116,14 +116,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .color-preset-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 0.5rem;
             margin-top: 0.75rem;
         }
-        
+
         .color-preset {
             aspect-ratio: 1;
             border-radius: 0.5rem;
@@ -132,17 +132,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             transition: all 0.2s;
             position: relative;
         }
-        
+
         .color-preset:hover {
             transform: scale(1.1);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        
+
         .color-preset.active {
             border-color: #000;
             transform: scale(1.05);
         }
-        
+
         .color-preset::after {
             content: '✓';
             position: absolute;
@@ -154,17 +154,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             opacity: 0;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .color-preset.active::after {
             opacity: 1;
         }
-        
+
         .font-selector {
             display: grid;
             gap: 0.5rem;
             margin-top: 0.75rem;
         }
-        
+
         .font-option {
             padding: 0.75rem;
             border: 2px solid #e0e0e0;
@@ -174,25 +174,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             text-align: center;
             font-weight: 600;
         }
-        
+
         .font-option:hover {
             border-color: #A855F7;
             background: #f9f5ff;
         }
-        
+
         .font-option.active {
             border-color: #A855F7;
             background: linear-gradient(135deg, #E879F9 0%, #A855F7 100%);
             color: white;
         }
-        
+
         .style-option-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
             margin-top: 0.75rem;
         }
-        
+
         .style-option {
             padding: 0.75rem 0.5rem;
             border: 2px solid #e0e0e0;
@@ -203,25 +203,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             font-size: 0.75rem;
             font-weight: 600;
         }
-        
+
         .style-option:hover {
             border-color: #3B82F6;
             background: #f0f9ff;
         }
-        
+
         .style-option.active {
             border-color: #3B82F6;
             background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%);
             color: white;
         }
-        
+
         .action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.5rem;
             margin-top: 1rem;
         }
-        
+
         .btn-randomize {
             background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
             color: white;
@@ -233,12 +233,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
         }
-        
+
         .btn-randomize:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
         }
-        
+
         .btn-save {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             color: white;
@@ -250,22 +250,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
-        
+
         .btn-save:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
-        
+
         .component-showcase {
             display: grid;
             gap: 2rem;
         }
-        
+
         @media (max-width: 1024px) {
             .ultimate-container {
                 grid-template-columns: 1fr;
             }
-            
+
             .control-panel {
                 position: static;
                 max-height: none;
@@ -285,10 +285,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     <!-- ULTIMATE BUILDER -->
     <div class="ultimate-container">
-        
+
         <!-- CONTROL PANEL -->
         <div class="control-panel">
-            
+
             <!-- QUICK RANDOMIZE -->
             <div class="control-section">
                 <div class="control-title">
@@ -303,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </button>
                 </div>
             </div>
-            
+
             <!-- COLOR SCHEMES -->
             <div class="control-section">
                 <div class="control-title">
@@ -313,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <!-- Generated by JS -->
                 </div>
             </div>
-            
+
             <!-- FONTS -->
             <div class="control-section">
                 <div class="control-title">
@@ -323,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <!-- Generated by JS -->
                 </div>
             </div>
-            
+
             <div class="control-section">
                 <div class="control-title">
                     <i class="fas fa-paragraph"></i> Body Font
@@ -332,7 +332,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <!-- Generated by JS -->
                 </div>
             </div>
-            
+
             <!-- BORDER RADIUS -->
             <div class="control-section">
                 <div class="control-title">
@@ -353,7 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
             </div>
-            
+
             <!-- COMPONENT DENSITY -->
             <div class="control-section">
                 <div class="control-title">
@@ -371,13 +371,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
             </div>
-            
+
         </div>
-        
+
         <!-- PREVIEW PANEL WITH ALL COMPONENTS -->
         <div class="preview-panel">
             <div class="component-showcase" id="componentShowcase">
-                
+
                 <!-- BUTTONS -->
                 <div class="cis-card">
                     <div class="cis-card-header">
@@ -398,7 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- BADGES -->
                 <div class="cis-card">
                     <div class="cis-card-header">
@@ -419,7 +419,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </span>
                     </div>
                 </div>
-                
+
                 <!-- ALERTS -->
                 <div class="cis-card">
                     <div class="cis-card-header">
@@ -440,7 +440,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- FORMS -->
                 <div class="cis-card">
                     <div class="cis-card-header">
@@ -461,7 +461,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- CARDS -->
                 <div class="row">
                     <div class="col-md-4 mb-3">
@@ -504,7 +504,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- TYPOGRAPHY -->
                 <div class="cis-card">
                     <div class="cis-card-header">
@@ -518,10 +518,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <p>This is regular body text demonstrating your chosen font family and styling.</p>
                     </div>
                 </div>
-                
+
             </div>
         </div>
-        
+
     </div>
 
     <!-- JavaScript -->
@@ -531,7 +531,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <script>
         // THEME DATA
         const currentTheme = <?php echo json_encode($savedTheme); ?>;
-        
+
         // COLOR SCHEMES
         const colorSchemes = [
             { name: 'Purple Dream', primary: '#A855F7', secondary: '#3B82F6', accent: '#F59E0B' },
@@ -547,69 +547,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             { name: 'Teal Wave', primary: '#0D9488', secondary: '#14B8A6', accent: '#F59E0B' },
             { name: 'Rose Gold', primary: '#BE185D', secondary: '#EC4899', accent: '#FBBF24' }
         ];
-        
+
         // GOOGLE FONTS
         const fonts = [
-            'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Open Sans', 
+            'Inter', 'Roboto', 'Poppins', 'Montserrat', 'Open Sans',
             'Lato', 'Raleway', 'Ubuntu', 'Nunito', 'Playfair Display',
             'Merriweather', 'Source Sans Pro', 'PT Sans', 'Oswald', 'Mulish'
         ];
-        
+
         // INITIALIZE
         document.addEventListener('DOMContentLoaded', function() {
             renderColorSchemes();
             renderFontOptions();
             applyTheme();
         });
-        
+
         // RENDER COLOR SCHEMES
         function renderColorSchemes() {
             const container = document.getElementById('colorSchemes');
             container.innerHTML = colorSchemes.map((scheme, index) => `
-                <div class="color-preset ${scheme.primary === currentTheme.primary ? 'active' : ''}" 
+                <div class="color-preset ${scheme.primary === currentTheme.primary ? 'active' : ''}"
                      style="background: linear-gradient(135deg, ${scheme.primary} 0%, ${scheme.secondary} 50%, ${scheme.accent} 100%);"
                      onclick="applyColorScheme(${index})"
                      title="${scheme.name}">
                 </div>
             `).join('');
         }
-        
+
         // RENDER FONT OPTIONS
         function renderFontOptions() {
             const headingContainer = document.getElementById('headingFonts');
             const bodyContainer = document.getElementById('bodyFonts');
-            
+
             const headingHTML = fonts.slice(0, 5).map(font => `
-                <div class="font-option ${font === currentTheme.font_heading ? 'active' : ''}" 
+                <div class="font-option ${font === currentTheme.font_heading ? 'active' : ''}"
                      style="font-family: '${font}', sans-serif;"
                      onclick="setHeadingFont('${font}')">
                     ${font}
                 </div>
             `).join('');
-            
+
             const bodyHTML = fonts.slice(0, 5).map(font => `
-                <div class="font-option ${font === currentTheme.font_body ? 'active' : ''}" 
+                <div class="font-option ${font === currentTheme.font_body ? 'active' : ''}"
                      style="font-family: '${font}', sans-serif;"
                      onclick="setBodyFont('${font}')">
                     ${font}
                 </div>
             `).join('');
-            
+
             headingContainer.innerHTML = headingHTML;
             bodyContainer.innerHTML = bodyHTML;
         }
-        
+
         // APPLY COLOR SCHEME
         function applyColorScheme(index) {
             const scheme = colorSchemes[index];
             currentTheme.primary = scheme.primary;
             currentTheme.secondary = scheme.secondary;
             currentTheme.accent = scheme.accent;
-            
+
             applyTheme();
             renderColorSchemes();
         }
-        
+
         // SET FONTS
         function setHeadingFont(font) {
             currentTheme.font_heading = font;
@@ -617,14 +617,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             applyTheme();
             renderFontOptions();
         }
-        
+
         function setBodyFont(font) {
             currentTheme.font_body = font;
             loadGoogleFont(font, 'body');
             applyTheme();
             renderFontOptions();
         }
-        
+
         // LOAD GOOGLE FONT
         function loadGoogleFont(font, type) {
             const linkId = `google-fonts-${type}`;
@@ -632,47 +632,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             const weights = type === 'heading' ? '400;600;700;800' : '400;500;600';
             link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@${weights}&display=swap`;
         }
-        
+
         // SET BORDER RADIUS
         function setBorderRadius(style) {
             currentTheme.border_radius = style;
             applyTheme();
-            
+
             document.querySelectorAll('.style-option[data-radius]').forEach(el => {
                 el.classList.remove('active');
             });
             document.querySelector(`[data-radius="${style}"]`).classList.add('active');
         }
-        
+
         // SET DENSITY
         function setDensity(style) {
             currentTheme.density = style;
             applyTheme();
-            
+
             document.querySelectorAll('.style-option[data-density]').forEach(el => {
                 el.classList.remove('active');
             });
             document.querySelector(`[data-density="${style}"]`).classList.add('active');
         }
-        
+
         // APPLY THEME TO DOM
         function applyTheme() {
             const root = document.documentElement;
-            
+
             // Colors
             root.style.setProperty('--brand-primary', currentTheme.primary);
             root.style.setProperty('--brand-secondary', currentTheme.secondary);
             root.style.setProperty('--brand-accent', currentTheme.accent);
-            
+
             // Gradients
             root.style.setProperty('--gradient-purple', `linear-gradient(135deg, ${lightenColor(currentTheme.primary, 20)} 0%, ${currentTheme.primary} 100%)`);
             root.style.setProperty('--gradient-blue', `linear-gradient(135deg, ${lightenColor(currentTheme.secondary, 20)} 0%, ${currentTheme.secondary} 100%)`);
             root.style.setProperty('--gradient-sunset', `linear-gradient(135deg, ${lightenColor(currentTheme.accent, 20)} 0%, ${currentTheme.accent} 100%)`);
-            
+
             // Fonts
             root.style.setProperty('--font-heading', `'${currentTheme.font_heading}', sans-serif`);
             root.style.setProperty('--font-body', `'${currentTheme.font_body}', sans-serif`);
-            
+
             // Border Radius
             const radiusMap = {
                 'sharp': '0.25rem',
@@ -680,7 +680,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 'rounded': '1.5rem'
             };
             root.style.setProperty('--radius-lg', radiusMap[currentTheme.border_radius] || '0.75rem');
-            
+
             // Density
             const densityMap = {
                 'compact': { sm: '0.25rem', md: '0.5rem', lg: '1rem' },
@@ -692,36 +692,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             root.style.setProperty('--spacing-md', density.md);
             root.style.setProperty('--spacing-lg', density.lg);
         }
-        
+
         // RANDOMIZE THEME
         function randomizeTheme() {
             const randomScheme = colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
             const randomHeadingFont = fonts[Math.floor(Math.random() * fonts.length)];
             const randomBodyFont = fonts[Math.floor(Math.random() * fonts.length)];
             const randomRadius = ['sharp', 'medium', 'rounded'][Math.floor(Math.random() * 3)];
-            
+
             currentTheme.primary = randomScheme.primary;
             currentTheme.secondary = randomScheme.secondary;
             currentTheme.accent = randomScheme.accent;
             currentTheme.font_heading = randomHeadingFont;
             currentTheme.font_body = randomBodyFont;
             currentTheme.border_radius = randomRadius;
-            
+
             loadGoogleFont(randomHeadingFont, 'heading');
             loadGoogleFont(randomBodyFont, 'body');
-            
+
             applyTheme();
             renderColorSchemes();
             renderFontOptions();
-            
+
             // Update border radius UI
             document.querySelectorAll('.style-option[data-radius]').forEach(el => el.classList.remove('active'));
             document.querySelector(`[data-radius="${randomRadius}"]`).classList.add('active');
-            
+
             // Show notification
             alert('🎲 Theme randomized! Click Save to keep this theme.');
         }
-        
+
         // SAVE THEME
         function saveTheme() {
             fetch('', {
@@ -736,7 +736,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
             });
         }
-        
+
         // HELPER: Lighten Color
         function lightenColor(color, percent) {
             const num = parseInt(color.replace('#', ''), 16);

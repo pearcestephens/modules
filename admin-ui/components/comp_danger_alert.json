@@ -1,0 +1,16 @@
+{
+    "id": "comp_danger_alert",
+    "name": "Danger Alert",
+    "category": "Alerts",
+    "description": "Error message alert",
+    "html": "<div class=\"alert alert-danger\"><i class=\"fas fa-exclamation-circle\"><\/i> An error occurred. Please try again.<\/div>",
+    "css": ".alert-danger { background: #fee2e2; border-left: 4px solid #ef4444; }",
+    "tags": [
+        "alert",
+        "error",
+        "danger"
+    ],
+    "preview_bg": "#ffffff",
+    "updated_at": "2025-11-01 06:16:43",
+    "created_at": "2025-11-01 06:16:43"
+}

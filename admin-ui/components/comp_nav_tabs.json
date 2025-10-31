@@ -1,0 +1,16 @@
+{
+    "id": "comp_nav_tabs",
+    "name": "Navigation Tabs",
+    "category": "Navigation",
+    "description": "Horizontal tab navigation",
+    "html": "<div class=\"nav-tabs\"><a href=\"#\" class=\"nav-link active\">Dashboard<\/a><a href=\"#\" class=\"nav-link\">Settings<\/a><a href=\"#\" class=\"nav-link\">Profile<\/a><\/div>",
+    "css": ".nav-tabs { display: flex; gap: 0.5rem; border-bottom: 2px solid #e5e7eb; }",
+    "tags": [
+        "navigation",
+        "tabs",
+        "menu"
+    ],
+    "preview_bg": "#ffffff",
+    "updated_at": "2025-11-01 06:16:43",
+    "created_at": "2025-11-01 06:16:43"
+}

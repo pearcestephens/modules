@@ -1,0 +1,10 @@
+[
+    {
+        "type": "test_event",
+        "data": {
+            "test": "data"
+        },
+        "timestamp": "2025-11-01 07:42:48",
+        "user_agent": "Unknown"
+    }
+]

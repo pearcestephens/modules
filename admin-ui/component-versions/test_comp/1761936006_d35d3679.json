@@ -1,0 +1,10 @@
+{
+    "id": "test_comp",
+    "name": "Test Component",
+    "category": "buttons",
+    "html": "<button>Test<\/button>",
+    "description": "A test button component",
+    "saved_at": "2025-11-01 07:40:06",
+    "version": "1.0.0",
+    "usage_count": 0
+}

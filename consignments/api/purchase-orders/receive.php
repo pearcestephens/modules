@@ -16,6 +16,8 @@ require_once __DIR__ . '/../../bootstrap.php';
 
 use CIS\Consignments\Services\PurchaseOrderService;
 use CIS\Consignments\Services\ReceivingService;
+use CIS\Consignments\Services\TransferReviewService;
+use CIS\Consignments\Lib\PurchaseOrderLogger;
 
 header('Content-Type: application/json');
 
@@ -187,6 +189,34 @@ try {
         'items_count' => count($receivedItems),
         'errors_count' => count($errors)
     ], $_SESSION['user_id']);
+
+    // Trigger transfer/purchase order review (non-blocking)
+    try {
+        // Best-effort: attempt to run background job via CLI if available
+        $transferId = $poId;
+        $php = PHP_BINARY;
+        $script = __DIR__ . '/../../../../modules/consignments/cli/generate_transfer_review.php';
+
+        if (is_file($script) && function_exists('exec')) {
+            // Fire-and-forget background process
+            $cmd = escapeshellcmd("{$php} {$script} {$transferId} > /dev/null 2>&1 &");
+            @exec($cmd);
+        } else {
+            // Fallback: run inline but guarded so it doesn't break the response
+            try {
+                $reviewService = new TransferReviewService($pdo);
+                $review = $reviewService->generateReview($transferId);
+                // Log that review was generated
+                PurchaseOrderLogger::init();
+                PurchaseOrderLogger::poReceivingCompleted($poId, $_SESSION['user_id'], count($receivedItems), count($receivedItems), $review['metrics']['avg_time_per_item_seconds'] ?? null, [], ['review_id' => $review['metrics']['transfer_id'] ?? null]);
+            } catch (\Exception $e) {
+                error_log("Transfer review generation failed (inline): " . $e->getMessage());
+            }
+        }
+    } catch (\Throwable $t) {
+        // Ensure any logging/async attempts never break the API
+        error_log("Receive API: failed to schedule transfer review: " . $t->getMessage());
+    }
 
     echo json_encode([
         'success' => true,

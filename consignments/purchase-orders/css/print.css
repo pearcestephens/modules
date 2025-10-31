@@ -1,0 +1,634 @@
+/**
+ * Purchase Order Print Styles
+ *
+ * Print layouts for:
+ * - Shipping labels
+ * - Receiving receipts
+ * - PO documents
+ * - Packing slips
+ *
+ * @package CIS\Consignments\PurchaseOrders
+ * @version 1.0.0
+ */
+
+/* ========================================================================
+   PRINT RESET
+   ======================================================================== */
+
+@media print {
+    /* Hide all non-printable elements */
+    .no-print,
+    header,
+    nav,
+    .sidebar,
+    .form-actions,
+    .btn,
+    button,
+    .approval-actions,
+    .bulk-actions-bar,
+    .filters-panel,
+    .search-box,
+    .pagination {
+        display: none !important;
+    }
+
+    /* Reset body */
+    body {
+        margin: 0;
+        padding: 0;
+        background: white;
+        font-size: 10pt;
+        color: #000;
+    }
+
+    /* Remove shadows and borders */
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+}
+
+/* ========================================================================
+   SHIPPING LABEL (4x6 inches, 300 DPI)
+   ======================================================================== */
+
+@media print {
+    .shipping-label {
+        width: 4in;
+        height: 6in;
+        padding: 0.25in;
+        page-break-after: always;
+        background: white;
+        position: relative;
+    }
+
+    .label-header {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 0.1in;
+        margin-bottom: 0.1in;
+    }
+
+    .label-logo {
+        max-width: 2in;
+        max-height: 0.5in;
+    }
+
+    .label-from {
+        font-size: 8pt;
+        margin-bottom: 0.15in;
+    }
+
+    .label-from-title {
+        font-weight: bold;
+        font-size: 9pt;
+        margin-bottom: 0.05in;
+    }
+
+    .label-to {
+        border: 2px solid #000;
+        padding: 0.1in;
+        margin-bottom: 0.15in;
+        min-height: 1.2in;
+    }
+
+    .label-to-title {
+        font-weight: bold;
+        font-size: 10pt;
+        margin-bottom: 0.05in;
+    }
+
+    .label-to-address {
+        font-size: 11pt;
+        line-height: 1.3;
+    }
+
+    .label-barcode {
+        text-align: center;
+        margin: 0.15in 0;
+    }
+
+    .label-barcode img {
+        max-width: 3.5in;
+        height: auto;
+    }
+
+    .label-tracking {
+        text-align: center;
+        font-size: 12pt;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin-bottom: 0.1in;
+    }
+
+    .label-carrier-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8pt;
+        border-top: 1px solid #000;
+        padding-top: 0.05in;
+    }
+
+    .label-weight,
+    .label-service {
+        font-weight: bold;
+    }
+
+    .label-footer {
+        position: absolute;
+        bottom: 0.1in;
+        left: 0.25in;
+        right: 0.25in;
+        text-align: center;
+        font-size: 7pt;
+        color: #666;
+    }
+}
+
+/* ========================================================================
+   RECEIVING RECEIPT (8.5x11 inches)
+   ======================================================================== */
+
+@media print {
+    .receiving-receipt {
+        width: 8.5in;
+        padding: 0.5in;
+        page-break-after: always;
+    }
+
+    .receipt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #000;
+        padding-bottom: 0.2in;
+        margin-bottom: 0.3in;
+    }
+
+    .receipt-company {
+        flex: 1;
+    }
+
+    .receipt-company-name {
+        font-size: 18pt;
+        font-weight: bold;
+        margin-bottom: 0.05in;
+    }
+
+    .receipt-company-address {
+        font-size: 9pt;
+        line-height: 1.3;
+    }
+
+    .receipt-logo {
+        max-width: 2in;
+        max-height: 1in;
+    }
+
+    .receipt-title {
+        text-align: center;
+        font-size: 20pt;
+        font-weight: bold;
+        margin-bottom: 0.3in;
+        text-transform: uppercase;
+    }
+
+    .receipt-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.2in;
+        margin-bottom: 0.3in;
+    }
+
+    .receipt-info-section {
+        border: 1px solid #000;
+        padding: 0.15in;
+    }
+
+    .receipt-info-title {
+        font-weight: bold;
+        font-size: 11pt;
+        margin-bottom: 0.1in;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 0.05in;
+    }
+
+    .receipt-info-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.05in 0;
+        font-size: 9pt;
+    }
+
+    .receipt-info-label {
+        font-weight: bold;
+    }
+
+    .receipt-items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0.3in;
+    }
+
+    .receipt-items-table th {
+        background: #f0f0f0;
+        border: 1px solid #000;
+        padding: 0.1in;
+        text-align: left;
+        font-size: 9pt;
+        font-weight: bold;
+    }
+
+    .receipt-items-table td {
+        border: 1px solid #ccc;
+        padding: 0.08in;
+        font-size: 9pt;
+    }
+
+    .receipt-items-table tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+
+    .receipt-summary {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 0.3in;
+    }
+
+    .receipt-summary-box {
+        width: 3in;
+        border: 2px solid #000;
+        padding: 0.15in;
+    }
+
+    .receipt-summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.08in 0;
+        font-size: 10pt;
+    }
+
+    .receipt-summary-row.total {
+        font-weight: bold;
+        font-size: 12pt;
+        border-top: 2px solid #000;
+        padding-top: 0.08in;
+        margin-top: 0.1in;
+    }
+
+    .receipt-notes {
+        border: 1px dashed #000;
+        padding: 0.15in;
+        margin-bottom: 0.3in;
+        min-height: 0.8in;
+    }
+
+    .receipt-notes-title {
+        font-weight: bold;
+        font-size: 10pt;
+        margin-bottom: 0.08in;
+    }
+
+    .receipt-signatures {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.3in;
+        margin-top: 0.5in;
+    }
+
+    .receipt-signature-box {
+        border-top: 1px solid #000;
+        padding-top: 0.1in;
+    }
+
+    .receipt-signature-label {
+        font-size: 9pt;
+        text-align: center;
+    }
+
+    .receipt-signature-date {
+        font-size: 8pt;
+        color: #666;
+        text-align: center;
+        margin-top: 0.05in;
+    }
+}
+
+/* ========================================================================
+   PURCHASE ORDER DOCUMENT (8.5x11 inches)
+   ======================================================================== */
+
+@media print {
+    .po-document {
+        width: 8.5in;
+        padding: 0.5in;
+        page-break-after: always;
+    }
+
+    .po-doc-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.3in;
+    }
+
+    .po-doc-company {
+        flex: 1;
+    }
+
+    .po-doc-company-name {
+        font-size: 16pt;
+        font-weight: bold;
+    }
+
+    .po-doc-title {
+        text-align: right;
+    }
+
+    .po-doc-title h1 {
+        font-size: 24pt;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .po-doc-number {
+        font-size: 12pt;
+        font-weight: bold;
+        margin-top: 0.1in;
+    }
+
+    .po-doc-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.2in;
+        margin-bottom: 0.3in;
+    }
+
+    .po-doc-section {
+        border: 1px solid #000;
+        padding: 0.15in;
+    }
+
+    .po-doc-section-title {
+        font-weight: bold;
+        font-size: 11pt;
+        margin-bottom: 0.1in;
+        border-bottom: 1px solid #000;
+        padding-bottom: 0.05in;
+    }
+
+    .po-doc-items {
+        margin-bottom: 0.3in;
+    }
+
+    .po-doc-items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .po-doc-items-table th {
+        background: #e0e0e0;
+        border: 1px solid #000;
+        padding: 0.1in;
+        text-align: left;
+        font-size: 9pt;
+        font-weight: bold;
+    }
+
+    .po-doc-items-table td {
+        border: 1px solid #ccc;
+        padding: 0.08in;
+        font-size: 9pt;
+    }
+
+    .po-doc-items-table .item-description {
+        max-width: 3in;
+    }
+
+    .po-doc-items-table .item-quantity,
+    .po-doc-items-table .item-price,
+    .po-doc-items-table .item-total {
+        text-align: right;
+    }
+
+    .po-doc-totals {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 0.3in;
+    }
+
+    .po-doc-totals-box {
+        width: 3in;
+    }
+
+    .po-doc-totals-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.08in 0;
+        font-size: 10pt;
+    }
+
+    .po-doc-totals-row.grand-total {
+        font-weight: bold;
+        font-size: 12pt;
+        border-top: 2px solid #000;
+        margin-top: 0.1in;
+        padding-top: 0.1in;
+    }
+
+    .po-doc-terms {
+        border: 1px solid #000;
+        padding: 0.15in;
+        margin-bottom: 0.3in;
+    }
+
+    .po-doc-terms-title {
+        font-weight: bold;
+        font-size: 10pt;
+        margin-bottom: 0.08in;
+    }
+
+    .po-doc-terms-content {
+        font-size: 8pt;
+        line-height: 1.4;
+    }
+
+    .po-doc-footer {
+        text-align: center;
+        font-size: 8pt;
+        color: #666;
+        border-top: 1px solid #ccc;
+        padding-top: 0.1in;
+        margin-top: 0.3in;
+    }
+}
+
+/* ========================================================================
+   PACKING SLIP (8.5x11 inches)
+   ======================================================================== */
+
+@media print {
+    .packing-slip {
+        width: 8.5in;
+        padding: 0.5in;
+        page-break-after: always;
+    }
+
+    .packing-header {
+        text-align: center;
+        margin-bottom: 0.3in;
+    }
+
+    .packing-title {
+        font-size: 24pt;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .packing-info {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.15in;
+        margin-bottom: 0.3in;
+        font-size: 10pt;
+    }
+
+    .packing-info-item {
+        text-align: center;
+        padding: 0.1in;
+        border: 1px solid #000;
+    }
+
+    .packing-info-label {
+        font-weight: bold;
+        margin-bottom: 0.05in;
+    }
+
+    .packing-items {
+        margin-bottom: 0.3in;
+    }
+
+    .packing-items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .packing-items-table th {
+        background: #f0f0f0;
+        border: 1px solid #000;
+        padding: 0.1in;
+        text-align: left;
+        font-size: 10pt;
+        font-weight: bold;
+    }
+
+    .packing-items-table td {
+        border: 1px solid #ccc;
+        padding: 0.1in;
+        font-size: 10pt;
+    }
+
+    .packing-items-table .qty-cell {
+        text-align: center;
+        font-weight: bold;
+        font-size: 12pt;
+    }
+
+    .packing-barcode {
+        text-align: center;
+        margin: 0.3in 0;
+    }
+
+    .packing-barcode img {
+        max-width: 4in;
+        height: auto;
+    }
+
+    .packing-instructions {
+        border: 2px dashed #000;
+        padding: 0.15in;
+        margin-bottom: 0.2in;
+        min-height: 0.6in;
+    }
+
+    .packing-instructions-title {
+        font-weight: bold;
+        font-size: 10pt;
+        margin-bottom: 0.08in;
+    }
+}
+
+/* ========================================================================
+   PAGE BREAKS
+   ======================================================================== */
+
+@media print {
+    .page-break {
+        page-break-after: always;
+    }
+
+    .no-page-break {
+        page-break-inside: avoid;
+    }
+
+    /* Avoid breaking tables */
+    table {
+        page-break-inside: auto;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-footer-group;
+    }
+}
+
+/* ========================================================================
+   BARCODE STYLING
+   ======================================================================== */
+
+@media print {
+    .barcode-container {
+        text-align: center;
+        margin: 0.2in 0;
+    }
+
+    .barcode-image {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .barcode-text {
+        font-family: 'Courier New', monospace;
+        font-size: 12pt;
+        letter-spacing: 2px;
+        margin-top: 0.05in;
+    }
+}
+
+/* ========================================================================
+   QR CODE STYLING
+   ======================================================================== */
+
+@media print {
+    .qr-code-container {
+        text-align: center;
+        margin: 0.15in 0;
+    }
+
+    .qr-code-image {
+        width: 1.5in;
+        height: 1.5in;
+    }
+
+    .qr-code-label {
+        font-size: 8pt;
+        margin-top: 0.05in;
+    }
+}
