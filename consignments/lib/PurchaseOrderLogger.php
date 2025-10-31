@@ -166,6 +166,23 @@ class PurchaseOrderLogger {
     }
 
     /**
+     * Log that an automated transfer/transfer-review job was scheduled
+     */
+    public static function reviewScheduled(
+        int $poId,
+        int $scheduledBy,
+        array $context = []
+    ): void {
+        $context = array_merge([
+            'scheduled_by' => $scheduledBy,
+            'module' => self::CATEGORY
+        ], $context);
+
+        // Use a distinct event so scheduling vs completion are separable
+        self::log('transfer_review_scheduled', 'info', 'purchase_order', $poId, $context);
+    }
+
+    /**
      * Log item quantity adjustment during receiving
      */
     public static function itemQuantityAdjusted(

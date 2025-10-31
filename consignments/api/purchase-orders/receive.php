@@ -195,11 +195,21 @@ try {
         // Best-effort: attempt to run background job via CLI if available
         $transferId = $poId;
         $php = PHP_BINARY;
-        $script = __DIR__ . '/../../../../modules/consignments/cli/generate_transfer_review.php';
+        // CLI helper lives in modules/consignments/cli
+        $script = __DIR__ . '/../../cli/generate_transfer_review.php';
+
+        // Ensure logger initialized and record scheduling attempt
+        try {
+            PurchaseOrderLogger::init();
+            PurchaseOrderLogger::reviewScheduled($poId, (int)($_SESSION['user_id'] ?? 0));
+        } catch (\Throwable $t) {
+            // non-fatal
+            error_log('Failed to record review scheduling: ' . $t->getMessage());
+        }
 
         if (is_file($script) && function_exists('exec')) {
-            // Fire-and-forget background process
-            $cmd = escapeshellcmd("{$php} {$script} {$transferId} > /dev/null 2>&1 &");
+            // Fire-and-forget background process (safe escaping)
+            $cmd = $php . ' ' . escapeshellarg($script) . ' ' . escapeshellarg((string)$transferId) . ' > /dev/null 2>&1 &';
             @exec($cmd);
         } else {
             // Fallback: run inline but guarded so it doesn't break the response
@@ -208,7 +218,15 @@ try {
                 $review = $reviewService->generateReview($transferId);
                 // Log that review was generated
                 PurchaseOrderLogger::init();
-                PurchaseOrderLogger::poReceivingCompleted($poId, $_SESSION['user_id'], count($receivedItems), count($receivedItems), $review['metrics']['avg_time_per_item_seconds'] ?? null, [], ['review_id' => $review['metrics']['transfer_id'] ?? null]);
+                PurchaseOrderLogger::poReceivingCompleted(
+                    $poId,
+                    (int)($_SESSION['user_id'] ?? 0),
+                    count($receivedItems),
+                    count($receivedItems),
+                    (float)($review['metrics']['avg_time_per_item_seconds'] ?? 0.0),
+                    [],
+                    ['review_id' => $review['metrics']['transfer_id'] ?? null]
+                );
             } catch (\Exception $e) {
                 error_log("Transfer review generation failed (inline): " . $e->getMessage());
             }

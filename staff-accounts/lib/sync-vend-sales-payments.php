@@ -1,14 +1,14 @@
 <?php
 /**
- * Sync Sales Payments from Vend Sales
+ * Sync Vend Sales Payments
  *
  * Extracts payment data from vend_sales.payments JSON field
- * and populates sales_payments table for faster queries
+ * and populates vend_sales_payments table for faster queries
  *
- * This syncs ALL sales (customers and staff), not just staff
+ * This syncs ALL sales (customers and staff)
  *
- * Run via: php sync-payments.php
- * Or schedule via cron: 0 * * * * php sync-payments.php
+ * Run via: php sync-vend-sales-payments.php
+ * Or schedule via cron: 0 * * * * php sync-vend-sales-payments.php
  */
 
 declare(strict_types=1);
@@ -16,7 +16,7 @@ declare(strict_types=1);
 // Load module bootstrap
 require_once __DIR__ . '/../bootstrap.php';
 
-echo "[" . date('Y-m-d H:i:s') . "] Starting sales payments sync...\n";
+echo "[" . date('Y-m-d H:i:s') . "] Starting vend_sales_payments sync...\n";
 
 /**
  * Convert Vend ISO 8601 datetime to MySQL format
@@ -42,7 +42,7 @@ try {
     $pdo = cis_resolve_pdo();
     $pdo->beginTransaction();
 
-    // Get all vend_sales with payments in last 90 days
+    // Get all vend_sales with payments in last 365 days (1 year)
     $stmt = $pdo->query("
         SELECT
             vs.id as vend_sale_id,
@@ -56,7 +56,7 @@ try {
             vo.name as outlet_name
         FROM vend_sales vs
         LEFT JOIN vend_outlets vo ON vs.outlet_id = vo.id
-        WHERE vs.sale_date >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+        WHERE vs.sale_date >= DATE_SUB(NOW(), INTERVAL 365 DAY)
             AND vs.payments IS NOT NULL
             AND vs.payments != '[]'
             AND vs.payments != ''
@@ -71,9 +71,9 @@ try {
 
     echo "Found " . count($sales) . " sales to process...\n";
 
-    // Prepare insert statement with ALL fields from actual Vend JSON structure
+    // Prepare insert statement for vend_sales_payments
     $insert_stmt = $pdo->prepare("
-        INSERT INTO sales_payments
+        INSERT INTO vend_sales_payments
         (vend_sale_id, vend_customer_id, payment_id, payment_type_id, retailer_payment_type_id,
          amount, name, payment_date, register_id, register_open_sequence_id, outlet_id,
          surcharge, source_id, deleted_at, sale_date, outlet_name, sale_status, sale_total)
@@ -88,11 +88,13 @@ try {
             surcharge = VALUES(surcharge),
             source_id = VALUES(source_id),
             deleted_at = VALUES(deleted_at),
+            sale_status = VALUES(sale_status),
+            sale_total = VALUES(sale_total),
             updated_at = NOW()
     ");
 
     // Clear existing records for these sales first to avoid duplicates
-    $delete_stmt = $pdo->prepare("DELETE FROM sales_payments WHERE vend_sale_id = ?");
+    $delete_stmt = $pdo->prepare("DELETE FROM vend_sales_payments WHERE vend_sale_id = ?");
 
     foreach ($sales as $sale) {
         $processed++;
@@ -107,41 +109,41 @@ try {
         // Delete existing records for this sale
         $delete_stmt->execute([$sale['vend_sale_id']]);
 
-        // Process each payment in the JSON array - extract ALL fields from actual Vend structure
+        // Process each payment in the JSON array
         foreach ($payments_json as $payment) {
-            // Extract ALL payment details from Vend JSON (verified structure from database)
+            // Extract payment details from Vend JSON
             $payment_id = $payment['id'] ?? null;
             $payment_type_id = $payment['payment_type_id'] ?? null;
             $retailer_payment_type_id = $payment['retailer_payment_type_id'] ?? null;
             $amount = isset($payment['amount']) ? (float)$payment['amount'] : 0.0;
             $name = $payment['name'] ?? 'Unknown';
-            $payment_date = convertVendDate($payment['payment_date'] ?? $sale['payment_date']); // Use sale_date as fallback
+            $payment_date = convertVendDate($payment['payment_date'] ?? $sale['sale_date']);
 
-            // Additional Vend fields (verified from actual database query)
-            $register_id = $payment['register_id'] ?? $sale['register_id']; // Fallback to sale register
+            // Additional Vend fields
+            $register_id = $payment['register_id'] ?? $sale['register_id'];
             $register_open_sequence_id = $payment['register_open_sequence_id'] ?? null;
-            $outlet_id = $payment['outlet_id'] ?? $sale['outlet_id']; // Fallback to sale outlet
+            $outlet_id = $payment['outlet_id'] ?? $sale['outlet_id'];
             $surcharge = isset($payment['surcharge']) ? (float)$payment['surcharge'] : null;
             $source_id = $payment['source_id'] ?? null;
             $deleted_at = convertVendDate($payment['deleted_at'] ?? null);
 
-            // Insert payment record with ALL fields
+            // Insert payment record
             $insert_stmt->execute([
                 $sale['vend_sale_id'],         // vend_sale_id
                 $sale['vend_customer_id'],     // vend_customer_id
-                $payment_id,                   // payment_id (Vend's payment UUID)
+                $payment_id,                   // payment_id
                 $payment_type_id,              // payment_type_id
                 $retailer_payment_type_id,     // retailer_payment_type_id
                 $amount,                       // amount
-                $name,                         // name (e.g., "Cash", "Internet Banking")
-                $payment_date,                 // payment_date from JSON
-                $register_id,                  // register_id from JSON
-                $register_open_sequence_id,    // register_open_sequence_id from JSON
-                $outlet_id,                    // outlet_id from JSON (fallback to sale outlet)
-                $surcharge,                    // surcharge from JSON
-                $source_id,                    // source_id from JSON
-                $deleted_at,                   // deleted_at from JSON (converted)
-                convertVendDate($sale['payment_date']), // sale_date from vend_sales (converted)
+                $name,                         // name
+                $payment_date,                 // payment_date (converted)
+                $register_id,                  // register_id
+                $register_open_sequence_id,    // register_open_sequence_id
+                $outlet_id,                    // outlet_id
+                $surcharge,                    // surcharge
+                $source_id,                    // source_id
+                $deleted_at,                   // deleted_at (converted)
+                convertVendDate($sale['sale_date']), // sale_date (converted)
                 $sale['outlet_name'],          // outlet_name
                 $sale['sale_status'],          // sale_status
                 $sale['sale_total']            // sale_total
@@ -149,35 +151,42 @@ try {
 
             if ($insert_stmt->rowCount() > 0) {
                 $inserted++;
-                $total_payments_extracted++;
             }
+
+            $total_payments_extracted++;
         }
 
-        // Progress indicator
+        // Progress indicator every 100 sales
         if ($processed % 100 == 0) {
-            echo "  Processed: $processed sales | Extracted: $total_payments_extracted payments | Inserted: $inserted | Skipped: $skipped\n";
+            echo "\rProcessed: $processed sales | Extracted: $total_payments_extracted payments | Inserted: $inserted | Skipped: $skipped";
         }
     }
+
+    echo "\n";
+
+    // Clean up old records (>1 year)
+    $cleanup_stmt = $pdo->prepare("
+        DELETE FROM vend_sales_payments
+        WHERE sale_date < DATE_SUB(NOW(), INTERVAL 365 DAY)
+    ");
+    $cleanup_stmt->execute();
+    $deleted_old = $cleanup_stmt->rowCount();
 
     $pdo->commit();
 
     echo "[" . date('Y-m-d H:i:s') . "] Sync complete!\n";
-    echo "  Total sales processed: $processed\n";
-    echo "  Total payments extracted: $total_payments_extracted\n";
-    echo "  Inserted: $inserted\n";
-    echo "  Skipped: $skipped\n";
+    echo "  Total sales processed: " . number_format($processed) . "\n";
+    echo "  Total payments extracted: " . number_format($total_payments_extracted) . "\n";
+    echo "  Inserted: " . number_format($inserted) . "\n";
+    echo "  Skipped: " . number_format($skipped) . "\n";
+    echo "  Cleaned up $deleted_old old records (>1 year)\n";
 
-    // Clean up old records (older than 90 days)
-    $cleanup_stmt = $pdo->query("
-        DELETE FROM sales_payments
-        WHERE payment_date < DATE_SUB(NOW(), INTERVAL 90 DAY)
-    ");
-    $deleted = $cleanup_stmt->rowCount();
-
-    if ($deleted > 0) {
-        echo "  Cleaned up $deleted old records (>90 days)\n";
+} catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
     }
-
+    echo "[ERROR] Database error: " . $e->getMessage() . "\n";
+    exit(1);
 } catch (Exception $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
