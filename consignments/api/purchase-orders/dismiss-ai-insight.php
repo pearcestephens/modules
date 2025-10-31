@@ -104,10 +104,10 @@ try {
     // Log dismissal via PurchaseOrderLogger
     if ($loggerAvailable) {
         try {
-            \CIS\Consignments\PurchaseOrderLogger::aiRecommendationDismissed(
-                (int)$insight['po_id'],
+            \CIS\Consignments\Lib\PurchaseOrderLogger::aiRecommendationDismissed(
+                $insightId,
+                (int)($insight['po_id'] ?? $poId),
                 $insight['type'] ?? 'unknown',
-                $insight['category'] ?? 'general',
                 $dismissReason,
                 $reviewTimeSeconds
             );
