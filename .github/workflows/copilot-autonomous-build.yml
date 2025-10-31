@@ -1,0 +1,57 @@
+name: GitHub Copilot Autonomous Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'consignments/**'
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'Phase to execute (1-6)'
+        required: true
+        default: '2'
+
+jobs:
+  autonomous-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: pdo, pdo_mysql, mbstring, json
+
+    - name: Install dependencies
+      run: |
+        cd consignments
+        composer install --no-dev --optimize-autoloader
+
+    - name: Run autonomous build
+      run: |
+        echo "🤖 Starting autonomous build - Phase ${{ github.event.inputs.phase || '2' }}"
+        cd consignments
+        php scripts/autonomous-build.php --phase=${{ github.event.inputs.phase || '2' }}
+
+    - name: Run tests
+      run: |
+        cd consignments
+        vendor/bin/phpunit tests/
+
+    - name: Commit progress
+      run: |
+        git config user.name "GitHub Copilot Bot"
+        git config user.email "copilot@github.com"
+        git add consignments/
+        git commit -m "🤖 Autonomous build: Phase ${{ github.event.inputs.phase || '2' }} complete" || echo "No changes"
+        git push
+
+    - name: Update progress tracking
+      run: |
+        echo "📊 Updating progress in AUTONOMOUS_BUILD_EXECUTION.md"
+        cd consignments/_kb
+        # Update progress section automatically
