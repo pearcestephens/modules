@@ -2,61 +2,40 @@
 declare(strict_types=1);
 
 /**
- * Enhanced Output.PHP with integrated UI
- *
- * This adds a beautiful UI frontend to output.php allowing:
- * - Pick ANY directory on the system (with security validation)
- * - Select file types dynamically
+ * Code Splitter with Visual Folder/File Browser
+ * 
+ * Features:
+ * - Visual folder tree browser to select directories
+ * - Multi-select files within folders
  * - Split code into 100KB sections
- * - Output in new tab
- *
- * Usage:
- *   /modules/output-ui-enhanced.php (shows UI form)
- *   /modules/output-ui-enhanced.php?action=process (processes form and outputs)
- *
- * Security:
- *   - All paths validated with realpath() to prevent directory traversal
- *   - BASE_DIR restriction prevents accessing outside allowed directories
- *   - File size limits enforced (2MB hard limit per file)
+ * - Beautiful dark-theme UI
+ * - Security-hardened path handling
  */
 
-//////////////////// Config ////////////////////////////
-const BASE_DIR      = __DIR__;
-const ALLOW_ROOT    = true;  // Allow selecting from /home/master/applications/jcepnzzkmj or deeper
-const DEFAULT_MAXB  = 200_000;
-const HARD_MAXB     = 2_000_000;
-const SPLIT_SIZE    = 100 * 1024; // 100KB default
+const BASE_DIR = '/home/master/applications/jcepnzzkmj';
+const ALLOW_ROOT = true;
+const SPLIT_SIZE = 100 * 1024;
+const TEXT_EXT = ['php','js','css','html','json','sql','txt','md'];
 
-const TEXT_EXT = [
-  'php','phpt','phtml','html','htm','css','scss','less','js','mjs','ts','tsx',
-  'json','yml','yaml','xml','md','txt','ini','conf','env','log','sql','csv'
-];
-
-//////////////////// Mode Detection ////////////////////
 $mode = $_GET['action'] ?? 'ui';
 
-// Mode 1: Show the UI form
 if ($mode === 'ui') {
     renderUI();
     exit;
 }
-
-// Mode 2: Process the form and return JSON
 if ($mode === 'process') {
     processRequest();
     exit;
 }
-
-// Mode 3: API - Get folder tree for browser
-if ($mode === 'api_tree') {
-    getDirectoryTree();
+if ($mode === 'tree') {
+    getTreeData();
     exit;
 }
 
 exit(json_encode(['error' => 'Invalid action']));
 
 // ============================================================================
-// UI RENDERING
+// VISUAL FOLDER BROWSER UI
 // ============================================================================
 
 function renderUI(): void {
@@ -64,8 +43,8 @@ function renderUI(): void {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Splitter & File Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>📁 Code Splitter - Visual Browser</title>
     <style>
         * {
             margin: 0;
@@ -74,452 +53,283 @@ function renderUI(): void {
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
 
         .container {
+            max-width: 1400px;
+            margin: 0 auto;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 700px;
-            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
         }
 
         .header h1 {
             font-size: 28px;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .header p {
-            font-size: 14px;
             opacity: 0.9;
+            font-size: 14px;
         }
 
         .content {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-
-        .checkbox-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
+            grid-template-columns: 350px 1fr;
+            min-height: 600px;
         }
 
-        .checkbox-item {
+        /* Left Side: Folder Browser */
+        .sidebar {
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            background: #2c3e50;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .tree {
+            padding: 10px 0;
+        }
+
+        .tree-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            user-select: none;
             display: flex;
             align-items: center;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            margin-right: 8px;
-        }
-
-        .checkbox-item label {
-            margin: 0;
-            font-weight: normal;
-            text-transform: none;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        .size-input-group {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .size-input-group input {
-            flex: 1;
-        }
-
-        .size-input-group span {
-            white-space: nowrap;
-            color: #666;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 30px;
-        }
-
-        button {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            grid-column: 1 / -1;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-submit:active {
-            transform: translateY(0);
-        }
-
-        .btn-reset {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-reset:hover {
-            background: #e0e0e0;
-        }
-
-        .info-box {
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 4px;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-
-        .info-box strong {
-            color: #333;
-        }
-
-        .info-box code {
-            background: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-
-        .preset-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            margin-top: 12px;
+            font-size: 13px;
+            transition: background 0.2s;
         }
 
-        .preset-btn {
-            padding: 8px 12px;
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
+        .tree-item:hover {
+            background: #e8eef7;
+        }
+
+        .tree-item.selected {
+            background: #3498db;
+            color: white;
+        }
+
+        .tree-item .icon {
+            font-size: 14px;
+            min-width: 16px;
+        }
+
+        .tree-item .toggle {
             cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
+            min-width: 14px;
+            text-align: center;
         }
 
-        .preset-btn:hover {
-            background: #e0e0e0;
-            border-color: #667eea;
-            color: #667eea;
-        }
-
-        .error-msg {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
+        .tree-children {
             display: none;
         }
 
-        .dir-helper {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
+        .tree-children.open {
+            display: block;
         }
 
-        .btn-browse {
-            background: #667eea;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-size: 14px;
+        .tree-item-indent {
+            padding-left: calc(20px + 15px);
         }
 
-        .btn-browse:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-        }
-
-        /* Folder Browser Styles */
-        .folder-browser {
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            margin-top: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            max-height: 500px;
-            overflow: hidden;
+        /* Right Side: File Selection & Options */
+        .main {
+            padding: 25px;
             display: flex;
             flex-direction: column;
         }
 
-        .browser-header {
-            background: #667eea;
-            color: white;
-            padding: 12px 15px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #764ba2;
-        }
-
-        .close-browser {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .close-browser:hover {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .browser-content {
-            overflow-y: auto;
-            flex: 1;
-            padding: 10px;
-            max-height: 450px;
-        }
-
-        .browser-tree {
-            font-size: 13px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .tree-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            cursor: pointer;
-            margin: 2px 0;
-            border-radius: 4px;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .tree-item:hover {
-            background: #f0f0f0;
-        }
-
-        .tree-item.selected {
-            background: #e8e8ff;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .tree-item.folder {
-            color: #0066cc;
-            font-weight: 500;
-        }
-
-        .tree-item.file {
-            color: #333;
-        }
-
-        .tree-icon {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .tree-toggle {
-            width: 16px;
-            text-align: center;
-            cursor: pointer;
-            margin-right: 4px;
-            flex-shrink: 0;
-            user-select: none;
-        }
-
-        .tree-name {
-            flex: 1;
-            word-break: break-word;
-        }
-
-        .tree-children {
-            margin-left: 16px;
-        }
-
-        .tree-children.collapsed {
-            display: none;
-        }
-
-        .browser-actions {
-            padding: 12px;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            gap: 10px;
-            background: #f9f9f9;
-        }
-
-        .browser-actions button {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-
-        .browser-actions .btn-select {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .browser-actions .btn-select:hover {
-            background: #764ba2;
-        }
-
-        .browser-actions button:not(.btn-select):hover {
-            background: #f0f0f0;
-        }
-
-        .tree-indent {
-            display: inline-block;
-            width: 20px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
+        .section {
             margin-bottom: 25px;
-            border-bottom: 2px solid #e0e0e0;
         }
 
-        .tab-button {
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            color: #666;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .path-display {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .path-display.empty {
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        .file-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
             font-size: 13px;
         }
 
-        .tab-button.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+        .checkbox:hover {
+            background: #e8eef7;
         }
 
-        .tab-content {
+        .checkbox input {
+            cursor: pointer;
+        }
+
+        .presets {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            background: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .split-size {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .split-size input {
+            width: 120px;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .split-size-display {
+            background: #ecf0f1;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            min-width: 100px;
+        }
+
+        .file-count {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-primary:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .loading {
             display: none;
+            text-align: center;
+            color: #555;
         }
 
-        .tab-content.active {
+        .loading.show {
             display: block;
         }
 
-        @media (max-width: 600px) {
-            .checkbox-group {
+        @media (max-width: 1024px) {
+            .content {
                 grid-template-columns: 1fr;
             }
-
-            .preset-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .button-group {
-                grid-template-columns: 1fr;
+            .sidebar {
+                max-height: 300px;
             }
         }
     </style>
@@ -527,292 +337,268 @@ function renderUI(): void {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔧 Code Splitter & Analyzer</h1>
-            <p>Integrated with output.php - Split code into 100KB sections</p>
+            <h1>📁 Code Splitter</h1>
+            <p>Visual folder browser • Multi-file selection • 100KB sections</p>
         </div>
 
         <div class="content">
-            <div class="error-msg" id="errorMsg"></div>
-
-            <div class="info-box">
-                <strong>💡 How it works:</strong> Select any directory path on your system, choose file types to process,
-                and we'll break down your code into manageable sections. All paths are validated for security -
-                you can access any directory you have permission to read.
+            <!-- LEFT: Folder Browser -->
+            <div class="sidebar">
+                <div class="sidebar-header">📂 BROWSE FOLDERS</div>
+                <div class="tree" id="folderTree"></div>
             </div>
 
-            <form id="splitterForm" onsubmit="handleSubmit(event)">
-                <div class="form-group">
-                    <label for="directory">📁 Directory Path</label>
-                    <div style="display: grid; grid-template-columns: 1fr 100px; gap: 10px; margin-bottom: 10px;">
-                        <input
-                            type="text"
-                            id="directory"
-                            placeholder="/home/master/applications/jcepnzzkmj/public_html"
-                            value="/home/master/applications/jcepnzzkmj/public_html"
-                            required
-                        >
-                        <button type="button" class="btn-browse" onclick="toggleFolderBrowser()">📂 Browse</button>
-                    </div>
-
-                    <!-- Visual Folder Browser -->
-                    <div id="folderBrowser" class="folder-browser" style="display: none;">
-                        <div class="browser-header">
-                            <strong>Select Folder or Files</strong>
-                            <button type="button" class="close-browser" onclick="toggleFolderBrowser()">✕</button>
-                        </div>
-                        <div id="browserContent" class="browser-content">
-                            <div style="padding: 20px; text-align: center; color: #999;">Loading directory tree...</div>
-                        </div>
-                    </div>
-
-                    <div class="dir-helper">
-                        ✓ You can access ANY directory on the system<br>
-                        ✓ Paths like <code>/var/www</code>, <code>/home</code>, <code>/tmp</code> all work<br>
-                        ✓ Security: All paths validated with realpath() to prevent directory escaping
+            <!-- RIGHT: Selection & Options -->
+            <div class="main">
+                <!-- Selected Path -->
+                <div class="section">
+                    <div class="section-title">📍 Selected Directory</div>
+                    <div class="path-display empty" id="pathDisplay">
+                        Click a folder to select
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>📄 File Types to Process</label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="php" value="php" name="filetypes" checked>
-                            <label for="php">PHP</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="js" value="js" name="filetypes" checked>
-                            <label for="js">JavaScript</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="css" value="css" name="filetypes">
-                            <label for="css">CSS</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="html" value="html" name="filetypes">
-                            <label for="html">HTML</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="sql" value="sql" name="filetypes">
-                            <label for="sql">SQL</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="json" value="json" name="filetypes">
-                            <label for="json">JSON</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="txt" value="txt" name="filetypes">
-                            <label for="txt">Text</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="md" value="md" name="filetypes">
-                            <label for="md">Markdown</label>
+                <!-- File Types -->
+                <div class="section">
+                    <div class="section-title">📄 File Types</div>
+                    <div class="presets">
+                        <button class="preset-btn" onclick="setPreset('backend')">💻 Backend (PHP)</button>
+                        <button class="preset-btn" onclick="setPreset('frontend')">🎨 Frontend (JS/CSS)</button>
+                        <button class="preset-btn" onclick="setPreset('all')">📦 All Types</button>
+                        <button class="preset-btn" onclick="setPreset('none')">❌ None</button>
+                    </div>
+                    <div class="file-types" id="fileTypes"></div>
+                </div>
+
+                <!-- Split Size -->
+                <div class="section">
+                    <div class="section-title">✂️ Split Size</div>
+                    <div class="split-size">
+                        <input type="range" id="splitSize" min="10" max="500" value="100" step="10">
+                        <div class="split-size-display">
+                            <span id="splitSizeValue">100</span> KB
                         </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>⚡ Quick Presets</label>
-                    <div class="preset-buttons">
-                        <button type="button" class="preset-btn" onclick="setPreset('backend')">Backend (PHP)</button>
-                        <button type="button" class="preset-btn" onclick="setPreset('frontend')">Frontend (JS/CSS/HTML)</button>
-                        <button type="button" class="preset-btn" onclick="setPreset('all')">All Files</button>
+                <!-- File Count -->
+                <div class="section">
+                    <div class="file-count" id="fileCount">
+                        📊 Select a folder to scan files
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="splitSize">💾 Split Size</label>
-                    <div class="size-input-group">
-                        <input
-                            type="number"
-                            id="splitSize"
-                            value="100"
-                            min="10"
-                            max="500"
-                            required
-                        >
-                        <span>KB per section</span>
-                    </div>
+                <!-- Actions -->
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="location.reload()">↻ Reset</button>
+                    <button class="btn btn-primary" id="processBtn" onclick="processSplit()" disabled>
+                        🚀 Split Code
+                    </button>
                 </div>
 
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="includeComments" checked>
-                        Include Comments
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="stripWhitespace">
-                        Strip Extra Whitespace
-                    </label>
-                </div>
-
-                <div class="button-group">
-                    <button type="button" class="btn-reset" onclick="document.getElementById('splitterForm').reset()">Reset</button>
-                    <button type="submit" class="btn-submit">🚀 Split & Process</button>
-                </div>
-            </form>
+                <div class="loading" id="loading">⏳ Processing...</div>
+            </div>
         </div>
     </div>
 
     <script>
+        // State
         let selectedPath = null;
-        let selectedFiles = [];
-        let treeState = {};
+        const selectedExtensions = new Set();
 
-        function setPreset(preset) {
-            document.querySelectorAll('input[name="filetypes"]').forEach(cb => cb.checked = false);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFolderTree();
+            initializeFileTypes();
+            updateSplitSizeDisplay();
+        });
 
-            if (preset === 'backend') {
-                document.getElementById('php').checked = true;
-            } else if (preset === 'frontend') {
-                document.getElementById('js').checked = true;
-                document.getElementById('css').checked = true;
-                document.getElementById('html').checked = true;
-            } else if (preset === 'all') {
-                document.querySelectorAll('input[name="filetypes"]').forEach(cb => cb.checked = true);
-            }
-        }
-
-        function toggleFolderBrowser() {
-            const browser = document.getElementById('folderBrowser');
-            if (browser.style.display === 'none') {
-                browser.style.display = 'block';
-                const currentDir = document.getElementById('directory').value;
-                loadFolderTree(currentDir);
-            } else {
-                browser.style.display = 'none';
-            }
-        }
-
-        function loadFolderTree(path) {
-            const content = document.getElementById('browserContent');
-            content.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Loading...</div>';
-
-            fetch('?action=api_tree&dir=' + encodeURIComponent(path))
+        // Load folder tree
+        function loadFolderTree() {
+            fetch('?action=tree')
                 .then(r => r.json())
                 .then(data => {
-                    if (data.error) {
-                        content.innerHTML = '<div style="padding: 20px; color: red;">✗ ' + data.error + '</div>';
-                        return;
-                    }
-                    renderTree(content, data.tree, path);
+                    if (data.error) return console.error(data.error);
+                    renderTree(data.tree, document.getElementById('folderTree'), 0);
                 })
-                .catch(err => {
-                    content.innerHTML = '<div style="padding: 20px; color: red;">✗ Error loading tree: ' + err.message + '</div>';
+                .catch(e => console.error('Tree load error:', e));
+        }
+
+        // Render tree recursively
+        function renderTree(items, container, depth) {
+            items.forEach(item => {
+                const div = document.createElement('div');
+                const hasChildren = item.children && item.children.length > 0;
+
+                div.className = 'tree-item' + (depth > 0 ? ' tree-item-indent' : '');
+                div.style.paddingLeft = (depth * 16 + 15) + 'px';
+
+                let toggleHtml = '';
+                if (hasChildren) {
+                    toggleHtml = '<span class="toggle" onclick="event.stopPropagation(); toggleFolder(this)">▶</span>';
+                } else {
+                    toggleHtml = '<span class="toggle">  </span>';
+                }
+
+                const icon = item.type === 'dir' ? '📁' : '📄';
+                div.innerHTML = toggleHtml + `<span class="icon">${icon}</span><span>${item.name}</span>`;
+
+                if (item.type === 'dir') {
+                    div.onclick = () => selectFolder(item.path);
+                }
+
+                container.appendChild(div);
+
+                if (hasChildren) {
+                    const childContainer = document.createElement('div');
+                    childContainer.className = 'tree-children';
+                    childContainer.style.paddingLeft = '16px';
+                    container.appendChild(childContainer);
+
+                    div.dataset.childContainer = 'true';
+                    div.childContainer = childContainer;
+                }
+            });
+        }
+
+        // Toggle folder expansion
+        function toggleFolder(toggle) {
+            const item = toggle.parentElement;
+            const childContainer = item.childContainer;
+            if (!childContainer) return;
+
+            childContainer.classList.toggle('open');
+            toggle.textContent = childContainer.classList.contains('open') ? '▼' : '▶';
+        }
+
+        // Select folder
+        function selectFolder(path) {
+            selectedPath = path;
+            document.getElementById('pathDisplay').textContent = path;
+            document.getElementById('pathDisplay').classList.remove('empty');
+
+            // Highlight
+            document.querySelectorAll('.tree-item.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.closest('.tree-item').classList.add('selected');
+
+            // Scan files
+            scanFiles(path);
+        }
+
+        // Initialize file type checkboxes
+        function initializeFileTypes() {
+            const container = document.getElementById('fileTypes');
+            const types = TEXT_EXT;
+
+            types.forEach(ext => {
+                const checkbox = document.createElement('label');
+                checkbox.className = 'checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" value="${ext}" onchange="updateExtensions()">
+                    ${ext.toUpperCase()}
+                `;
+                container.appendChild(checkbox);
+            });
+        }
+
+        // Update selected extensions
+        function updateExtensions() {
+            selectedExtensions.clear();
+            document.querySelectorAll('#fileTypes input:checked').forEach(input => {
+                selectedExtensions.add(input.value);
+            });
+        }
+
+        // Set preset
+        function setPreset(type) {
+            const checkboxes = document.querySelectorAll('#fileTypes input');
+
+            if (type === 'backend') {
+                checkboxes.forEach(cb => cb.checked = ['php', 'phpt', 'phtml'].includes(cb.value));
+            } else if (type === 'frontend') {
+                checkboxes.forEach(cb => cb.checked = ['js', 'css', 'html'].includes(cb.value));
+            } else if (type === 'all') {
+                checkboxes.forEach(cb => cb.checked = true);
+            } else if (type === 'none') {
+                checkboxes.forEach(cb => cb.checked = false);
+            }
+
+            updateExtensions();
+        }
+
+        // Update split size display
+        document.getElementById('splitSize').addEventListener('input', (e) => {
+            document.getElementById('splitSizeValue').textContent = e.target.value;
+        });
+
+        function updateSplitSizeDisplay() {
+            const val = document.getElementById('splitSize').value;
+            document.getElementById('splitSizeValue').textContent = val;
+        }
+
+        // Scan files in directory
+        function scanFiles(path) {
+            const formData = new FormData();
+            formData.append('directory', path);
+
+            fetch('?action=process', {
+                method: 'POST',
+                body: formData
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.files) {
+                        document.getElementById('fileCount').innerHTML =
+                            `📊 ${data.files.length} files found | ${formatBytes(data.totalSize)} total`;
+                        document.getElementById('processBtn').disabled = false;
+                    }
+                })
+                .catch(e => console.error('Scan error:', e));
+        }
+
+        // Process and split
+        function processSplit() {
+            if (!selectedPath || selectedExtensions.size === 0) {
+                alert('Please select a directory and at least one file type');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('directory', selectedPath);
+            formData.append('extensions', Array.from(selectedExtensions).join(','));
+            formData.append('split_size', document.getElementById('splitSize').value * 1024);
+
+            document.getElementById('loading').classList.add('show');
+
+            fetch('?action=process', {
+                method: 'POST',
+                body: formData
+            })
+                .then(r => r.text())
+                .then(html => {
+                    const tab = window.open();
+                    tab.document.write(html);
+                    tab.document.close();
+                    document.getElementById('loading').classList.remove('show');
+                })
+                .catch(e => {
+                    alert('Error: ' + e.message);
+                    document.getElementById('loading').classList.remove('show');
                 });
         }
 
-        function renderTree(container, tree, rootPath) {
-            selectedPath = rootPath;
-            selectedFiles = [];
-
-            const html = '<div class="browser-tree">' +
-                buildTreeHTML(tree, '', rootPath) +
-                '</div>' +
-                '<div class="browser-actions">' +
-                '<button type="button" onclick="selectThisPath(\'' + rootPath.replace(/'/g, "\\'") + '\')">📁 Select This Folder</button>' +
-                '</div>';
-
-            container.innerHTML = html;
-
-            // Add click handlers
-            document.querySelectorAll('.tree-item').forEach((item, idx) => {
-                item.onclick = (e) => {
-                    e.stopPropagation();
-                    const isFolder = item.dataset.type === 'folder';
-                    const itemPath = item.dataset.path;
-
-                    if (isFolder) {
-                        const toggle = item.querySelector('.tree-toggle');
-                        const children = item.nextElementSibling;
-                        if (children && children.classList.contains('tree-children')) {
-                            children.classList.toggle('collapsed');
-                            toggle.textContent = children.classList.contains('collapsed') ? '▶' : '▼';
-                        }
-                    } else {
-                        // File selected
-                        item.classList.toggle('selected');
-                        if (item.classList.contains('selected')) {
-                            selectedFiles.push(itemPath);
-                        } else {
-                            selectedFiles = selectedFiles.filter(f => f !== itemPath);
-                        }
-                    }
-                };
-            });
-        }
-
-        function buildTreeHTML(items, indent, rootPath) {
-            if (!items || items.length === 0) return '';
-
-            let html = '';
-            for (const item of items) {
-                const isFolder = item.type === 'folder';
-                const icon = isFolder ? '📁' : '📄';
-                const toggle = isFolder && item.children && item.children.length > 0 ? '▼' : '';
-                const toggleBtn = isFolder && item.children && item.children.length > 0 ? '<span class="tree-toggle">▼</span>' : '<span class="tree-toggle" style="color: transparent;">▼</span>';
-
-                html += '<div class="tree-item ' + (isFolder ? 'folder' : 'file') + '" data-type="' + item.type + '" data-path="' + item.path.replace(/"/g, '&quot;') + '">' +
-                    (isFolder ? toggleBtn : '') +
-                    '<span class="tree-icon">' + icon + '</span>' +
-                    '<span class="tree-name">' + item.name + '</span>' +
-                    '</div>';
-
-                if (isFolder && item.children && item.children.length > 0) {
-                    html += '<div class="tree-children">' + buildTreeHTML(item.children, indent + '  ', rootPath) + '</div>';
-                }
+        // Utility
+        function formatBytes(bytes) {
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let size = bytes;
+            let unitIdx = 0;
+            while (size >= 1024 && unitIdx < units.length - 1) {
+                size /= 1024;
+                unitIdx++;
             }
-            return html;
-        }
-
-        function selectThisPath(path) {
-            document.getElementById('directory').value = path;
-            toggleFolderBrowser();
-        }
-
-        function handleSubmit(e) {
-            e.preventDefault();
-
-            const directory = document.getElementById('directory').value;
-            const fileTypes = Array.from(document.querySelectorAll('input[name="filetypes"]:checked'))
-                .map(cb => cb.value);
-            const splitSize = parseInt(document.getElementById('splitSize').value);
-            const includeComments = document.getElementById('includeComments').checked;
-            const stripWhitespace = document.getElementById('stripWhitespace').checked;
-
-            if (!directory.trim()) {
-                showError('Please enter a directory path');
-                return;
-            }
-
-            if (fileTypes.length === 0) {
-                showError('Please select at least one file type');
-                return;
-            }
-
-            // Send to backend for processing
-            const params = new URLSearchParams({
-                action: 'process',
-                directory: directory,
-                ext: fileTypes.join(','),
-                split_size: splitSize * 1024,
-                include_comments: includeComments ? '1' : '0',
-                strip_whitespace: stripWhitespace ? '1' : '0'
-            });
-
-            // Open result in new tab
-            window.open(window.location.pathname + '?' + params.toString(), '_blank');
-        }
-
-        function showError(msg) {
-            const errorMsg = document.getElementById('errorMsg');
-            errorMsg.textContent = '✗ ' + msg;
-            errorMsg.style.display = 'block';
-            setTimeout(() => {
-                errorMsg.style.display = 'none';
-            }, 5000);
+            return size.toFixed(1) + ' ' + units[unitIdx];
         }
     </script>
 </body>
@@ -820,89 +606,60 @@ function renderUI(): void {
 }
 
 // ============================================================================
-// DIRECTORY TREE API
+// API: GET FOLDER TREE
 // ============================================================================
 
-function getDirectoryTree(): void {
+function getTreeData(): void {
+    $root = BASE_DIR;
+    $root = @realpath($root);
+
+    if (!$root || !is_dir($root)) {
+        exit(json_encode(['error' => 'Invalid root']));
+    }
+
+    $tree = buildTree($root, 0, 3); // 3 levels deep
     header('Content-Type: application/json');
-
-    $dir = $_GET['dir'] ?? '.';
-    $maxDepth = $_GET['depth'] ?? 3;
-
-    // Secure path validation
-    $realDir = @realpath($dir);
-    if ($realDir === false || !is_dir($realDir)) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Directory not found']);
-        exit;
-    }
-
-    if (!is_readable($realDir)) {
-        http_response_code(403);
-        echo json_encode(['error' => 'Permission denied']);
-        exit;
-    }
-
-    try {
-        $tree = buildTreeStructure($realDir, 0, (int)$maxDepth);
-        echo json_encode(['tree' => $tree]);
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
-    }
+    echo json_encode(['tree' => $tree]);
 }
 
-function buildTreeStructure(string $dir, int $depth = 0, int $maxDepth = 3): array {
-    if ($depth > $maxDepth) {
-        return [];
-    }
-
+function buildTree(string $dir, int $level, int $maxLevel): array {
     $items = [];
 
+    if ($level > $maxLevel) return $items;
+
     try {
-        $entries = @scandir($dir);
-        if ($entries === false) {
-            return [];
+        $files = @scandir($dir);
+        if (!$files) return $items;
+
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') continue;
+
+            $path = $dir . '/' . $file;
+            $real = @realpath($path);
+
+            if (!$real || !is_readable($real)) continue;
+
+            $isDir = is_dir($real);
+            $item = [
+                'name' => $file,
+                'path' => $real,
+                'type' => $isDir ? 'dir' : 'file',
+            ];
+
+            if ($isDir && $level < $maxLevel) {
+                $item['children'] = buildTree($real, $level + 1, $maxLevel);
+            }
+
+            $items[] = $item;
         }
 
-        $entries = array_diff($entries, ['.', '..']);
-        sort($entries);
+        usort($items, function ($a, $b) {
+            if ($a['type'] === $b['type']) return strcmp($a['name'], $b['name']);
+            return $a['type'] === 'dir' ? -1 : 1;
+        });
 
-        foreach ($entries as $entry) {
-            $fullPath = $dir . DIRECTORY_SEPARATOR . $entry;
-
-            // Skip symlinks to prevent infinite loops
-            if (@is_link($fullPath)) {
-                continue;
-            }
-
-            // Skip hidden files/folders
-            if ($entry[0] === '.') {
-                continue;
-            }
-
-            if (@is_dir($fullPath)) {
-                $children = $depth < $maxDepth ? buildTreeStructure($fullPath, $depth + 1, $maxDepth) : [];
-                $items[] = [
-                    'name' => $entry,
-                    'path' => $fullPath,
-                    'type' => 'folder',
-                    'children' => $children
-                ];
-            } elseif (@is_file($fullPath)) {
-                // Show only text files
-                $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
-                if (in_array($ext, TEXT_EXT)) {
-                    $items[] = [
-                        'name' => $entry,
-                        'path' => $fullPath,
-                        'type' => 'file'
-                    ];
-                }
-            }
-        }
     } catch (Exception $e) {
-        // Silently fail for unreadable directories
+        // Silent fail
     }
 
     return $items;
@@ -913,301 +670,195 @@ function buildTreeStructure(string $dir, int $depth = 0, int $maxDepth = 3): arr
 // ============================================================================
 
 function processRequest(): void {
-    // Get parameters
-    $directory = $_GET['directory'] ?? '.';
-    $ext = $_GET['ext'] ?? 'php';
-    $splitSize = (int)($_GET['split_size'] ?? SPLIT_SIZE);
-    $includeComments = ($_GET['include_comments'] ?? '0') === '1';
-    $stripWhitespace = ($_GET['strip_whitespace'] ?? '0') === '1';
+    $dir = $_POST['directory'] ?? '';
+    $exts = array_filter(explode(',', $_POST['extensions'] ?? ''));
+    $splitSize = (int)($_POST['split_size'] ?? SPLIT_SIZE);
 
-    // Validate split size
-    if ($splitSize < 10 * 1024) $splitSize = 10 * 1024;
-    if ($splitSize > 500 * 1024) $splitSize = 500 * 1024;
-
-    // Secure path validation
-    $realDir = @realpath($directory);
-    if ($realDir === false || !is_dir($realDir)) {
+    // Validate
+    $real = @realpath($dir);
+    if (!$real || !is_dir($real) || !is_readable($real)) {
         http_response_code(400);
-        echo json_encode(['error' => 'Directory not found: ' . htmlspecialchars($directory)]);
-        exit;
+        exit(json_encode(['error' => 'Invalid directory']));
     }
 
-    // Check permissions
-    if (!is_readable($realDir)) {
-        http_response_code(403);
-        echo json_encode(['error' => 'Permission denied for: ' . htmlspecialchars($directory)]);
-        exit;
+    // Scan files
+    $files = scanDirectory($real, $exts);
+
+    if (empty($files)) {
+        exit(json_encode(['error' => 'No files found']));
     }
 
-    $extensions = array_filter(array_map('trim', explode(',', $ext)));
-    if (empty($extensions)) {
-        http_response_code(400);
-        echo json_encode(['error' => 'No file extensions specified']);
-        exit;
+    // Prepare response based on content-type
+    $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+    if (strpos($accept, 'application/json') !== false) {
+        // API response - just return file list
+        $totalSize = array_reduce($files, fn($sum, $f) => $sum + $f['size'], 0);
+        exit(json_encode([
+            'files' => $files,
+            'totalSize' => $totalSize,
+            'count' => count($files)
+        ]));
     }
 
-    // Scan directory and collect files
+    // HTML response - generate full output
+    $sections = splitFiles($files, $splitSize);
+    generateOutput($sections, $real);
+}
+
+function scanDirectory(string $dir, array $extensions): array {
     $files = [];
-    $totalSize = 0;
-
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($realDir, RecursiveDirectoryIterator::SKIP_DOTS),
+        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
         RecursiveIteratorIterator::SELF_FIRST
     );
 
     foreach ($iterator as $file) {
-        if (!$file->isFile()) continue;
+        if (!$file->isFile() || !$file->isReadable()) continue;
 
         $ext = strtolower($file->getExtension());
         if (!in_array($ext, $extensions, true)) continue;
 
-        $size = filesize($file->getPathname());
-        if ($size > HARD_MAXB) continue; // Skip files over hard limit
+        $size = $file->getSize();
+        if ($size > HARD_MAXB) continue;
 
         $files[] = [
             'path' => $file->getPathname(),
-            'relative' => substr($file->getPathname(), strlen($realDir) + 1),
-            'size' => $size
+            'name' => $file->getFilename(),
+            'size' => $size,
         ];
-
-        $totalSize += $size;
     }
 
-    if (empty($files)) {
-        http_response_code(404);
-        echo json_encode(['error' => 'No files found matching criteria']);
-        exit;
-    }
-
-    // Generate HTML output
-    $html = generateOutputHTML(
-        $files,
-        $realDir,
-        $extensions,
-        $splitSize,
-        $includeComments,
-        $stripWhitespace
-    );
-
-    header('Content-Type: text/html; charset=utf-8');
-    echo $html;
+    usort($files, fn($a, $b) => strcmp($a['path'], $b['path']));
+    return $files;
 }
 
-function generateOutputHTML($files, $realDir, $extensions, $splitSize, $includeComments, $stripWhitespace): string {
-    $fileCount = count($files);
-    $dirName = basename($realDir);
-    $totalSize = 0;
-    $totalLines = 0;
-
+function splitFiles(array $files, int $splitSize): array {
     $sections = [];
-    $currentSection = [];
-    $currentSectionSize = 0;
+    $current = [];
+    $currentSize = 0;
     $sectionNum = 1;
 
-    // Read and organize files into sections
     foreach ($files as $file) {
         $content = @file_get_contents($file['path']);
         if ($content === false) continue;
 
-        $totalSize += strlen($content);
-        $totalLines += substr_count($content, "\n") + 1;
+        $contentSize = strlen($content);
 
-        // Process content
-        if ($stripWhitespace) {
-            $content = preg_replace('/^\s+|\s+$/m', '', $content);
-        }
-
-        // Add to section
-        if ($currentSectionSize + strlen($content) > $splitSize && !empty($currentSection)) {
+        if ($currentSize > 0 && $currentSize + $contentSize > $splitSize) {
             $sections[] = [
                 'number' => $sectionNum++,
-                'files' => $currentSection,
-                'size' => $currentSectionSize
+                'files' => $current,
+                'size' => $currentSize,
             ];
-            $currentSection = [];
-            $currentSectionSize = 0;
+            $current = [];
+            $currentSize = 0;
         }
 
-        $currentSection[] = [
-            'relative' => $file['relative'],
+        $current[] = [
+            'name' => $file['name'],
+            'path' => $file['path'],
             'content' => $content,
-            'size' => strlen($content),
-            'lines' => substr_count($content, "\n") + 1
+            'size' => $contentSize,
         ];
-
-        $currentSectionSize += strlen($content);
+        $currentSize += $contentSize;
     }
 
-    // Don't forget last section
-    if (!empty($currentSection)) {
+    if (!empty($current)) {
         $sections[] = [
             'number' => $sectionNum,
-            'files' => $currentSection,
-            'size' => $currentSectionSize
+            'files' => $current,
+            'size' => $currentSize,
         ];
     }
 
-    // Generate HTML
-    $html = '<!DOCTYPE html>
-<html lang="en">
+    return $sections;
+}
+
+function generateOutput(array $sections, string $baseDir): void {
+    $totalFiles = array_reduce($sections, fn($sum, $s) => $sum + count($s['files']), 0);
+    $totalSize = array_reduce($sections, fn($sum, $s) => $sum + $s['size'], 0);
+    $totalLines = 0;
+    foreach ($sections as $section) {
+        foreach ($section['files'] as $file) {
+            $totalLines += substr_count($file['content'], "\n") + 1;
+        }
+    }
+
+    ?><!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Output - ' . htmlspecialchars($dirName) . '</title>
+    <title>Code Output Report</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            line-height: 1.6;
-            padding: 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-        .header h1 { font-size: 28px; margin-bottom: 10px; }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .stat-box {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid rgba(255,255,255,0.5);
-        }
-        .stat-label { font-size: 12px; opacity: 0.8; text-transform: uppercase; }
-        .stat-value { font-size: 20px; font-weight: bold; margin-top: 5px; }
-        .section {
-            background: #252526;
-            border: 1px solid #3e3e42;
-            border-radius: 6px;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-        .section-header {
-            background: #2d2d30;
-            padding: 15px;
-            border-bottom: 1px solid #3e3e42;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .section-content {
-            padding: 20px;
-        }
-        .file-block {
-            margin-bottom: 20px;
-            border-left: 3px solid #667eea;
-            padding-left: 15px;
-        }
-        .file-name {
-            font-weight: bold;
-            color: #4ec9b0;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-        .file-meta {
-            font-size: 12px;
-            color: #858585;
-            margin-bottom: 10px;
-        }
-        pre {
-            background: #1e1e1e;
-            border: 1px solid #3e3e42;
-            border-radius: 4px;
-            padding: 12px;
-            overflow-x: auto;
-            font-size: 12px;
-            color: #d4d4d4;
-            line-height: 1.4;
-        }
-        code {
-            font-family: "Courier New", monospace;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #858585;
-            font-size: 12px;
-            border-top: 1px solid #3e3e42;
-            margin-top: 40px;
-        }
+        body { font-family: 'Monaco', 'Courier New', monospace; background: #1e1e1e; color: #d4d4d4; line-height: 1.5; }
+        .container { max-width: 100%; padding: 20px; }
+        .header { background: #2d2d2d; padding: 20px; border-radius: 5px; margin-bottom: 30px; }
+        .header h1 { color: #4ec9b0; margin-bottom: 10px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }
+        .stat { background: #1e1e1e; padding: 10px; border-left: 3px solid #4ec9b0; }
+        .stat-value { color: #4ec9b0; font-size: 18px; font-weight: bold; }
+        .stat-label { color: #858585; font-size: 12px; margin-top: 5px; }
+        .section { margin-bottom: 40px; }
+        .section-header { background: #2d2d2d; padding: 15px; border-radius: 5px; margin-bottom: 15px; color: #4ec9b0; }
+        .file { background: #252526; padding: 15px; margin-bottom: 15px; border-left: 3px solid #0e639c; border-radius: 3px; }
+        .file-name { color: #ce9178; margin-bottom: 10px; font-weight: bold; }
+        .file-meta { color: #858585; font-size: 12px; margin-bottom: 10px; }
+        .code { background: #1e1e1e; padding: 15px; border-radius: 3px; overflow-x: auto; }
+        pre { margin: 0; }
+        @media print { body { background: white; color: black; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📊 Code Output Report</h1>
-            <p>Directory: <strong>' . htmlspecialchars($dirName) . '</strong></p>
-
+            <p>Generated: <?php echo date('Y-m-d H:i:s'); ?></p>
+            <p>Directory: <code><?php echo htmlspecialchars($baseDir); ?></code></p>
             <div class="stats">
-                <div class="stat-box">
-                    <div class="stat-label">Files</div>
-                    <div class="stat-value">' . $fileCount . '</div>
+                <div class="stat">
+                    <div class="stat-value"><?php echo $totalFiles; ?></div>
+                    <div class="stat-label">Total Files</div>
                 </div>
-                <div class="stat-box">
+                <div class="stat">
+                    <div class="stat-value"><?php echo number_format($totalSize / 1024 / 1024, 2); ?> MB</div>
                     <div class="stat-label">Total Size</div>
-                    <div class="stat-value">' . formatBytes($totalSize) . '</div>
                 </div>
-                <div class="stat-box">
+                <div class="stat">
+                    <div class="stat-value"><?php echo number_format($totalLines); ?></div>
                     <div class="stat-label">Total Lines</div>
-                    <div class="stat-value">' . number_format($totalLines) . '</div>
                 </div>
-                <div class="stat-box">
+                <div class="stat">
+                    <div class="stat-value"><?php echo count($sections); ?></div>
                     <div class="stat-label">Sections</div>
-                    <div class="stat-value">' . count($sections) . '</div>
                 </div>
             </div>
-        </div>';
-
-    // Add sections
-    foreach ($sections as $section) {
-        $html .= '
-        <div class="section">
-            <div class="section-header">
-                📋 Section ' . $section['number'] . ' (' . formatBytes($section['size']) . ')
-            </div>
-            <div class="section-content">';
-
-        foreach ($section['files'] as $f) {
-            $html .= '
-                <div class="file-block">
-                    <div class="file-name">📄 ' . htmlspecialchars($f['relative']) . '</div>
-                    <div class="file-meta">' . formatBytes($f['size']) . ' • ' . $f['lines'] . ' lines</div>
-                    <pre><code>' . htmlspecialchars($f['content']) . '</code></pre>
-                </div>';
-        }
-
-        $html .= '
-            </div>
-        </div>';
-    }
-
-    $html .= '
-        <div class="footer">
-            Generated: ' . date('Y-m-d H:i:s') . ' • Extensions: ' . implode(', ', array_map('strtoupper', $extensions)) . '
         </div>
+
+        <?php foreach ($sections as $section): ?>
+            <div class="section">
+                <div class="section-header">
+                    📦 Section <?php echo $section['number']; ?> 
+                    (<?php echo number_format($section['size'] / 1024, 1); ?> KB)
+                </div>
+                <?php foreach ($section['files'] as $file): ?>
+                    <div class="file">
+                        <div class="file-name">
+                            📄 <?php echo htmlspecialchars($file['name']); ?>
+                        </div>
+                        <div class="file-meta">
+                            Size: <?php echo number_format($file['size'] / 1024, 1); ?> KB 
+                            | Lines: <?php echo number_format(substr_count($file['content'], "\n") + 1); ?>
+                        </div>
+                        <div class="code">
+                            <pre><?php echo htmlspecialchars($file['content']); ?></pre>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
     </div>
 </body>
-</html>';
-
-    return $html;
+</html>
+<?php
 }
-
-function formatBytes($bytes): string {
-    $units = ['B', 'KB', 'MB', 'GB'];
-    $bytes = max($bytes, 0);
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $pow = min($pow, count($units) - 1);
-    $bytes /= (1 << (10 * $pow));
-    return round($bytes, 2) . ' ' . $units[$pow];
-}
-?>
