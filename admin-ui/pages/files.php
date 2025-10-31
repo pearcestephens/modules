@@ -1,4 +1,7 @@
 <?php
+
+// Get CIS database connection
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 /**
  * Dashboard Files Page
  * Browse and manage project files with filtering and search
@@ -14,7 +17,6 @@ $offset = ($page - 1) * $limit;
 $search = $_GET['search'] ?? '';
 $fileType = $_GET['type'] ?? '';
 
-$pdo = new PDO("mysql:host=localhost;dbname=hdgwrzntwa", "hdgwrzntwa", "bFUdRjh4Jx");
 
 // Build query - use intelligence_files table which has actual file data
 $query = "SELECT * FROM intelligence_files WHERE 1=1";

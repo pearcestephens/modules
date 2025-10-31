@@ -7,6 +7,9 @@
  * @category Dashboard Page
  */
 
+// Get CIS database connection
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
+
 // Get project stats from database
 $projectId = 1; // hdgwrzntwa project
 $query = "
@@ -32,12 +35,12 @@ $query = "
 
 $projectData = [];
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=hdgwrzntwa", "hdgwrzntwa", "bFUdRjh4Jx");
     $stmt = $pdo->prepare($query);
     $stmt->execute([$projectId]);
     $projectData = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     error_log("Overview page error: " . $e->getMessage());
+    $projectData = [];
 }
 
 // Get recent scan info
@@ -53,6 +56,7 @@ $scanQuery = "
     LIMIT 5
 ";
 
+$recentFiles = [];
 try {
     $scanStmt = $pdo->prepare($scanQuery);
     $scanStmt->execute([]);
@@ -64,9 +68,13 @@ try {
 
 // Get activity data
 $activityQuery = "SELECT COUNT(*) as activity_count FROM intelligence_files WHERE extracted_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
-$activityStmt = $pdo->prepare($activityQuery);
-$activityStmt->execute([]);
-$activityData = $activityStmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $activityStmt = $pdo->prepare($activityQuery);
+    $activityStmt->execute([]);
+    $activityData = $activityStmt->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $activityData = ['activity_count' => 0];
+}
 
 // Get violation stats
 $violationQuery = "

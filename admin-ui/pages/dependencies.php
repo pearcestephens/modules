@@ -1,4 +1,7 @@
 <?php
+
+// Get CIS database connection
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 /**
  * Dashboard Dependencies Page
  * Visualize file dependencies and relationships
@@ -8,7 +11,6 @@
  */
 
 $projectId = 1;
-$pdo = new PDO("mysql:host=localhost;dbname=hdgwrzntwa", "hdgwrzntwa", "bFUdRjh4Jx");
 
 // Get dependency graph data
 $query = "

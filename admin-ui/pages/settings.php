@@ -1,4 +1,7 @@
 <?php
+
+// Get CIS database connection
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 /**
  * Settings Page - Dashboard Configuration
  *
@@ -8,7 +11,6 @@
 declare(strict_types=1);
 
 // Get database connection
-$pdo = new PDO("mysql:host=localhost;dbname=hdgwrzntwa", "hdgwrzntwa", "bFUdRjh4Jx");
 
 // Get current settings
 $settingsQuery = "SELECT * FROM dashboard_config LIMIT 1";

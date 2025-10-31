@@ -1,4 +1,7 @@
 <?php
+
+// Get CIS database connection
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 /**
  * Dashboard Violations Page
  * View and manage rule violations
@@ -13,7 +16,6 @@ $page = (int)($_GET['viol_page'] ?? 1);
 $limit = 25;
 $offset = ($page - 1) * $limit;
 
-$pdo = new PDO("mysql:host=localhost;dbname=hdgwrzntwa", "hdgwrzntwa", "bFUdRjh4Jx");
 
 // Build query
 $baseQuery = "FROM project_rule_violations WHERE project_id = :projectId";
