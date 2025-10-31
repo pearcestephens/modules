@@ -1,487 +1,274 @@
 <?php
 /**
  * Dashboard Overview Page
- * Main dashboard with project statistics, activity, and metrics
+ * Main dashboard with CIS statistics, inventory, sales, and operations metrics
  *
- * @package hdgwrzntwa/dashboard/admin
+ * @package CIS/AdminUI
  * @category Dashboard Page
  */
+
+declare(strict_types=1);
 
 // Get CIS database connection
 require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 
-// Get project stats from database
-$projectId = 1; // hdgwrzntwa project
-$query = "
-    SELECT
-        p.id,
-        p.name,
-        p.path,
-        p.project_type,
-        p.status,
-        pm.framework,
-        pm.version,
-        pm.description,
-        pmr.health_score,
-        pmr.technical_debt,
-        pmr.lines_of_code,
-        pmr.last_updated
-    FROM projects p
-    LEFT JOIN project_metadata pm ON p.id = pm.project_id
-    LEFT JOIN project_metrics pmr ON p.id = pmr.project_id
-    WHERE p.id = ?
-    LIMIT 1
-";
+// ============================================================================
+// SYSTEM STATISTICS
+// ============================================================================
 
-$projectData = [];
+$systemStats = [
+    'total_outlets' => 0,
+    'total_products' => 0,
+    'total_inventory_value' => 0,
+    'low_stock_items' => 0
+];
+
 try {
-    $stmt = $pdo->prepare($query);
-    $stmt->execute([$projectId]);
-    $projectData = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Count outlets
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM vend_outlets WHERE active = 1");
+    $systemStats['total_outlets'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+
+    // Count products
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM vend_products WHERE active = 1");
+    $systemStats['total_products'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+
+    // Calculate inventory value
+    $stmt = $pdo->query("SELECT SUM(quantity * cost) as total_value FROM vend_inventory WHERE quantity > 0");
+    $systemStats['total_inventory_value'] = (float)($stmt->fetch(PDO::FETCH_ASSOC)['total_value'] ?? 0);
+
+    // Count low stock items
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM vend_inventory WHERE quantity < 10 AND quantity > 0");
+    $systemStats['low_stock_items'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
 } catch (Exception $e) {
-    error_log("Overview page error: " . $e->getMessage());
-    $projectData = [];
+    error_log("System stats error: " . $e->getMessage());
 }
 
-// Get recent scan info
-$scanQuery = "
-    SELECT
-        file_id,
-        file_name,
-        file_path,
-        extracted_at,
-        complexity_score
-    FROM intelligence_files
-    ORDER BY extracted_at DESC
-    LIMIT 5
-";
+// ============================================================================
+// SALES METRICS (Last 30 days)
+// ============================================================================
 
-$recentFiles = [];
+$salesMetrics = [
+    'total_sales' => 0,
+    'sales_count' => 0,
+    'avg_transaction' => 0
+];
+
 try {
-    $scanStmt = $pdo->prepare($scanQuery);
-    $scanStmt->execute([]);
-    $recentFiles = $scanStmt->fetchAll(PDO::FETCH_ASSOC);
+    // Total sales
+    $stmt = $pdo->query("
+        SELECT
+            SUM(total) as sales_total,
+            COUNT(*) as transaction_count,
+            AVG(total) as avg_sale
+        FROM vend_sales
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    ");
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    $salesMetrics['total_sales'] = (float)($data['sales_total'] ?? 0);
+    $salesMetrics['sales_count'] = (int)($data['transaction_count'] ?? 0);
+    $salesMetrics['avg_transaction'] = (float)($data['avg_sale'] ?? 0);
 } catch (Exception $e) {
-    $recentFiles = [];
-    error_log("Scan query error: " . $e->getMessage());
+    error_log("Sales metrics error: " . $e->getMessage());
 }
 
-// Get activity data
-$activityQuery = "SELECT COUNT(*) as activity_count FROM intelligence_files WHERE extracted_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)";
+// ============================================================================
+// INVENTORY STATUS
+// ============================================================================
+
+$inventoryStatus = [
+    'total_items' => 0,
+    'in_stock' => 0,
+    'out_of_stock' => 0,
+    'low_stock' => 0
+];
+
 try {
-    $activityStmt = $pdo->prepare($activityQuery);
-    $activityStmt->execute([]);
-    $activityData = $activityStmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->query("
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN quantity > 0 THEN 1 ELSE 0 END) as in_stock,
+            SUM(CASE WHEN quantity = 0 THEN 1 ELSE 0 END) as out_of_stock,
+            SUM(CASE WHEN quantity > 0 AND quantity < 10 THEN 1 ELSE 0 END) as low_stock
+        FROM vend_inventory
+    ");
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+    $inventoryStatus['total_items'] = (int)($data['total'] ?? 0);
+    $inventoryStatus['in_stock'] = (int)($data['in_stock'] ?? 0);
+    $inventoryStatus['out_of_stock'] = (int)($data['out_of_stock'] ?? 0);
+    $inventoryStatus['low_stock'] = (int)($data['low_stock'] ?? 0);
 } catch (Exception $e) {
-    $activityData = ['activity_count' => 0];
+    error_log("Inventory status error: " . $e->getMessage());
 }
 
-// Get violation stats
-$violationQuery = "
-    SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END) as critical,
-        SUM(CASE WHEN severity = 'high' THEN 1 ELSE 0 END) as high,
-        SUM(CASE WHEN severity = 'medium' THEN 1 ELSE 0 END) as medium,
-        SUM(CASE WHEN severity = 'low' THEN 1 ELSE 0 END) as low
-    FROM project_rule_violations
-    WHERE project_id = ?
-";
+// ============================================================================
+// TRANSFER & ORDER STATS
+// ============================================================================
 
-$violationStats = ['total' => 0, 'critical' => 0, 'high' => 0, 'medium' => 0, 'low' => 0];
+$operationStats = [
+    'pending_transfers' => 0,
+    'completed_transfers' => 0,
+    'pending_orders' => 0,
+    'completed_orders' => 0
+];
+
 try {
-    $stmt = $pdo->prepare($violationQuery);
-    $stmt->execute([$projectId]);
-    $violationStats = $stmt->fetch(PDO::FETCH_ASSOC) ?: $violationStats;
+    // Stock transfers
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM stock_transfers WHERE status = 'Pending'");
+    $operationStats['pending_transfers'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM stock_transfers WHERE status = 'Completed'");
+    $operationStats['completed_transfers'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+
+    // Purchase orders
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM purchase_orders WHERE status = 'Pending'");
+    $operationStats['pending_orders'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
+
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM purchase_orders WHERE status = 'Received'");
+    $operationStats['completed_orders'] = (int)($stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0);
 } catch (Exception $e) {
-    error_log("Violation stats error: " . $e->getMessage());
+    error_log("Operation stats error: " . $e->getMessage());
 }
 
-// Get file statistics
-$fileQuery = "
-    SELECT
-        COUNT(*) as total_files,
-        SUM(CASE WHEN file_type = 'php' THEN 1 ELSE 0 END) as php_files,
-        SUM(CASE WHEN file_type = 'js' THEN 1 ELSE 0 END) as js_files,
-        SUM(CASE WHEN file_type = 'css' THEN 1 ELSE 0 END) as css_files,
-        SUM(CASE WHEN file_type = 'config' THEN 1 ELSE 0 END) as config_files
-    FROM file_dependencies
-    WHERE project_id = ?
-";
+// ============================================================================
+// RECENT ACTIVITY
+// ============================================================================
 
-$fileStats = ['total_files' => 0, 'php_files' => 0, 'js_files' => 0, 'css_files' => 0, 'config_files' => 0];
+$recentActivity = [];
 try {
-    $stmt = $pdo->prepare($fileQuery);
-    $stmt->execute([$projectId]);
-    $fileStats = $stmt->fetch(PDO::FETCH_ASSOC) ?: $fileStats;
+    $stmt = $pdo->query("
+        SELECT 'Transfer' as type, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as timestamp, status
+        FROM stock_transfers
+        ORDER BY created_at DESC LIMIT 3
+        UNION ALL
+        SELECT 'Order' as type, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') as timestamp, status
+        FROM purchase_orders
+        ORDER BY created_at DESC LIMIT 2
+    ");
+    $recentActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    error_log("File stats error: " . $e->getMessage());
+    error_log("Recent activity error: " . $e->getMessage());
 }
 ?>
 
-<div class="dashboard-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <h1>Dashboard Overview</h1>
-        <p class="text-muted">Project metrics, statistics, and recent activity</p>
+<!-- Dashboard Header -->
+<div class="overview-header" style="margin-bottom: 30px;">
+    <h1 style="font-size: 28px; font-weight: 600; color: #2c3e50;">CIS Dashboard Overview</h1>
+    <p style="color: #7f8c8d;">Real-time inventory, sales, and operations metrics</p>
+</div>
+
+<!-- System Statistics -->
+<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="color: #7f8c8d; font-size: 14px; margin-bottom: 10px;">Active Outlets</div>
+        <div style="font-size: 28px; font-weight: bold; color: #2980b9;"><?php echo $systemStats['total_outlets']; ?></div>
+        <div style="color: #95a5a6; font-size: 12px;">Retail locations</div>
     </div>
+    <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="color: #7f8c8d; font-size: 14px; margin-bottom: 10px;">Total Products</div>
+        <div style="font-size: 28px; font-weight: bold; color: #27ae60;"><?php echo number_format($systemStats['total_products']); ?></div>
+        <div style="color: #95a5a6; font-size: 12px;">In catalog</div>
+    </div>
+    <div class="stat-card" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="color: #7f8c8d; font-size: 14px; margin-bottom: 10px;">Inventory Value</div>
+        <div style="font-size: 28px; font-weight: bold; color: #8e44ad;">$<?php echo number_format($systemStats['total_inventory_value'], 2); ?></div>
+        <div style="color: #95a5a6; font-size: 12px;">Current stock</div>
+    </div>
+    <div class="stat-card" style="background: #fff5f5; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="color: #7f8c8d; font-size: 14px; margin-bottom: 10px;">Low Stock ⚠️</div>
+        <div style="font-size: 28px; font-weight: bold; color: #e74c3c;"><?php echo $systemStats['low_stock_items']; ?></div>
+        <div style="color: #95a5a6; font-size: 12px;">Items below 10 units</div>
+    </div>
+</div>
 
-    <!-- Project Info Section -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Project Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Project Name:</strong> <?php echo htmlspecialchars($projectData['name'] ?? 'N/A'); ?></p>
-                            <p><strong>Type:</strong> <span class="badge bg-info"><?php echo htmlspecialchars($projectData['project_type'] ?? 'N/A'); ?></span></p>
-                            <p><strong>Status:</strong> <span class="badge bg-success"><?php echo htmlspecialchars($projectData['status'] ?? 'N/A'); ?></span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Framework:</strong> <?php echo htmlspecialchars($projectData['framework'] ?? 'N/A'); ?></p>
-                            <p><strong>Version:</strong> <?php echo htmlspecialchars($projectData['version'] ?? 'N/A'); ?></p>
-                            <p><strong>Path:</strong> <code><?php echo htmlspecialchars(substr($projectData['path'] ?? '', -50)); ?></code></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- Sales Metrics -->
+<div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px;">
+    <h2 style="font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 20px;">Sales Metrics (Last 30 Days)</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div style="border-left: 4px solid #3498db; padding: 15px;">
+            <div style="color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Total Sales</div>
+            <div style="font-size: 24px; font-weight: bold; color: #3498db;">$<?php echo number_format($salesMetrics['total_sales'], 2); ?></div>
         </div>
-
-        <!-- Health Score Card -->
-        <div class="col-lg-4">
-            <div class="card border-left-primary">
-                <div class="card-body text-center">
-                    <div class="health-score-circle">
-                        <svg width="120" height="120" class="circular-progress">
-                            <circle cx="60" cy="60" r="54" fill="none" stroke="#e3e6f0" stroke-width="8"/>
-                            <circle cx="60" cy="60" r="54" fill="none" stroke="#4e73df" stroke-width="8"
-                                    stroke-dasharray="<?php echo ($projectData['health_score'] ?? 0) * 3.39; ?> 339"
-                                    style="transform: rotate(-90deg); transform-origin: 60px 60px;"/>
-                        </svg>
-                        <div class="health-score-value"><?php echo round($projectData['health_score'] ?? 0); ?>%</div>
-                    </div>
-                    <h6 class="text-primary mt-3">Health Score</h6>
-                    <p class="text-muted small">Project quality rating</p>
-                </div>
-            </div>
+        <div style="border-left: 4px solid #2ecc71; padding: 15px;">
+            <div style="color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Transactions</div>
+            <div style="font-size: 24px; font-weight: bold; color: #2ecc71;"><?php echo number_format($salesMetrics['sales_count']); ?></div>
+        </div>
+        <div style="border-left: 4px solid #9b59b6; padding: 15px;">
+            <div style="color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Avg Transaction</div>
+            <div style="font-size: 24px; font-weight: bold; color: #9b59b6;">$<?php echo number_format($salesMetrics['avg_transaction'], 2); ?></div>
         </div>
     </div>
+</div>
 
-    <!-- Key Metrics Row -->
-    <div class="row mb-4">
-        <!-- Total Files -->
-        <div class="col-md-3">
-            <div class="card metric-card">
-                <div class="card-body">
-                    <div class="metric-icon bg-primary">
-                        <i class="fas fa-file"></i>
-                    </div>
-                    <h6 class="text-muted text-uppercase mb-1">Total Files</h6>
-                    <h3 class="mb-0"><?php echo number_format($fileStats['total_files'] ?? 0); ?></h3>
-                    <small class="text-success"><i class="fas fa-arrow-up"></i> From last scan</small>
-                </div>
-            </div>
+<!-- Inventory Status -->
+<div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px;">
+    <h2 style="font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 20px;">Inventory Status</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+        <div style="text-align: center; padding: 20px; border-radius: 8px; background: #e8f8f5;">
+            <div style="font-size: 24px; font-weight: bold; color: #27ae60;"><?php echo number_format($inventoryStatus['in_stock']); ?></div>
+            <div style="color: #27ae60; font-size: 13px; margin-top: 5px;">In Stock</div>
         </div>
-
-        <!-- PHP Files -->
-        <div class="col-md-3">
-            <div class="card metric-card">
-                <div class="card-body">
-                    <div class="metric-icon bg-info">
-                        <i class="fas fa-code"></i>
-                    </div>
-                    <h6 class="text-muted text-uppercase mb-1">PHP Files</h6>
-                    <h3 class="mb-0"><?php echo number_format($fileStats['php_files'] ?? 0); ?></h3>
-                    <small><?php echo round(($fileStats['php_files'] ?? 0) / max(1, $fileStats['total_files'] ?? 1) * 100); ?>% of total</small>
-                </div>
-            </div>
+        <div style="text-align: center; padding: 20px; border-radius: 8px; background: #fff9e6;">
+            <div style="font-size: 24px; font-weight: bold; color: #f39c12;"><?php echo number_format($inventoryStatus['low_stock']); ?></div>
+            <div style="color: #f39c12; font-size: 13px; margin-top: 5px;">Low Stock</div>
         </div>
-
-        <!-- Technical Debt -->
-        <div class="col-md-3">
-            <div class="card metric-card">
-                <div class="card-body">
-                    <div class="metric-icon bg-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h6 class="text-muted text-uppercase mb-1">Tech Debt</h6>
-                    <h3 class="mb-0"><?php echo round($projectData['technical_debt'] ?? 0); ?>%</h3>
-                    <small class="text-danger"><i class="fas fa-arrow-down"></i> Work needed</small>
-                </div>
-            </div>
+        <div style="text-align: center; padding: 20px; border-radius: 8px; background: #fadbd8;">
+            <div style="font-size: 24px; font-weight: bold; color: #e74c3c;"><?php echo number_format($inventoryStatus['out_of_stock']); ?></div>
+            <div style="color: #e74c3c; font-size: 13px; margin-top: 5px;">Out of Stock</div>
         </div>
-
-        <!-- Lines of Code -->
-        <div class="col-md-3">
-            <div class="card metric-card">
-                <div class="card-body">
-                    <div class="metric-icon bg-success">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h6 class="text-muted text-uppercase mb-1">Lines of Code</h6>
-                    <h3 class="mb-0"><?php echo number_format($projectData['lines_of_code'] ?? 0); ?></h3>
-                    <small class="text-muted">Total project size</small>
-                </div>
-            </div>
+        <div style="text-align: center; padding: 20px; border-radius: 8px; background: #ebf5fb;">
+            <div style="font-size: 24px; font-weight: bold; color: #3498db;"><?php echo number_format($inventoryStatus['total_items']); ?></div>
+            <div style="color: #3498db; font-size: 13px; margin-top: 5px;">Total Items</div>
         </div>
     </div>
+</div>
 
-    <!-- Violations & Recent Activity Row -->
-    <div class="row">
-        <!-- Rule Violations -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">Rule Violations</h6>
-                    <a href="?page=violations" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="violation-stat">
-                                <div class="violation-count critical"><?php echo $violationStats['critical'] ?? 0; ?></div>
-                                <p class="text-muted small">Critical</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="violation-stat">
-                                <div class="violation-count high"><?php echo $violationStats['high'] ?? 0; ?></div>
-                                <p class="text-muted small">High</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row text-center mt-3">
-                        <div class="col-6">
-                            <div class="violation-stat">
-                                <div class="violation-count medium"><?php echo $violationStats['medium'] ?? 0; ?></div>
-                                <p class="text-muted small">Medium</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="violation-stat">
-                                <div class="violation-count low"><?php echo $violationStats['low'] ?? 0; ?></div>
-                                <p class="text-muted small">Low</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <p class="text-center text-muted"><strong><?php echo $violationStats['total'] ?? 0; ?></strong> total violations</p>
-                    </div>
-                </div>
+<!-- Operations Status -->
+<div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px;">
+    <h2 style="font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 20px;">Operations Status</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div style="border: 1px solid #ecf0f1; padding: 20px; border-radius: 8px;">
+            <div style="font-weight: 600; margin-bottom: 15px; color: #2c3e50;">Stock Transfers</div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ecf0f1;">
+                <span style="color: #7f8c8d;">Pending</span>
+                <strong style="color: #f39c12;"><?php echo $operationStats['pending_transfers']; ?></strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: #7f8c8d;">Completed</span>
+                <strong style="color: #27ae60;"><?php echo $operationStats['completed_transfers']; ?></strong>
             </div>
         </div>
-
-        <!-- Recent Scan -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0">Last Scan Information</h6>
-                    <button class="btn btn-sm btn-primary" onclick="API.post('/dashboard/api/scan/run', {}, function() { location.reload(); })">
-                        <i class="fas fa-sync"></i> Run Scan
-                    </button>
-                </div>
-                <div class="card-body">
-                    <p>
-                        <strong>Last Scanned:</strong><br>
-                        <?php echo isset($scanData['last_scan_date']) && $scanData['last_scan_date'] ? date('F j, Y g:i A', strtotime($scanData['last_scan_date'])) : 'Never'; ?>
-                    </p>
-                    <p>
-                        <strong>Files Scanned:</strong><br>
-                        <?php echo number_format($scanData['total_files_scanned'] ?? 0); ?>
-                    </p>
-                    <p>
-                        <strong>Scan Duration:</strong><br>
-                        <?php echo round($scanData['last_scan_duration'] ?? 0, 2); ?> seconds
-                    </p>
-                    <p>
-                        <strong>Frequency:</strong><br>
-                        <span class="badge bg-secondary"><?php echo htmlspecialchars($scanData['scan_frequency'] ?? 'Manual'); ?></span>
-                    </p>
-                </div>
+        <div style="border: 1px solid #ecf0f1; padding: 20px; border-radius: 8px;">
+            <div style="font-weight: 600; margin-bottom: 15px; color: #2c3e50;">Purchase Orders</div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ecf0f1;">
+                <span style="color: #7f8c8d;">Pending</span>
+                <strong style="color: #f39c12;"><?php echo $operationStats['pending_orders']; ?></strong>
             </div>
-        </div>
-    </div>
-
-    <!-- Charts Section -->
-    <div class="row mt-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">Health Score Trend</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="healthChart" height="80"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">File Type Distribution</h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="fileTypeChart" height="80"></canvas>
-                </div>
+            <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                <span style="color: #7f8c8d;">Received</span>
+                <strong style="color: #27ae60;"><?php echo $operationStats['completed_orders']; ?></strong>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Health Score Chart
-    const healthCtx = document.getElementById('healthChart')?.getContext('2d');
-    if (healthCtx) {
-        new Chart(healthCtx, {
-            type: 'line',
-            data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Today'],
-                datasets: [{
-                    label: 'Health Score',
-                    data: [<?php echo isset($projectData['health_score']) ? implode(',', array_fill(0, 5, floor($projectData['health_score'] * 0.95))) . ',' . $projectData['health_score'] : '0,0,0,0,0,0'; ?>],
-                    borderColor: '#4e73df',
-                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { min: 0, max: 100 }
-                }
-            }
-        });
-    }
-
-    // File Type Chart
-    const fileCtx = document.getElementById('fileTypeChart')?.getContext('2d');
-    if (fileCtx) {
-        new Chart(fileCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['PHP', 'JavaScript', 'CSS', 'Config', 'Other'],
-                datasets: [{
-                    data: [<?php echo ($fileStats['php_files'] ?? 0) . ',' . ($fileStats['js_files'] ?? 0) . ',' . ($fileStats['css_files'] ?? 0) . ',' . ($fileStats['config_files'] ?? 0) . ',' . (max(0, ($fileStats['total_files'] ?? 0) - ($fileStats['php_files'] ?? 0) - ($fileStats['js_files'] ?? 0) - ($fileStats['css_files'] ?? 0) - ($fileStats['config_files'] ?? 0))); ?>],
-                    backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e', '#e74c3c', '#95a5a6']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
-        });
-    }
-});
-</script>
-
-<style>
-.metric-card {
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-}
-
-.metric-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 20px;
-    float: right;
-}
-
-.health-score-circle {
-    position: relative;
-    display: inline-block;
-}
-
-.health-score-value {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 32px;
-    font-weight: bold;
-    color: #4e73df;
-}
-
-.violation-stat {
-    padding: 15px;
-    border-radius: 8px;
-    background: #f8f9fa;
-}
-
-.violation-count {
-    font-size: 28px;
-    font-weight: bold;
-    border-radius: 4px;
-    padding: 10px;
-    color: white;
-}
-
-.violation-count.critical {
-    background-color: #e74c3c;
-}
-
-.violation-count.high {
-    background-color: #e67e22;
-}
-
-.violation-count.medium {
-    background-color: #f39c12;
-}
-
-.violation-count.low {
-    background-color: #3498db;
-}
-
-.page-header {
-    margin-bottom: 30px;
-}
-
-.page-header h1 {
-    font-size: 28px;
-    font-weight: 600;
-    color: #2c3e50;
-}
-
-.card {
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.card-header {
-    border-bottom: 1px solid #e3e6f0;
-}
-
-.bg-left-primary {
-    border-left: 4px solid #4e73df;
-}
-
-code {
-    background-color: #f8f9fa;
-    padding: 2px 6px;
-    border-radius: 3px;
-    color: #e74c3c;
-}
-</style>
+<!-- Recent Activity -->
+<div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h2 style="font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 20px;">Recent Activity</h2>
+    <div>
+        <?php if (empty($recentActivity)): ?>
+            <p style="color: #95a5a6; text-align: center; padding: 20px;">No recent activity</p>
+        <?php else: ?>
+            <?php foreach ($recentActivity as $activity): ?>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #ecf0f1;">
+                    <div>
+                        <span style="font-weight: 600; color: #2c3e50;"><?php echo htmlspecialchars($activity['type']); ?></span>
+                        <span style="color: #95a5a6; margin-left: 10px; font-size: 13px;"><?php echo $activity['timestamp']; ?></span>
+                    </div>
+                    <span style="padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; background: <?php echo (strpos($activity['status'], 'Pending') !== false) ? '#fef5e7; color: #f39c12;' : '#e8f8f5; color: #27ae60;'; ?>">
+                        <?php echo htmlspecialchars($activity['status']); ?>
+                    </span>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+</div>

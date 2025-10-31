@@ -515,7 +515,7 @@ chmod +x run-tests.sh endpoint-tests.php
 php endpoint-tests.php              # All 151 tests
 bash run-tests.sh --critical        # 22 critical tests
 bash run-tests.sh --report          # HTML report
-bash run-tests.sh --performance     # Benchmark
+bash run-testsCan you continue to resume the previous application .sh --performance     # Benchmark
 bash run-tests.sh --validate        # Check endpoints
 bash run-tests.sh --watch           # Watch mode
 
