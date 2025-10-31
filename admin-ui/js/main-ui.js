@@ -26,6 +26,9 @@
                 // Initialize AI config panel
                 this.initAIConfigPanel();
 
+                // Setup page switching
+                this.setupPageSwitching();
+
                 // Load UI data
                 await this.loadVersionInfo();
                 await this.loadFeatures();
@@ -393,12 +396,83 @@
         }
 
         /**
-         * Escape HTML to prevent XSS
+         * Escape HTML
          */
         escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        /**
+         * Load page content dynamically
+         */
+        async loadPage(pageName) {
+            try {
+                const contentContainer = document.getElementById('content') || document.getElementById('main-content');
+                if (!contentContainer) {
+                    console.warn('Content container not found');
+                    return;
+                }
+
+                // Show loading state
+                contentContainer.style.opacity = '0.6';
+                contentContainer.innerHTML = '<div class="text-center"><p>Loading...</p></div>';
+
+                // Fetch page
+                const response = await fetch(`api/page-loader.php?page=${encodeURIComponent(pageName)}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load page');
+                }
+
+                // Insert content
+                contentContainer.innerHTML = data.content;
+                contentContainer.style.opacity = '1';
+
+                // Update active sidebar item
+                this.updateActivePage(pageName);
+
+                console.log(`Page loaded: ${pageName}`);
+            } catch (e) {
+                console.error('Page load error:', e);
+                const contentContainer = document.getElementById('content') || document.getElementById('main-content');
+                if (contentContainer) {
+                    contentContainer.innerHTML = `<div class="alert alert-danger">Error loading page: ${this.escapeHtml(e.message)}</div>`;
+                    contentContainer.style.opacity = '1';
+                }
+            }
+        }
+
+        /**
+         * Setup page switching on sidebar links
+         */
+        setupPageSwitching() {
+            // Find all page links in sidebar
+            document.querySelectorAll('[data-page]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    this.loadPage(page);
+                });
+            });
+        }
+
+        /**
+         * Update active sidebar item
+         */
+        updateActivePage(pageName) {
+            // Remove active from all links
+            document.querySelectorAll('[data-page]').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Add active to current link
+            const currentLink = document.querySelector(`[data-page="${pageName}"]`);
+            if (currentLink) {
+                currentLink.classList.add('active');
+            }
         }
     }
 
