@@ -3,17 +3,17 @@ declare(strict_types=1);
 
 /**
  * Enhanced Output.PHP with integrated UI
- * 
+ *
  * This adds a beautiful UI frontend to output.php allowing:
  * - Pick ANY directory on the system (with security validation)
  * - Select file types dynamically
  * - Split code into 100KB sections
  * - Output in new tab
- * 
+ *
  * Usage:
  *   /modules/output-ui-enhanced.php (shows UI form)
  *   /modules/output-ui-enhanced.php?action=process (processes form and outputs)
- * 
+ *
  * Security:
  *   - All paths validated with realpath() to prevent directory traversal
  *   - BASE_DIR restriction prevents accessing outside allowed directories
@@ -44,6 +44,12 @@ if ($mode === 'ui') {
 // Mode 2: Process the form and return JSON
 if ($mode === 'process') {
     processRequest();
+    exit;
+}
+
+// Mode 3: API - Get folder tree for browser
+if ($mode === 'api_tree') {
+    getDirectoryTree();
     exit;
 }
 
@@ -297,6 +303,178 @@ function renderUI(): void {
             margin-top: 5px;
         }
 
+        .btn-browse {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-browse:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        /* Folder Browser Styles */
+        .folder-browser {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-height: 500px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .browser-header {
+            background: #667eea;
+            color: white;
+            padding: 12px 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #764ba2;
+        }
+
+        .close-browser {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .close-browser:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .browser-content {
+            overflow-y: auto;
+            flex: 1;
+            padding: 10px;
+            max-height: 450px;
+        }
+
+        .browser-tree {
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tree-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin: 2px 0;
+            border-radius: 4px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .tree-item:hover {
+            background: #f0f0f0;
+        }
+
+        .tree-item.selected {
+            background: #e8e8ff;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tree-item.folder {
+            color: #0066cc;
+            font-weight: 500;
+        }
+
+        .tree-item.file {
+            color: #333;
+        }
+
+        .tree-icon {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .tree-toggle {
+            width: 16px;
+            text-align: center;
+            cursor: pointer;
+            margin-right: 4px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .tree-name {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .tree-children {
+            margin-left: 16px;
+        }
+
+        .tree-children.collapsed {
+            display: none;
+        }
+
+        .browser-actions {
+            padding: 12px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            background: #f9f9f9;
+        }
+
+        .browser-actions button {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .browser-actions .btn-select {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .browser-actions .btn-select:hover {
+            background: #764ba2;
+        }
+
+        .browser-actions button:not(.btn-select):hover {
+            background: #f0f0f0;
+        }
+
+        .tree-indent {
+            display: inline-block;
+            width: 20px;
+        }
+
         .tabs {
             display: flex;
             gap: 10px;
@@ -357,21 +535,36 @@ function renderUI(): void {
             <div class="error-msg" id="errorMsg"></div>
 
             <div class="info-box">
-                <strong>💡 How it works:</strong> Select any directory path on your system, choose file types to process, 
-                and we'll break down your code into manageable sections. All paths are validated for security - 
+                <strong>💡 How it works:</strong> Select any directory path on your system, choose file types to process,
+                and we'll break down your code into manageable sections. All paths are validated for security -
                 you can access any directory you have permission to read.
             </div>
 
             <form id="splitterForm" onsubmit="handleSubmit(event)">
                 <div class="form-group">
                     <label for="directory">📁 Directory Path</label>
-                    <input 
-                        type="text" 
-                        id="directory" 
-                        placeholder="/home/master/applications/jcepnzzkmj/public_html"
-                        value="/home/master/applications/jcepnzzkmj/public_html"
-                        required
-                    >
+                    <div style="display: grid; grid-template-columns: 1fr 100px; gap: 10px; margin-bottom: 10px;">
+                        <input
+                            type="text"
+                            id="directory"
+                            placeholder="/home/master/applications/jcepnzzkmj/public_html"
+                            value="/home/master/applications/jcepnzzkmj/public_html"
+                            required
+                        >
+                        <button type="button" class="btn-browse" onclick="toggleFolderBrowser()">📂 Browse</button>
+                    </div>
+
+                    <!-- Visual Folder Browser -->
+                    <div id="folderBrowser" class="folder-browser" style="display: none;">
+                        <div class="browser-header">
+                            <strong>Select Folder or Files</strong>
+                            <button type="button" class="close-browser" onclick="toggleFolderBrowser()">✕</button>
+                        </div>
+                        <div id="browserContent" class="browser-content">
+                            <div style="padding: 20px; text-align: center; color: #999;">Loading directory tree...</div>
+                        </div>
+                    </div>
+
                     <div class="dir-helper">
                         ✓ You can access ANY directory on the system<br>
                         ✓ Paths like <code>/var/www</code>, <code>/home</code>, <code>/tmp</code> all work<br>
@@ -429,11 +622,11 @@ function renderUI(): void {
                 <div class="form-group">
                     <label for="splitSize">💾 Split Size</label>
                     <div class="size-input-group">
-                        <input 
-                            type="number" 
-                            id="splitSize" 
-                            value="100" 
-                            min="10" 
+                        <input
+                            type="number"
+                            id="splitSize"
+                            value="100"
+                            min="10"
                             max="500"
                             required
                         >
@@ -464,6 +657,10 @@ function renderUI(): void {
     </div>
 
     <script>
+        let selectedPath = null;
+        let selectedFiles = [];
+        let treeState = {};
+
         function setPreset(preset) {
             document.querySelectorAll('input[name="filetypes"]').forEach(cb => cb.checked = false);
 
@@ -476,6 +673,103 @@ function renderUI(): void {
             } else if (preset === 'all') {
                 document.querySelectorAll('input[name="filetypes"]').forEach(cb => cb.checked = true);
             }
+        }
+
+        function toggleFolderBrowser() {
+            const browser = document.getElementById('folderBrowser');
+            if (browser.style.display === 'none') {
+                browser.style.display = 'block';
+                const currentDir = document.getElementById('directory').value;
+                loadFolderTree(currentDir);
+            } else {
+                browser.style.display = 'none';
+            }
+        }
+
+        function loadFolderTree(path) {
+            const content = document.getElementById('browserContent');
+            content.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Loading...</div>';
+
+            fetch('?action=api_tree&dir=' + encodeURIComponent(path))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        content.innerHTML = '<div style="padding: 20px; color: red;">✗ ' + data.error + '</div>';
+                        return;
+                    }
+                    renderTree(content, data.tree, path);
+                })
+                .catch(err => {
+                    content.innerHTML = '<div style="padding: 20px; color: red;">✗ Error loading tree: ' + err.message + '</div>';
+                });
+        }
+
+        function renderTree(container, tree, rootPath) {
+            selectedPath = rootPath;
+            selectedFiles = [];
+
+            const html = '<div class="browser-tree">' +
+                buildTreeHTML(tree, '', rootPath) +
+                '</div>' +
+                '<div class="browser-actions">' +
+                '<button type="button" onclick="selectThisPath(\'' + rootPath.replace(/'/g, "\\'") + '\')">📁 Select This Folder</button>' +
+                '</div>';
+
+            container.innerHTML = html;
+
+            // Add click handlers
+            document.querySelectorAll('.tree-item').forEach((item, idx) => {
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    const isFolder = item.dataset.type === 'folder';
+                    const itemPath = item.dataset.path;
+
+                    if (isFolder) {
+                        const toggle = item.querySelector('.tree-toggle');
+                        const children = item.nextElementSibling;
+                        if (children && children.classList.contains('tree-children')) {
+                            children.classList.toggle('collapsed');
+                            toggle.textContent = children.classList.contains('collapsed') ? '▶' : '▼';
+                        }
+                    } else {
+                        // File selected
+                        item.classList.toggle('selected');
+                        if (item.classList.contains('selected')) {
+                            selectedFiles.push(itemPath);
+                        } else {
+                            selectedFiles = selectedFiles.filter(f => f !== itemPath);
+                        }
+                    }
+                };
+            });
+        }
+
+        function buildTreeHTML(items, indent, rootPath) {
+            if (!items || items.length === 0) return '';
+
+            let html = '';
+            for (const item of items) {
+                const isFolder = item.type === 'folder';
+                const icon = isFolder ? '📁' : '📄';
+                const toggle = isFolder && item.children && item.children.length > 0 ? '▼' : '';
+                const toggleBtn = isFolder && item.children && item.children.length > 0 ? '<span class="tree-toggle">▼</span>' : '<span class="tree-toggle" style="color: transparent;">▼</span>';
+
+                html += '<div class="tree-item ' + (isFolder ? 'folder' : 'file') + '" data-type="' + item.type + '" data-path="' + item.path.replace(/"/g, '&quot;') + '">' +
+                    (isFolder ? toggleBtn : '') +
+                    '<span class="tree-icon">' + icon + '</span>' +
+                    '<span class="tree-name">' + item.name + '</span>' +
+                    '</div>';
+
+                if (isFolder && item.children && item.children.length > 0) {
+                    html += '<div class="tree-children">' + buildTreeHTML(item.children, indent + '  ', rootPath) + '</div>';
+                }
+            }
+            return html;
+        }
+
+        function selectThisPath(path) {
+            document.getElementById('directory').value = path;
+            toggleFolderBrowser();
         }
 
         function handleSubmit(e) {
@@ -523,6 +817,95 @@ function renderUI(): void {
     </script>
 </body>
 </html><?php
+}
+
+// ============================================================================
+// DIRECTORY TREE API
+// ============================================================================
+
+function getDirectoryTree(): void {
+    header('Content-Type: application/json');
+
+    $dir = $_GET['dir'] ?? '.';
+    $maxDepth = $_GET['depth'] ?? 3;
+
+    // Secure path validation
+    $realDir = @realpath($dir);
+    if ($realDir === false || !is_dir($realDir)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Directory not found']);
+        exit;
+    }
+
+    if (!is_readable($realDir)) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Permission denied']);
+        exit;
+    }
+
+    try {
+        $tree = buildTreeStructure($realDir, 0, (int)$maxDepth);
+        echo json_encode(['tree' => $tree]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+}
+
+function buildTreeStructure(string $dir, int $depth = 0, int $maxDepth = 3): array {
+    if ($depth > $maxDepth) {
+        return [];
+    }
+
+    $items = [];
+
+    try {
+        $entries = @scandir($dir);
+        if ($entries === false) {
+            return [];
+        }
+
+        $entries = array_diff($entries, ['.', '..']);
+        sort($entries);
+
+        foreach ($entries as $entry) {
+            $fullPath = $dir . DIRECTORY_SEPARATOR . $entry;
+
+            // Skip symlinks to prevent infinite loops
+            if (@is_link($fullPath)) {
+                continue;
+            }
+
+            // Skip hidden files/folders
+            if ($entry[0] === '.') {
+                continue;
+            }
+
+            if (@is_dir($fullPath)) {
+                $children = $depth < $maxDepth ? buildTreeStructure($fullPath, $depth + 1, $maxDepth) : [];
+                $items[] = [
+                    'name' => $entry,
+                    'path' => $fullPath,
+                    'type' => 'folder',
+                    'children' => $children
+                ];
+            } elseif (@is_file($fullPath)) {
+                // Show only text files
+                $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+                if (in_array($ext, TEXT_EXT)) {
+                    $items[] = [
+                        'name' => $entry,
+                        'path' => $fullPath,
+                        'type' => 'file'
+                    ];
+                }
+            }
+        }
+    } catch (Exception $e) {
+        // Silently fail for unreadable directories
+    }
+
+    return $items;
 }
 
 // ============================================================================
@@ -764,7 +1147,7 @@ function generateOutputHTML($files, $realDir, $extensions, $splitSize, $includeC
         <div class="header">
             <h1>📊 Code Output Report</h1>
             <p>Directory: <strong>' . htmlspecialchars($dirName) . '</strong></p>
-            
+
             <div class="stats">
                 <div class="stat-box">
                     <div class="stat-label">Files</div>
