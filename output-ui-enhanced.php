@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /**
  * Code Splitter with Visual Folder/File Browser
- * 
+ *
  * Features:
  * - Visual folder tree browser to select directories
  * - Multi-select files within folders
@@ -843,7 +843,7 @@ function generateOutput(array $sections, string $baseDir): void {
         <?php foreach ($sections as $section): ?>
             <div class="section">
                 <div class="section-header">
-                    📦 Section <?php echo $section['number']; ?> 
+                    📦 Section <?php echo $section['number']; ?>
                     (<?php echo number_format($section['size'] / 1024, 1); ?> KB)
                 </div>
                 <?php foreach ($section['files'] as $file): ?>
@@ -852,7 +852,7 @@ function generateOutput(array $sections, string $baseDir): void {
                             📄 <?php echo htmlspecialchars($file['name']); ?>
                         </div>
                         <div class="file-meta">
-                            Size: <?php echo number_format($file['size'] / 1024, 1); ?> KB 
+                            Size: <?php echo number_format($file['size'] / 1024, 1); ?> KB
                             | Lines: <?php echo number_format(substr_count($file['content'], "\n") + 1); ?>
                         </div>
                         <div class="code">
