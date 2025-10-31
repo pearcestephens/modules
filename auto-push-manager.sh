@@ -12,12 +12,12 @@ is_monitor_running() {
     if [ ! -f "$PID_FILE" ]; then
         return 1
     fi
-    
+
     pid=$(cat "$PID_FILE" 2>/dev/null)
     if [ -z "$pid" ]; then
         return 1
     fi
-    
+
     # Check if process exists
     if ps -p "$pid" > /dev/null 2>&1; then
         return 0
@@ -32,12 +32,12 @@ start_monitor() {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✓ Auto-push monitor already running (PID: $(cat $PID_FILE))" >> "$LOG_FILE"
         return 0
     fi
-    
+
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting auto-push monitor..." >> "$LOG_FILE"
     php "$MONITOR_SCRIPT" start >> "$LOG_FILE" 2>&1
-    
+
     sleep 2
-    
+
     if is_monitor_running; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✓ Auto-push monitor started successfully" >> "$LOG_FILE"
         return 0
