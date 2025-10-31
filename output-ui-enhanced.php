@@ -402,6 +402,11 @@ function renderUI(): void {
     </div>
 
     <script>
+        // Configuration from PHP
+        const TEXT_EXT = <?php echo json_encode(TEXT_EXT); ?>;
+        const SPLIT_SIZE = <?php echo SPLIT_SIZE; ?>;
+        const BASE_DIR = "<?php echo BASE_DIR; ?>";
+
         // State
         let selectedPath = null;
         const selectedExtensions = new Set();
