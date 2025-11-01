@@ -100,6 +100,71 @@ abstract class BaseController
     }
 
     /**
+     * Require POST request method
+     * 
+     * @throws \Exception If request method is not POST
+     * @return void
+     */
+    protected function requirePost(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->logger->warning('Method not allowed', [
+                'request_id' => $this->requestId,
+                'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+                'expected' => 'POST'
+            ]);
+            
+            http_response_code(405);
+            header('Allow: POST');
+            $this->error('Method not allowed. POST required.', [], 405);
+            exit;
+        }
+    }
+
+    /**
+     * Verify CSRF token (enforce)
+     * 
+     * @throws \Exception If CSRF validation fails
+     * @return void
+     */
+    protected function verifyCsrf(): void
+    {
+        if (!$this->validateCsrf()) {
+            http_response_code(403);
+            $this->error('CSRF validation failed', ['csrf' => 'Invalid or missing CSRF token'], 403);
+            exit;
+        }
+    }
+
+    /**
+     * Get JSON input from request body
+     * 
+     * @param bool $assoc Return as associative array
+     * @return array|object Parsed JSON data
+     * @throws \InvalidArgumentException If JSON is invalid
+     */
+    protected function getJsonInput(bool $assoc = true)
+    {
+        $input = file_get_contents('php://input');
+        
+        if (empty($input)) {
+            return $assoc ? [] : new \stdClass();
+        }
+        
+        $data = json_decode($input, $assoc);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->logger->warning('Invalid JSON input', [
+                'request_id' => $this->requestId,
+                'error' => json_last_error_msg()
+            ]);
+            throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
+        }
+        
+        return $data;
+    }
+
+    /**
      * Check if user is authenticated
      */
     protected function requireAuth(): bool
@@ -196,10 +261,126 @@ abstract class BaseController
 
     /**
      * Validate input data against rules
+     * 
+     * Supports two calling signatures:
+     * 1. validateInput($data, $rules) - explicit data and rules
+     * 2. validateInput($rules) - auto-detects data from $_POST
+     * 
+     * @param array $dataOrRules Either the data array or rules array
+     * @param array|null $rules Optional rules array (if first param is data)
+     * @return array Validated data
+     * @throws \InvalidArgumentException If validation fails
      */
-    protected function validateInput(array $data, array $rules): array
+    protected function validateInput(array $dataOrRules, ?array $rules = null): array
     {
-        $errors = $this->validator->validate($data, $rules);
+        // Determine calling signature
+        if ($rules === null) {
+            // Called with just rules: validateInput($rules)
+            // Auto-detect data from request
+            $rules = $dataOrRules;
+            $data = $_POST;
+        } else {
+            // Called with data and rules: validateInput($data, $rules)
+            $data = $dataOrRules;
+        }
+
+        // Implement basic validation
+        $errors = [];
+        $validated = [];
+
+        foreach ($rules as $field => $fieldRules) {
+            $value = $data[$field] ?? null;
+            $fieldRules = is_array($fieldRules) ? $fieldRules : [$fieldRules];
+
+            // Check if optional
+            $isOptional = in_array('optional', $fieldRules);
+            
+            // Required validation
+            if (!$isOptional && in_array('required', $fieldRules)) {
+                if ($value === null || $value === '') {
+                    $errors[$field] = "Field '{$field}' is required";
+                    continue;
+                }
+            }
+
+            // Skip further validation if optional and empty
+            if ($isOptional && ($value === null || $value === '')) {
+                $validated[$field] = null;
+                continue;
+            }
+
+            // Type validation
+            if (in_array('integer', $fieldRules)) {
+                if (!is_numeric($value) || (int)$value != $value) {
+                    $errors[$field] = "Field '{$field}' must be an integer";
+                    continue;
+                }
+                $validated[$field] = (int)$value;
+            } elseif (in_array('float', $fieldRules) || in_array('numeric', $fieldRules)) {
+                if (!is_numeric($value)) {
+                    $errors[$field] = "Field '{$field}' must be numeric";
+                    continue;
+                }
+                $validated[$field] = (float)$value;
+            } elseif (in_array('boolean', $fieldRules)) {
+                $validated[$field] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            } elseif (in_array('email', $fieldRules)) {
+                if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    $errors[$field] = "Field '{$field}' must be a valid email";
+                    continue;
+                }
+                $validated[$field] = $value;
+            } elseif (in_array('string', $fieldRules)) {
+                $validated[$field] = (string)$value;
+            } elseif (in_array('datetime', $fieldRules)) {
+                try {
+                    new \DateTime($value);
+                    $validated[$field] = $value;
+                } catch (\Exception $e) {
+                    $errors[$field] = "Field '{$field}' must be a valid datetime";
+                    continue;
+                }
+            } elseif (in_array('date', $fieldRules)) {
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                    $errors[$field] = "Field '{$field}' must be a valid date (Y-m-d)";
+                    continue;
+                }
+                $validated[$field] = $value;
+            } else {
+                // Default: keep as-is
+                $validated[$field] = $value;
+            }
+
+            // Min length validation
+            foreach ($fieldRules as $rule) {
+                if (is_string($rule) && strpos($rule, 'min:') === 0) {
+                    $minLength = (int)substr($rule, 4);
+                    if (is_string($value) && strlen($value) < $minLength) {
+                        $errors[$field] = "Field '{$field}' must be at least {$minLength} characters";
+                    }
+                }
+            }
+
+            // Max length validation
+            foreach ($fieldRules as $rule) {
+                if (is_string($rule) && strpos($rule, 'max:') === 0) {
+                    $maxLength = (int)substr($rule, 4);
+                    if (is_string($value) && strlen($value) > $maxLength) {
+                        $errors[$field] = "Field '{$field}' must not exceed {$maxLength} characters";
+                    }
+                }
+            }
+
+            // Enum validation
+            foreach ($fieldRules as $rule) {
+                if (is_string($rule) && strpos($rule, 'in:') === 0) {
+                    $allowedValues = explode(',', substr($rule, 3));
+                    if (!in_array($value, $allowedValues)) {
+                        $errors[$field] = "Field '{$field}' must be one of: " . implode(', ', $allowedValues);
+                    }
+                }
+            }
+        }
 
         if (!empty($errors)) {
             $this->logger->warning('Input validation failed', [
@@ -209,7 +390,7 @@ abstract class BaseController
             throw new \InvalidArgumentException('Validation failed: ' . json_encode($errors));
         }
 
-        return $data;
+        return $validated;
     }
 
     /**
