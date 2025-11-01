@@ -61,17 +61,42 @@ class PayRunController extends BaseController
             $stmt->execute([$limit, $offset]);
             $rawPayRuns = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
+            $stats = [
+                'draft' => 0,
+                'calculated' => 0,
+                'approved' => 0,
+                'paid' => 0,
+                'total_amount' => 0.0,
+                'total_gross' => 0.0,
+                'total_net' => 0.0,
+            ];
+
+            $statusPriority = ['cancelled', 'paid', 'exported', 'approved', 'reviewed', 'calculated', 'pending', 'draft'];
+            $statusCardMap = [
+                'draft' => 'draft',
+                'pending' => 'calculated',
+                'calculated' => 'calculated',
+                'reviewed' => 'calculated',
+                'exported' => 'approved',
+                'approved' => 'approved',
+                'paid' => 'paid',
+            ];
+
             // Process pay runs to add derived fields
             $payRuns = [];
             foreach ($rawPayRuns as $run) {
                 // Parse statuses (comma-separated from GROUP_CONCAT)
-                $statusList = !empty($run['statuses']) ? explode(',', $run['statuses']) : [];
+                $statusList = [];
+                if (!empty($run['statuses'])) {
+                    $statusList = array_filter(array_map(static function ($status) {
+                        return strtolower(trim($status));
+                    }, explode(',', (string)$run['statuses'])));
+                }
 
                 // Determine primary status (most common or most advanced)
-                $statusPriority = ['cancelled', 'paid', 'exported', 'approved', 'reviewed', 'calculated', 'draft'];
                 $primaryStatus = 'draft';
                 foreach ($statusPriority as $status) {
-                    if (in_array($status, $statusList)) {
+                    if (in_array($status, $statusList, true)) {
                         $primaryStatus = $status;
                         break;
                     }
@@ -79,8 +104,21 @@ class PayRunController extends BaseController
 
                 // Add derived fields
                 $run['status'] = $primaryStatus;
+                $run['status_list'] = $statusList;
                 $run['period_key'] = $run['period_start'] . '_' . $run['period_end'];
                 $run['period_label'] = 'Week ' . date('W', strtotime($run['period_start']));
+
+                // Update statistics
+                $cardKey = $statusCardMap[$primaryStatus] ?? 'draft';
+                if (isset($stats[$cardKey])) {
+                    $stats[$cardKey]++;
+                }
+
+                $runGross = (float)($run['total_gross'] ?? 0);
+                $runNet = (float)($run['total_net'] ?? 0);
+                $stats['total_gross'] += $runGross;
+                $stats['total_net'] += $runNet;
+                $stats['total_amount'] += $runNet;
 
                 $payRuns[] = $run;
             }
@@ -92,30 +130,6 @@ class PayRunController extends BaseController
             ";
             $totalRecords = (int)$this->db->query($countQuery)->fetchColumn();
             $totalPages = max(1, (int)ceil($totalRecords / $limit));
-
-            // Get statistics for status cards
-            $statsQuery = "
-                SELECT
-                    status,
-                    COUNT(DISTINCT CONCAT(period_start, '_', period_end)) as count
-                FROM payroll_payslips
-                GROUP BY status
-            ";
-            $statsResult = $this->db->query($statsQuery)->fetchAll(\PDO::FETCH_ASSOC);
-
-            $stats = [
-                'draft' => 0,
-                'pending' => 0,
-                'approved' => 0,
-                'paid' => 0
-            ];
-
-            foreach ($statsResult as $row) {
-                $status = strtolower($row['status']);
-                if (isset($stats[$status])) {
-                    $stats[$status] = (int)$row['count'];
-                }
-            }
 
             // Render the pay runs list view
             $pageTitle = 'Pay Runs';
@@ -129,7 +143,15 @@ class PayRunController extends BaseController
 
             // Set empty defaults and render
             $payRuns = [];
-            $stats = ['draft' => 0, 'pending' => 0, 'approved' => 0, 'paid' => 0];
+            $stats = [
+                'draft' => 0,
+                'calculated' => 0,
+                'approved' => 0,
+                'paid' => 0,
+                'total_amount' => 0.0,
+                'total_gross' => 0.0,
+                'total_net' => 0.0,
+            ];
             $currentPage = 1;
             $totalPages = 1;
             $pageTitle = 'Pay Runs';

@@ -3,6 +3,7 @@
  * SendGrid API Configuration
  *
  * Configure SendGrid email service credentials
+ * IMPORTANT: Set SENDGRID_API_KEY environment variable
  */
 
 // Load environment variables
@@ -13,7 +14,7 @@ $apiKey = env('SENDGRID_API_KEY');
 
 // Ensure key is configured
 if (!$apiKey) {
-    throw new Exception('SENDGRID_API_KEY not configured in .env file');
+    throw new \Exception('SENDGRID_API_KEY not configured in .env file');
 }
 
 return [

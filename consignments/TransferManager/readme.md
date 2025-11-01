@@ -1,0 +1,1 @@
+This is a highly sophisticated and elegant tranasfer manager for the Consignment model. Integrate this as an ADMIN/Managment Index page for high level overviews of consignment transfers between locations. eg consignments/index.php

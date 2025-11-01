@@ -445,8 +445,18 @@ function clearFilters() {
 }
 
 function showNotification(message, type = 'info') {
-    // Bootstrap toast or alert
-    alert(message); // Placeholder - integrate with your notification system
+    if (typeof window.showToast === 'function') {
+        const toastType = (type === 'error') ? 'error' : (type === 'success' ? 'success' : 'info');
+        window.showToast(message, toastType);
+        return;
+    }
+
+    if (typeof window.PayrollGlobal !== 'undefined' && typeof window.PayrollGlobal.showNotification === 'function') {
+        window.PayrollGlobal.showNotification(message, type);
+        return;
+    }
+
+    alert(message);
 }
 </script>
 

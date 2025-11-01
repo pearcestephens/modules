@@ -91,6 +91,20 @@ tfoot th { background: #fafafa; }
      */
     public static function toPdfBytes(string $html): string
     {
+        // Ensure composer autoloader is loaded for Dompdf
+        $autoloadPaths = [
+            __DIR__ . '/../../../../vendor/autoload.php',
+            $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php',
+            dirname($_SERVER['DOCUMENT_ROOT']) . '/vendor/autoload.php'
+        ];
+
+        foreach ($autoloadPaths as $path) {
+            if (file_exists($path)) {
+                require_once $path;
+                break;
+            }
+        }
+
         // Load shared PdfService
         require_once __DIR__ . '/../../../shared/services/PdfService.php';
 

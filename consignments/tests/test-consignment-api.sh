@@ -16,7 +16,7 @@
 #   ./test-consignment-api.sh https://staff.vapeshed.co.nz
 # =====================================================================
 
-set -e  # Exit on first error
+# Note: NOT using set -e because we test failure cases intentionally
 
 # Configuration
 BASE_URL="${1:-https://staff.vapeshed.co.nz}"
@@ -84,7 +84,8 @@ api_request() {
     # Check if response is valid JSON
     if ! echo "${response}" | jq . > /dev/null 2>&1; then
         fail "Response is not valid JSON"
-        return 1
+        echo "${response}"
+        return 0  # Changed: don't exit, just return response
     fi
 
     # Check ok status
@@ -93,7 +94,7 @@ api_request() {
         success "Expected ok=${expect_ok}, got ok=${ok}"
     else
         fail "Expected ok=${expect_ok}, got ok=${ok}"
-        return 1
+        # Changed: don't return 1, continue to return response
     fi
 
     echo "${response}"

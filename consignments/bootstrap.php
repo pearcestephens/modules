@@ -192,3 +192,32 @@ if (strpos($callingDir, CONSIGNMENTS_MODULE_PATH) === 0) {
 if (!defined('CONSIGNMENTS_BOOTSTRAP_LOADED')) {
     define('CONSIGNMENTS_BOOTSTRAP_LOADED', true);
 }
+
+// ============================================================================
+// 8. DATABASE HELPER FUNCTIONS FOR SERVICES
+// ============================================================================
+
+/**
+ * Get read-only database connection (PDO)
+ * Used by service layer for queries
+ *
+ * @return PDO Read-only database connection
+ */
+function db_ro(): PDO {
+    return CIS\Base\Database::pdo();
+}
+
+/**
+ * Get read-write database connection (PDO) or null
+ * Used by service layer for writes
+ *
+ * On production slaves without write access, this returns null
+ * and write operations will throw exceptions.
+ *
+ * @return PDO|null Read-write database connection or null
+ */
+function db_rw_or_null(): ?PDO {
+    // For now, same as read-only (single master setup)
+    // In future multi-master setup, this would check for write permissions
+    return CIS\Base\Database::pdo();
+}

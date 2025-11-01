@@ -1,0 +1,83 @@
+[0;34m[INFO][0m Starting Consignment API Test Suite
+[0;34m[INFO][0m API Endpoint: https://staff.vapeshed.co.nz/modules/consignments/api.php
+[0;34m[INFO][0m Cookie File: /tmp/consignment-api-cookies.txt
+
+
+[0;34m[INFO][0m Test #1: Health check - GET should return 405
+[0;32m[PASS][0m GET rejected with 405 (Method Not Allowed)
+
+[0;34m[INFO][0m Test #2: Invalid JSON payload should return 400
+parse error: Invalid numeric literal at line 1, column 10
+parse error: Invalid numeric literal at line 1, column 10
+[0;31m[FAIL][0m Invalid JSON not handled correctly
+
+[0;34m[INFO][0m Test #3: Missing action should return 400
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Missing action not handled correctly
+
+[0;34m[INFO][0m Test #4: Unknown action should return 400
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Unknown action not handled correctly
+
+[0;34m[INFO][0m Test #5: Get recent consignments (default limit)
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Could not retrieve recent consignments
+
+[0;34m[INFO][0m Test #6: Get recent consignments with limit=5
+parse error: Invalid numeric literal at line 1, column 2
+parse error: Invalid numeric literal at line 1, column 2
+./test-consignment-api.sh: line 191: [: : integer expression expected
+[0;31m[FAIL][0m Returned  rows (limit not respected)
+
+[0;34m[INFO][0m Test #7: Get consignment with invalid ID should return 404 or null
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Invalid ID not handled correctly
+
+[0;34m[INFO][0m Test #8: Get consignment with valid ID (if data exists)
+parse error: Invalid numeric literal at line 1, column 2
+[1;33m[WARN][0m No consignments in database, skipping get test
+
+[0;34m[INFO][0m Test #9: Search consignments by ref_code
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Search failed
+
+[0;34m[INFO][0m Test #10: Search consignments by outlet_id
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Search by outlet failed
+
+[0;34m[INFO][0m Test #11: Get consignment statistics
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Could not retrieve stats
+
+[0;34m[INFO][0m Test #12: Get consignment statistics for outlet
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Could not retrieve outlet stats
+
+[0;34m[INFO][0m Test #13: Create consignment without CSRF should fail
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Create without CSRF not properly validated
+
+[0;34m[INFO][0m Test #14: Create consignment with invalid CSRF should fail
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Create with invalid CSRF not properly validated
+
+[0;34m[INFO][0m Test #15: Create consignment with missing required fields should fail
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Missing fields not validated
+
+[0;34m[INFO][0m Test #16: Add item without CSRF should fail
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Add item without CSRF not properly validated
+
+[0;34m[INFO][0m Test #17: Update status without CSRF should fail
+parse error: Invalid numeric literal at line 1, column 2
+[0;31m[FAIL][0m Update status without CSRF not properly validated
+
+========================================
+Test Summary
+========================================
+Total tests run: [0;34m17[0m
+Tests passed:    [0;32m1[0m
+Tests failed:    [0;31m15[0m
+========================================
+[0;31mSome tests failed![0m
