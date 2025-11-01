@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS queue_jobs_dlq (
     final_error TEXT COMMENT 'Final error message before moving to DLQ',
     attempts INT UNSIGNED NOT NULL COMMENT 'Total attempts before failure',
     moved_to_dlq_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
     INDEX idx_job_type (job_type),
     INDEX idx_moved_at (moved_to_dlq_at),
     INDEX idx_original_job (original_job_id)
@@ -30,13 +30,13 @@ CREATE TABLE IF NOT EXISTS sync_cursors (
     last_processed_at TIMESTAMP NULL COMMENT 'When last poll completed',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     INDEX idx_cursor_type (cursor_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Cursor-based pagination state for external API polling';
 
 -- Insert default cursor for consignments
-INSERT INTO sync_cursors (cursor_type, last_processed_id) 
+INSERT INTO sync_cursors (cursor_type, last_processed_id)
 VALUES ('consignments', '0')
 ON DUPLICATE KEY UPDATE cursor_type = cursor_type;
 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS queue_consignments (
     raw_json JSON NOT NULL COMMENT 'Full Lightspeed response',
     first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'First time polled',
     last_synced_at TIMESTAMP NULL COMMENT 'Last time updated from Lightspeed',
-    
+
     INDEX idx_consignment_id (consignment_id),
     INDEX idx_status (status),
     INDEX idx_outlet (outlet_id),
@@ -62,8 +62,8 @@ COMMENT='Shadow table for Lightspeed consignments (reconciliation source)';
 -- ============================================================================
 -- Add heartbeat column to queue_jobs (if not exists)
 -- ============================================================================
-ALTER TABLE queue_jobs 
-ADD COLUMN IF NOT EXISTS heartbeat_at TIMESTAMP NULL COMMENT 'Last worker heartbeat' 
+ALTER TABLE queue_jobs
+ADD COLUMN IF NOT EXISTS heartbeat_at TIMESTAMP NULL COMMENT 'Last worker heartbeat'
 AFTER started_at;
 
 ALTER TABLE queue_jobs
@@ -83,7 +83,7 @@ ADD INDEX IF NOT EXISTS idx_next_attempt (next_attempt_at);
 -- Stuck Job Monitor View (helper for debugging)
 -- ============================================================================
 CREATE OR REPLACE VIEW v_stuck_jobs AS
-SELECT 
+SELECT
     id,
     job_type,
     status,
@@ -106,7 +106,7 @@ ORDER BY started_at ASC;
 -- DLQ Summary View (helper for monitoring)
 -- ============================================================================
 CREATE OR REPLACE VIEW v_dlq_summary AS
-SELECT 
+SELECT
     job_type,
     COUNT(*) AS total_failed,
     MAX(moved_to_dlq_at) AS last_failure,
@@ -119,7 +119,7 @@ ORDER BY total_failed DESC;
 -- Verification Queries
 -- ============================================================================
 -- Check tables created:
--- SELECT TABLE_NAME FROM information_schema.TABLES 
+-- SELECT TABLE_NAME FROM information_schema.TABLES
 -- WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('queue_jobs_dlq', 'sync_cursors', 'queue_consignments');
 
 -- Check heartbeat column:

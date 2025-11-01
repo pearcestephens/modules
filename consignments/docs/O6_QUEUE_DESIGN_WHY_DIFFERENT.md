@@ -19,9 +19,9 @@ UPDATE queue_jobs SET status='processing' WHERE id=123;
 **O6 Solution:**
 ```sql
 -- New approach (ATOMIC):
-SELECT * FROM queue_jobs 
-WHERE status='pending' 
-ORDER BY priority DESC, id ASC 
+SELECT * FROM queue_jobs
+WHERE status='pending'
+ORDER BY priority DESC, id ASC
 LIMIT 1
 FOR UPDATE SKIP LOCKED;
 -- ✅ Row locked immediately, other workers skip it
@@ -44,8 +44,8 @@ FOR UPDATE SKIP LOCKED;
 $stmt = $pdo->prepare("UPDATE queue_jobs SET heartbeat_at = NOW() WHERE id = ?");
 
 // Separate monitor detects stale jobs:
-SELECT * FROM queue_jobs 
-WHERE status='processing' 
+SELECT * FROM queue_jobs
+WHERE status='processing'
 AND heartbeat_at < DATE_SUB(NOW(), INTERVAL 5 MINUTE);
 // → Auto-reset to pending
 ```
@@ -59,7 +59,7 @@ AND heartbeat_at < DATE_SUB(NOW(), INTERVAL 5 MINUTE);
 **O6 Solution:**
 ```php
 // After max_attempts, move to DLQ:
-INSERT INTO queue_jobs_dlq 
+INSERT INTO queue_jobs_dlq
 SELECT * FROM queue_jobs WHERE id=? AND attempts >= max_attempts;
 
 DELETE FROM queue_jobs WHERE id=?;

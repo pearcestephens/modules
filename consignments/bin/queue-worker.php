@@ -2,7 +2,7 @@
 <?php
 /**
  * Queue Worker - Concurrent-safe job processor with automatic recovery
- * 
+ *
  * Features:
  * - FOR UPDATE SKIP LOCKED (prevents race conditions)
  * - Heartbeat monitoring (auto-recovery)
@@ -10,14 +10,14 @@
  * - Dead Letter Queue after max_attempts
  * - Graceful shutdown (SIGTERM/SIGINT)
  * - Correlation IDs
- * 
+ *
  * Usage:
  *   php bin/queue-worker.php [--once] [--sleep=5]
- * 
+ *
  * Options:
  *   --once      Process one job and exit (for testing)
  *   --sleep=N   Seconds to sleep when queue empty (default: 5)
- * 
+ *
  * @package Consignments
  */
 
@@ -45,7 +45,7 @@ class QueueWorker
         $this->logger = $logger;
         $this->client = $client;
         $this->workerId = sprintf('worker_%s_%d', gethostname(), getmypid());
-        
+
         $this->registerShutdownHandler();
     }
 
@@ -288,7 +288,7 @@ class QueueWorker
             // Insert into DLQ
             $stmt = $this->pdo->prepare("
                 INSERT INTO queue_jobs_dlq (
-                    original_job_id, job_type, payload, priority, 
+                    original_job_id, job_type, payload, priority,
                     final_error, attempts, moved_to_dlq_at
                 ) VALUES (?, ?, ?, ?, ?, ?, NOW())
             ");

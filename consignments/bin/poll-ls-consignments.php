@@ -2,17 +2,17 @@
 <?php
 /**
  * Lightspeed Consignment Poller - Cursor-based sync
- * 
+ *
  * Polls Lightspeed for new/updated consignments using cursor pagination.
  * Never misses events, even during downtime.
- * 
+ *
  * Usage:
  *   php bin/poll-ls-consignments.php [--full] [--limit=100]
- * 
+ *
  * Options:
  *   --full       Full sync from beginning (resets cursor)
  *   --limit=N    Page size (default: 100)
- * 
+ *
  * @package Consignments
  */
 
