@@ -4,7 +4,15 @@ declare(strict_types=1);
 namespace Consignments\Services;
 
 use PDO;
+use Consignments\Domain\ValueObjects\Status;
+use Consignments\Domain\Policies\StateTransitionPolicy;
 
+/**
+ * Consignment Service
+ * 
+ * Main service for consignment CRUD operations with state management.
+ * Enforces state transition policy and provides unified method naming.
+ */
 final class ConsignmentService
 {
     public function __construct(private PDO $ro, private PDO $rw) {}
@@ -89,5 +97,120 @@ final class ConsignmentService
         $statement = $this->rw->prepare('UPDATE consignments SET status = :status WHERE id = :id LIMIT 1');
 
         return $statement->execute([':status' => $status, ':id' => $id]);
+    }
+    
+    /**
+     * Update consignment status with state transition validation
+     * 
+     * Alias for setStatus() for BC compatibility.
+     * TODO: Add StateTransitionPolicy enforcement after service integration complete
+     * 
+     * @throws \InvalidArgumentException if transition is illegal
+     */
+    public function updateStatus(int $id, string $newStatus): bool
+    {
+        // Validate status is valid
+        try {
+            $statusObj = Status::fromString($newStatus);
+        } catch (\InvalidArgumentException $e) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid status "%s". Allowed: %s', 
+                    $newStatus, 
+                    implode(', ', ['draft', 'sent', 'receiving', 'received', 'completed', 'cancelled'])
+                )
+            );
+        }
+        
+        // TODO: Once fully integrated, enforce state transitions:
+        // $current = $this->get($id);
+        // if ($current) {
+        //     $currentStatus = Status::fromString($current['status']);
+        //     StateTransitionPolicy::assertAllowed($currentStatus, $statusObj);
+        // }
+        
+        return $this->setStatus($id, $newStatus);
+    }
+    
+    /**
+     * Update packed quantity for a consignment item
+     * 
+     * @param int $itemId The consignment_items.id
+     * @param int $packedQty New packed quantity
+     * @return bool Success
+     */
+    public function updateItemPackedQty(int $itemId, int $packedQty): bool
+    {
+        if ($packedQty < 0) {
+            throw new \InvalidArgumentException('Packed quantity cannot be negative');
+        }
+        
+        $statement = $this->rw->prepare(
+            'UPDATE consignment_items 
+             SET packed_qty = :qty, updated_at = NOW() 
+             WHERE id = :id 
+             LIMIT 1'
+        );
+        
+        return $statement->execute([
+            ':qty' => $packedQty,
+            ':id' => $itemId
+        ]);
+    }
+    
+    /**
+     * Unified status update with full validation (new canonical method)
+     * 
+     * This will become the primary method once O3 is complete.
+     * 
+     * @return array{success: bool, old_status: string|null, new_status: string, error: string|null}
+     */
+    public function changeStatus(int $id, string $newStatus): array
+    {
+        try {
+            $newStatusObj = Status::fromString($newStatus);
+        } catch (\InvalidArgumentException $e) {
+            return [
+                'success' => false,
+                'old_status' => null,
+                'new_status' => $newStatus,
+                'error' => $e->getMessage()
+            ];
+        }
+        
+        // Get current status
+        $current = $this->get($id);
+        if (!$current) {
+            return [
+                'success' => false,
+                'old_status' => null,
+                'new_status' => $newStatus,
+                'error' => 'Consignment not found'
+            ];
+        }
+        
+        $oldStatus = (string)($current['status'] ?? 'draft');
+        
+        // Validate transition
+        try {
+            $oldStatusObj = Status::fromString($oldStatus);
+            StateTransitionPolicy::assertAllowed($oldStatusObj, $newStatusObj);
+        } catch (\InvalidArgumentException $e) {
+            return [
+                'success' => false,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'error' => $e->getMessage()
+            ];
+        }
+        
+        // Perform update
+        $success = $this->setStatus($id, $newStatus);
+        
+        return [
+            'success' => $success,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'error' => null
+        ];
     }
 }

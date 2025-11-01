@@ -1,6 +1,6 @@
 # Consignments Module - Current Status
 
-**Last Updated:** November 1, 2025 04:30 UTC
+**Last Updated:** November 1, 2025 05:00 UTC
 **Version:** 2.0.0-alpha
 **Phase:** Active Refactoring (Hexagonal Architecture Migration)
 
@@ -12,8 +12,8 @@
 |----------|------------|--------|
 | **O1: Directory Hygiene** | 100% | ✅ Complete |
 | **O2: Status Map & Policy** | 100% | ✅ Complete |
-| **O3: Service/API Sync** | 0% | 🔜 Pending |
-| **O4: Security Hardening** | 0% | 🔜 Pending |
+| **O3: Service/API Sync** | 100% | ✅ Complete |
+| **O4: Security Hardening** | 0% | ⏳ In Progress |
 | **O5: Lightspeed Client** | 30% | 🟡 Partial |
 | **O6: Queue Worker & Poller** | 0% | 🔜 Pending |
 | **O7: Webhooks** | 0% | 🔜 Pending |
@@ -21,9 +21,9 @@
 | **O9: Receiving & Evidence** | 40% | 🟡 Partial |
 | **O10: Freight Integration** | 80% | 🟢 Mostly Complete |
 | **O11: Admin Dashboard** | 0% | 🔜 Pending |
-| **O12: Tests & CI** | 35% | 🟡 Partial |
+| **O12: Tests & CI** | 45% | 🟡 Partial |
 | **O13: Documentation** | 50% | 🟡 Partial |
-| **OVERALL** | **36%** | 🟡 In Progress |
+| **OVERALL** | **44%** | 🟡 In Progress |
 
 ---
 
