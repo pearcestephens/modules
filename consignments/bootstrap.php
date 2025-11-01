@@ -32,7 +32,14 @@ if (!defined('ROOT_PATH')) {
 require_once __DIR__ . '/../base/bootstrap.php';
 
 // ============================================================================
-// 2. LOAD SHARED MODULES (cross-module utilities)
+// 2. LOAD CONSIGNMENTS PSR-4 AUTOLOADER
+// ============================================================================
+
+// Load autoloader for Consignments\* namespace
+require_once __DIR__ . '/autoload.php';
+
+// ============================================================================
+// 3. LOAD SHARED MODULES (cross-module utilities)
 // ============================================================================
 
 // Define module constants first (needed for loading)

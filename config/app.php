@@ -1,11 +1,12 @@
 <?php
 /**
- * Application configuration values.
+ * File: config/app.php
+ * Purpose: Provide environment-driven application configuration shared across modules.
+ * Author: GitHub Copilot
+ * Last Modified: 2025-11-01
+ * Dependencies: config/env-loader.php
  *
  * All entries are environment driven to keep secrets out of source control.
- * This file should be required wherever global configuration is needed.
- *
- * @package CIS\\Config
  */
 
 declare(strict_types=1);

@@ -61,7 +61,7 @@ function db(): mysqli {
   $user = defined('DB_USERNAME') ? DB_USERNAME : (defined('DB_USER') ? DB_USER : 'jcepnzzkmj');
   $pass = defined('DB_PASSWORD') ? DB_PASSWORD : (defined('DB_PASS') ? DB_PASS : '');
   $name = defined('DB_DATABASE') ? DB_DATABASE : (defined('DB_NAME') ? DB_NAME : 'jcepnzzkmj');
-  
+
   $conn = new mysqli($host, $user, $pass, $name);
   if ($conn->connect_error) {
     throw new RuntimeException('Database connection failed: ' . $conn->connect_error);
@@ -101,14 +101,14 @@ function get_system_stats(): array {
   $scriptMemoryMB = round(memory_get_usage(true) / 1024 / 1024, 2);
   $peakMemoryMB = round(memory_get_peak_usage(true) / 1024 / 1024, 2);
   $memoryLimit = ini_get('memory_limit');
-  
+
   // Get server load (1, 5, 15 min averages)
   $loadAvg = 'N/A';
   if (function_exists('sys_getloadavg')) {
     $loads = sys_getloadavg();
     $loadAvg = sprintf('%.2f, %.2f, %.2f', $loads[0], $loads[1], $loads[2]);
   }
-  
+
   // Get free memory (Linux only)
   $freeMemoryMB = 'N/A';
   if (file_exists('/proc/meminfo')) {
@@ -117,7 +117,7 @@ function get_system_stats(): array {
       $freeMemoryMB = round($matches[1] / 1024, 0) . ' MB';
     }
   }
-  
+
   return [
     'php_version' => PHP_VERSION,
     'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
@@ -137,12 +137,12 @@ function json_error_handler($errno, $errstr, $errfile, $errline) {
   if (!is_ajax_request()) {
     return false; // Let PHP handle normally
   }
-  
+
   // Don't handle suppressed errors (@)
   if (!(error_reporting() & $errno)) {
     return false;
   }
-  
+
   // Map PHP error types to HTTP status codes
   $statusMap = [
     E_ERROR => 500,
@@ -161,7 +161,7 @@ function json_error_handler($errno, $errstr, $errfile, $errline) {
     E_DEPRECATED => 500,
     E_USER_DEPRECATED => 500,
   ];
-  
+
   $status = $statusMap[$errno] ?? 500;
   $errorType = [
     E_ERROR => 'E_ERROR',
@@ -176,11 +176,11 @@ function json_error_handler($errno, $errstr, $errfile, $errline) {
     E_USER_NOTICE => 'E_USER_NOTICE',
     E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
   ][$errno] ?? 'UNKNOWN_ERROR';
-  
+
   // Build JSON error response
   http_response_code($status);
   header('Content-Type: application/json; charset=utf-8');
-  
+
   $response = [
     'ok' => false,
     'error' => 'PHP_ERROR',
@@ -202,7 +202,7 @@ function json_error_handler($errno, $errstr, $errfile, $errline) {
     ],
     'system' => get_system_stats()
   ];
-  
+
   echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
   exit;
 }
@@ -212,10 +212,10 @@ function json_exception_handler($exception) {
   if (!is_ajax_request()) {
     return; // Let PHP handle normally
   }
-  
+
   http_response_code(500);
   header('Content-Type: application/json; charset=utf-8');
-  
+
   $response = [
     'ok' => false,
     'error' => 'UNCAUGHT_EXCEPTION',
@@ -237,22 +237,22 @@ function json_exception_handler($exception) {
     ],
     'system' => get_system_stats()
   ];
-  
+
   echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
   exit;
 }
 
 function json_shutdown_handler() {
   $error = error_get_last();
-  
+
   // Only handle fatal errors for AJAX requests
   if ($error && is_ajax_request()) {
     $fatalErrors = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR];
-    
+
     if (in_array($error['type'], $fatalErrors)) {
       http_response_code(500);
       header('Content-Type: application/json; charset=utf-8');
-      
+
       $response = [
         'ok' => false,
         'error' => 'FATAL_ERROR',
@@ -271,7 +271,7 @@ function json_shutdown_handler() {
         ],
         'system' => get_system_stats()
       ];
-      
+
       echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
   }
@@ -298,7 +298,7 @@ function ok($data = [], int $code = 200): void {
 function bad(string $code, $detail = null, int $http = 400): void {
   http_response_code($http);
   header('Content-Type: application/json; charset=utf-8');
-  
+
   // Build comprehensive error response with request context
   $response = [
     'ok' => false,
@@ -315,7 +315,7 @@ function bad(string $code, $detail = null, int $http = 400): void {
     ],
     'system' => get_system_stats()
   ];
-  
+
   echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
   exit;
 }
@@ -334,28 +334,28 @@ function get_sync_flag_file(): string {
 
 function get_sync_enabled(): bool {
   $file = get_sync_flag_file();
-  
+
   // If file doesn't exist, try to create it with default: enabled (1)
   if (!file_exists($file)) {
     // Try to create - if fails, default to ENABLED (safest fallback)
     @file_put_contents($file, '1');
-    
+
     // If still doesn't exist (permission issue), return true (enabled by default)
     if (!file_exists($file)) {
       error_log("WARNING: Cannot create sync flag file at {$file} - defaulting to ENABLED");
       return true;
     }
   }
-  
+
   // Always read fresh from file (no static cache)
   $content = @file_get_contents($file);
-  
+
   // If read fails (permission issue), default to ENABLED
   if ($content === false) {
     error_log("WARNING: Cannot read sync flag file at {$file} - defaulting to ENABLED");
     return true;
   }
-  
+
   return (trim($content) === '1');
 }
 
@@ -369,7 +369,7 @@ function resolve_supplier_table(mysqli $db): ?string {
   static $once = null;
   if ($once !== null) return $once;
   $candidate = 'vend_suppliers';
-  $sql = "SELECT 1 FROM information_schema.TABLES 
+  $sql = "SELECT 1 FROM information_schema.TABLES
           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME='{$candidate}' LIMIT 1";
   $r = $db->query($sql);
   $once = ($r && $r->num_rows) ? $candidate : null;
@@ -380,7 +380,7 @@ function resolve_supplier_table(mysqli $db): ?string {
 /* ---------- Transfer audit (append-only, best-effort) ---------- */
 function log_transfer_event(mysqli $db, array $p): void {
   try {
-    $sql = "INSERT INTO consignment_logs 
+    $sql = "INSERT INTO consignment_logs
             (consignment_id, shipment_id, item_id, parcel_id, staff_transfer_id, event_type, event_data, actor_user_id, actor_role, severity, source_system, trace_id, created_at)
             VALUES (?,?,?,?,?,?,?,?,?,?, 'CIS', ?, NOW())";
     $stmt = $db->prepare($sql);
@@ -406,7 +406,7 @@ function log_transfer_event(mysqli $db, array $p): void {
   } catch (\Throwable $e) {}
 
   try {
-    $sql2 = "INSERT INTO consignment_audit_log 
+    $sql2 = "INSERT INTO consignment_audit_log
              (entity_type, entity_pk, consignment_pk, consignment_id, action, status, actor_type, user_id, data_after, created_at)
              VALUES ('transfer', ?, ?, ?, ?, 'success', 'user', ?, ?, NOW())";
     $stmt2 = $db->prepare($sql2);
@@ -474,16 +474,16 @@ function ls_http(string $method, string $path, ?array $json = null, int $retries
     usleep((int)($sleep * 1_000_000));
     return ls_http($method, $path, $json, $retries-1);
   }
-  
+
   $result = ['ok' => ($status >= 200 && $status < 300), 'status' => $status, 'headers' => $headers, 'body' => $body];
-  
+
   // DEBUG: Log API response for troubleshooting
   if (!$result['ok']) {
     error_log("[LS_HTTP_ERROR] $method $path - Status: $status, Response: " . json_encode($body));
   } else {
     error_log("[LS_HTTP_SUCCESS] $method $path - Status: $status");
   }
-  
+
   return $result;
 }
 
@@ -510,16 +510,16 @@ function ls_add_product(string $consId, string $pid, int $count, ?float $cost=nu
   $payload = ['product_id'=>$pid, 'count'=>$count];
   if ($received !== null) $payload['received'] = $received;
   if ($cost !== null)     $payload['cost']     = $cost;
-  
+
   // DEBUG: Log exact payload being sent to Lightspeed
   error_log("[LS_ADD_PRODUCT] Consignment: $consId, Payload: " . json_encode($payload));
-  
+
   return ls_http('POST', "consignments/$consId/products", $payload);
 }
 function ls_update_product(string $consId, string $pid, array $fields): array {
   // DEBUG: Log exact payload being sent to Lightspeed
   error_log("[LS_UPDATE_PRODUCT] Consignment: $consId, Product: $pid, Fields: " . json_encode($fields));
-  
+
   return ls_http('PUT', "consignments/$consId/products/$pid", $fields);
 }
 function ls_delete_product(string $consId, string $pid): array {
@@ -539,7 +539,7 @@ function ls_list_products(string $consId): array {
 
 /**
  * Update outlet stock level for a product
- * 
+ *
  * @param string $outletId Lightspeed outlet ID
  * @param string $productId Lightspeed product ID
  * @param int $quantity Quantity to add or subtract
@@ -549,25 +549,25 @@ function ls_list_products(string $consId): array {
 function ls_update_outlet_stock(string $outletId, string $productId, int $quantity, string $operation = 'ADD'): array {
   // First, get current stock level for this product at this outlet
   $getStock = ls_http('GET', "products/$productId/outlets/$outletId");
-  
+
   if (!$getStock['ok']) {
     return ['ok' => false, 'status' => $getStock['status'], 'body' => ['message' => 'Failed to get current stock level']];
   }
-  
+
   $currentStock = (int)($getStock['body']['inventory_count'] ?? 0);
-  
+
   // Calculate new stock level
-  $newStock = $operation === 'SUBTRACT' 
-    ? max(0, $currentStock - $quantity) 
+  $newStock = $operation === 'SUBTRACT'
+    ? max(0, $currentStock - $quantity)
     : $currentStock + $quantity;
-  
+
   // Update stock level
   $payload = [
     'inventory_count' => $newStock
   ];
-  
+
   $result = ls_http('PATCH', "products/$productId/outlets/$outletId", $payload);
-  
+
   return [
     'ok' => $result['ok'] ?? false,
     'status' => $result['status'] ?? 0,
@@ -607,30 +607,30 @@ switch ($action) {
     $allDeleted = [];
     $totalOutlets = 0;
     $errors = [];
-    
+
     // Query outlets - use WHERE clause to filter in SQL for better performance
     $q = "SELECT id, COALESCE(NULLIF(name,''), NULLIF(store_code,''), NULLIF(physical_city,''), id) AS label, deleted_at
           FROM vend_outlets
           WHERE deleted_at IS NULL OR deleted_at = '0000-00-00 00:00:00' OR deleted_at = '0000-00-00'
           ORDER BY label ASC";
-    
+
     try {
-      if ($r = $db->query($q)) { 
+      if ($r = $db->query($q)) {
         while ($row = $r->fetch_assoc()) {
           $totalOutlets++;
           $deletedAt = $row['deleted_at'];
-          
+
           // Collect unique deleted_at values for debugging
           $key = var_export($deletedAt, true);
           if (!isset($allDeleted[$key])) {
             $allDeleted[$key] = 0;
           }
           $allDeleted[$key]++;
-          
+
           // Add to outlet map
           $outletMap[$row['id']] = $row['label'];
         }
-        $r->free(); 
+        $r->free();
       } else {
         $errors[] = "Outlets query failed: " . $db->error;
       }
@@ -641,19 +641,19 @@ switch ($action) {
     $supplierMap = [];
     $supplierTableExists = false;
     $supplierTableName = null;
-    
+
     try {
       // Check if supplier table exists
       $tbl = resolve_supplier_table($db);
       $supplierTableName = $tbl;
       $supplierTableExists = ($tbl !== null);
-      
+
       if ($tbl) {
         // Supplier table uses varchar for deleted_at - filter with WHERE for consistency
-        $sq = "SELECT id, name, deleted_at FROM {$tbl} 
+        $sq = "SELECT id, name, deleted_at FROM {$tbl}
                WHERE deleted_at IS NULL OR deleted_at = '' OR deleted_at = '0' OR deleted_at = '0000-00-00 00:00:00'
                ORDER BY name ASC";
-        
+
         if ($s = $db->query($sq)) {
           $totalSuppliers = 0;
           while ($row = $s->fetch_assoc()) {
@@ -661,7 +661,7 @@ switch ($action) {
             $supplierMap[$row['id']] = $row['name'] ?: $row['id'];
           }
           $s->free();
-          
+
           if ($totalSuppliers === 0) {
             $errors[] = "Supplier table exists but returned 0 results (all may be marked deleted)";
           }
@@ -674,7 +674,7 @@ switch ($action) {
     } catch (\Throwable $e) {
       $errors[] = "Suppliers exception: " . $e->getMessage();
     }
-    
+
     ok([
       'csrf_token'          => $_SESSION['tt_csrf'],
       'ls_consignment_base' => rtrim(ls_ui_base(), '/') . '/consignments/',
@@ -752,9 +752,9 @@ switch ($action) {
       ];
 
       // Check if table exists
-      $checkTable = $db->query("SELECT 1 FROM information_schema.TABLES 
+      $checkTable = $db->query("SELECT 1 FROM information_schema.TABLES
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$tableName'");
-      
+
       if ($checkTable && $checkTable->num_rows > 0) {
         $tableInfo['exists'] = true;
         $existingTables++;
@@ -954,7 +954,7 @@ switch ($action) {
     if (!$transfer) bad('NOT_FOUND', null, 404);
 
     $qq = $db->prepare("SELECT ti.id, ti.product_id, vp.sku, vp.name AS product_name,
-               vp.supply_price, 
+               vp.supply_price,
                COALESCE(vp.price_including_tax, vp.price_excluding_tax, 0) AS retail_price,
                ti.qty_requested, ti.qty_sent_total, ti.qty_received_total, ti.confirmation_status
             FROM consignment_items ti
@@ -1004,12 +1004,12 @@ switch ($action) {
     ];
 
     ok([
-      'transfer' => $transfer, 
-      'items' => $items, 
-      'shipments' => $ships, 
-      'notes' => $notes, 
-      'ls' => $remote, 
-      'totals' => $totals, 
+      'transfer' => $transfer,
+      'items' => $items,
+      'shipments' => $ships,
+      'notes' => $notes,
+      'ls' => $remote,
+      'totals' => $totals,
       'sync' => $sync,
       'source_outlet' => $sourceOutlet,
       'dest_outlet' => $destOutlet
@@ -1040,7 +1040,7 @@ switch ($action) {
     if (!$cat || !$from || !$to) bad('REQUIRED_FIELDS_MISSING');
     $public = 'TR-' . bin2hex(random_bytes(6));
 
-    $stmt = $db->prepare("INSERT INTO transfers 
+    $stmt = $db->prepare("INSERT INTO transfers
        (public_id, consignment_category, creation_method, outlet_from, outlet_to, created_by, state, created_at, updated_at)
        VALUES (?, ?, 'MANUAL', ?, ?, 0, 'OPEN', NOW(), NOW())");
     $stmt->bind_param('ssss', $public, $cat, $from, $to);
@@ -1172,7 +1172,7 @@ switch ($action) {
           'action' => 'Enable sync via toggle_sync or set .sync_enabled to "1"'
         ]);
       }
-      
+
       $resp = ls_create_consignment($creationPayload);
       if (!$resp['ok'] || !is_array($resp['body'])) {
         bad('LS_CREATE_FAILED', [
@@ -1225,12 +1225,12 @@ switch ($action) {
     // Read existing lines to decide add vs update
     $summary = ['added'=>0,'updated'=>0,'skipped'=>0,'errors'=>[]];
     $existing = [];
-    
+
     // Safety check: vend_id must exist at this point
     if (!$vend_id || $vend_id === '') {
       bad('INVALID_STATE', 'No Lightspeed consignment ID available', 500);
     }
-    
+
     $lsProducts = ls_list_products($vend_id);
     if ($lsProducts['ok']) {
       foreach (($lsProducts['list'] ?? []) as $lp) {
@@ -1303,7 +1303,7 @@ switch ($action) {
     $product = $pc->get_result()->fetch_assoc(); $pc->close();
     if (!$product) bad('PRODUCT_NOT_FOUND', $pid);
 
-    $sql = "INSERT INTO consignment_items 
+    $sql = "INSERT INTO consignment_items
             (consignment_id, product_id, qty_requested, qty_sent_total, qty_received_total, confirmation_status, created_at)
             VALUES (?, ?, ?, 0, 0, 'pending', NOW())
             ON DUPLICATE KEY UPDATE qty_requested = qty_requested + VALUES(qty_requested)";
@@ -1447,7 +1447,7 @@ switch ($action) {
       $u->bind_param('ssi',$vend_id,$vend_number,$id); $u->execute(); $u->close();
     }
 
-    $qq = $db->prepare("SELECT ti.product_id, ti.qty_requested, vp.supply_price 
+    $qq = $db->prepare("SELECT ti.product_id, ti.qty_requested, vp.supply_price
             FROM consignment_items ti
             LEFT JOIN vend_products vp ON vp.id = ti.product_id
             WHERE ti.consignment_id=? AND ti.qty_requested>0 ORDER BY ti.id");
@@ -1462,13 +1462,13 @@ switch ($action) {
     if ($lsProducts['ok']) foreach (($lsProducts['list'] ?? []) as $lp) $existing[$lp['product_id']] = (int)($lp['count'] ?? 0);
 
     foreach ($items as $line) {
-      $pid = (string)$line['product_id']; 
+      $pid = (string)$line['product_id'];
       $qty = (int)$line['qty_requested'];
       $cost = isset($line['supply_price']) ? (float)$line['supply_price'] : null;
-      
+
       // DEBUG: Log what cost we're sending
       error_log("[CONSIGNMENT PUSH] Product $pid: supply_price={$line['supply_price']}, cost=$cost, qty=$qty");
-      
+
       if ($qty <= 0) { $skipped++; continue; }
       if (isset($existing[$pid])) {
         if ($existing[$pid] !== $qty) {
@@ -1515,7 +1515,7 @@ switch ($action) {
 
     $vend_id = $tr['vend_transfer_id'];
     if (!$vend_id) {
-      // ✅ FIXED: Use 'STOCK' for outlet transfers, 'SUPPLIER' for purchase orders  
+      // ✅ FIXED: Use 'STOCK' for outlet transfers, 'SUPPLIER' for purchase orders
       $type = ($tr['consignment_category']==='PURCHASE_ORDER') ? 'SUPPLIER' : 'STOCK';
       $resp = ls_create_consignment([
         'name'=>"Transfer ".$tr['public_id'],'type'=>$type,'status'=>'OPEN',
@@ -1532,7 +1532,7 @@ switch ($action) {
     }
 
     if (!$vend_id) bad('INVALID_STATE', 'No Lightspeed consignment ID available', 500);
-    
+
     $existing = [];
     $lsProducts = ls_list_products($vend_id);
     if ($lsProducts['ok']) foreach (($lsProducts['list'] ?? []) as $lp) $existing[$lp['product_id']] = true;
@@ -1549,7 +1549,7 @@ switch ($action) {
       foreach ($priceResults as $pr) {
         $priceMap[$pr['id']] = isset($pr['supply_price']) ? (float)$pr['supply_price'] : null;
       }
-      
+
       // DEBUG: Log price lookup results
       error_log("[ADD_PRODUCTS] Fetched prices for " . count($priceMap) . " products: " . json_encode($priceMap));
     }
@@ -1558,10 +1558,10 @@ switch ($action) {
     foreach ($pids as $i => $pid) {
       $qty = (int)($qtys[$i] ?? 1);
       $cost = $priceMap[$pid] ?? null;
-      
+
       // DEBUG: Log what we're about to send
       error_log("[ADD_PRODUCTS] Product $pid: qty=$qty, cost=" . ($cost !== null ? $cost : 'NULL'));
-      
+
       if ($qty <= 0) $qty = 1;
       if (isset($existing[$pid])) {
         $updateFields = ['count'=>$qty];
@@ -1641,7 +1641,7 @@ switch ($action) {
   case 'receive_all': {
     $id = (int)($in['id'] ?? 0);
     if ($id<=0) bad('INVALID_ID');
-    
+
     // 🆕 Support auto-fill mode: auto-set received quantities to sent quantities
     $autoFill = (bool)($in['auto_fill'] ?? true);
 
@@ -1664,16 +1664,16 @@ switch ($action) {
       if (!empty($row['vend_transfer_id'])) {
         $lp = ls_list_products($row['vend_transfer_id']);
         $list = $lp['list'] ?? [];
-        
+
         // 🆕 Auto-fill: Update each product's received quantity to match sent quantity
         foreach ($list as $p) {
           $count = (int)round((float)($p['count'] ?? 0));
           $pid   = (string)$p['product_id'];
-          
+
           // Update Lightspeed consignment product with received = sent
           $r = ls_update_product($row['vend_transfer_id'], $pid, ['count'=>$count,'received'=>$count]);
           $lsSteps[] = ['product_id'=>$pid,'ok'=>$r['ok'],'status'=>$r['status'],'count'=>$count,'received'=>$count];
-          
+
           // 🆕 Update destination outlet stock level (add received quantity to inventory)
           if ($r['ok'] && !empty($row['outlet_to'])) {
             $stockUpdate = ls_update_outlet_stock($row['outlet_to'], $pid, $count, 'ADD');
@@ -1686,7 +1686,7 @@ switch ($action) {
             ];
           }
         }
-        
+
         // Mark consignment as RECEIVED in Lightspeed
         $final = ls_update_consignment_status($row['vend_transfer_id'], 'RECEIVED');
         $lsSteps[] = ['final'=>$final['status'] ?? 0, 'ok'=>$final['ok']];
@@ -1695,7 +1695,7 @@ switch ($action) {
 
     log_transfer_event($db, [
       'consignment_id'=>$id, 'event_type'=>'RECEIVE_ALL',
-      'event_data'=>['receipt_id'=>$receiptId,'ls'=>$lsSteps,'stock_updates'=>$stockUpdates,'auto_fill'=>$autoFill], 
+      'event_data'=>['receipt_id'=>$receiptId,'ls'=>$lsSteps,'stock_updates'=>$stockUpdates,'auto_fill'=>$autoFill],
       'consignment_pk'=>$id, 'audit_after'=>['state'=>'RECEIVED']
     ]);
     ok(['id'=>$id,'receipt_id'=>$receiptId,'ls'=>$lsSteps,'stock_updates'=>$stockUpdates,'sync'=>$sync]);
@@ -1747,10 +1747,10 @@ switch ($action) {
     $id = (int)($in['id'] ?? 0);
     $revertStock = !!($in['revert_stock'] ?? false);
     if ($id <= 0) bad('INVALID_ID');
-    
+
     // Start transaction for atomic operation
     $db->begin_transaction();
-    
+
     try {
       // 1. Get original transfer details
       $stmt = $db->prepare("SELECT * FROM transfers WHERE id = ?");
@@ -1759,13 +1759,13 @@ switch ($action) {
       if (!$original) {
         throw new Exception('TRANSFER_NOT_FOUND');
       }
-      
+
       // Allow recreation of cancelled, received, or closed transfers
       $allowedStates = ['CANCELLED', 'RECEIVED', 'CLOSED'];
       if (!in_array($original['state'], $allowedStates)) {
         throw new Exception('ONLY_COMPLETED_OR_CANCELLED_TRANSFERS_CAN_BE_RECREATED');
       }
-      
+
       // 2. Create new transfer with same basic info
       // Generate new public_id
       $newPublicId = 'T-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
@@ -1773,12 +1773,12 @@ switch ($action) {
       $createdById = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
       $creationMethod = 'AUTOMATED'; // ENUM values: MANUAL, AUTOMATED (only 2 values in schema)
       $totalBoxes = (int)($original['total_boxes'] ?? 0);
-      
-      $stmt = $db->prepare("INSERT INTO transfers 
-        (public_id, consignment_category, creation_method, outlet_from, outlet_to, supplier_id, created_by, total_boxes, state, created_at, updated_at) 
+
+      $stmt = $db->prepare("INSERT INTO transfers
+        (public_id, consignment_category, creation_method, outlet_from, outlet_to, supplier_id, created_by, total_boxes, state, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', NOW(), NOW())");
-      
-      $stmt->bind_param('ssssssii', 
+
+      $stmt->bind_param('ssssssii',
         $newPublicId,
         $original['consignment_category'],
         $creationMethod,
@@ -1791,28 +1791,28 @@ switch ($action) {
       $stmt->execute();
       $newId = (int)$stmt->insert_id;
       $stmt->close();
-      
+
       if ($newId <= 0) {
         throw new Exception('FAILED_TO_CREATE_TRANSFER');
       }
-    
+
       // 3. Copy transfer items with best available quantity data
       $itemsStmt = $db->prepare("SELECT * FROM consignment_items WHERE consignment_id = ?");
       $itemsStmt->bind_param('i', $id);
       $itemsStmt->execute();
       $items = $itemsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
       $itemsStmt->close();
-      
-      $insertItemStmt = $db->prepare("INSERT INTO consignment_items 
-        (consignment_id, product_id, qty_requested, qty_sent_total, qty_received_total, confirmation_status) 
+
+      $insertItemStmt = $db->prepare("INSERT INTO consignment_items
+        (consignment_id, product_id, qty_requested, qty_sent_total, qty_received_total, confirmation_status)
         VALUES (?, ?, ?, ?, ?, ?)");
-      
+
       $copiedItems = 0;
       $seenProducts = []; // Track products to avoid duplicates
-      
+
       foreach ($items as $item) {
         $productId = (int)$item['product_id'];
-        
+
         // Skip if we've already processed this product (handles duplicate items in source transfer)
         if (isset($seenProducts[$productId])) {
           // Merge quantities with existing entry
@@ -1821,13 +1821,13 @@ switch ($action) {
           $seenProducts[$productId]['qty_received'] += (int)$item['qty_received_total'];
           continue;
         }
-        
+
         // Use best available quantity data:
         // Priority: qty_received_total > qty_sent_total > qty_requested
         $qtyRequested = (int)$item['qty_requested'];
         $qtySent = (int)$item['qty_sent_total'];
         $qtyReceived = (int)$item['qty_received_total'];
-        
+
         // If we have received data, use that for all fields
         if ($qtyReceived > 0) {
           $newQtyReq = $qtyReceived;
@@ -1846,9 +1846,9 @@ switch ($action) {
           $newQtySent = 0;
           $newQtyRec = 0;
         }
-        
+
         $confirmStatus = 'pending'; // ENUM: pending, confirmed, discrepancy
-        
+
         $insertItemStmt->bind_param('iiiiis',
           $newId,
           $productId,
@@ -1858,29 +1858,29 @@ switch ($action) {
           $confirmStatus
         );
         $insertItemStmt->execute();
-        
+
         // Track this product
         $seenProducts[$productId] = [
           'qty_requested' => $newQtyReq,
           'qty_sent' => $newQtySent,
           'qty_received' => $newQtyRec
         ];
-        
+
         $copiedItems++;
       }
       $insertItemStmt->close();
-    
+
       // 4. Copy notes with indication they're from the original transfer
       $notesStmt = $db->prepare("SELECT * FROM consignment_notes WHERE consignment_id = ? ORDER BY created_at ASC");
       $notesStmt->bind_param('i', $id);
       $notesStmt->execute();
       $notes = $notesStmt->get_result()->fetch_all(MYSQLI_ASSOC);
       $notesStmt->close();
-      
-      $insertNoteStmt = $db->prepare("INSERT INTO consignment_notes 
-        (consignment_id, note_text, created_by, created_at) 
+
+      $insertNoteStmt = $db->prepare("INSERT INTO consignment_notes
+        (consignment_id, note_text, created_by, created_at)
         VALUES (?, ?, ?, NOW())");
-      
+
       $copiedNotes = 0;
       foreach ($notes as $note) {
         $noteText = "[COPIED FROM {$original['public_id']}] " . $note['note_text'];
@@ -1889,7 +1889,7 @@ switch ($action) {
         $copiedNotes++;
       }
       $insertNoteStmt->close();
-    
+
       // 4.5. Add automatic note about recreation with user's name
       $userName = 'Unknown User';
       if (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0) {
@@ -1907,29 +1907,29 @@ switch ($action) {
         }
         $userStmt->close();
       }
-      
+
       $recreationNote = "Transfer manually recreated from {$original['public_id']} by {$userName}";
       $autoNoteStmt = $db->prepare("INSERT INTO consignment_notes (consignment_id, note_text, created_by, created_at) VALUES (?, ?, ?, NOW())");
       $autoNoteStmt->bind_param('isi', $newId, $recreationNote, $createdById);
       $autoNoteStmt->execute();
       $autoNoteStmt->close();
-    
+
       // 5. Revert stock if requested (adds inventory back to source outlet)
       $stockAdjustments = [];
       if ($revertStock && $sync) {
         foreach ($items as $item) {
           $productId = $item['product_id'];
           $qtySent = (int)($item['qty_sent_total'] ?? 0);
-          
+
           if ($qtySent > 0) {
             // Add inventory back to source outlet via Lightspeed API
             $adjustResult = ls_update_outlet_stock(
-              $original['outlet_from'], 
-              $productId, 
-              $qtySent, 
+              $original['outlet_from'],
+              $productId,
+              $qtySent,
               'ADD'
             );
-            
+
             $stockAdjustments[] = [
               'product_id' => $productId,
               'outlet_id' => $original['outlet_from'],
@@ -1939,7 +1939,7 @@ switch ($action) {
           }
         }
       }
-      
+
       // 6. Log the recreation event
       log_transfer_event($db, [
         'consignment_id' => $newId,
@@ -1955,10 +1955,10 @@ switch ($action) {
         ],
         'consignment_pk' => $newId
       ]);
-      
+
       // Commit transaction - all operations succeeded
       $db->commit();
-      
+
       ok([
         'new_id' => $newId,
         'new_public_id' => $newPublicId,
@@ -1969,11 +1969,11 @@ switch ($action) {
         'stock_adjustments_count' => count($stockAdjustments),
         'message' => "Transfer recreated successfully from {$original['public_id']}"
       ]);
-      
+
     } catch (Exception $e) {
       // Rollback transaction on any error
       $db->rollback();
-      
+
       // Clean up any partially created transfer (in case rollback fails)
       if (isset($newId) && $newId > 0) {
         try {
@@ -1981,12 +1981,12 @@ switch ($action) {
           $cleanupStmt->bind_param('i', $newId);
           $cleanupStmt->execute();
           $cleanupStmt->close();
-          
+
           $cleanupStmt = $db->prepare("DELETE FROM consignment_notes WHERE consignment_id = ?");
           $cleanupStmt->bind_param('i', $newId);
           $cleanupStmt->execute();
           $cleanupStmt->close();
-          
+
           $cleanupStmt = $db->prepare("DELETE FROM transfers WHERE id = ?");
           $cleanupStmt->bind_param('i', $newId);
           $cleanupStmt->execute();
@@ -1996,7 +1996,7 @@ switch ($action) {
           error_log("Failed to cleanup partial transfer {$newId}: " . $cleanupErr->getMessage());
         }
       }
-      
+
       // Return error to user
       bad('RECREATE_FAILED', $e->getMessage());
     }
@@ -2011,37 +2011,37 @@ switch ($action) {
     // Revert SENT → OPEN (safe, adds inventory back to source)
     $id = (int)($in['id'] ?? 0);
     if ($id <= 0) bad('INVALID_ID');
-    
+
     // 1. Get transfer details
     $stmt = $db->prepare("SELECT * FROM transfers WHERE id = ?");
     $stmt->bind_param('i', $id); $stmt->execute();
     $t = $stmt->get_result()->fetch_assoc(); $stmt->close();
     if (!$t) bad('TRANSFER_NOT_FOUND');
-    
+
     // 2. Verify status and category
     if ($t['state'] !== 'SENT') bad('CAN_ONLY_REVERT_FROM_SENT');
     if ($t['consignment_category'] === 'PURCHASE_ORDER') bad('CANNOT_REVERT_PURCHASE_ORDERS');
-    
+
     // 3. Get consignment ID
     $consId = $t['vend_transfer_id'];
     if (!$consId) bad('NO_LIGHTSPEED_CONSIGNMENT');
-    
+
     // 4. Update Lightspeed consignment status to OPEN
     if ($sync) {
       $lsUpdate = ls_update_consignment_status($consId, 'OPEN');
       if (!$lsUpdate['ok']) bad('LIGHTSPEED_UPDATE_FAILED', $lsUpdate['status']);
     }
-    
+
     // 5. Add inventory back to source outlet (for each item)
     $itemsStmt = $db->prepare("SELECT product_id, qty_sent FROM consignment_items WHERE consignment_id = ?");
     $itemsStmt->bind_param('i', $id); $itemsStmt->execute();
     $items = $itemsStmt->get_result();
     $adjustments = [];
-    
+
     while ($item = $items->fetch_assoc()) {
       $productId = $item['product_id'];
       $sentQty = (int)($item['qty_sent'] ?? 0);
-      
+
       if ($sentQty > 0 && $sync) {
         // Add back to source outlet
         ls_update_outlet_stock($t['outlet_from'], $productId, $sentQty, 'ADD');
@@ -2053,17 +2053,17 @@ switch ($action) {
       }
     }
     $itemsStmt->close();
-    
+
     // 6. Update transfer status
     $updateStmt = $db->prepare("UPDATE transfers SET state = 'OPEN', updated_at = NOW() WHERE id = ?");
     $updateStmt->bind_param('i', $id); $updateStmt->execute(); $updateStmt->close();
-    
+
     // 7. Log revert event
     log_transfer_event($db, [
       'consignment_id'=>$id, 'event_type'=>'REVERTED_TO_OPEN',
       'event_data'=>['adjustments'=>$adjustments], 'consignment_pk'=>$id, 'audit_after'=>['state'=>'OPEN']
     ]);
-    
+
     // 8. Return success
     ok([
       'id' => $id,
@@ -2077,39 +2077,39 @@ switch ($action) {
     // Revert RECEIVING → SENT (safe, removes partial inventory from destination)
     $id = (int)($in['id'] ?? 0);
     if ($id <= 0) bad('INVALID_ID');
-    
+
     // 1. Get transfer details
     $stmt = $db->prepare("SELECT * FROM transfers WHERE id = ?");
     $stmt->bind_param('i', $id); $stmt->execute();
     $t = $stmt->get_result()->fetch_assoc(); $stmt->close();
     if (!$t) bad('TRANSFER_NOT_FOUND');
-    
+
     // 2. Verify status
     if ($t['state'] !== 'RECEIVING') bad('CAN_ONLY_REVERT_FROM_RECEIVING');
-    
+
     // 3. Get consignment ID
     $consId = $t['vend_transfer_id'];
     if (!$consId) bad('NO_LIGHTSPEED_CONSIGNMENT');
-    
+
     // 4. Determine target status (SENT for STOCK, STOCK_ORDER for PURCHASE_ORDER)
     $targetStatus = ($t['consignment_category'] === 'PURCHASE_ORDER') ? 'STOCK_ORDER' : 'SENT';
-    
+
     // 5. Update Lightspeed consignment status
     if ($sync) {
       $lsUpdate = ls_update_consignment_status($consId, $targetStatus);
       if (!$lsUpdate['ok']) bad('LIGHTSPEED_UPDATE_FAILED', $lsUpdate['status']);
     }
-    
+
     // 6. Remove partial inventory from destination (if any items marked received)
     $itemsStmt = $db->prepare("SELECT product_id, qty_received_total FROM consignment_items WHERE consignment_id = ?");
     $itemsStmt->bind_param('i', $id); $itemsStmt->execute();
     $items = $itemsStmt->get_result();
     $adjustments = [];
-    
+
     while ($item = $items->fetch_assoc()) {
       $productId = $item['product_id'];
       $receivedQty = (int)($item['qty_received_total'] ?? 0);
-      
+
       if ($receivedQty > 0 && $sync) {
         // Remove from destination outlet
         ls_update_outlet_stock($t['outlet_to'], $productId, $receivedQty, 'SUBTRACT');
@@ -2121,21 +2121,21 @@ switch ($action) {
       }
     }
     $itemsStmt->close();
-    
+
     // 7. Reset received quantities to 0
     $resetStmt = $db->prepare("UPDATE consignment_items SET qty_received_total = 0 WHERE consignment_id = ?");
     $resetStmt->bind_param('i', $id); $resetStmt->execute(); $resetStmt->close();
-    
+
     // 8. Update transfer status
     $updateStmt = $db->prepare("UPDATE transfers SET state = ?, updated_at = NOW() WHERE id = ?");
     $updateStmt->bind_param('si', $targetStatus, $id); $updateStmt->execute(); $updateStmt->close();
-    
+
     // 9. Log revert event
     log_transfer_event($db, [
       'consignment_id'=>$id, 'event_type'=>'REVERTED_TO_SENT',
       'event_data'=>['adjustments'=>$adjustments], 'consignment_pk'=>$id, 'audit_after'=>['state'=>$targetStatus]
     ]);
-    
+
     // 10. Return success
     ok([
       'id' => $id,
@@ -2149,36 +2149,36 @@ switch ($action) {
     // Revert PARTIAL → RECEIVING (RISKY - removes finalized inventory)
     $id = (int)($in['id'] ?? 0);
     if ($id <= 0) bad('INVALID_ID');
-    
+
     // 1. Get transfer details
     $stmt = $db->prepare("SELECT * FROM transfers WHERE id = ?");
     $stmt->bind_param('i', $id); $stmt->execute();
     $t = $stmt->get_result()->fetch_assoc(); $stmt->close();
     if (!$t) bad('TRANSFER_NOT_FOUND');
-    
+
     // 2. Verify status
     if ($t['state'] !== 'PARTIAL') bad('CAN_ONLY_REVERT_FROM_PARTIAL');
-    
+
     // 3. Get consignment ID
     $consId = $t['vend_transfer_id'];
     if (!$consId) bad('NO_LIGHTSPEED_CONSIGNMENT');
-    
+
     // 4. Update Lightspeed consignment status to RECEIVING
     if ($sync) {
       $lsUpdate = ls_update_consignment_status($consId, 'RECEIVING');
       if (!$lsUpdate['ok']) bad('LIGHTSPEED_UPDATE_FAILED', $lsUpdate['status']);
     }
-    
+
     // 5. Remove inventory from destination (WARNING: removes finalized stock)
     $itemsStmt = $db->prepare("SELECT product_id, qty_received_total FROM consignment_items WHERE consignment_id = ?");
     $itemsStmt->bind_param('i', $id); $itemsStmt->execute();
     $items = $itemsStmt->get_result();
     $adjustments = [];
-    
+
     while ($item = $items->fetch_assoc()) {
       $productId = $item['product_id'];
       $receivedQty = (int)($item['qty_received_total'] ?? 0);
-      
+
       if ($receivedQty > 0 && $sync) {
         ls_update_outlet_stock($t['outlet_to'], $productId, $receivedQty, 'SUBTRACT');
         $adjustments[] = [
@@ -2189,21 +2189,21 @@ switch ($action) {
       }
     }
     $itemsStmt->close();
-    
+
     // 6. Reset received quantities to 0
     $resetStmt = $db->prepare("UPDATE consignment_items SET qty_received_total = 0 WHERE consignment_id = ?");
     $resetStmt->bind_param('i', $id); $resetStmt->execute(); $resetStmt->close();
-    
+
     // 7. Update transfer status
     $updateStmt = $db->prepare("UPDATE transfers SET state = 'RECEIVING', updated_at = NOW() WHERE id = ?");
     $updateStmt->bind_param('i', $id); $updateStmt->execute(); $updateStmt->close();
-    
+
     // 8. Log revert event with WARNING flag
     log_transfer_event($db, [
       'consignment_id'=>$id, 'event_type'=>'REVERTED_TO_RECEIVING',
       'event_data'=>['warning'=>'INVENTORY_REMOVED','adjustments'=>$adjustments], 'consignment_pk'=>$id, 'audit_after'=>['state'=>'RECEIVING']
     ]);
-    
+
     // 9. Return success
     ok([
       'id' => $id,

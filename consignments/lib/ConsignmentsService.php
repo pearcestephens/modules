@@ -2,12 +2,18 @@
 declare(strict_types=1);
 
 /**
- * ConsignmentsService
- * - Single place for DB ops + Lightspeed calls
- * - Writes deterministic progress entries for SSE
+ * Legacy ConsignmentsService Shim (BC Compatibility)
+ *
+ * Provides backwards compatibility for legacy code using:
+ *   require_once 'lib/ConsignmentsService.php';
+ *   $service = new ConsignmentsService(...);
+ *
+ * This simply aliases to the canonical namespaced version.
  */
 
-final class ConsignmentsService
+require_once __DIR__ . '/../src/Services/ConsignmentService.php';
+class_alias(\Consignments\Services\ConsignmentService::class, 'ConsignmentsService');
+
 {
     public function __construct(
         private \PDO $pdo,

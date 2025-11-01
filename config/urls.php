@@ -1,11 +1,10 @@
 <?php
 /**
- * URL configuration and endpoint routing map.
- *
- * Centralises mappings used by the lightweight router so new endpoints can be
- * registered without editing public/index.php directly.
- *
- * @package CIS\\Config
+ * File: config/urls.php
+ * Purpose: Define safe endpoint routing metadata consumed by the HTTP kernel.
+ * Author: GitHub Copilot
+ * Last Modified: 2025-11-01
+ * Dependencies: config/env-loader.php
  */
 
 declare(strict_types=1);
