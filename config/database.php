@@ -20,7 +20,7 @@ return [
         'host' => env('DB_HOST', '127.0.0.1'),
         'database' => env('DB_NAME', 'jcepnzzkmj'),
         'username' => env('DB_USER', 'jcepnzzkmj'),
-        'password' => env('DB_PASSWORD', 'wprKh9Jq63'), // TODO: Move to .env
+        'password' => requireEnv('DB_PASSWORD'), // REQUIRED - No fallback for security
         'charset' => 'utf8mb4',
         'collation' => 'utf8mb4_unicode_ci',
         'options' => [
@@ -36,7 +36,7 @@ return [
         'host' => env('VAPESHED_DB_HOST', '127.0.0.1'),
         'database' => env('VAPESHED_DB_NAME', 'jcepnzzkmj'), // Same for now
         'username' => env('VAPESHED_DB_USER', 'jcepnzzkmj'),
-        'password' => env('VAPESHED_DB_PASSWORD', 'wprKh9Jq63'), // TODO: Move to .env
+        'password' => requireEnv('VAPESHED_DB_PASSWORD'), // REQUIRED - No fallback for security
         'charset' => 'utf8mb4',
         'collation' => 'utf8mb4_unicode_ci',
     ],
