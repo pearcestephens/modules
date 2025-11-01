@@ -29,13 +29,9 @@ function queue_enqueue_email(
     int $priority = 2
 ) {
     try {
-        // Connect to VapeShed DB
-        if (!function_exists('connectToVapeShedSQL')) {
-            $basePath = dirname(dirname(dirname(dirname(__DIR__))));
-            require_once $basePath . '/assets/functions/mysql.php';
-        }
-
-        $vapeShedCon = connectToVapeShedSQL();
+        // Connect to VapeShed DB using our module's connection function
+        require_once __DIR__ . '/VapeShedDb.php';
+        $vapeShedCon = \HumanResources\Payroll\Lib\getVapeShedConnection();
 
         if (!$vapeShedCon) {
             error_log('EmailQueueHelper: Failed to connect to VapeShed DB');
@@ -102,12 +98,9 @@ function queue_enqueue_email(
 function queue_get_stats(): array
 {
     try {
-        if (!function_exists('connectToVapeShedSQL')) {
-            $basePath = dirname(dirname(dirname(dirname(__DIR__))));
-            require_once $basePath . '/assets/functions/mysql.php';
-        }
-
-        $vapeShedCon = connectToVapeShedSQL();
+        // Connect to VapeShed DB using our module's connection function
+        require_once __DIR__ . '/VapeShedDb.php';
+        $vapeShedCon = \HumanResources\Payroll\Lib\getVapeShedConnection();
 
         if (!$vapeShedCon) {
             return ['error' => 'Failed to connect'];

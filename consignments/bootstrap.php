@@ -1,18 +1,18 @@
 <?php
 /**
  * Consignments Module Bootstrap
- * 
+ *
  * Auto-loads common dependencies for the Consignments module.
  * Include this file at the top of any Consignments module file.
- * 
+ *
  * Usage:
  *   require_once __DIR__ . '/bootstrap.php';
- * 
+ *
  * What it loads:
  *   - Base application (sessions, DB, etc.)
  *   - Shared API response envelope
  *   - Module-specific shared files (if they exist)
- * 
+ *
  * @package CIS\Consignments
  * @version 1.0.0
  */
@@ -28,20 +28,8 @@ if (!defined('ROOT_PATH')) {
 // 1. LOAD BASE APPLICATION
 // ============================================================================
 
-// Base app (sessions, database, core functions)
-if (file_exists(ROOT_PATH . '/app.php')) {
-    require_once ROOT_PATH . '/app.php';
-}
-
-// Base config if separate
-if (file_exists(ROOT_PATH . '/assets/functions/config.php')) {
-    require_once ROOT_PATH . '/assets/functions/config.php';
-}
-
-// Bootstrap app (if separate)
-if (file_exists(ROOT_PATH . '/bootstrap/app.php')) {
-    require_once ROOT_PATH . '/bootstrap/app.php';
-}
+// Load base/bootstrap.php for core services (Database, Session, Logger, etc.)
+require_once __DIR__ . '/../base/bootstrap.php';
 
 // ============================================================================
 // 2. LOAD SHARED MODULES (cross-module utilities)
@@ -118,52 +106,52 @@ if (is_dir($consignmentsSharedDir . '/functions')) {
 
 /**
  * Load files from a specific Consignments subfolder
- * 
+ *
  * Example:
  *   consignments_load_subfolder('stock-transfers/functions');
- * 
+ *
  * This will load all PHP files from:
  *   /modules/consignments/stock-transfers/functions/*.php
- * 
+ *
  * @param string $subfolder Path relative to consignments module
  * @return int Number of files loaded
  */
 function consignments_load_subfolder(string $subfolder): int {
     $fullPath = CONSIGNMENTS_MODULE_PATH . '/' . ltrim($subfolder, '/');
     $loadedCount = 0;
-    
+
     if (is_dir($fullPath)) {
         foreach (glob($fullPath . '/*.php') as $file) {
             // Skip bootstrap.php to prevent recursion
             if (basename($file) === 'bootstrap.php') {
                 continue;
             }
-            
+
             require_once $file;
             $loadedCount++;
         }
     }
-    
+
     return $loadedCount;
 }
 
 /**
  * Load a specific file from Consignments module
- * 
+ *
  * Example:
  *   consignments_load_file('stock-transfers/functions/pack.php');
- * 
+ *
  * @param string $filePath Path relative to consignments module
  * @return bool True if file was loaded, false if not found
  */
 function consignments_load_file(string $filePath): bool {
     $fullPath = CONSIGNMENTS_MODULE_PATH . '/' . ltrim($filePath, '/');
-    
+
     if (file_exists($fullPath)) {
         require_once $fullPath;
         return true;
     }
-    
+
     return false;
 }
 
@@ -179,12 +167,12 @@ $callingDir = dirname($callingFile);
 if (strpos($callingDir, CONSIGNMENTS_MODULE_PATH) === 0) {
     // Extract subfolder path (e.g., "stock-transfers")
     $relativePath = str_replace(CONSIGNMENTS_MODULE_PATH . '/', '', $callingDir);
-    
+
     // Only auto-load if it's a subfolder (not root consignments)
     if (strpos($relativePath, '/') !== false || $relativePath !== 'consignments') {
         // Try to load functions folder for this subfolder
         $functionsFolder = dirname($callingDir) . '/functions';
-        
+
         if (is_dir($functionsFolder)) {
             foreach (glob($functionsFolder . '/*.php') as $functionFile) {
                 // Skip if already loaded

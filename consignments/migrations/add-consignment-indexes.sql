@@ -13,33 +13,35 @@
 START TRANSACTION;
 
 -- =====================================================================
--- CONSIGNMENTS TABLE INDEXES
+-- VEND_CONSIGNMENTS TABLE INDEXES
 -- =====================================================================
+-- Note: Using IF NOT EXISTS to safely skip existing indexes
 
 -- Single-column indexes for common filters
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_status (status);
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_origin (origin_outlet_id);
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_dest (dest_outlet_id);
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_created (created_at);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_status (status);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_outlet_id (outlet_id);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_destination_outlet_id (destination_outlet_id);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_due_at (due_at);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_name (name(50));
 
 -- Composite indexes for combined filters (most common queries)
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_outlet_status (origin_outlet_id, status);
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_dest_status (dest_outlet_id, status);
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_created_status (created_at DESC, status);
-
--- Index for ref_code search (LIKE queries)
-ALTER TABLE consignments ADD INDEX IF NOT EXISTS idx_ref_code (ref_code(20));
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_outlet_status (outlet_id, status);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_dest_status (destination_outlet_id, status);
+ALTER TABLE vend_consignments ADD INDEX IF NOT EXISTS idx_due_status (due_at DESC, status);
 
 -- =====================================================================
--- CONSIGNMENT_ITEMS TABLE INDEXES
+-- VEND_CONSIGNMENT_LINE_ITEMS TABLE INDEXES
 -- =====================================================================
 
--- Foreign key index (should already exist, but ensure it)
-ALTER TABLE consignment_items ADD INDEX IF NOT EXISTS idx_consignment (consignment_id);
+-- Foreign key index
+ALTER TABLE vend_consignment_line_items ADD INDEX IF NOT EXISTS idx_transfer_id (transfer_id);
 
 -- Product lookup indexes
-ALTER TABLE consignment_items ADD INDEX IF NOT EXISTS idx_product (product_id(20));
-ALTER TABLE consignment_items ADD INDEX IF NOT EXISTS idx_sku (sku(20));
+ALTER TABLE vend_consignment_line_items ADD INDEX IF NOT EXISTS idx_product_id (product_id);
+ALTER TABLE vend_consignment_line_items ADD INDEX IF NOT EXISTS idx_received (received);
+
+-- Composite for common queries
+ALTER TABLE vend_consignment_line_items ADD INDEX IF NOT EXISTS idx_transfer_product (transfer_id, product_id);
 
 -- Status filter index
 ALTER TABLE consignment_items ADD INDEX IF NOT EXISTS idx_status (status);

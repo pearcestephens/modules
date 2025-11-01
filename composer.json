@@ -1,0 +1,21 @@
+{
+    "name": "cis/modules",
+    "description": "CIS Modular Application - Shared Services",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "dompdf/dompdf": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "CIS\\Shared\\Services\\": "shared/services/",
+            "CIS\\Base\\": "base/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

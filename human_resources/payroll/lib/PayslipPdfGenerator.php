@@ -83,15 +83,23 @@ tfoot th { background: #fafafa; }
     }
 
     /**
-     * Convert rendered HTML into PDF bytes. Placeholder until PDF engine wired.
+     * Convert rendered HTML into PDF bytes using shared PdfService.
      *
      * @param string $html Rendered HTML payload.
      *
-     * @return string Binary PDF contents (currently raw HTML as placeholder).
+     * @return string Binary PDF contents.
      */
     public static function toPdfBytes(string $html): string
     {
-        // TODO: Inject Dompdf or wkhtmltopdf implementation.
-        return $html;
+        // Load shared PdfService
+        require_once __DIR__ . '/../../../shared/services/PdfService.php';
+
+        // Generate PDF using centralized service
+        $pdf = \CIS\Shared\Services\PdfService::fromHtml($html, [
+            'orientation' => 'portrait',
+            'paper' => 'a4'
+        ]);
+
+        return $pdf->output();
     }
 }

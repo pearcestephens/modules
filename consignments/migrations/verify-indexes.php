@@ -14,7 +14,18 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../bootstrap.php';
+// Set document root for base bootstrap
+$_SERVER['DOCUMENT_ROOT'] = dirname(dirname(dirname(__DIR__)));
+
+// Load base bootstrap for Database class
+require_once __DIR__ . '/../../base/bootstrap.php';
+
+// Get PDO connection from Database class
+try {
+    $pdo = CIS\Base\Database::pdo();
+} catch (Exception $e) {
+    die("Database connection failed: " . $e->getMessage() . "\n");
+}
 
 // ANSI color codes for output
 const COLOR_RED = "\033[0;31m";
@@ -41,30 +52,27 @@ function log_error(string $msg): void {
 
 // Expected indexes
 $expectedIndexes = [
-    'consignments' => [
+    'vend_consignments' => [
         'PRIMARY',
         'idx_status',
-        'idx_origin',
-        'idx_dest',
-        'idx_created',
+        'idx_outlet_id',
+        'idx_destination_outlet_id',
+        'idx_due_at',
+        'idx_name',
         'idx_outlet_status',
         'idx_dest_status',
-        'idx_created_status',
-        'idx_ref_code'
+        'idx_due_status'
     ],
-    'consignment_items' => [
+    'vend_consignment_line_items' => [
         'PRIMARY',
-        'idx_consignment',
-        'idx_product',
-        'idx_sku',
-        'idx_status',
-        'idx_consignment_status'
+        'idx_transfer_id',
+        'idx_product_id',
+        'idx_received',
+        'idx_transfer_product'
     ]
 ];
 
 try {
-    $pdo = db_ro();
-
     echo PHP_EOL;
     log_info("Starting index verification...");
     echo PHP_EOL;
@@ -128,11 +136,11 @@ try {
 
         // Test index usage with EXPLAIN
         $testQueries = [
-            "SELECT * FROM consignments WHERE status = 'sent' LIMIT 10",
-            "SELECT * FROM consignments WHERE origin_outlet_id = 1 AND status = 'sent' LIMIT 10",
-            "SELECT * FROM consignments WHERE ref_code LIKE 'CON%' LIMIT 10",
-            "SELECT * FROM consignment_items WHERE consignment_id = 1",
-            "SELECT * FROM consignments ORDER BY created_at DESC LIMIT 10"
+            "SELECT * FROM vend_consignments WHERE status = 'sent' LIMIT 10",
+            "SELECT * FROM vend_consignments WHERE outlet_id = 1 AND status = 'sent' LIMIT 10",
+            "SELECT * FROM vend_consignments WHERE name LIKE 'CON%' LIMIT 10",
+            "SELECT * FROM vend_consignment_line_items WHERE transfer_id = 1",
+            "SELECT * FROM vend_consignments ORDER BY due_at DESC LIMIT 10"
         ];
 
         foreach ($testQueries as $query) {

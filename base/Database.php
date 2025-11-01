@@ -48,6 +48,8 @@ class Database
 
     private static bool $pdoInitialized = false;
     private static bool $mysqliInitialized = false;
+    private static bool $vapeshedInitialized = false;
+    private static ?\mysqli $vapeshedConnection = null;
 
     /**
      * Initialize PDO connection (auto-called on first use)
@@ -88,6 +90,81 @@ class Database
         ]);
 
         self::$mysqliInitialized = true;
+    }
+
+    /**
+     * Initialize VapeShed database connection (for email queue)
+     * This is a separate database connection for the VapeShed email system
+     * NOTE: Currently uses main database until VapeShed credentials are configured
+     */
+    public static function initVapeShed(): void
+    {
+        if (self::$vapeshedInitialized) return;
+
+        // Load config
+        $configPath = dirname(dirname(dirname(__DIR__))) . '/config/database.php';
+        if (!file_exists($configPath)) {
+            $configPath = '/home/master/applications/jcepnzzkmj/public_html/config/database.php';
+        }
+
+        $config = require $configPath;
+
+        // Try VapeShed config first, fallback to main database
+        $vsConfig = $config['vapeshed'] ?? null;
+
+        // Test if VapeShed credentials work, otherwise use main DB
+        if ($vsConfig) {
+            try {
+                $testConn = new \mysqli(
+                    $vsConfig['host'],
+                    $vsConfig['username'],
+                    $vsConfig['password'],
+                    $vsConfig['database']
+                );
+
+                if (!$testConn->connect_error) {
+                    // VapeShed credentials work!
+                    self::$vapeshedConnection = $testConn;
+                    self::$vapeshedConnection->set_charset('utf8mb4');
+                    self::$vapeshedInitialized = true;
+                    return;
+                }
+            } catch (\Exception $e) {
+                // VapeShed credentials don't work, fallback to main DB
+            }
+        }
+
+        // Fallback: Use main database for email queue
+        $mainConfig = $config['cis'] ?? [];
+        $host = $mainConfig['host'] ?? '127.0.0.1';
+        $database = $mainConfig['database'] ?? 'jcepnzzkmj';
+        $username = $mainConfig['username'] ?? 'jcepnzzkmj';
+        $password = $mainConfig['password'] ?? 'wprKh9Jq63';
+
+        self::$vapeshedConnection = new \mysqli($host, $username, $password, $database);
+
+        if (self::$vapeshedConnection->connect_error) {
+            throw new \RuntimeException(
+                'VapeShed DB connection failed: ' . self::$vapeshedConnection->connect_error
+            );
+        }
+
+        self::$vapeshedConnection->set_charset('utf8mb4');
+        self::$vapeshedInitialized = true;
+    }
+
+    /**
+     * Get VapeShed MySQLi connection
+     * Auto-initializes on first call
+     *
+     * @return \mysqli VapeShed database connection
+     */
+    public static function vapeshed(): \mysqli
+    {
+        if (!self::$vapeshedInitialized) {
+            self::initVapeShed();
+        }
+        return self::$vapeshedConnection;
     }
 
     /**

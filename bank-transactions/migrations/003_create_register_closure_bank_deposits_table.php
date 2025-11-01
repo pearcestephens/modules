@@ -26,32 +26,32 @@ try {
     $createTable = "
     CREATE TABLE IF NOT EXISTS `register_closure_bank_transactions_current` (
       `id` int(11) NOT NULL AUTO_INCREMENT,
-      
+
       -- Store/Outlet Info
       `outlet_id` varchar(36) NOT NULL COMMENT 'Vend outlet ID',
-      
+
       -- Deposit Details
       `reference` varchar(50) NOT NULL COMMENT 'Bank deposit reference number',
       `bag_number` varchar(50) DEFAULT NULL COMMENT 'Bank deposit bag number',
       `expected_cash_total` decimal(13,2) NOT NULL DEFAULT '0.00' COMMENT 'Expected cash amount',
       `actual_cash_total` decimal(13,2) NOT NULL DEFAULT '0.00' COMMENT 'Actual cash amount deposited',
-      
+
       -- Person Taking Deposit
       `first_name` varchar(100) DEFAULT NULL COMMENT 'First name of person taking deposit',
       `last_name` varchar(100) DEFAULT NULL COMMENT 'Last name of person taking deposit',
-      
+
       -- Metadata
       `notes` text DEFAULT NULL COMMENT 'Additional notes about the deposit',
       `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When deposit was created',
       `user_created_by` int(11) DEFAULT NULL COMMENT 'User ID who created the deposit record',
-      
+
       PRIMARY KEY (`id`),
       KEY `idx_outlet_id` (`outlet_id`),
       KEY `idx_reference` (`reference`),
       KEY `idx_bag_number` (`bag_number`),
       KEY `idx_created` (`created`),
       KEY `idx_user_created_by` (`user_created_by`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     COMMENT='Cash deposits from register closures taken to the bank';
     ";
 

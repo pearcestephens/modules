@@ -1,0 +1,17 @@
+{
+    "name": "cis/payroll",
+    "description": "CIS Payroll Module with Xero Integration",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "tecnickcom/tcpdf": "^6.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "CIS\\Payroll\\": "lib/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
