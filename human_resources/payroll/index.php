@@ -299,7 +299,7 @@ if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map)$/i',
 
     // SECURITY CHECK 2: Block absolute paths
     if (
-        $relativeFilePath[0] === '/' || 
+        $relativeFilePath[0] === '/' ||
         preg_match('/^[a-z]:/i', $relativeFilePath) ||
         strpos($relativeFilePath, ':') !== false
     ) {

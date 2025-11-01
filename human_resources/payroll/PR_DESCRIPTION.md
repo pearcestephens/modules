@@ -1,7 +1,7 @@
 # Payroll Module: Hardening & Completion
 
-**Branch:** `payroll-hardening-20251101`  
-**Date:** November 1, 2025  
+**Branch:** `payroll-hardening-20251101`
+**Date:** November 1, 2025
 **Status:** 🚧 IN PROGRESS
 
 ## 📋 Objectives Progress
@@ -11,21 +11,21 @@
   - Rewrote validateInput() with dual-signature support + full validation engine
   - Created unit tests (BaseControllerHelpersTest.php, ValidationEngineTest.php)
   - Result: Unblocks 10+ POST endpoints across 4 controllers
-  
+
 - [x] **2. Real validator wiring** ✅ COMPLETED (~15 min)
   - Removed stub validator (\stdClass)
   - Implemented real validation engine in validateInput()
   - Type coercion: int, float, bool, datetime, date
   - Constraints: required, optional, min, max, enum
   - Used by 4 controllers in production
-  
+
 - [x] **3. Static file serving hardening** ✅ COMPLETED (~20 min)
   - Added 6 security layers: path traversal, absolute path, URL-decode, realpath+jail, file type, extension whitelist
   - Enforced jail directory: assets/ and vendor/ only
   - Comprehensive security logging
   - 20 security test cases created
   - Attack surface reduced by 99%
-  
+
 - [ ] 4. Remove fallback DB credentials
 - [ ] 5. Auth & CSRF consistency
 - [ ] 6. Deputy sync implementation
@@ -41,7 +41,7 @@
 ## � Detailed Progress Log
 
 ### Objective 1: Controller Helper Mismatch ✅
-**Date:** November 1, 2025  
+**Date:** November 1, 2025
 **Status:** COMPLETED
 
 **Problem:**
@@ -55,17 +55,17 @@
    - Enforces POST method
    - Returns 405 "Method Not Allowed" with Allow: POST header
    - Logs security warning
-   
+
 2. Added `verifyCsrf()` helper (~15 lines)
    - Calls existing validateCsrf() method
    - Returns 403 "Forbidden" on failure
    - Logs security event
-   
+
 3. Added `getJsonInput($assoc=true)` helper (~25 lines)
    - Safely parses JSON from php://input
    - Validates JSON syntax
    - Throws InvalidArgumentException on malformed JSON
-   
+
 4. Rewrote `validateInput()` (~130 lines)
    - NEW: Dual-signature support
      * validateInput($rules) - auto-uses $_POST
@@ -97,4 +97,3 @@
 ## 🔍 Discovery Phase
 
 Starting reconnaissance...
-

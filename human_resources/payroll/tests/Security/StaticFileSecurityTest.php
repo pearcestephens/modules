@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Security tests for static file serving
  * Tests all path traversal and security vulnerabilities
- * 
+ *
  * @group security
  * @covers PAYROLL_MODULE::StaticFileServing
  */
@@ -110,9 +110,9 @@ class StaticFileSecurityTest extends TestCase
     public function testSymlinkAttack(): void
     {
         // Assume attacker creates symlink: assets/evil.css -> /etc/passwd
-        
+
         $attackUrl = '/assets/evil.css';
-        
+
         // Expected: 404 or 403 (is_file check should fail for symlinks)
         $this->assertTrue(true, "Should block symlinks: {$attackUrl}");
     }

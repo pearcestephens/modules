@@ -1,0 +1,18 @@
+# Consignments Module Code Owners
+# These users are automatically requested for review when someone opens a PR
+
+# Global ownership
+/modules/consignments/* @pearcestephens @ops-lead
+
+# Critical infrastructure
+/modules/consignments/domain/ @pearcestephens
+/modules/consignments/infra/Lightspeed/ @pearcestephens
+/modules/consignments/infra/Queue/ @pearcestephens
+/modules/consignments/infra/Webhooks/ @pearcestephens
+
+# Database & migrations
+/modules/consignments/infra/Persistence/ @pearcestephens @ops-lead
+/modules/consignments/migrations/ @pearcestephens @ops-lead
+
+# Documentation
+/modules/consignments/docs/ @pearcestephens

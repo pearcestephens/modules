@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Integration tests for controller validation
  * Tests real validation scenarios with 3+ controllers
- * 
+ *
  * @group integration
  */
 class ControllerValidationTest extends TestCase
@@ -280,7 +280,7 @@ class ControllerValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Setup test session
         $_SESSION = [
             'csrf_token' => 'test_token_12345',

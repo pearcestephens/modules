@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Comprehensive validation engine tests
  * Tests all validation types and type coercion
- * 
+ *
  * @covers HumanResources\Payroll\Controllers\BaseController::validateInput
  */
 class ValidationEngineTest extends TestCase
@@ -138,7 +138,7 @@ class ValidationEngineTest extends TestCase
     {
         $validData = ['status' => 'pending'];
         $invalidData = ['status' => 'invalid_status'];
-        
+
         $rules = ['status' => ['required', 'string', 'in:pending,approved,declined']];
 
         // Expected: 'pending' passes, 'invalid_status' fails
@@ -152,7 +152,7 @@ class ValidationEngineTest extends TestCase
     {
         $validData = ['password' => 'secure123'];
         $invalidData = ['password' => 'abc'];
-        
+
         $rules = ['password' => ['required', 'string', 'min:5']];
 
         // Expected: 'secure123' (9 chars) passes, 'abc' (3 chars) fails
@@ -166,7 +166,7 @@ class ValidationEngineTest extends TestCase
     {
         $validData = ['code' => 'ABC123'];
         $invalidData = ['code' => 'ABCDEFGHIJKLMNOP'];
-        
+
         $rules = ['code' => ['required', 'string', 'max:10']];
 
         // Expected: 'ABC123' (6 chars) passes, long string fails
@@ -181,7 +181,7 @@ class ValidationEngineTest extends TestCase
         $validData = ['name' => 'John Doe'];
         $emptyData = ['name' => ''];
         $missingData = [];
-        
+
         $rules = ['name' => ['required', 'string']];
 
         // Expected: valid data passes, empty/missing fails
@@ -195,7 +195,7 @@ class ValidationEngineTest extends TestCase
     {
         $withData = ['notes' => 'Some notes'];
         $withoutData = [];
-        
+
         $rules = ['notes' => ['optional', 'string']];
 
         // Expected: both pass (field is optional)
@@ -259,7 +259,7 @@ class ValidationEngineTest extends TestCase
     public function testValidateInputWithRulesOnly(): void
     {
         $_POST = ['staff_id' => '123', 'notes' => 'Test'];
-        
+
         $rules = [
             'staff_id' => ['required', 'integer'],
             'notes' => ['required', 'string']
@@ -348,7 +348,7 @@ class ValidationEngineTest extends TestCase
     {
         $exact = ['code' => '12345'];  // exactly 5
         $tooShort = ['code' => '1234']; // 4
-        
+
         $rules = ['code' => ['required', 'string', 'min:5']];
 
         // Expected: exact passes, too short fails
@@ -362,7 +362,7 @@ class ValidationEngineTest extends TestCase
     {
         $exact = ['code' => '1234567890'];  // exactly 10
         $tooLong = ['code' => '12345678901']; // 11
-        
+
         $rules = ['code' => ['required', 'string', 'max:10']];
 
         // Expected: exact passes, too long fails

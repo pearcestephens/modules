@@ -101,7 +101,7 @@ abstract class BaseController
 
     /**
      * Require POST request method
-     * 
+     *
      * @throws \Exception If request method is not POST
      * @return void
      */
@@ -113,7 +113,7 @@ abstract class BaseController
                 'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
                 'expected' => 'POST'
             ]);
-            
+
             http_response_code(405);
             header('Allow: POST');
             $this->error('Method not allowed. POST required.', [], 405);
@@ -123,7 +123,7 @@ abstract class BaseController
 
     /**
      * Verify CSRF token (enforce)
-     * 
+     *
      * @throws \Exception If CSRF validation fails
      * @return void
      */
@@ -138,7 +138,7 @@ abstract class BaseController
 
     /**
      * Get JSON input from request body
-     * 
+     *
      * @param bool $assoc Return as associative array
      * @return array|object Parsed JSON data
      * @throws \InvalidArgumentException If JSON is invalid
@@ -146,13 +146,13 @@ abstract class BaseController
     protected function getJsonInput(bool $assoc = true)
     {
         $input = file_get_contents('php://input');
-        
+
         if (empty($input)) {
             return $assoc ? [] : new \stdClass();
         }
-        
+
         $data = json_decode($input, $assoc);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->logger->warning('Invalid JSON input', [
                 'request_id' => $this->requestId,
@@ -160,7 +160,7 @@ abstract class BaseController
             ]);
             throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
         }
-        
+
         return $data;
     }
 
@@ -261,11 +261,11 @@ abstract class BaseController
 
     /**
      * Validate input data against rules
-     * 
+     *
      * Supports two calling signatures:
      * 1. validateInput($data, $rules) - explicit data and rules
      * 2. validateInput($rules) - auto-detects data from $_POST
-     * 
+     *
      * @param array $dataOrRules Either the data array or rules array
      * @param array|null $rules Optional rules array (if first param is data)
      * @return array Validated data
@@ -294,7 +294,7 @@ abstract class BaseController
 
             // Check if optional
             $isOptional = in_array('optional', $fieldRules);
-            
+
             // Required validation
             if (!$isOptional && in_array('required', $fieldRules)) {
                 if ($value === null || $value === '') {

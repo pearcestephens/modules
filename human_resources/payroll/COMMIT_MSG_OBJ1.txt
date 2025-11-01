@@ -13,7 +13,7 @@ Solution:
    - Enforces POST method, returns 405 on violation
    - Logs security warning with request context
 
-2. Added verifyCsrf() helper  
+2. Added verifyCsrf() helper
    - Enforces CSRF validation, returns 403 on failure
    - Logs security event
 
@@ -31,7 +31,7 @@ Solution:
 Impact:
 - ✅ Unblocks 10+ POST endpoints
 - ✅ AmendmentController: 3 endpoints functional
-- ✅ WageDiscrepancyController: 4 endpoints functional  
+- ✅ WageDiscrepancyController: 4 endpoints functional
 - ✅ XeroController: 2 endpoints functional
 - ✅ PayrollAutomationController: 1 endpoint functional
 

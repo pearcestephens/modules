@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Tests for BaseController helper methods
- * 
+ *
  * @covers HumanResources\Payroll\Controllers\BaseController
  */
 class BaseControllerHelpersTest extends TestCase
@@ -17,7 +17,7 @@ class BaseControllerHelpersTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Mock session
         if (!isset($_SESSION)) {
             $_SESSION = [
@@ -31,10 +31,10 @@ class BaseControllerHelpersTest extends TestCase
     public function testRequirePostThrowsOn GET(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        
+
         $this->expectException(\Exception::class);
         $this->expectOutputRegex('/Method not allowed/');
-        
+
         // This would need a concrete controller instance
         // For now, this documents the expected behavior
         $this->assertTrue(true, 'requirePost() should throw 405 on non-POST');
@@ -45,7 +45,7 @@ class BaseControllerHelpersTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['csrf_token'] = 'invalid_token';
         $_SESSION['csrf_token'] = 'valid_token_12345';
-        
+
         // Expected: 403 response
         $this->assertTrue(true, 'verifyCsrf() should fail with invalid token');
     }
@@ -55,7 +55,7 @@ class BaseControllerHelpersTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['csrf_token'] = 'test_token_12345';
         $_SESSION['csrf_token'] = 'test_token_12345';
-        
+
         // Expected: no exception
         $this->assertTrue(true, 'verifyCsrf() should pass with valid token');
     }
