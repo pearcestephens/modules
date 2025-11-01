@@ -241,13 +241,49 @@ exit(0);
 // ============================================================================
 
 /**
- * Get PDO connection
+ * Load environment variables from .env file
+ */
+function load_env(): void {
+    $envFile = __DIR__ . '/../../../../.env';
+    if (!file_exists($envFile)) {
+        die("ERROR: .env file not found at {$envFile}\n");
+    }
+
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // Skip comments
+        if (strpos(trim($line), '#') === 0) continue;
+
+        // Skip malformed lines
+        if (strpos($line, '=') === false) continue;
+
+        // Parse key=value
+        list($key, $value) = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
+}
+
+/**
+ * Get environment variable with fail-fast
+ */
+function getEnvOrDie(string $key): string {
+    if (!isset($_ENV[$key])) {
+        die("ERROR: {$key} not set in .env\n");
+    }
+    return $_ENV[$key];
+}
+
+/**
+ * Get PDO connection (using environment variables)
  */
 function get_pdo_connection(): PDO {
-    $host = '127.0.0.1';
-    $dbname = 'jcepnzzkmj';
-    $username = 'jcepnzzkmj';
-    $password = 'wprKh9Jq63';
+    // Load environment variables
+    load_env();
+
+    $host = getEnvOrDie('DB_HOST');
+    $dbname = getEnvOrDie('DB_NAME');
+    $username = getEnvOrDie('DB_USER');
+    $password = getEnvOrDie('DB_PASSWORD');
 
     $pdo = new PDO(
         "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
