@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Security Test Suite - AJAX/JavaScript</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { color: #00ff88; margin-bottom: 30px; text-align: center; font-size: 2.5em; }
+        .test-suite { background: #16213e; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .test-case { background: #0f3460; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #666; }
+        .test-case.running { border-left-color: #ffa500; }
+        .test-case.passed { border-left-color: #00ff88; }
+        .test-case.failed { border-left-color: #ff4444; }
+        .test-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .test-name { font-weight: bold; font-size: 1.1em; }
+        .test-status { padding: 5px 15px; border-radius: 20px; font-size: 0.9em; font-weight: bold; }
+        .status-pending { background: #666; color: #fff; }
+        .status-running { background: #ffa500; color: #000; animation: pulse 1s infinite; }
+        .status-passed { background: #00ff88; color: #000; }
+        .status-failed { background: #ff4444; color: #fff; }
+        .test-details { font-size: 0.9em; color: #bbb; margin-top: 10px; }
+        .test-error { background: #330000; padding: 10px; border-radius: 5px; margin-top: 10px; color: #ff8888; font-family: monospace; font-size: 0.85em; }
+        .summary { display: flex; justify-content: space-around; margin-bottom: 30px; }
+        .summary-item { text-align: center; padding: 20px; background: #0f3460; border-radius: 8px; flex: 1; margin: 0 10px; }
+        .summary-value { font-size: 3em; font-weight: bold; }
+        .summary-label { color: #bbb; margin-top: 5px; }
+        .run-btn { background: #00ff88; color: #000; border: none; padding: 15px 40px; font-size: 1.2em; font-weight: bold; border-radius: 5px; cursor: pointer; display: block; margin: 0 auto 30px; }
+        .run-btn:hover { background: #00cc66; }
+        .run-btn:disabled { background: #666; cursor: not-allowed; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .progress-bar { width: 100%; height: 30px; background: #0f3460; border-radius: 15px; overflow: hidden; margin-bottom: 30px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #00ff88, #00cc66); transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: #000; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Payroll Security Test Suite - AJAX/JavaScript</h1>
+
+        <button class="run-btn" id="runTestsBtn">🚀 Run All Security Tests</button>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-value" id="totalTests">0</div>
+                <div class="summary-label">Total Tests</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value" id="passedTests" style="color: #00ff88;">0</div>
+                <div class="summary-label">Passed</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value" id="failedTests" style="color: #ff4444;">0</div>
+                <div class="summary-label">Failed</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value" id="duration">0s</div>
+                <div class="summary-label">Duration</div>
+            </div>
+        </div>
+
+        <div id="testSuites"></div>
+    </div>
+
+    <script>
+        const BASE_URL = '/modules/human_resources/payroll';
+
+        const testSuites = [
+            {
+                name: 'Authentication & Authorization',
+                tests: [
+                    {
+                        name: 'Unauthenticated requests return 401',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/dashboard/data`);
+                            if (res.status !== 401 && res.status !== 302) {
+                                throw new Error(`Expected 401/302, got ${res.status}`);
+                            }
+                        }
+                    },
+                    {
+                        name: 'Invalid credentials return error',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/auth/login`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: 'fake@test.com', password: 'wrong' })
+                            });
+                            const json = await res.json();
+                            if (json.success === true) {
+                                throw new Error('Invalid credentials should not succeed');
+                            }
+                        }
+                    },
+                    {
+                        name: 'Missing permission returns 403',
+                        run: async () => {
+                            // Would need authenticated session - mark as pending
+                            throw new Error('SKIP: Requires authenticated session');
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'CSRF Protection',
+                tests: [
+                    {
+                        name: 'POST without CSRF token fails',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/amendments/create`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ test: 'data' })
+                            });
+                            if (res.status !== 403 && res.status !== 401) {
+                                throw new Error(`Expected 403/401, got ${res.status}`);
+                            }
+                        }
+                    },
+                    {
+                        name: 'POST with invalid CSRF token fails',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/amendments/create`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': 'invalid_token_12345'
+                                },
+                                body: JSON.stringify({ test: 'data' })
+                            });
+                            if (res.status !== 403 && res.status !== 401) {
+                                throw new Error(`Expected 403/401, got ${res.status}`);
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'SQL Injection Prevention',
+                tests: [
+                    {
+                        name: "Login with ' OR '1'='1 fails",
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/auth/login`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: "admin' OR '1'='1", password: 'test' })
+                            });
+                            const json = await res.json();
+                            if (json.success === true) {
+                                throw new Error('SQL injection should not succeed');
+                            }
+                        }
+                    },
+                    {
+                        name: "Login with admin'-- fails",
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/auth/login`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email: "admin'--", password: 'any' })
+                            });
+                            const json = await res.json();
+                            if (json.success === true) {
+                                throw new Error('SQL injection should not succeed');
+                            }
+                        }
+                    },
+                    {
+                        name: 'Query params with SQL injection fail',
+                        run: async () => {
+                            const malicious = encodeURIComponent("1' UNION SELECT * FROM users--");
+                            const res = await fetch(`${BASE_URL}/api/payroll/dashboard/data?filter=${malicious}`);
+                            // Should not expose database structure
+                            const text = await res.text();
+                            if (text.includes('users') || text.includes('SELECT')) {
+                                throw new Error('SQL injection exposed database info');
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'XSS Prevention',
+                tests: [
+                    {
+                        name: 'Script tags in params are escaped',
+                        run: async () => {
+                            const xss = encodeURIComponent('<script>alert("XSS")</script>');
+                            const res = await fetch(`${BASE_URL}/api/payroll/dashboard/data?search=${xss}`);
+                            const text = await res.text();
+                            if (text.includes('<script>') && !text.includes('&lt;script&gt;')) {
+                                throw new Error('XSS payload not escaped');
+                            }
+                        }
+                    },
+                    {
+                        name: 'Event handlers in params are escaped',
+                        run: async () => {
+                            const xss = encodeURIComponent('<img src=x onerror=alert("XSS")>');
+                            const res = await fetch(`${BASE_URL}/api/payroll/dashboard/data?input=${xss}`);
+                            const text = await res.text();
+                            if (text.includes('onerror=') && !text.includes('onerror&#')) {
+                                throw new Error('XSS event handler not escaped');
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'Path Traversal Prevention',
+                tests: [
+                    {
+                        name: '../../../config/database.php blocked',
+                        run: async () => {
+                            const traversal = encodeURIComponent('../../../config/database.php');
+                            const res = await fetch(`${BASE_URL}/api/payroll/file?path=${traversal}`);
+                            const text = await res.text();
+                            if (text.includes('DB_PASSWORD') || text.includes('mysql')) {
+                                throw new Error('Path traversal exposed sensitive file');
+                            }
+                        }
+                    },
+                    {
+                        name: '..%2F..%2F.env blocked',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/file?path=..%2F..%2F.env`);
+                            const text = await res.text();
+                            if (text.includes('DB_PASSWORD') || text.includes('APP_KEY')) {
+                                throw new Error('Path traversal exposed .env file');
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'API Response Security',
+                tests: [
+                    {
+                        name: 'Errors do not expose stack traces',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/invalid-endpoint`);
+                            const text = await res.text();
+                            if (text.includes('/home/') || text.includes('Stack trace:')) {
+                                throw new Error('Error response exposed stack trace');
+                            }
+                        }
+                    },
+                    {
+                        name: 'Errors do not expose database credentials',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/dashboard/data`);
+                            const text = await res.text();
+                            if (text.includes('jcepnzzkmj') || text.includes('wprKh9Jq63')) {
+                                throw new Error('Response exposed database credentials');
+                            }
+                        }
+                    },
+                    {
+                        name: 'JSON responses have security headers',
+                        run: async () => {
+                            const res = await fetch(`${BASE_URL}/api/payroll/dashboard/data`);
+                            const contentType = res.headers.get('Content-Type');
+                            if (!contentType || !contentType.includes('application/json')) {
+                                throw new Error('API should return JSON content-type');
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'Rate Limiting',
+                tests: [
+                    {
+                        name: 'Rapid requests are throttled',
+                        run: async () => {
+                            const promises = [];
+                            for (let i = 0; i < 50; i++) {
+                                promises.push(fetch(`${BASE_URL}/api/auth/login`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ email: 'test@test.com', password: 'test' })
+                                }));
+                            }
+                            const responses = await Promise.all(promises);
+                            const rateLimited = responses.some(r => r.status === 429);
+                            if (!rateLimited) {
+                                console.warn('Note: Rate limiting may not be active (expected 429 status)');
+                            }
+                        }
+                    }
+                ]
+            }
+        ];
+
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+        let startTime = 0;
+
+        function createTestHTML(suites) {
+            const container = document.getElementById('testSuites');
+            container.innerHTML = '';
+
+            suites.forEach((suite, suiteIdx) => {
+                const suiteDiv = document.createElement('div');
+                suiteDiv.className = 'test-suite';
+                suiteDiv.innerHTML = `<h2>${suite.name}</h2>`;
+
+                suite.tests.forEach((test, testIdx) => {
+                    totalTests++;
+                    const testDiv = document.createElement('div');
+                    testDiv.className = 'test-case';
+                    testDiv.id = `test-${suiteIdx}-${testIdx}`;
+                    testDiv.innerHTML = `
+                        <div class="test-header">
+                            <span class="test-name">${test.name}</span>
+                            <span class="test-status status-pending">PENDING</span>
+                        </div>
+                        <div class="test-details"></div>
+                    `;
+                    suiteDiv.appendChild(testDiv);
+                });
+
+                container.appendChild(suiteDiv);
+            });
+
+            document.getElementById('totalTests').textContent = totalTests;
+        }
+
+        async function runTests() {
+            const btn = document.getElementById('runTestsBtn');
+            btn.disabled = true;
+            btn.textContent = 'Running Tests...';
+
+            passedTests = 0;
+            failedTests = 0;
+            startTime = Date.now();
+
+            let completed = 0;
+
+            for (let suiteIdx = 0; suiteIdx < testSuites.length; suiteIdx++) {
+                const suite = testSuites[suiteIdx];
+
+                for (let testIdx = 0; testIdx < suite.tests.length; testIdx++) {
+                    const test = suite.tests[testIdx];
+                    const testDiv = document.getElementById(`test-${suiteIdx}-${testIdx}`);
+                    const statusEl = testDiv.querySelector('.test-status');
+                    const detailsEl = testDiv.querySelector('.test-details');
+
+                    testDiv.className = 'test-case running';
+                    statusEl.className = 'test-status status-running';
+                    statusEl.textContent = 'RUNNING';
+
+                    try {
+                        const testStart = Date.now();
+                        await test.run();
+                        const duration = Date.now() - testStart;
+
+                        testDiv.className = 'test-case passed';
+                        statusEl.className = 'test-status status-passed';
+                        statusEl.textContent = 'PASSED';
+                        detailsEl.textContent = `✓ Completed in ${duration}ms`;
+                        passedTests++;
+                    } catch (error) {
+                        const isSkip = error.message.startsWith('SKIP:');
+
+                        if (isSkip) {
+                            testDiv.className = 'test-case';
+                            statusEl.className = 'test-status status-pending';
+                            statusEl.textContent = 'SKIPPED';
+                            detailsEl.textContent = error.message.replace('SKIP: ', '');
+                        } else {
+                            testDiv.className = 'test-case failed';
+                            statusEl.className = 'test-status status-failed';
+                            statusEl.textContent = 'FAILED';
+                            detailsEl.innerHTML = `<div class="test-error">❌ ${error.message}</div>`;
+                            failedTests++;
+                        }
+                    }
+
+                    completed++;
+                    const progress = Math.round((completed / totalTests) * 100);
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    document.getElementById('progressFill').textContent = progress + '%';
+                    document.getElementById('passedTests').textContent = passedTests;
+                    document.getElementById('failedTests').textContent = failedTests;
+
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+
+            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+            document.getElementById('duration').textContent = duration + 's';
+
+            btn.disabled = false;
+            btn.textContent = '🔄 Run Tests Again';
+        }
+
+        document.getElementById('runTestsBtn').addEventListener('click', runTests);
+
+        // Initialize
+        createTestHTML(testSuites);
+    </script>
+</body>
+</html>

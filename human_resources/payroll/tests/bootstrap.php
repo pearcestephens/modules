@@ -1,7 +1,7 @@
 <?php
 /**
  * PHPUnit Bootstrap File
- * 
+ *
  * Sets up testing environment for payroll module tests
  * Phase 1 Security: Uses centralized config, no hardcoded credentials
  */
@@ -58,7 +58,7 @@ if (!isset($GLOBALS['pdo']) || !$GLOBALS['pdo']) {
 
         $pdo = new PDO($dsn, $cisConfig['username'], $cisConfig['password'], $cisConfig['options']);
         $GLOBALS['pdo'] = $pdo;
-        
+
         echo "\n";
         echo "╔════════════════════════════════════════════════════════════════╗\n";
         echo "║  PHPUnit Test Suite - Payroll Module                          ║\n";
@@ -66,7 +66,7 @@ if (!isset($GLOBALS['pdo']) || !$GLOBALS['pdo']) {
         echo "║  Database: " . str_pad($cisConfig['database'], 51) . " ║\n";
         echo "╚════════════════════════════════════════════════════════════════╝\n";
         echo "\n";
-        
+
     } catch (PDOException $e) {
         die("❌ Database connection failed: " . $e->getMessage() . "\n");
     }
