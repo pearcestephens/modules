@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 /**
  * Detailed Rate Limit Analytics View
- * 
+ *
  * Comprehensive analysis of API rate limit consumption
  * - Historical trends
  * - Service breakdown
  * - Response time analysis
  * - 429 error patterns
- * 
+ *
  * @package HumanResources\Payroll\Views
  */
 
@@ -155,7 +155,7 @@ if ($service !== 'all') {
 
 // Get summary stats
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         COUNT(*) as total_calls,
         AVG(response_time_ms) as avg_response_time,
         MAX(response_time_ms) as max_response_time,
@@ -170,7 +170,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Get daily breakdown
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         DATE(logged_at) as date,
         COUNT(*) as calls,
         AVG(response_time_ms) as avg_response,
@@ -185,7 +185,7 @@ $dailyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get endpoint breakdown
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         endpoint,
         COUNT(*) as total_calls,
         AVG(response_time_ms) as avg_response_time,
@@ -211,7 +211,7 @@ $endpoints = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <i class="bi bi-arrow-up"></i> Active monitoring
         </div>
     </div>
-    
+
     <div class="stat-box">
         <h3>Avg Response Time</h3>
         <div class="value"><?php echo round($stats['avg_response_time']); ?>ms</div>
@@ -223,7 +223,7 @@ $endpoints = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
         </div>
     </div>
-    
+
     <div class="stat-box">
         <h3>Rate Limit Hits</h3>
         <div class="value"><?php echo $stats['rate_limit_hits']; ?></div>
@@ -235,7 +235,7 @@ $endpoints = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
         </div>
     </div>
-    
+
     <div class="stat-box">
         <h3>Avg Remaining Quota</h3>
         <div class="value"><?php echo round($stats['avg_remaining']); ?></div>
@@ -258,7 +258,7 @@ $endpoints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!-- Endpoint Breakdown -->
 <div class="service-breakdown">
     <h2 class="h4 mb-3"><i class="bi bi-list-ul"></i> Endpoint Breakdown</h2>
-    
+
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>

@@ -397,7 +397,7 @@ return [
         'controller' => 'DashboardController',
         'action' => 'index',
         'auth' => true,
-        // 'permission' => 'payroll.view_dashboard', // TEMPORARILY DISABLED FOR TESTING
+        'permission' => 'payroll.view_dashboard',
         'description' => 'Main payroll dashboard with all sections'
     ],
 
@@ -405,7 +405,7 @@ return [
         'controller' => 'DashboardController',
         'action' => 'getData',
         'auth' => true,
-        // 'permission' => 'payroll.view_dashboard', // TEMPORARILY DISABLED FOR TESTING
+        'permission' => 'payroll.view_dashboard',
         'description' => 'Get aggregated dashboard data'
     ],
 
@@ -417,7 +417,7 @@ return [
         'controller' => 'PayRunController',
         'action' => 'index',
         'auth' => true,
-        // 'permission' => 'payroll.view_payruns', // TEMPORARILY DISABLED FOR TESTING
+        'permission' => 'payroll.view_payruns',
         'description' => 'Pay run list view'
     ],
 
@@ -425,7 +425,7 @@ return [
         'controller' => 'PayRunController',
         'action' => 'view',
         'auth' => true,
-        // 'permission' => 'payroll.view_payruns', // TEMPORARILY DISABLED FOR TESTING
+        'permission' => 'payroll.view_payruns',
         'description' => 'Pay run detail view'
     ],
 

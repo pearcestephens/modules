@@ -39,11 +39,20 @@ echo str_repeat("─", 65) . "\n";
 try {
     require_once __DIR__ . '/../services/HttpRateLimitReporter.php';
 
+    // Use centralized database config (no hardcoded credentials)
+    $dbConfig = require __DIR__ . '/../../../config/database.php';
+    $cisConfig = $dbConfig['cis'];
+
     $pdo = new PDO(
-        "mysql:host=127.0.0.1;dbname=jcepnzzkmj;charset=utf8mb4",
-        "jcepnzzkmj",
-        "wprKh9Jq63",
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        sprintf(
+            "mysql:host=%s;dbname=%s;charset=%s",
+            $cisConfig['host'],
+            $cisConfig['database'],
+            $cisConfig['charset']
+        ),
+        $cisConfig['username'],
+        $cisConfig['password'],
+        $cisConfig['options']
     );
 
     $reporter = new \HumanResources\Payroll\Services\HttpRateLimitReporter($pdo);

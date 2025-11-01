@@ -14,10 +14,19 @@ declare(strict_types=1);
  * @version 2.0.0
  */
 
-// Enable error display for development
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+// Load app config for environment awareness
+$appConfig = require_once __DIR__ . '/../../config/app.php';
+
+// Enable error display ONLY in development (controlled by APP_DEBUG env var)
+if ($appConfig['debug'] === true && $appConfig['env'] !== 'production') {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
+} else {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+    error_reporting(E_ALL); // Still log errors, just don't display
+}
 
 // ============================================================================
 // BOOTSTRAP - DEDICATED (NO APP.PHP)
@@ -91,15 +100,20 @@ function getPayrollDb(): PDO {
 
     if ($db === null) {
         try {
+            // Load database config (credentials from environment)
+            $dbConfig = require __DIR__ . '/../../config/database.php';
+            $cisConfig = $dbConfig['cis'];
+
             $db = new PDO(
-                "mysql:host=127.0.0.1;dbname=jcepnzzkmj;charset=utf8mb4",
-                "jcepnzzkmj",
-                "wprKh9Jq63",
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
+                sprintf(
+                    "mysql:host=%s;dbname=%s;charset=%s",
+                    $cisConfig['host'],
+                    $cisConfig['database'],
+                    $cisConfig['charset']
+                ),
+                $cisConfig['username'],
+                $cisConfig['password'],
+                $cisConfig['options']
             );
         } catch (PDOException $e) {
             error_log("Payroll DB Error: " . $e->getMessage());
@@ -107,7 +121,10 @@ function getPayrollDb(): PDO {
 
             if (payroll_is_api_request()) {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Database connection failed'
+                ]);
             } else {
                 echo "Database connection failed. Please try again later.";
             }

@@ -25,6 +25,8 @@ abstract class BaseController
     protected PayrollLogger $logger;
     protected array $user;
     protected string $requestId;
+    protected ?\stdClass $validator = null;
+    protected ?\stdClass $response = null;
 
     /**
      * Constructor
@@ -33,6 +35,10 @@ abstract class BaseController
     {
         $this->logger = new PayrollLogger();
         $this->requestId = $this->generateRequestId();
+
+        // Initialize validator and response objects (placeholders for now)
+        $this->validator = new \stdClass();
+        $this->response = new \stdClass();
 
         // Load user session - use CIS session structure
         $this->user = [];
@@ -162,9 +168,20 @@ abstract class BaseController
      */
     protected function hasPermission(string $permission): bool
     {
-        // TEMPORARILY DISABLED: No permissions system yet
-        // If user is authenticated, they have access to everything
-        return !empty($this->user);
+        if (!$this->requireAuth()) {
+            return false;
+        }
+
+        // Check user permissions
+        $permissions = $this->user['permissions'] ?? [];
+
+        // Admin role has all permissions
+        if (in_array('admin', $permissions) || in_array('payroll_admin', $permissions)) {
+            return true;
+        }
+
+        // Check specific permission
+        return in_array($permission, $permissions);
     }
 
     /**
@@ -229,6 +246,14 @@ abstract class BaseController
     }
 
     /**
+     * Return success response (alias for compatibility)
+     */
+    protected function jsonSuccess(string $message, array $data = [], int $statusCode = 200): void
+    {
+        $this->success($message, $data, $statusCode);
+    }
+
+    /**
      * Return error response
      */
     protected function error(string $message, array $errors = [], int $statusCode = 400): void
@@ -249,6 +274,14 @@ abstract class BaseController
             'request_id' => $this->requestId,
             'timestamp' => date('Y-m-d H:i:s')
         ], $statusCode);
+    }
+
+    /**
+     * Return error response (alias for compatibility)
+     */
+    protected function jsonError(string $message, array $errors = [], int $statusCode = 400): void
+    {
+        $this->error($message, $errors, $statusCode);
     }
 
     /**
