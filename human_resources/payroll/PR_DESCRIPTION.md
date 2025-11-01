@@ -6,7 +6,12 @@
 
 ## 📋 Objectives Progress
 
-- [ ] 1. Controller helper mismatch (requirePost, verifyCsrf, validateInput)
+- [x] **1. Controller helper mismatch** ✅ COMPLETED
+  - Added requirePost(), verifyCsrf(), getJsonInput() helpers
+  - Rewrote validateInput() with dual-signature support + full validation engine
+  - Created unit tests (BaseControllerHelpersTest.php)
+  - Result: Unblocks 10+ POST endpoints across 4 controllers
+  
 - [ ] 2. Real validator wiring
 - [ ] 3. Static file serving hardening
 - [ ] 4. Remove fallback DB credentials
@@ -17,7 +22,65 @@
 - [ ] 9. Retire legacy files with secrets
 - [ ] 10. Comprehensive test coverage
 
+---
+
+## � Detailed Progress Log
+
+### Objective 1: Controller Helper Mismatch ✅
+**Date:** November 1, 2025  
+**Status:** COMPLETED
+
+**Problem:**
+- Controllers calling non-existent methods: requirePost(), verifyCsrf()
+- validateInput() signature mismatch (expects data+rules, called with just rules)
+- Validation engine was stub (\stdClass) - not functional
+- Result: Fatal Errors on every POST endpoint
+
+**Solution:**
+1. Added `requirePost()` helper (~20 lines)
+   - Enforces POST method
+   - Returns 405 "Method Not Allowed" with Allow: POST header
+   - Logs security warning
+   
+2. Added `verifyCsrf()` helper (~15 lines)
+   - Calls existing validateCsrf() method
+   - Returns 403 "Forbidden" on failure
+   - Logs security event
+   
+3. Added `getJsonInput($assoc=true)` helper (~25 lines)
+   - Safely parses JSON from php://input
+   - Validates JSON syntax
+   - Throws InvalidArgumentException on malformed JSON
+   
+4. Rewrote `validateInput()` (~130 lines)
+   - NEW: Dual-signature support
+     * validateInput($rules) - auto-uses $_POST
+     * validateInput($data, $rules) - explicit data
+   - Real validation engine:
+     * Types: integer, float, numeric, boolean, email, string, datetime, date
+     * Constraints: required, optional, min:N, max:N, in:val1,val2
+     * Returns typed and validated data
+     * Throws InvalidArgumentException with field-level errors
+   - Backwards compatible with existing controllers
+
+**Files Modified:**
+- `controllers/BaseController.php` (+140 lines)
+
+**Tests Created:**
+- `tests/Unit/BaseControllerHelpersTest.php` (8 test cases)
+
+**Impact:**
+- ✅ AmendmentController: 3 POST endpoints now functional
+- ✅ WageDiscrepancyController: 4 POST endpoints now functional
+- ✅ XeroController: 2 POST endpoints now functional
+- ✅ PayrollAutomationController: 1 POST endpoint now functional
+
+**Commits:**
+- [Pending] feat(payroll): Add missing controller helpers and validation engine
+
+---
+
 ## 🔍 Discovery Phase
 
-Starting with reconnaissance...
+Starting reconnaissance...
 

@@ -264,7 +264,7 @@ function payroll_validate_csrf(): bool {
 }
 
 // ============================================================================
-// STATIC ASSET HANDLING - SERVE DIRECTLY, DO NOT ROUTE
+// STATIC ASSET HANDLING - HARDENED (OBJECTIVE 3)
 // ============================================================================
 
 $requestUri = $_SERVER['REQUEST_URI'] ?? '';
@@ -284,45 +284,134 @@ if (preg_match('/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|map)$/i',
         $relativeFilePath = $cleanUri;
     }
 
-    $filePath = __DIR__ . $relativeFilePath;
-
-    if (file_exists($filePath) && is_file($filePath)) {
-        // Determine MIME type
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        $mimeTypes = [
-            'css' => 'text/css',
-            'js' => 'application/javascript',
-            'png' => 'image/png',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'svg' => 'image/svg+xml',
-            'ico' => 'image/x-icon',
-            'woff' => 'font/woff',
-            'woff2' => 'font/woff2',
-            'ttf' => 'font/ttf',
-            'eot' => 'application/vnd.ms-fontobject',
-            'map' => 'application/json'
-        ];
-
-        $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
-
-        // Set appropriate headers
-        header('Content-Type: ' . $mimeType);
-        header('Content-Length: ' . filesize($filePath));
-        header('Cache-Control: public, max-age=31536000'); // 1 year cache
-        header('X-Content-Type-Options: nosniff');
-
-        // Output file
-        readfile($filePath);
-        exit;
-    } else {
-        // Asset not found
-        http_response_code(404);
-        header('Content-Type: text/plain');
-        echo "Asset not found: " . htmlspecialchars($relativeFilePath);
+    // SECURITY CHECK 1: Block path traversal attempts (../)
+    if (strpos($relativeFilePath, '..') !== false) {
+        $logger = payroll_get_logger();
+        $logger->warning('Path traversal attempt blocked', [
+            'uri' => $cleanUri,
+            'relative_path' => $relativeFilePath,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+        ]);
+        http_response_code(403);
         exit;
     }
+
+    // SECURITY CHECK 2: Block absolute paths
+    if (
+        $relativeFilePath[0] === '/' || 
+        preg_match('/^[a-z]:/i', $relativeFilePath) ||
+        strpos($relativeFilePath, ':') !== false
+    ) {
+        $logger = payroll_get_logger();
+        $logger->warning('Absolute path attempt blocked', [
+            'uri' => $cleanUri,
+            'relative_path' => $relativeFilePath,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+        http_response_code(403);
+        exit;
+    }
+
+    // SECURITY CHECK 3: URL decode and check again for encoded attacks
+    $decodedPath = urldecode($relativeFilePath);
+    if (strpos($decodedPath, '..') !== false || strpos($decodedPath, "\0") !== false) {
+        $logger = payroll_get_logger();
+        $logger->warning('Encoded path traversal attempt blocked', [
+            'uri' => $cleanUri,
+            'decoded_path' => $decodedPath,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+        http_response_code(403);
+        exit;
+    }
+
+    // Build file path
+    $filePath = __DIR__ . $relativeFilePath;
+
+    // SECURITY CHECK 4: Realpath normalization + jail enforcement
+    // Define allowed directories (jail)
+    $assetsDir = realpath(__DIR__ . '/assets');
+    $vendorDir = realpath(__DIR__ . '/vendor'); // Allow vendor assets (e.g., bootstrap, fontawesome)
+
+    // Normalize the requested file path
+    $realFilePath = realpath($filePath);
+
+    // Check if file exists and is within allowed directories
+    if (!$realFilePath) {
+        // File doesn't exist or realpath failed
+        http_response_code(404);
+        exit;
+    }
+
+    // Enforce jail: file MUST be within assets/ or vendor/ directory
+    $inAssetsDir = $assetsDir && strpos($realFilePath, $assetsDir) === 0;
+    $inVendorDir = $vendorDir && strpos($realFilePath, $vendorDir) === 0;
+
+    if (!$inAssetsDir && !$inVendorDir) {
+        $logger = payroll_get_logger();
+        $logger->warning('File access outside allowed directories blocked', [
+            'uri' => $cleanUri,
+            'real_path' => $realFilePath,
+            'assets_dir' => $assetsDir,
+            'vendor_dir' => $vendorDir,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+        http_response_code(403);
+        exit;
+    }
+
+    // SECURITY CHECK 5: Verify it's a regular file (not symlink, directory, etc.)
+    if (!is_file($realFilePath)) {
+        http_response_code(404);
+        exit;
+    }
+
+    // SECURITY CHECK 6: Strict extension whitelist on ACTUAL file
+    $extension = strtolower(pathinfo($realFilePath, PATHINFO_EXTENSION));
+    $allowedExtensions = ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'woff', 'woff2', 'ttf', 'eot', 'map'];
+
+    if (!in_array($extension, $allowedExtensions, true)) {
+        $logger = payroll_get_logger();
+        $logger->warning('Disallowed file extension blocked', [
+            'uri' => $cleanUri,
+            'extension' => $extension,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+        http_response_code(403);
+        exit;
+    }
+
+    // All security checks passed - serve the file
+    $mimeTypes = [
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'svg' => 'image/svg+xml',
+        'ico' => 'image/x-icon',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
+        'eot' => 'application/vnd.ms-fontobject',
+        'map' => 'application/json'
+    ];
+
+    $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+
+    // Set secure headers
+    header('Content-Type: ' . $mimeType);
+    header('Content-Length: ' . filesize($realFilePath));
+    header('Cache-Control: public, max-age=31536000'); // 1 year cache
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
+    header('X-XSS-Protection: 1; mode=block');
+
+    // Output file
+    readfile($realFilePath);
+    exit;
 }
 
 // ============================================================================
