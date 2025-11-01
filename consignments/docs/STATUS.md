@@ -15,7 +15,7 @@
 | **O3: Service/API Sync** | 100% | ✅ Complete |
 | **O4: Security Hardening** | 100% | ✅ Complete |
 | **O5: Lightspeed Client** | 100% | ✅ Complete |
-| **O6: Queue Worker & Poller** | 0% | 🔜 Pending |
+| **O6: Queue Worker & Poller** | 100% | ✅ Complete |
 | **O7: Webhooks** | 0% | 🔜 Pending |
 | **O8: Transfer Type Services** | 25% | 🟡 Partial (PO only) |
 | **O9: Receiving & Evidence** | 40% | 🟡 Partial |
@@ -23,7 +23,7 @@
 | **O11: Admin Dashboard** | 0% | 🔜 Pending |
 | **O12: Tests & CI** | 55% | 🟡 Partial |
 | **O13: Documentation** | 60% | 🟡 Partial |
-| **OVERALL** | **58%** | 🟡 In Progress |
+| **OVERALL** | **64%** | 🟡 In Progress |
 
 ---
 
