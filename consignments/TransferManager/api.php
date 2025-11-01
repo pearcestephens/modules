@@ -47,14 +47,24 @@ if (function_exists('isLoggedIn')) {
 
 /**
  * api.php — Vend Lightspeed Gateway (independent)
- * POST JSON: { pin:"5050", action:"create_consignment", data:{...} }
- * Set LS_API_TOKEN in env for safety.
+ * POST JSON: { pin:"...", action:"create_consignment", data:{...} }
+ * Set LS_API_TOKEN and PIN_CODE in env for safety.
  */
 
 const API_VERSION = '2.0.0';
-const PIN_CODE = '5050';
 const REQUEST_TIMEOUT = 30;
 const MAX_RETRY_ATTEMPTS = 3;
+
+// SECURITY: Load PIN from environment
+function getPinCode(): string {
+    $pin = $_ENV['TRANSFER_MANAGER_PIN'] ?? getenv('TRANSFER_MANAGER_PIN');
+    if (!$pin) {
+        error_log('[TransferManager] CRITICAL: TRANSFER_MANAGER_PIN not set in environment');
+        http_response_code(500);
+        die(json_encode(['ok' => false, 'error' => 'Server configuration error']));
+    }
+    return $pin;
+}
 
 function getRequestId(): string { static $r=null; return $r ??= substr(md5(uniqid('req_', true)),0,12); }
 
@@ -65,13 +75,13 @@ function get_sync_flag_file(): string {
 
 function get_sync_enabled(): bool {
   $file = get_sync_flag_file();
-  
+
   // If file doesn't exist, create it with default: enabled (1)
   if (!file_exists($file)) {
     file_put_contents($file, '1');
     return true;
   }
-  
+
   // Always read fresh from file (no static cache)
   $content = trim(file_get_contents($file));
   return ($content === '1');
@@ -100,13 +110,20 @@ function ls_req(string $method, string $endpoint, ?array $data=null): array {
   if (!get_sync_enabled()) {
     return ['success'=>false, 'status_code'=>0, 'error'=>'SYNC_DISABLED', 'message'=>'Lightspeed sync is disabled'];
   }
-  
+
   $url = rtrim(ls_base(),'/').'/'.ltrim($endpoint,'/');
   $attempts=0; $max=MAX_RETRY_ATTEMPTS;
+
+  // SECURITY: Require LS_API_TOKEN from environment
+  $token = $_ENV['LS_API_TOKEN'] ?? getenv('LS_API_TOKEN');
+  if (!$token) {
+    error_log('[TransferManager] CRITICAL: LS_API_TOKEN not set in environment');
+    return ['success'=>false, 'status_code'=>0, 'error'=>'CONFIG_ERROR', 'message'=>'Lightspeed API token not configured'];
+  }
+
   do {
     $attempts++;
     $ch = curl_init($url);
-    $token = getenv('LS_API_TOKEN') ?: 'REPLACE_WITH_LS_TOKEN';
     $hdr = [
       'Authorization: Bearer '.$token,
       'Accept: application/json',
@@ -136,7 +153,9 @@ function ls_req(string $method, string $endpoint, ?array $data=null): array {
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') sendError('METHOD','POST required',[],405);
 $raw = file_get_contents('php://input') ?: ''; $req = json_decode($raw,true);
 if (!$req) sendError('INVALID_JSON','Body must be JSON');
-if (($req['pin'] ?? '') !== PIN_CODE) sendError('AUTH','Invalid PIN or missing',[],401);
+
+// SECURITY: Verify PIN from request against environment variable
+if (($req['pin'] ?? '') !== getPinCode()) sendError('AUTH','Invalid PIN or missing',[],401);
 
 $act = $req['action'] ?? '';
 switch ($act) {

@@ -1,16 +1,16 @@
 <?php
 /**
  * CRITICAL FIX: Enhanced Consignment Upload - Queue Tables Integration
- * 
+ *
  * Updates the Enhanced Consignment Upload System to properly integrate with
  * the EXISTING queue_consignments table and production queue infrastructure.
- * 
+ *
  * CRITICAL FINDINGS:
  * 1. queue_consignments table already EXISTS with 30+ fields
  * 2. Our implementation created WRONG schema (only 12 fields)
  * 3. Must use EXISTING production queue_jobs and queue_webhook_events
  * 4. Need to DROP our incorrect tables and use real ones
- * 
+ *
  * @package CIS\Consignments\Database
  * @version 3.0.0 - CRITICAL FIX
  */
@@ -20,7 +20,7 @@ declare(strict_types=1);
 // Bootstrap CIS database connection
 $configPaths = [
     $_SERVER['DOCUMENT_ROOT'] . '/bootstrap/app.php',
-    $_SERVER['DOCUMENT_ROOT'] . '/app.php', 
+    $_SERVER['DOCUMENT_ROOT'] . '/app.php',
     $_SERVER['DOCUMENT_ROOT'] . '/config.php',
     $_SERVER['DOCUMENT_ROOT'] . '/assets/functions/database.php',
     dirname(__DIR__, 2) . '/base/lib/Database.php'
@@ -38,22 +38,30 @@ foreach ($configPaths as $path) {
 if (!$dbConfigLoaded) {
     function get_database_connection() {
         static $connection = null;
-        
+
         if ($connection === null) {
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $user = $_ENV['DB_USER'] ?? 'jcepnzzkmj';
-            $pass = $_ENV['DB_PASS'] ?? 'wprKh9Jq63';
-            $name = $_ENV['DB_NAME'] ?? 'jcepnzzkmj';
-            
+            $host = $_ENV['DB_HOST'] ?? null;
+            $user = $_ENV['DB_USER'] ?? null;
+            $pass = $_ENV['DB_PASS'] ?? null;
+            $name = $_ENV['DB_NAME'] ?? null;
+
+            // SECURITY: Fail closed if credentials not in environment
+            if (!$host || !$user || !$pass || !$name) {
+                throw new Exception(
+                    "CRITICAL: Database credentials not configured. " .
+                    "Required env vars: DB_HOST, DB_USER, DB_PASS, DB_NAME"
+                );
+            }
+
             $connection = new mysqli($host, $user, $pass, $name);
-            
+
             if ($connection->connect_error) {
                 throw new Exception("Database connection failed: " . $connection->connect_error);
             }
-            
+
             $connection->set_charset('utf8mb4');
         }
-        
+
         return $connection;
     }
 }
@@ -61,60 +69,60 @@ if (!$dbConfigLoaded) {
 class CriticalQueueTablesFix
 {
     private $db;
-    
+
     public function __construct()
     {
         $this->db = get_database_connection();
     }
-    
+
     public function run(): void
     {
         try {
             $this->log("🚨 CRITICAL FIX: Queue Tables Integration", 'CRITICAL');
             $this->log("============================================");
-            
+
             // Step 1: Verify existing production tables
             $this->verifyProductionTables();
-            
+
             // Step 2: Fix queue_consignments schema mismatch
             $this->fixQueueConsignmentsSchema();
-            
+
             // Step 3: Update transfers table integration
             $this->updateTransfersIntegration();
-            
+
             // Step 4: Drop incorrect tables we created
             $this->dropIncorrectTables();
-            
+
             // Step 5: Create missing audit tables (from CONSIGNMENT TABLES)
             $this->createMissingAuditTables();
-            
+
             // Step 6: Update Enhanced Upload System to use correct tables
             $this->updateUploadSystemIntegration();
-            
+
             $this->log("🟢 CRITICAL FIX COMPLETED SUCCESSFULLY!", 'SUCCESS');
-            
+
         } catch (Exception $e) {
             $this->log("🔴 CRITICAL ERROR: " . $e->getMessage(), 'ERROR');
             throw $e;
         }
     }
-    
+
     private function verifyProductionTables(): void
     {
         $this->log("Verifying existing production queue tables...");
-        
+
         $requiredTables = [
             'queue_consignments',
-            'queue_jobs', 
+            'queue_jobs',
             'queue_webhook_events',
             'queue_metrics',
             'queue_pipelines'
         ];
-        
+
         foreach ($requiredTables as $table) {
             if ($this->tableExists($table)) {
                 $this->log("✅ Production table exists: $table", 'SUCCESS');
-                
+
                 // Get column count for queue_consignments
                 if ($table === 'queue_consignments') {
                     $result = $this->db->query("SHOW COLUMNS FROM `$table`");
@@ -126,38 +134,38 @@ class CriticalQueueTablesFix
             }
         }
     }
-    
+
     private function fixQueueConsignmentsSchema(): void
     {
         $this->log("Checking queue_consignments schema...");
-        
+
         // Check if our incorrectly created table exists
         $result = $this->db->query("SHOW COLUMNS FROM `queue_consignments`");
         $columns = [];
         while ($row = $result->fetch_assoc()) {
             $columns[] = $row['Field'];
         }
-        
+
         $this->log("Current queue_consignments columns: " . implode(', ', $columns));
-        
+
         // Check if it has the required production fields
         $requiredFields = [
             'vend_version', 'type', 'status', 'reference', 'name',
             'source_outlet_id', 'destination_outlet_id', 'supplier_id',
             'cis_transfer_id', 'sent_at', 'dispatched_at', 'received_at'
         ];
-        
+
         $missingFields = [];
         foreach ($requiredFields as $field) {
             if (!in_array($field, $columns)) {
                 $missingFields[] = $field;
             }
         }
-        
+
         if (!empty($missingFields)) {
             $this->log("🔴 CRITICAL: queue_consignments missing fields: " . implode(', ', $missingFields), 'ERROR');
             $this->log("This indicates we created the wrong table structure!", 'ERROR');
-            
+
             // The production table should already exist with correct schema
             // If it doesn't, we need to create it properly
             if (count($columns) < 20) {
@@ -168,12 +176,12 @@ class CriticalQueueTablesFix
             $this->log("✅ queue_consignments has correct production schema", 'SUCCESS');
         }
     }
-    
+
     private function recreateQueueConsignments(): void
     {
         $this->log("Dropping incorrect queue_consignments table...");
         $this->db->query("DROP TABLE IF EXISTS `queue_consignments`");
-        
+
         $this->log("Creating correct queue_consignments with production schema...");
         $sql = "CREATE TABLE `queue_consignments` (
           `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -220,89 +228,89 @@ class CriticalQueueTablesFix
           KEY `idx_status_updated` (`status`,`updated_at`),
           KEY `idx_trace_id` (`trace_id`),
           KEY `idx_cis_transfer_id` (`cis_transfer_id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         COMMENT='Master consignment records synced with Lightspeed - PRODUCTION SCHEMA'";
-        
+
         if (!$this->db->query($sql)) {
             throw new Exception("Failed to create correct queue_consignments table: " . $this->db->error);
         }
-        
+
         $this->log("✅ Created queue_consignments with correct production schema");
     }
-    
+
     private function updateTransfersIntegration(): void
     {
         $this->log("Updating transfers table integration...");
-        
+
         // Check if consignment_id column exists
         if (!$this->columnExists('transfers', 'consignment_id')) {
             $this->log("Adding consignment_id column to transfers table...");
-            
-            $sql = "ALTER TABLE `transfers` 
-                    ADD COLUMN `consignment_id` BIGINT UNSIGNED NULL 
-                    COMMENT 'Links to queue_consignments.id for Lightspeed sync' 
+
+            $sql = "ALTER TABLE `transfers`
+                    ADD COLUMN `consignment_id` BIGINT UNSIGNED NULL
+                    COMMENT 'Links to queue_consignments.id for Lightspeed sync'
                     AFTER `vend_transfer_id`";
-            
+
             if (!$this->db->query($sql)) {
                 throw new Exception("Failed to add consignment_id column: " . $this->db->error);
             }
-            
+
             $this->log("✅ Added consignment_id column to transfers");
         }
-        
+
         // Add foreign key constraint
         if (!$this->constraintExists('transfers', 'fk_transfers_consignment')) {
             $this->log("Adding foreign key constraint for consignment_id...");
-            
-            $sql = "ALTER TABLE `transfers` 
-                    ADD CONSTRAINT `fk_transfers_consignment` 
-                    FOREIGN KEY (`consignment_id`) REFERENCES `queue_consignments` (`id`) 
+
+            $sql = "ALTER TABLE `transfers`
+                    ADD CONSTRAINT `fk_transfers_consignment`
+                    FOREIGN KEY (`consignment_id`) REFERENCES `queue_consignments` (`id`)
                     ON DELETE SET NULL ON UPDATE CASCADE";
-            
+
             if (!$this->db->query($sql)) {
                 $this->log("Warning: Could not add foreign key constraint: " . $this->db->error, 'WARNING');
             } else {
                 $this->log("✅ Added foreign key constraint for consignment_id");
             }
         }
-        
+
         // Add index for performance
         $sql = "ALTER TABLE `transfers` ADD INDEX IF NOT EXISTS `idx_transfers_consignment_id` (`consignment_id`)";
         $this->db->query($sql);
     }
-    
+
     private function dropIncorrectTables(): void
     {
         $this->log("Dropping incorrect tables created by our implementation...");
-        
+
         $tablesToDrop = [
             'queue_consignment_products',
             'queue_consignment_state_transitions'
         ];
-        
+
         foreach ($tablesToDrop as $table) {
             if ($this->tableExists($table)) {
                 $this->log("Dropping incorrect table: $table");
                 $this->db->query("DROP TABLE `$table`");
             }
         }
-        
+
         // Check if we need to drop our incorrect queue_jobs or queue_webhook_events
         // (if they don't match production schema)
         $this->verifyQueueJobsSchema();
         $this->verifyQueueWebhookEventsSchema();
     }
-    
+
     private function verifyQueueJobsSchema(): void
     {
         $this->log("Verifying queue_jobs schema...");
-        
+
         $result = $this->db->query("SHOW COLUMNS FROM `queue_jobs`");
         $columns = [];
         while ($row = $result->fetch_assoc()) {
             $columns[] = $row['Field'];
         }
-        
+
         // Check for production-specific fields
         $productionFields = [
             'job_id', 'job_type', 'queue_name', 'payload', 'priority',
@@ -310,7 +318,7 @@ class CriticalQueueTablesFix
             'worker_id', 'heartbeat_at', 'heartbeat_timeout',
             'processing_log', 'leased_until'
         ];
-        
+
         $hasProductionSchema = true;
         foreach ($productionFields as $field) {
             if (!in_array($field, $columns)) {
@@ -318,31 +326,31 @@ class CriticalQueueTablesFix
                 break;
             }
         }
-        
+
         if (!$hasProductionSchema) {
             $this->log("🟡 queue_jobs table may need updating to production schema", 'WARNING');
         } else {
             $this->log("✅ queue_jobs has production schema");
         }
     }
-    
+
     private function verifyQueueWebhookEventsSchema(): void
     {
         $this->log("Verifying queue_webhook_events schema...");
-        
+
         $result = $this->db->query("SHOW COLUMNS FROM `queue_webhook_events`");
         $columns = [];
         while ($row = $result->fetch_assoc()) {
             $columns[] = $row['Field'];
         }
-        
+
         // Check for production-specific fields
         $productionFields = [
             'webhook_id', 'webhook_type', 'status', 'received_at',
             'processed_at', 'queue_job_id', 'hmac_valid',
             'payload_json', 'headers_json', 'source_ip'
         ];
-        
+
         $hasProductionSchema = true;
         foreach ($productionFields as $field) {
             if (!in_array($field, $columns)) {
@@ -350,22 +358,22 @@ class CriticalQueueTablesFix
                 break;
             }
         }
-        
+
         if (!$hasProductionSchema) {
             $this->log("🟡 queue_webhook_events table may need updating to production schema", 'WARNING');
         } else {
             $this->log("✅ queue_webhook_events has production schema");
         }
     }
-    
+
     private function createMissingAuditTables(): void
     {
         $this->log("Creating missing critical audit tables from CONSIGNMENT TABLES spec...");
-        
+
         // Create consignment_audit_log (CRITICAL for compliance)
         if (!$this->tableExists('consignment_audit_log')) {
             $this->log("Creating consignment_audit_log table...");
-            
+
             $sql = "CREATE TABLE `consignment_audit_log` (
               `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
               `transaction_id` varchar(50) DEFAULT NULL COMMENT 'Related transaction ID',
@@ -403,26 +411,26 @@ class CriticalQueueTablesFix
               KEY `idx_actor` (`actor_type`,`actor_id`),
               KEY `idx_created_at` (`created_at`),
               KEY `idx_transaction_id` (`transaction_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             COMMENT='Comprehensive audit trail for all transfer operations'";
-            
+
             if ($this->db->query($sql)) {
                 $this->log("✅ Created consignment_audit_log table");
             } else {
                 throw new Exception("Failed to create consignment_audit_log: " . $this->db->error);
             }
         }
-        
+
         // Create other critical audit tables
         $this->createTransferUnifiedLog();
         $this->createTransferTransactions();
     }
-    
+
     private function createTransferUnifiedLog(): void
     {
         if (!$this->tableExists('consignment_unified_log')) {
             $this->log("Creating consignment_unified_log table...");
-            
+
             $sql = "CREATE TABLE `consignment_unified_log` (
               `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
               `trace_id` varchar(100) NOT NULL COMMENT 'Distributed tracing ID',
@@ -443,9 +451,9 @@ class CriticalQueueTablesFix
               KEY `idx_transfer` (`transfer_id`,`created_at`),
               KEY `idx_vend_consignment` (`vend_consignment_id`),
               KEY `idx_created` (`created_at`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             COMMENT='Unified transfer system event log with queue integration'";
-            
+
             if ($this->db->query($sql)) {
                 $this->log("✅ Created consignment_unified_log table");
             } else {
@@ -453,12 +461,12 @@ class CriticalQueueTablesFix
             }
         }
     }
-    
+
     private function createTransferTransactions(): void
     {
         if (!$this->tableExists('consignment_transactions')) {
             $this->log("Creating consignment_transactions table...");
-            
+
             $sql = "CREATE TABLE `consignment_transactions` (
               `id` int(11) NOT NULL AUTO_INCREMENT,
               `transaction_id` varchar(50) NOT NULL COMMENT 'Unique transaction identifier',
@@ -480,9 +488,9 @@ class CriticalQueueTablesFix
               KEY `idx_transfer_id` (`transfer_id`),
               KEY `idx_status` (`status`),
               KEY `idx_started_at` (`started_at`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             COMMENT='Tracks all transfer transactions for failure protection'";
-            
+
             if ($this->db->query($sql)) {
                 $this->log("✅ Created consignment_transactions table");
             } else {
@@ -490,7 +498,7 @@ class CriticalQueueTablesFix
             }
         }
     }
-    
+
     private function updateUploadSystemIntegration(): void
     {
         $this->log("Integration fixes completed. Enhanced Upload System needs code updates:");
@@ -499,42 +507,42 @@ class CriticalQueueTablesFix
         $this->log("3. Add comprehensive audit logging with consignment_audit_log");
         $this->log("4. Use existing queue infrastructure instead of our custom tables");
     }
-    
+
     // Utility methods
     private function tableExists(string $tableName): bool
     {
         $result = $this->db->query("SHOW TABLES LIKE '$tableName'");
         return $result->num_rows > 0;
     }
-    
+
     private function columnExists(string $tableName, string $columnName): bool
     {
         $result = $this->db->query("SHOW COLUMNS FROM `$tableName` LIKE '$columnName'");
         return $result->num_rows > 0;
     }
-    
+
     private function constraintExists(string $tableName, string $constraintName): bool
     {
-        $query = "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS 
-                  WHERE TABLE_SCHEMA = DATABASE() 
-                  AND TABLE_NAME = '$tableName' 
+        $query = "SELECT COUNT(*) as count FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+                  WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = '$tableName'
                   AND CONSTRAINT_NAME = '$constraintName'";
         $result = $this->db->query($query)->fetch_assoc();
         return $result['count'] > 0;
     }
-    
+
     private function log(string $message, string $level = 'INFO'): void
     {
         $timestamp = date('Y-m-d H:i:s');
         $colors = [
             'INFO' => '',
             'SUCCESS' => "\033[32m",
-            'WARNING' => "\033[33m", 
+            'WARNING' => "\033[33m",
             'ERROR' => "\033[31m",
             'CRITICAL' => "\033[35m"
         ];
         $reset = "\033[0m";
-        
+
         $color = $colors[$level] ?? '';
         echo "{$color}[{$timestamp}] [{$level}] {$message}{$reset}\n";
     }

@@ -52,13 +52,21 @@ require_once __DIR__ . '/lib/SecureAPI.php';
             <?php
             $checks = [];
             
-            // 1. SecureDatabase Connection Test
+            // 1. Secure Database Connection Test
             try {
+                // Require all DB credentials from environment (fail closed)
+                $requiredVars = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS'];
+                foreach ($requiredVars as $var) {
+                    if (empty($_ENV[$var])) {
+                        throw new \RuntimeException("Required environment variable missing: {$var}");
+                    }
+                }
+                
                 $dbConfig = [
-                    'host' => $_ENV['DB_HOST'] ?? 'localhost',
-                    'database' => $_ENV['DB_NAME'] ?? 'jcepnzzkmj',
-                    'username' => $_ENV['DB_USER'] ?? 'jcepnzzkmj',
-                    'password' => $_ENV['DB_PASS'] ?? 'wprKh9Jq63',
+                    'host' => $_ENV['DB_HOST'],
+                    'database' => $_ENV['DB_NAME'],
+                    'username' => $_ENV['DB_USER'],
+                    'password' => $_ENV['DB_PASS'],
                     'ssl' => false, // Adjust as needed
                     'port' => (int)($_ENV['DB_PORT'] ?? 3306),
                 ];

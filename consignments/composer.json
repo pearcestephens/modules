@@ -1,0 +1,44 @@
+{
+    "name": "ecigdis/consignments",
+    "description": "CIS Consignments Module - Hexagonal Architecture",
+    "type": "project",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Ecigdis Development Team",
+            "email": "dev@ecigdis.co.nz"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Consignments\\": "src/",
+            "Consignments\\Domain\\": "domain/",
+            "Consignments\\Infra\\": "infra/",
+            "Consignments\\App\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "test:unit": "phpunit --testsuite=Unit --colors=always",
+        "test:integration": "phpunit --testsuite=Integration --colors=always",
+        "test:coverage": "phpunit --coverage-html coverage --colors=always"
+    }
+}
