@@ -504,4 +504,102 @@ class XeroService extends BaseService
         // This would come from config
         return $_ENV['XERO_BANK_ACCOUNT'] ?? '1-1010';
     }
+
+    /**
+     * Make Xero API request with rate limit telemetry
+     *
+     * @param string $method HTTP method (GET, POST, PUT, DELETE)
+     * @param string $endpoint API endpoint (e.g., '/payroll.xro/1.0/PayRuns')
+     * @param array|null $payload Request payload
+     * @return array API response
+     * @throws \RuntimeException on API errors
+     */
+    private function xeroApiRequest(string $method, string $endpoint, ?array $payload = null): array
+    {
+        $startTime = microtime(true);
+
+        $ch = curl_init();
+        $url = 'https://api.xero.com' . $endpoint;
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $this->accessToken,
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Xero-tenant-id: ' . ($_ENV['XERO_TENANT_ID'] ?? '')
+        ]);
+
+        if ($method !== 'GET') {
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+            if ($payload) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            }
+        }
+
+        $response = curl_exec($ch);
+        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $responseTime = (int)((microtime(true) - $startTime) * 1000);
+
+        // Capture response headers for rate limit info
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        curl_close($ch);
+
+        // Parse rate limit headers (Xero provides these)
+        $rateLimitRemaining = null;
+        $rateLimitReset = null;
+        $retryAfter = null;
+
+        if ($httpCode === 429) {
+            // Rate limited - extract retry-after
+            if (preg_match('/Retry-After:\s*(\d+)/i', $response, $matches)) {
+                $retryAfter = (int)$matches[1];
+            }
+        }
+
+        // Log rate limit telemetry
+        $this->logRateLimitTelemetry([
+            'service' => 'xero',
+            'endpoint' => $endpoint,
+            'method' => $method,
+            'status_code' => $httpCode,
+            'response_time_ms' => $responseTime,
+            'retry_after' => $retryAfter,
+            'rate_limit_remaining' => $rateLimitRemaining,
+            'rate_limit_reset' => $rateLimitReset
+        ]);
+
+        // Handle errors
+        if ($httpCode === 429) {
+            throw new \RuntimeException("Xero rate limit exceeded. Retry after {$retryAfter} seconds");
+        }
+
+        if ($httpCode >= 400) {
+            $error = json_decode($response, true);
+            $message = $error['Message'] ?? $error['message'] ?? "HTTP {$httpCode}";
+            throw new \RuntimeException("Xero API error: {$message}");
+        }
+
+        return json_decode($response, true) ?: [];
+    }
+
+    /**
+     * Log rate limit telemetry to database
+     *
+     * @param array $data Telemetry data
+     */
+    private function logRateLimitTelemetry(array $data): void
+    {
+        try {
+            // Use HttpRateLimitReporter if available
+            require_once __DIR__ . '/HttpRateLimitReporter.php';
+
+            $reporter = new \HumanResources\Payroll\Services\HttpRateLimitReporter($this->db);
+            $reporter->logSingle($data);
+
+        } catch (\Exception $e) {
+            // Fallback: log to error log
+            $this->logger->debug('Rate limit telemetry', $data);
+        }
+    }
 }

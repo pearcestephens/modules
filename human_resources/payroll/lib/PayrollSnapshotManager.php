@@ -1425,4 +1425,104 @@ class PayrollSnapshotManager
             'payslips_processed' => count($xeroPayslips)
         ]);
     }
+
+    /**
+     * Verify snapshot integrity by comparing stored hash with recomputed hash
+     *
+     * @param int $snapshotId Snapshot ID to verify
+     * @return array Verification result with status and details
+     */
+    public function verifySnapshotIntegrity(int $snapshotId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT id, data_hash,
+                   user_objects_json, deputy_timesheets_json,
+                   vend_account_balances_json, xero_payslips_json,
+                   xero_employees_json, public_holidays_json,
+                   bonus_calculations_json, amendments_json,
+                   config_snapshot_json, snapshot_at
+            FROM payroll_snapshots
+            WHERE id = ?
+        ");
+        $stmt->execute([$snapshotId]);
+        $snapshot = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$snapshot) {
+            return [
+                'valid' => false,
+                'error' => 'Snapshot not found',
+                'snapshot_id' => $snapshotId
+            ];
+        }
+
+        // Recompute hash using same algorithm as captureSnapshot()
+        $computedHash = hash('sha256', implode('|', [
+            $snapshot['user_objects_json'] ?? '',
+            $snapshot['deputy_timesheets_json'] ?? '',
+            $snapshot['vend_account_balances_json'] ?? '',
+            $snapshot['xero_payslips_json'] ?? '',
+            $snapshot['xero_employees_json'] ?? '',
+            $snapshot['public_holidays_json'] ?? '',
+            $snapshot['bonus_calculations_json'] ?? '',
+            $snapshot['amendments_json'] ?? '',
+            $snapshot['config_snapshot_json'] ?? ''
+        ]));
+
+        $valid = ($computedHash === $snapshot['data_hash']);
+
+        payroll_log($valid ? 'info' : 'warning', 'Snapshot integrity verification', [
+            'snapshot_id' => $snapshotId,
+            'valid' => $valid,
+            'stored_hash' => substr($snapshot['data_hash'], 0, 12),
+            'computed_hash' => substr($computedHash, 0, 12)
+        ]);
+
+        return [
+            'valid' => $valid,
+            'snapshot_id' => $snapshotId,
+            'snapshot_at' => $snapshot['snapshot_at'],
+            'stored_hash' => $snapshot['data_hash'],
+            'computed_hash' => $computedHash,
+            'hash_match' => $valid
+        ];
+    }
+
+    /**
+     * Verify all snapshots for a pay run
+     *
+     * @param int $runId Pay run ID
+     * @return array Verification results for all snapshots
+     */
+    public function verifyRunSnapshots(int $runId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT id FROM payroll_snapshots WHERE run_id = ? ORDER BY snapshot_at
+        ");
+        $stmt->execute([$runId]);
+        $snapshotIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $results = [];
+        $validCount = 0;
+        $invalidCount = 0;
+
+        foreach ($snapshotIds as $snapshotId) {
+            $result = $this->verifySnapshotIntegrity($snapshotId);
+            $results[] = $result;
+
+            if ($result['valid']) {
+                $validCount++;
+            } else {
+                $invalidCount++;
+            }
+        }
+
+        return [
+            'run_id' => $runId,
+            'total_snapshots' => count($snapshotIds),
+            'valid' => $validCount,
+            'invalid' => $invalidCount,
+            'all_valid' => $invalidCount === 0,
+            'snapshots' => $results
+        ];
+    }
 }

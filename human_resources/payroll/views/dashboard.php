@@ -361,6 +361,22 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/modules/human_resources/payroll/views
         </div>
     </div>
 
+    <!-- RATE LIMIT MONITORING WIDGET -->
+    <?php require_once __DIR__ . '/widgets/rate_limits.php'; ?>
+
+    <!-- RECONCILIATION QUICK LINK -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-balance-scale me-2"></i>
+                <strong>Reconciliation Dashboard:</strong> View variances between CIS, Xero, and Deputy
+                <a href="?view=reconciliation" class="btn btn-sm btn-info float-end">
+                    <i class="fas fa-chart-line me-1"></i> View Reconciliation
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Tabs -->
     <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
         <li class="nav-item" role="presentation">

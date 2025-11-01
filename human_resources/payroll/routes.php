@@ -471,4 +471,40 @@ return [
         'description' => 'Generate printable pay run PDF'
     ],
 
+    // =====================================================================
+    // RECONCILIATION ENDPOINTS
+    // =====================================================================
+
+    'GET /payroll/reconciliation' => [
+        'controller' => 'ReconciliationController',
+        'action' => 'index',
+        'auth' => true,
+        'permission' => 'payroll.view_reconciliation',
+        'description' => 'Reconciliation dashboard view'
+    ],
+
+    'GET /api/payroll/reconciliation/dashboard' => [
+        'controller' => 'ReconciliationController',
+        'action' => 'dashboard',
+        'auth' => true,
+        'permission' => 'payroll.view_reconciliation',
+        'description' => 'Get reconciliation dashboard data'
+    ],
+
+    'GET /api/payroll/reconciliation/variances' => [
+        'controller' => 'ReconciliationController',
+        'action' => 'getVariances',
+        'auth' => true,
+        'permission' => 'payroll.view_reconciliation',
+        'description' => 'Get current variances'
+    ],
+
+    'GET /api/payroll/reconciliation/compare/:runId' => [
+        'controller' => 'ReconciliationController',
+        'action' => 'compareRun',
+        'auth' => true,
+        'permission' => 'payroll.view_reconciliation',
+        'description' => 'Compare CIS vs Xero for specific run'
+    ],
+
 ];

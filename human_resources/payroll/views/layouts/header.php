@@ -214,6 +214,12 @@ $pageTitle = $pageTitle ?? 'Payroll System';
                         </a>
                     </li>
                     <li>
+                        <a href="/modules/human_resources/payroll/?view=reconciliation"
+                           class="nav-link <?php echo isset($_GET['view']) && $_GET['view'] === 'reconciliation' ? 'active' : ''; ?>">
+                            <i class="bi bi-arrows-collapse"></i> Reconciliation
+                        </a>
+                    </li>
+                    <li>
                         <a href="/modules/human_resources/payroll/?view=payruns"
                            class="nav-link <?php echo isset($_GET['view']) && $_GET['view'] === 'payruns' ? 'active' : ''; ?>">
                             <i class="bi bi-calendar-check"></i> Pay Runs
