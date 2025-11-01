@@ -1,0 +1,41 @@
+# Environment variables (contains secrets)
+.env
+*.env
+!.env.example
+
+# Vendor dependencies
+vendor/
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Test outputs
+tests/output/*.pdf
+!tests/output/.gitkeep
+
+# Backups
+*.backup
+*.bak
+*.old
+
+# Sensitive data
+*_secret.php
+*_private.php
