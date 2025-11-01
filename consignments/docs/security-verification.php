@@ -1,10 +1,10 @@
 <?php
 /**
  * CIS Security Verification Script
- * 
+ *
  * Comprehensive verification of all hardened API connections
  * and security implementations
- * 
+ *
  * @package CIS\Security\Verification
  * @version 2.0.0
  */
@@ -51,7 +51,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
         <div class="status-grid">
             <?php
             $checks = [];
-            
+
             // 1. Secure Database Connection Test
             try {
                 // Require all DB credentials from environment (fail closed)
@@ -61,7 +61,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                         throw new \RuntimeException("Required environment variable missing: {$var}");
                     }
                 }
-                
+
                 $dbConfig = [
                     'host' => $_ENV['DB_HOST'],
                     'database' => $_ENV['DB_NAME'],
@@ -70,7 +70,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'ssl' => false, // Adjust as needed
                     'port' => (int)($_ENV['DB_PORT'] ?? 3306),
                 ];
-                
+
                 $secureDB = new CISSecureDatabase($dbConfig);
                 $result = $secureDB->secureExecute("SELECT 1 as test", [], 'READ');
                 $checks['database'] = [
@@ -87,7 +87,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'info' => 'Check database credentials and security configuration'
                 ];
             }
-            
+
             // 2. SecureAPI System Test
             try {
                 $apiConfig = [
@@ -97,7 +97,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'allowed_origins' => ['https://staff.vapeshed.co.nz'],
                     'environment' => 'development'
                 ];
-                
+
                 $secureAPI = new CISSecureAPI($apiConfig);
                 $checks['api'] = [
                     'status' => 'ok',
@@ -113,7 +113,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'info' => 'Security framework initialization failed'
                 ];
             }
-            
+
             // 3. Lightspeed API Integration Test
             $lightspeedFile = __DIR__ . '/api/lightspeed.php';
             if (file_exists($lightspeedFile)) {
@@ -131,7 +131,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'info' => 'Check file path: ' . $lightspeedFile
                 ];
             }
-            
+
             // 4. AJAX Manager Test
             $ajaxFile = __DIR__ . '/shared/js/ajax-manager.js';
             if (file_exists($ajaxFile)) {
@@ -149,7 +149,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'info' => 'Check file path: ' . $ajaxFile
                 ];
             }
-            
+
             // 5. Transfer Submission Security
             $submitFile = __DIR__ . '/api/submit_transfer.php';
             if (file_exists($submitFile)) {
@@ -167,7 +167,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'info' => 'Check file path: ' . $submitFile
                 ];
             }
-            
+
             // 6. Auto-save Infrastructure
             $packJs = __DIR__ . '/stock-transfers/js/pack.js';
             if (file_exists($packJs)) {
@@ -185,7 +185,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
                     'info' => 'Check file path: ' . $packJs
                 ];
             }
-            
+
             // Display status cards
             foreach ($checks as $key => $check) {
                 $statusClass = 'status-' . $check['status'];
@@ -200,7 +200,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
 
         <div class="test-results">
             <h3>🧪 API Connection Tests</h3>
-            
+
             <div class="test-item">
                 <strong>Database Connection Security:</strong>
                 <div class="code-block">
@@ -211,7 +211,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
 ✅ Secure parameter binding
                 </div>
             </div>
-            
+
             <div class="test-item">
                 <strong>API Security Framework:</strong>
                 <div class="code-block">
@@ -223,7 +223,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
 ✅ DDoS protection with payload size limits
                 </div>
             </div>
-            
+
             <div class="test-item">
                 <strong>Lightspeed Integration Security:</strong>
                 <div class="code-block">
@@ -235,7 +235,7 @@ require_once __DIR__ . '/lib/SecureAPI.php';
 ✅ Rate limiting per client
                 </div>
             </div>
-            
+
             <div class="test-item">
                 <strong>AJAX Communication Security:</strong>
                 <div class="code-block">
@@ -262,42 +262,42 @@ require_once __DIR__ . '/lib/SecureAPI.php';
     <script>
         function testAjaxConnection() {
             document.getElementById('test-output').innerHTML = '<div style="background: #fff3cd; padding: 15px; border-radius: 4px;">🧪 Testing AJAX connection...</div>';
-            
+
             if (typeof window.ConsignmentsAjax === 'undefined') {
                 document.getElementById('test-output').innerHTML = '<div style="background: #f8d7da; padding: 15px; border-radius: 4px;">❌ ConsignmentsAjax not loaded</div>';
                 return;
             }
-            
+
             // Test basic connectivity
             window.ConsignmentsAjax.request({
                 action: 'ping',
                 data: { test: 'security_verification' },
                 showError: false
             }).then(response => {
-                document.getElementById('test-output').innerHTML = 
+                document.getElementById('test-output').innerHTML =
                     '<div style="background: #d4edda; padding: 15px; border-radius: 4px;">' +
                     '✅ AJAX connection successful<br>' +
                     '<code>' + JSON.stringify(response, null, 2) + '</code>' +
                     '</div>';
             }).catch(error => {
-                document.getElementById('test-output').innerHTML = 
+                document.getElementById('test-output').innerHTML =
                     '<div style="background: #f8d7da; padding: 15px; border-radius: 4px;">' +
                     '⚠️ AJAX test result: ' + error.message + '<br>' +
                     '<em>This is expected if ping endpoint is not implemented</em>' +
                     '</div>';
             });
         }
-        
+
         function showSecurityLog() {
             if (typeof window.ConsignmentsAjax !== 'undefined' && window.ConsignmentsAjax.requestLog) {
                 const log = window.ConsignmentsAjax.requestLog.slice(-10); // Last 10 entries
-                document.getElementById('test-output').innerHTML = 
+                document.getElementById('test-output').innerHTML =
                     '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px;">' +
                     '<h4>📋 Recent Security Log (Last 10 entries)</h4>' +
                     '<pre>' + JSON.stringify(log, null, 2) + '</pre>' +
                     '</div>';
             } else {
-                document.getElementById('test-output').innerHTML = 
+                document.getElementById('test-output').innerHTML =
                     '<div style="background: #fff3cd; padding: 15px; border-radius: 4px;">⚠️ Security log not available</div>';
             }
         }

@@ -231,7 +231,7 @@ This status document is updated:
 
 ## ✅ O5: Lightspeed Client Enhancement (100%)
 
-**Status:** ✅ COMPLETE  
+**Status:** ✅ COMPLETE
 **Git Commit:** `feat(consignments): O5 Complete - Production-grade Lightspeed API client`
 
 ### Completed Tasks:

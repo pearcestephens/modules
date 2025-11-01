@@ -1,7 +1,7 @@
 # Payroll Module: Permission Hierarchy
 
-**Document Version:** 1.0  
-**Last Updated:** 2025-11-01  
+**Document Version:** 1.0
+**Last Updated:** 2025-11-01
 **Purpose:** Complete reference for payroll module permission system
 
 ---
@@ -10,8 +10,8 @@
 
 The payroll module uses a **hierarchical permission model** with granular, resource-specific permissions.
 
-**Namespace:** All permissions use the `payroll.*` prefix  
-**Total Permissions:** 22 unique permissions  
+**Namespace:** All permissions use the `payroll.*` prefix
+**Total Permissions:** 22 unique permissions
 **Permission Philosophy:** Principle of least privilege
 
 ---
@@ -328,14 +328,14 @@ Add to this file:
 ### Step 3: Database Migration
 ```sql
 -- Add permission to permissions table (if using database-backed permissions)
-INSERT INTO permissions (name, description, module) VALUES 
+INSERT INTO permissions (name, description, module) VALUES
 ('payroll.new_feature_action', 'Description of permission', 'payroll');
 ```
 
 ### Step 4: Assign to Roles
 ```sql
 -- Grant to appropriate roles
-INSERT INTO role_permissions (role_id, permission_name) VALUES 
+INSERT INTO role_permissions (role_id, permission_name) VALUES
 (1, 'payroll.new_feature_action'), -- Admin
 (2, 'payroll.new_feature_action'); -- Payroll Manager
 ```
@@ -498,7 +498,7 @@ JOIN permission_migration pm ON pm.old_permission = up.old_permission;
 ### Step 3: Verify Migration
 ```sql
 -- Check for unmapped permissions
-SELECT DISTINCT old_permission 
+SELECT DISTINCT old_permission
 FROM old_user_permissions
 WHERE old_permission NOT IN (SELECT old_permission FROM permission_migration);
 ```
@@ -514,6 +514,6 @@ WHERE old_permission NOT IN (SELECT old_permission FROM permission_migration);
 
 ---
 
-**Document Status:** ✅ COMPLETE  
-**Last Review:** 2025-11-01  
+**Document Status:** ✅ COMPLETE
+**Last Review:** 2025-11-01
 **Next Review:** 2026-02-01 (Quarterly)

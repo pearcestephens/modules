@@ -7,7 +7,7 @@
          executionOrder="depends,defects"
          cacheDirectory=".phpunit.cache"
          testdox="true">
-    
+
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/unit</directory>
@@ -19,7 +19,7 @@
             <directory>tests/api</directory>
         </testsuite>
     </testsuites>
-    
+
     <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">domain</directory>
@@ -32,7 +32,7 @@
             <directory>_trash</directory>
         </exclude>
     </coverage>
-    
+
     <php>
         <env name="APP_ENV" value="testing"/>
         <ini name="display_errors" value="1"/>

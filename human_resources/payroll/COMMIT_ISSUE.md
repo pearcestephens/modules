@@ -49,7 +49,7 @@ git log --oneline --all -- index.php | head -5
 ## What We SHOULD Have Committed
 
 - `controllers/BaseController.php` (+140 lines)
-- `index.php` (+90 lines)  
+- `index.php` (+90 lines)
 - `tests/Unit/BaseControllerHelpersTest.php` (NEW)
 - `tests/Unit/ValidationEngineTest.php` (NEW)
 - `tests/Integration/ControllerValidationTest.php` (NEW)

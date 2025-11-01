@@ -23,7 +23,7 @@ final class StatusMapTest extends TestCase
         $this->assertEquals('RECEIVED', StatusMap::toLightspeed(Status::completed())); // Both map to RECEIVED
         $this->assertEquals('CANCELLED', StatusMap::toLightspeed(Status::cancelled()));
     }
-    
+
     /**
      * Test Lightspeed → CIS mappings
      */
@@ -35,7 +35,7 @@ final class StatusMapTest extends TestCase
         $this->assertEquals('received', StatusMap::toInternal('RECEIVED')->toString()); // Not completed
         $this->assertEquals('cancelled', StatusMap::toInternal('CANCELLED')->toString());
     }
-    
+
     /**
      * Test case insensitive and whitespace handling
      */
@@ -45,7 +45,7 @@ final class StatusMapTest extends TestCase
         $this->assertEquals('sent', StatusMap::toInternal('  SENT  ')->toString());
         $this->assertEquals('sent', StatusMap::toInternal('SeNt')->toString());
     }
-    
+
     /**
      * Test unknown Lightspeed status falls back to draft
      */
@@ -54,7 +54,7 @@ final class StatusMapTest extends TestCase
         $status = StatusMap::toInternal('UNKNOWN_STATUS');
         $this->assertEquals('draft', $status->toString());
     }
-    
+
     /**
      * Test validation
      */
@@ -65,7 +65,7 @@ final class StatusMapTest extends TestCase
         $this->assertTrue(StatusMap::isValidLightspeedStatus('  RECEIVED  '));
         $this->assertFalse(StatusMap::isValidLightspeedStatus('INVALID'));
     }
-    
+
     /**
      * Test round-trip conversion (except completed)
      */
@@ -78,20 +78,20 @@ final class StatusMapTest extends TestCase
             Status::received(),
             Status::cancelled(),
         ];
-        
+
         foreach ($statuses as $original) {
             $ls = StatusMap::toLightspeed($original);
             $roundTrip = StatusMap::toInternal($ls);
             $this->assertEquals($original->toString(), $roundTrip->toString());
         }
-        
+
         // Completed is special: CIS→LS→CIS becomes received (not completed)
         $ls = StatusMap::toLightspeed(Status::completed());
         $this->assertEquals('RECEIVED', $ls);
         $roundTrip = StatusMap::toInternal($ls);
         $this->assertEquals('received', $roundTrip->toString()); // Not completed
     }
-    
+
     /**
      * Test helper methods
      */
@@ -105,14 +105,14 @@ final class StatusMapTest extends TestCase
         $this->assertContains('CANCELLED', $statuses);
         $this->assertCount(5, $statuses);
     }
-    
+
     public function testGetLabel(): void
     {
         $this->assertEquals('Draft', StatusMap::getLabel(Status::draft()));
         $this->assertEquals('Sent', StatusMap::getLabel(Status::sent()));
         $this->assertEquals('Completed', StatusMap::getLabel(Status::completed()));
     }
-    
+
     public function testGetCssClass(): void
     {
         $this->assertEquals('badge-secondary', StatusMap::getCssClass(Status::draft()));

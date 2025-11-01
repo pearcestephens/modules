@@ -6,10 +6,10 @@ use Consignments\Domain\ValueObjects\Status;
 
 /**
  * Status Mapping: CIS ↔ Lightspeed X-Series
- * 
+ *
  * Anti-Corruption Layer for status translation between systems.
  * Lightspeed X-Series consignment states: OPEN, SENT, DISPATCHED, RECEIVED, CANCELLED
- * 
+ *
  * Mapping Strategy:
  * - CIS 'draft' → LS 'OPEN' (created but not dispatched)
  * - CIS 'sent' → LS 'SENT' (sent from source, in transit)
@@ -17,19 +17,19 @@ use Consignments\Domain\ValueObjects\Status;
  * - CIS 'received' → LS 'RECEIVED' (fully received, not finalized)
  * - CIS 'completed' → LS 'RECEIVED' (CIS finalization on top of LS receive)
  * - CIS 'cancelled' → LS 'CANCELLED'
- * 
+ *
  * Design Notes:
  * - Both 'received' and 'completed' map to LS 'RECEIVED' because LS doesn't have
  *   a separate finalization state. CIS tracks the extra completion step internally.
  * - LS is source of truth for inventory; CIS adds workflow orchestration.
- * 
+ *
  * @see https://developers.lightspeedhq.com/retail/endpoints/Consignment/
  */
 final class StatusMap
 {
     /**
      * Map CIS internal status to Lightspeed status
-     * 
+     *
      * @throws \InvalidArgumentException if internal status is unknown
      */
     public static function toLightspeed(Status $internal): string
@@ -46,17 +46,17 @@ final class StatusMap
             )
         };
     }
-    
+
     /**
      * Map Lightspeed status to CIS internal status
-     * 
+     *
      * Note: LS 'RECEIVED' maps to CIS 'received' (not 'completed').
      * Completion is a CIS workflow step that happens after LS receive.
      */
     public static function toInternal(string $lightspeedStatus): Status
     {
         $normalized = strtoupper(trim($lightspeedStatus));
-        
+
         return match ($normalized) {
             'OPEN' => Status::draft(),
             'SENT' => Status::sent(),
@@ -66,7 +66,7 @@ final class StatusMap
             default => Status::draft() // Defensive: unknown LS states treated as draft
         };
     }
-    
+
     /**
      * Check if Lightspeed status exists (for validation)
      */
@@ -75,17 +75,17 @@ final class StatusMap
         $normalized = strtoupper(trim($status));
         return in_array($normalized, ['OPEN', 'SENT', 'DISPATCHED', 'RECEIVED', 'CANCELLED'], true);
     }
-    
+
     /**
      * Get all valid Lightspeed statuses
-     * 
+     *
      * @return string[]
      */
     public static function getLightspeedStatuses(): array
     {
         return ['OPEN', 'SENT', 'DISPATCHED', 'RECEIVED', 'CANCELLED'];
     }
-    
+
     /**
      * Get human-readable status label
      */
@@ -101,7 +101,7 @@ final class StatusMap
             default => 'Unknown'
         };
     }
-    
+
     /**
      * Get CSS class for UI rendering
      */

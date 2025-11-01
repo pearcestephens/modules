@@ -2,37 +2,37 @@
 <?php
 /**
  * Migrate OAuth Tokens to Encrypted Storage
- * 
+ *
  * One-time migration script to encrypt existing plaintext OAuth tokens.
  * Reads tokens from oauth_tokens table, encrypts them, and updates in place.
- * 
+ *
  * Requirements:
  *   - ENCRYPTION_KEY must be set in .env
  *   - Database credentials configured
  *   - XeroTokenStore and EncryptionService available
- * 
+ *
  * Usage:
  *   php cli/migrate_encrypt_tokens.php [--dry-run] [--provider=xero]
- * 
+ *
  * Options:
  *   --dry-run     Show what would be encrypted without modifying database
  *   --provider    Migrate specific provider only (default: all providers)
- * 
+ *
  * Safety:
  *   - Idempotent: Safe to run multiple times (skips already encrypted tokens)
  *   - Transactional: Rolls back on error
  *   - Backup recommended: Take database snapshot before migration
- * 
+ *
  * Example:
  *   # Dry run first (preview changes)
  *   php cli/migrate_encrypt_tokens.php --dry-run
- * 
+ *
  *   # Migrate Xero tokens only
  *   php cli/migrate_encrypt_tokens.php --provider=xero
- * 
+ *
  *   # Migrate all providers
  *   php cli/migrate_encrypt_tokens.php
- * 
+ *
  * @package HumanResources\Payroll\CLI
  * @version 1.0.0
  * @since 2025-11-01
@@ -67,32 +67,32 @@ try {
     // 1. Verify encryption key configured
     echo "[1/6] Verifying encryption configuration..." . PHP_EOL;
     $encryptionKey = getenv('ENCRYPTION_KEY');
-    
+
     if (!$encryptionKey) {
         throw new RuntimeException(
             'ENCRYPTION_KEY not configured. ' .
             'Generate key with: php cli/generate_encryption_key.php'
         );
     }
-    
+
     // Initialize encryption service
     $encryption = new EncryptionService($encryptionKey);
     echo "      ✓ Encryption service initialized (AES-256-GCM)" . PHP_EOL;
     echo "      ✓ Key validated (32 bytes)" . PHP_EOL;
     echo PHP_EOL;
-    
+
     // 2. Connect to database
     echo "[2/6] Connecting to database..." . PHP_EOL;
     $db = getDatabaseConnection(); // From app.php
     echo "      ✓ Database connection established" . PHP_EOL;
     echo PHP_EOL;
-    
+
     // 3. Find tokens to migrate
     echo "[3/6] Scanning oauth_tokens table..." . PHP_EOL;
-    
-    $query = "SELECT id, provider, access_token, refresh_token, expires_at 
+
+    $query = "SELECT id, provider, access_token, refresh_token, expires_at
               FROM oauth_tokens";
-    
+
     if ($provider) {
         $query .= " WHERE provider = :provider";
         $stmt = $db->prepare($query);
@@ -100,10 +100,10 @@ try {
     } else {
         $stmt = $db->query($query);
     }
-    
+
     $tokens = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $totalTokens = count($tokens);
-    
+
     if ($totalTokens === 0) {
         echo "      ℹ️  No tokens found to migrate" . PHP_EOL;
         if ($provider) {
@@ -112,20 +112,20 @@ try {
         echo PHP_EOL;
         exit(0);
     }
-    
+
     echo "      ✓ Found {$totalTokens} OAuth token record(s)" . PHP_EOL;
     echo PHP_EOL;
-    
+
     // 4. Analyze tokens (plaintext vs encrypted)
     echo "[4/6] Analyzing token encryption status..." . PHP_EOL;
-    
+
     $toEncrypt = [];
     $alreadyEncrypted = [];
-    
+
     foreach ($tokens as $token) {
         $accessEncrypted = $encryption->isEncrypted($token['access_token']);
         $refreshEncrypted = $encryption->isEncrypted($token['refresh_token']);
-        
+
         if (!$accessEncrypted || !$refreshEncrypted) {
             $toEncrypt[] = [
                 'id' => $token['id'],
@@ -139,21 +139,21 @@ try {
             $alreadyEncrypted[] = $token['provider'];
         }
     }
-    
+
     $encryptCount = count($toEncrypt);
     $skipCount = count($alreadyEncrypted);
-    
+
     echo "      ✓ Analysis complete" . PHP_EOL;
     echo "        • {$encryptCount} record(s) need encryption" . PHP_EOL;
     echo "        • {$skipCount} record(s) already encrypted (will skip)" . PHP_EOL;
     echo PHP_EOL;
-    
+
     if ($encryptCount === 0) {
         echo "      ✓ All tokens already encrypted - nothing to do!" . PHP_EOL;
         echo PHP_EOL;
         exit(0);
     }
-    
+
     // 5. Display migration plan
     echo "[5/6] Migration plan:" . PHP_EOL;
     foreach ($toEncrypt as $i => $token) {
@@ -170,7 +170,7 @@ try {
         }
     }
     echo PHP_EOL;
-    
+
     if ($dryRun) {
         echo "      ℹ️  DRY RUN - Stopping here (no changes made)" . PHP_EOL;
         echo PHP_EOL;
@@ -179,48 +179,48 @@ try {
         echo PHP_EOL;
         exit(0);
     }
-    
+
     // 6. Perform migration (transactional)
     echo "[6/6] Encrypting tokens..." . PHP_EOL;
-    
+
     $db->beginTransaction();
     $encrypted = 0;
-    
+
     try {
         foreach ($toEncrypt as $token) {
             // Encrypt tokens (only if plaintext)
-            $accessToken = $token['access_plaintext'] 
-                ? $encryption->encrypt($token['access_token']) 
+            $accessToken = $token['access_plaintext']
+                ? $encryption->encrypt($token['access_token'])
                 : $token['access_token'];
-            
+
             $refreshToken = $token['refresh_plaintext']
                 ? $encryption->encrypt($token['refresh_token'])
                 : $token['refresh_token'];
-            
+
             // Update database
             $updateStmt = $db->prepare(
-                "UPDATE oauth_tokens 
-                 SET access_token = :access, refresh_token = :refresh 
+                "UPDATE oauth_tokens
+                 SET access_token = :access, refresh_token = :refresh
                  WHERE id = :id"
             );
-            
+
             $updateStmt->execute([
                 'access' => $accessToken,
                 'refresh' => $refreshToken,
                 'id' => $token['id'],
             ]);
-            
+
             $encrypted++;
             echo "      ✓ Encrypted: {$token['provider']} (ID: {$token['id']})" . PHP_EOL;
         }
-        
+
         $db->commit();
-        
+
     } catch (Exception $e) {
         $db->rollBack();
         throw new RuntimeException('Migration failed (rolled back): ' . $e->getMessage(), 0, $e);
     }
-    
+
     echo PHP_EOL;
     echo "╔══════════════════════════════════════════════════════════════╗" . PHP_EOL;
     echo "║                    MIGRATION SUCCESSFUL                      ║" . PHP_EOL;
@@ -233,24 +233,24 @@ try {
     echo "  • Already encrypted:       {$skipCount}" . PHP_EOL;
     echo "  • Status:                  ✅ SUCCESS" . PHP_EOL;
     echo PHP_EOL;
-    
+
     // Verification step
     echo "🔍 VERIFICATION:" . PHP_EOL;
     echo PHP_EOL;
     echo "  Verifying encrypted tokens can be decrypted..." . PHP_EOL;
-    
+
     foreach ($toEncrypt as $token) {
         $verifyStmt = $db->prepare("SELECT access_token, refresh_token FROM oauth_tokens WHERE id = :id");
         $verifyStmt->execute(['id' => $token['id']]);
         $updated = $verifyStmt->fetch(PDO::FETCH_ASSOC);
-        
+
         // Try to decrypt
         try {
             $decryptedAccess = $encryption->decrypt($updated['access_token']);
             $decryptedRefresh = $encryption->decrypt($updated['refresh_token']);
-            
+
             // Verify decryption produces original plaintext
-            if ($decryptedAccess === $token['access_token'] && 
+            if ($decryptedAccess === $token['access_token'] &&
                 $decryptedRefresh === $token['refresh_token']) {
                 echo "  ✓ {$token['provider']}: Encryption verified (round-trip successful)" . PHP_EOL;
             } else {
@@ -264,11 +264,11 @@ try {
             exit(1);
         }
     }
-    
+
     echo PHP_EOL;
     echo "✅ All tokens encrypted and verified successfully!" . PHP_EOL;
     echo PHP_EOL;
-    
+
     // Next steps
     echo "📋 NEXT STEPS:" . PHP_EOL;
     echo PHP_EOL;
@@ -277,9 +277,9 @@ try {
     echo "  3. Monitor logs for decryption errors" . PHP_EOL;
     echo "  4. Backup encryption key securely (required for recovery)" . PHP_EOL;
     echo PHP_EOL;
-    
+
     exit(0);
-    
+
 } catch (Exception $e) {
     echo PHP_EOL;
     echo "❌ MIGRATION FAILED" . PHP_EOL;
@@ -296,6 +296,6 @@ try {
     echo "Stack trace:" . PHP_EOL;
     echo $e->getTraceAsString() . PHP_EOL;
     echo PHP_EOL;
-    
+
     exit(1);
 }

@@ -6,10 +6,10 @@ use Consignments\Domain\ValueObjects\Status;
 
 /**
  * State Transition Policy
- * 
+ *
  * Enforces legal state transitions for consignments.
  * Prevents illegal jumps (e.g., draft→completed without intermediate steps).
- * 
+ *
  * Transition Rules:
  * - draft → sent | cancelled
  * - sent → receiving | cancelled
@@ -17,7 +17,7 @@ use Consignments\Domain\ValueObjects\Status;
  * - received → completed
  * - completed → (terminal state)
  * - cancelled → (terminal state)
- * 
+ *
  * Design: Fail-fast with explicit error messages for audit trail.
  */
 final class StateTransitionPolicy
@@ -34,24 +34,24 @@ final class StateTransitionPolicy
         Status::COMPLETED => [],
         Status::CANCELLED => [],
     ];
-    
+
     /**
      * Validate if transition from current to new status is allowed
-     * 
+     *
      * @throws \InvalidArgumentException if transition is illegal
      */
     public static function assertAllowed(Status $from, Status $to): void
     {
         $fromValue = $from->toString();
         $toValue = $to->toString();
-        
+
         // Same state is always allowed (idempotent updates)
         if ($fromValue === $toValue) {
             return;
         }
-        
+
         $allowed = self::ALLOWED[$fromValue] ?? [];
-        
+
         if (!in_array($toValue, $allowed, true)) {
             throw new \InvalidArgumentException(
                 sprintf(
@@ -64,7 +64,7 @@ final class StateTransitionPolicy
             );
         }
     }
-    
+
     /**
      * Check if transition is allowed without throwing
      */
@@ -72,29 +72,29 @@ final class StateTransitionPolicy
     {
         $fromValue = $from->toString();
         $toValue = $to->toString();
-        
+
         // Same state is always allowed
         if ($fromValue === $toValue) {
             return true;
         }
-        
+
         $allowed = self::ALLOWED[$fromValue] ?? [];
         return in_array($toValue, $allowed, true);
     }
-    
+
     /**
      * Get list of allowed next states from current status
-     * 
+     *
      * @return string[]
      */
     public static function getAllowedTransitions(Status $from): array
     {
         return self::ALLOWED[$from->toString()] ?? [];
     }
-    
+
     /**
      * Validate transition and return structured error for API responses
-     * 
+     *
      * @return array{valid: bool, error: string|null}
      */
     public static function validate(Status $from, Status $to): array
