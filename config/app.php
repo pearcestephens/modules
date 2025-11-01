@@ -21,4 +21,20 @@ return [
     'url' => rtrim((string)env('APP_URL', 'https://staff.vapeshed.co.nz'), '/'),
     'locale' => env('APP_LOCALE', 'en_NZ'),
     'log_channel' => env('APP_LOG_CHANNEL', 'stack'),
+
+    // ============================================================================
+    // MODULE-SPECIFIC SETTINGS
+    // ============================================================================
+
+    /**
+     * Payroll Module Authentication
+     *
+     * Controls whether authentication is enforced on payroll module routes.
+     *
+     * When FALSE: All routes accessible without login (development/testing mode)
+     * When TRUE: Routes enforce auth based on 'auth' => true in routes.php
+     *
+     * @var bool
+     */
+    'payroll_auth_enabled' => false,  // Set to true for production
 ];

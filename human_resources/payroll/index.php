@@ -453,13 +453,16 @@ if (!$matchedRoute) {
 // SECURITY CHECKS
 // ============================================================================
 
-// Check authentication
-if (isset($matchedRoute['auth']) && $matchedRoute['auth']) {
+// Check if authentication is globally enabled for payroll module
+$authEnabled = $appConfig['payroll_auth_enabled'] ?? false;
+
+// Check authentication (only if globally enabled)
+if ($authEnabled && isset($matchedRoute['auth']) && $matchedRoute['auth']) {
     payroll_require_auth();
 }
 
-// Check permissions
-if (isset($matchedRoute['permission']) && $matchedRoute['permission']) {
+// Check permissions (only if globally enabled)
+if ($authEnabled && isset($matchedRoute['permission']) && $matchedRoute['permission']) {
     payroll_require_permission($matchedRoute['permission']);
 }
 
