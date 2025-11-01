@@ -720,6 +720,11 @@ IT UPDATES THE STOCK QTY
 
 - NO APPROVAL - AUTO GENEREATED - STAFF CREATE THEIR OWN
 - WRITE-OFFS: PUT THROUGH VEND AS $0.00 SO THE COGS GETS PUT ON THE ACCOUNTING
+- LIGHTSPEED INTEGRATION: **HAVEN'T USED STOCKTAKE MODULE BEFORE**
+  - **PAST:** Used Product API endpoints to update quantities in both systems
+  - **FUTURE:** Want to use Lightspeed's stocktake auditing system
+  - **LIGHTSPEED IS THE SOURCE OF TRUTH**
+  - **CONSIDERING:** Migrating to use native stocktake module for better audit trail
 - EVERYTHING IS AUDITED
 
 ---
