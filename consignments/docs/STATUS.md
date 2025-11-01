@@ -16,14 +16,14 @@
 | **O4: Security Hardening** | 100% | ✅ Complete |
 | **O5: Lightspeed Client** | 100% | ✅ Complete |
 | **O6: Queue Worker & Poller** | 100% | ✅ Complete |
-| **O7: Webhooks** | 0% | 🔜 Pending |
+| **O7: Webhooks** | 100% | ✅ Complete |
 | **O8: Transfer Type Services** | 25% | 🟡 Partial (PO only) |
 | **O9: Receiving & Evidence** | 40% | 🟡 Partial |
 | **O10: Freight Integration** | 80% | 🟢 Mostly Complete |
 | **O11: Admin Dashboard** | 0% | 🔜 Pending |
 | **O12: Tests & CI** | 55% | 🟡 Partial |
 | **O13: Documentation** | 60% | 🟡 Partial |
-| **OVERALL** | **64%** | 🟡 In Progress |
+| **OVERALL** | **69%** | 🟡 In Progress |
 
 ---
 
