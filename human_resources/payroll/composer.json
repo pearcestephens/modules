@@ -6,9 +6,18 @@
         "php": ">=8.0",
         "tecnickcom/tcpdf": "^6.6"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
     "autoload": {
         "psr-4": {
-            "CIS\\Payroll\\": "lib/"
+            "CIS\\Payroll\\": "lib/",
+            "HumanResources\\Payroll\\": "."
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HumanResources\\Payroll\\Tests\\": "tests/"
         }
     },
     "config": {
