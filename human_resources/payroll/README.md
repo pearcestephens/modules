@@ -450,6 +450,67 @@ php cli/map-staff-identity.php --list
 - **Audit logging:** Every access logged
 - **PII redaction:** Consider masking personal data in logs
 
+### Security Flag Management (NEW)
+
+**As of November 2, 2025**, the payroll module includes comprehensive authentication control with audit trail.
+
+#### Authentication Flag
+
+The global authentication flag can be toggled for emergency access:
+
+```php
+// .env file or modules/config/app.php
+PAYROLL_AUTH_ENABLED=false  // Default: disabled for development
+PAYROLL_AUTH_ENABLED=true   // Enable for production
+```
+
+#### Audit Trail
+
+All authentication flag changes are automatically logged:
+
+```php
+use HumanResources\Payroll\Services\PayrollAuthAuditService;
+
+$auditService = PayrollAuthAuditService::make($pdo);
+
+// Record toggle event
+$auditService->recordToggle(
+    actor: 'admin_user',
+    action: 'enable',
+    flagBefore: false,
+    flagAfter: true,
+    ipAddress: '192.168.1.100'
+);
+
+// View audit history
+$recent = $auditService->getRecentEntries(limit: 50);
+$userActions = $auditService->getEntriesByActor('admin_user');
+```
+
+#### Health Diagnostics
+
+```bash
+# Comprehensive health check
+php cli/payroll-health.php
+```
+
+Shows:
+- ✅ System info (PHP version, hostname)
+- ✅ Database connectivity
+- ✅ Authentication flag status
+- ✅ Table row counts
+- ✅ Service availability
+- ✅ Recent activity (24 hours)
+
+#### Compliance
+
+- **Audit Retention:** Minimum 12 months (36 months recommended)
+- **Access Control:** Only authorized administrators
+- **Incident Documentation:** Required for every disable action
+- **Monitoring:** Weekly audit log review
+
+For complete authentication control documentation, see [AUTHENTICATION_CONTROL.md](./AUTHENTICATION_CONTROL.md).
+
 ---
 
 ## 📞 Support
