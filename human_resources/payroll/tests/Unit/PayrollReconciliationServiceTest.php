@@ -20,7 +20,7 @@ final class PayrollReconciliationServiceTest extends TestCase
     {
         $service = new ReconciliationService($this->pdo);
         $result = $service->compareDeputyToXero('2025-11-01', '2025-11-30');
-        
+
         $this->assertIsArray($result);
     }
 

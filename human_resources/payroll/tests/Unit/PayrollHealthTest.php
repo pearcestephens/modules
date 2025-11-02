@@ -12,9 +12,9 @@ final class PayrollHealthTest extends TestCase
         ob_start();
         include __DIR__ . '/../health/index.php';
         $output = ob_get_clean();
-        
+
         $this->assertJson($output);
-        
+
         $data = json_decode($output, true);
         $this->assertIsArray($data);
         $this->assertArrayHasKey('ok', $data);

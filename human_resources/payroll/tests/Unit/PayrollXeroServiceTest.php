@@ -41,7 +41,7 @@ final class PayrollXeroServiceTest extends TestCase
     {
         $service = PayrollXeroService::make($this->pdo);
         $service->logActivity('test.action', 'Test message', ['key' => 'value']);
-        
+
         $stmt = $this->pdo->query('SELECT COUNT(*) FROM payroll_activity_log');
         $count = (int) $stmt->fetchColumn();
         $this->assertSame(1, $count);

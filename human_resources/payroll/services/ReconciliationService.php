@@ -44,7 +44,7 @@ class ReconciliationService
             'from' => $start,
             'to' => $end
         ]);
-        
+
         return [];
     }
 
