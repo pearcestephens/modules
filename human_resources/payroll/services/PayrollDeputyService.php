@@ -29,7 +29,7 @@ class PayrollDeputyService
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$entry['timestamp'], $entry['message'], $entry['meta']]);
         };
-    $docRoot = $_SERVER['DOCUMENT_ROOT'] ?? dirname(__DIR__, 4);
+    $docRoot = !empty($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(__DIR__, 4);
         $deputyPath = rtrim((string) $docRoot, '/') . '/assets/functions/deputy.php';
         if (!is_file($deputyPath)) {
             throw new RuntimeException('Deputy library not found at ' . $deputyPath);

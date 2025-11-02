@@ -21,7 +21,20 @@ $db = getDb();
 $service = new PayrollDeputyService($db);
 
 // Clear logs for test isolation
-$db->exec("DELETE FROM payroll_activity_log WHERE message LIKE 'Deputy API call%'");
+function tableExists(PDO $db, string $table): bool {
+    $stmt = $db->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+    $stmt->execute([$table]);
+    return (bool) $stmt->fetchColumn();
+}
+
+foreach (['payroll_activity_log', 'payroll_rate_limits'] as $table) {
+    if (!tableExists($db, $table)) {
+        echo "Skipping smoke test: required table {$table} not found.\n";
+        exit(0);
+    }
+}
+
+$db->exec("DELETE FROM payroll_activity_log WHERE message LIKE 'Deputy API %'");
 $db->exec("DELETE FROM payroll_rate_limits WHERE provider = 'deputy'");
 
 try {
