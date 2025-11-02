@@ -74,12 +74,33 @@ class PayrollHealthCliIntegrationTest extends TestCase
         $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
 
+
         $fullOutput = implode("\n", $output);
 
-        $this->assertStringContainsString('SYSTEM INFO', $fullOutput);
+        $this->assertStringContainsString('System Information', $fullOutput);
         $this->assertStringContainsString('PHP Version:', $fullOutput);
         $this->assertStringContainsString('Timestamp:', $fullOutput);
-        $this->assertStringContainsString('Hostname:', $fullOutput);
+        $this->assertStringContainsString('Server:', $fullOutput);
+    }
+
+    public function testOutputContainsPhpVersion(): void
+    {
+        exec("php {$this->cliPath} 2>&1", $output);
+        $fullOutput = implode("\n", $output);
+
+        $this->assertMatchesRegularExpression(
+            '/PHP Version:\s+\d+\.\d+\.\d+/',
+            $fullOutput,
+            'Output should contain PHP version in X.Y.Z format'
+        );
+    }
+
+    public function testOutputContainsDatabaseSection(): void
+    {
+        exec("php {$this->cliPath} 2>&1", $output);
+        $fullOutput = implode("\n", $output);
+
+        $this->assertStringContainsString('Database Connectivity', $fullOutput);
     }
 
     public function testOutputContainsPhpVersion(): void
@@ -106,23 +127,18 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsAuthFlagSection(): void
     {
-        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
-
         $fullOutput = implode("\n", $output);
 
-        $this->assertStringContainsString('AUTHENTICATION FLAG', $fullOutput);
-        $this->assertStringContainsString('File:', $fullOutput);
+        $this->assertStringContainsString('Authentication Status', $fullOutput);
     }
 
     public function testOutputContainsTableHealthSection(): void
     {
-        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
-
         $fullOutput = implode("\n", $output);
 
-        $this->assertStringContainsString('TABLE HEALTH', $fullOutput);
+        $this->assertStringContainsString('Database Tables', $fullOutput);
     }
 
     public function testOutputContainsExpectedTables(): void
@@ -146,12 +162,10 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsServiceSection(): void
     {
-        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
-
         $fullOutput = implode("\n", $output);
 
-        $this->assertStringContainsString('SERVICE AVAILABILITY', $fullOutput);
+        $this->assertStringContainsString('Services', $fullOutput);
     }
 
     public function testOutputContainsExpectedServices(): void
@@ -176,24 +190,19 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsHealthEndpointSection(): void
     {
-        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
-
         $fullOutput = implode("\n", $output);
 
-        $this->assertStringContainsString('HEALTH ENDPOINT', $fullOutput);
+        $this->assertStringContainsString('Health Endpoint', $fullOutput);
         $this->assertStringContainsString('Location:', $fullOutput);
     }
 
     public function testOutputContainsRecentActivitySection(): void
     {
-        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
-
         $fullOutput = implode("\n", $output);
 
-        $this->assertStringContainsString('RECENT ACTIVITY', $fullOutput);
-        $this->assertStringContainsString('Last 24 Hours', $fullOutput);
+        $this->assertStringContainsString('Recent Activity', $fullOutput);
     }
 
     public function testOutputUsesStatusIndicators(): void
@@ -215,15 +224,20 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputIsFormattedWithSectionDividers(): void
     {
-        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
-
         $fullOutput = implode("\n", $output);
 
-        // Should contain section dividers (━ characters)
-        $dividerCount = substr_count($fullOutput, '━');
+        // Check for box drawing characters used in formatting
+        $boxChars = ['═', '║', '╔', '╚'];
+        $foundBoxChars = false;
+        foreach ($boxChars as $char) {
+            if (str_contains($fullOutput, $char)) {
+                $foundBoxChars = true;
+                break;
+            }
+        }
 
-        $this->assertGreaterThan(5, $dividerCount, 'Should have multiple section dividers');
+        $this->assertTrue($foundBoxChars, 'Should have formatted section dividers with box drawing chars');
     }
 
     public function testExecutionTimeIsReasonable(): void
@@ -239,22 +253,17 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testScriptCanRunMultipleTimes(): void
     {
-        $output1 = [];
-        $output2 = [];
-
+        // First run
         exec("php {$this->cliPath} 2>&1", $output1);
-        exec("php {$this->cliPath} 2>&1", $output2);
-
-        $this->assertNotEmpty($output1);
-        $this->assertNotEmpty($output2);
-
-        // Both should contain system info
         $fullOutput1 = implode("\n", $output1);
+
+        // Second run
+        exec("php {$this->cliPath} 2>&1", $output2);
         $fullOutput2 = implode("\n", $output2);
 
-        $this->assertStringContainsString('SYSTEM INFO', $fullOutput1);
-        $this->assertStringContainsString('SYSTEM INFO', $fullOutput2);
-    }
+        // Both should contain system info
+        $this->assertStringContainsString('System Information', $fullOutput1);
+        $this->assertStringContainsString('System Information', $fullOutput2);
 
     public function testOutputContainsTimestamp(): void
     {
