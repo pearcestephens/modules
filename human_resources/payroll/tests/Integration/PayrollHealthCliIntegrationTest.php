@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @covers cli/payroll-health.php
  */
-class PayrollHealthCliTest extends TestCase
+class PayrollHealthCliIntegrationTest extends TestCase
 {
     private string $cliPath;
 

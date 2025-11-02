@@ -26,15 +26,15 @@ class TestRunner
 
     private array $testSuites = [
         'unit' => [
-            'tests/Unit/PayrollAuthAuditServiceTest.php',
-            'tests/Unit/Migrations/Migration003Test.php',
+            'Unit/PayrollAuthAuditServiceTest.php',
+            'Unit/Migrations/Migration003Test.php',
         ],
         'integration' => [
-            'tests/Integration/PayrollAuthAuditIntegrationTest.php',
-            'tests/Integration/PayrollHealthCliIntegrationTest.php',
+            'Integration/PayrollAuthAuditIntegrationTest.php',
+            'Integration/PayrollHealthCliIntegrationTest.php',
         ],
         'web' => [
-            'tests/Web/HealthEndpointTest.php',
+            'Web/HealthEndpointTest.php',
         ],
     ];
 
@@ -165,17 +165,17 @@ class TestRunner
 
     private function hasPhpUnit(): bool
     {
-        exec('which phpunit 2>/dev/null', $output, $returnVar);
-        return $returnVar === 0;
+        // Check for PHPUnit in public_html vendor
+        $phpunitPath = __DIR__ . '/../../../../vendor/bin/phpunit';
+        return file_exists($phpunitPath);
     }
 
     private function runWithPhpUnit(string $file): array
     {
         $startTime = microtime(true);
 
-        exec("phpunit --colors=never {$file} 2>&1", $output, $returnVar);
-
-        $executionTime = round(microtime(true) - $startTime, 2);
+        $phpunitPath = __DIR__ . '/../../../../vendor/bin/phpunit';
+        exec("php {$phpunitPath} --colors=never {$file} 2>&1", $output, $returnVar);        $executionTime = round(microtime(true) - $startTime, 2);
         $outputString = implode("\n", $output);
 
         // Parse PHPUnit output
