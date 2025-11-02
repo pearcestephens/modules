@@ -1,7 +1,7 @@
 <?php
 /**
  * PayrollDeputyServiceTest
- * 
+ *
  * Unit tests for PayrollDeputyService wrapper.
  *
  * @package CIS\Payroll\Tests

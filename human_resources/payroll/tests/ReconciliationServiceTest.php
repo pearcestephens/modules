@@ -1,7 +1,7 @@
 <?php
 /**
  * ReconciliationServiceTest
- * 
+ *
  * Unit tests for ReconciliationService variance detection.
  *
  * @package CIS\Payroll\Tests

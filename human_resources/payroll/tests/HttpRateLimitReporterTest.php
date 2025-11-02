@@ -1,7 +1,7 @@
 <?php
 /**
  * HttpRateLimitReporterTest
- * 
+ *
  * Unit tests for HttpRateLimitReporter telemetry service.
  *
  * @package CIS\Payroll\Tests
@@ -92,7 +92,7 @@ final class HttpRateLimitReporterTest extends TestCase
         );
 
         $stmt = $this->db->prepare(
-            "SELECT retry_after_sec, request_id, payload_hash FROM payroll_rate_limits 
+            "SELECT retry_after_sec, request_id, payload_hash FROM payroll_rate_limits
              WHERE service = 'test_service' AND endpoint = '/minimal'"
         );
         $stmt->execute();

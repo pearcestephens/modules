@@ -1,7 +1,7 @@
 <?php
 /**
  * PayrollXeroServiceTest
- * 
+ *
  * Unit tests for PayrollXeroService wrapper.
  *
  * @package CIS\Payroll\Tests
