@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Authentication Audit Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .meta-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 0.85em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .meta-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .status-enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-enable {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .action-disable {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -34px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #667eea;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .timeline-date {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .timeline-action {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .timeline-actor {
+            font-size: 0.95em;
+            color: #495057;
+        }
+
+        .alert {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #856404;
+            color: #856404;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-data-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Authentication Audit Report</h1>
+            <p>Payroll Module Security Event Log</p>
+        </div>
+
+        <div class="meta-info">
+            <div class="meta-item">
+                <span class="meta-label">Report Generated</span>
+                <span class="meta-value" id="report-date">-</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Module</span>
+                <span class="meta-value">Human Resources > Payroll</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Current Status</span>
+                <span class="meta-value">
+                    <span class="status-badge status-disabled">Disabled</span>
+                </span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Database</span>
+                <span class="meta-value">jcepnzzkmj</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Summary Statistics -->
+            <div class="section">
+                <h2>📊 Summary Statistics</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-events">0</div>
+                        <div class="stat-label">Total Events</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="enable-count">0</div>
+                        <div class="stat-label">Enable Actions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="disable-count">0</div>
+                        <div class="stat-label">Disable Actions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="unique-actors">0</div>
+                        <div class="stat-label">Unique Actors</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>ℹ️ Note:</strong> This report shows all authentication flag toggle events since the audit system was activated on November 2, 2025. Minimum retention period is 12 months.
+                </div>
+            </div>
+
+            <!-- Recent Events -->
+            <div class="section">
+                <h2>📋 Recent Events (Last 20)</h2>
+
+                <div class="table-container">
+                    <table id="events-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Actor</th>
+                                <th>Action</th>
+                                <th>State Change</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-tbody">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="no-data">
+                                        <div class="no-data-icon">📊</div>
+                                        <p><strong>No audit events found</strong></p>
+                                        <p>Authentication flag has not been toggled since audit system activation.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Timeline View -->
+            <div class="section">
+                <h2>⏱️ Event Timeline</h2>
+
+                <div class="timeline" id="timeline">
+                    <div class="no-data">
+                        <div class="no-data-icon">⏱️</div>
+                        <p><strong>No timeline events</strong></p>
+                        <p>Timeline will populate as authentication flag toggles occur.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Information -->
+            <div class="section">
+                <h2>✅ Compliance Information</h2>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Important:</strong> This audit log is subject to regulatory requirements. Events must be retained for minimum 12 months (36 months recommended). Unauthorized modification of audit logs is prohibited.
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Requirement</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Audit Table Exists</td>
+                                <td>✅ Pass</td>
+                                <td>payroll_auth_audit_log created November 2, 2025</td>
+                            </tr>
+                            <tr>
+                                <td>Service Implementation</td>
+                                <td>✅ Pass</td>
+                                <td>PayrollAuthAuditService active</td>
+                            </tr>
+                            <tr>
+                                <td>Actor Tracking</td>
+                                <td>✅ Pass</td>
+                                <td>Username captured on every toggle</td>
+                            </tr>
+                            <tr>
+                                <td>IP Address Logging</td>
+                                <td>✅ Pass</td>
+                                <td>Source IP recorded when available</td>
+                            </tr>
+                            <tr>
+                                <td>Timestamp Accuracy</td>
+                                <td>✅ Pass</td>
+                                <td>Server timestamp (CURRENT_TIMESTAMP)</td>
+                            </tr>
+                            <tr>
+                                <td>State Before/After</td>
+                                <td>✅ Pass</td>
+                                <td>Both states recorded for every change</td>
+                            </tr>
+                            <tr>
+                                <td>Health Check Tool</td>
+                                <td>✅ Pass</td>
+                                <td>cli/payroll-health.php available</td>
+                            </tr>
+                            <tr>
+                                <td>Unit Test Coverage</td>
+                                <td>✅ Pass</td>
+                                <td>4 test methods covering all scenarios</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Payroll Authentication Audit System</strong></p>
+            <p>Version 2.0.0 | Human Resources Module | The Vape Shed</p>
+            <p>Generated: <span id="footer-date">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Set current date/time
+        const now = new Date();
+        const formattedDate = now.toLocaleString('en-NZ', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Pacific/Auckland'
+        });
+
+        document.getElementById('report-date').textContent = formattedDate;
+        document.getElementById('footer-date').textContent = formattedDate;
+
+        // This is a static HTML template
+        // In production, populate data via PHP:
+        //
+        // <?php
+        // require_once __DIR__ . '/../../config/env-loader.php';
+        // require_once __DIR__ . '/../../services/PayrollAuthAuditService.php';
+        //
+        // $pdo = new PDO(...);
+        // $auditService = PayrollAuthAuditService::make($pdo);
+        // $events = $auditService->getRecentEntries(20);
+        //
+        // // Populate statistics
+        // $enableCount = count(array_filter($events, fn($e) => $e['action'] === 'enable'));
+        // $disableCount = count(array_filter($events, fn($e) => $e['action'] === 'disable'));
+        // $uniqueActors = count(array_unique(array_column($events, 'actor')));
+        // ?>
+        //
+        // Then inject into HTML with proper escaping:
+        // document.getElementById('total-events').textContent = <?= count($events) ?>;
+        // etc.
+    </script>
+</body>
+</html>

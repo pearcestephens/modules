@@ -265,7 +265,7 @@ $auditService->recordToggle(
 ```bash
 # Recent audit entries
 mysql -u jcepnzzkmj -p'wprKh9Jq63' jcepnzzkmj -e "
-  SELECT 
+  SELECT
     DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') as time,
     actor,
     action,

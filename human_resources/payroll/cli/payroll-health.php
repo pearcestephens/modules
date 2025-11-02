@@ -123,8 +123,8 @@ if (file_exists($healthFile)) {
 echo "\n📈 Recent Activity (Last 24 hours):\n";
 try {
     $stmt = $pdo->query("
-        SELECT COUNT(*) as cnt 
-        FROM payroll_activity_log 
+        SELECT COUNT(*) as cnt
+        FROM payroll_activity_log
         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
     ");
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -135,8 +135,8 @@ try {
 
 try {
     $stmt = $pdo->query("
-        SELECT COUNT(*) as cnt 
-        FROM payroll_rate_limits 
+        SELECT COUNT(*) as cnt
+        FROM payroll_rate_limits
         WHERE occurred_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
     ");
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -147,8 +147,8 @@ try {
 
 try {
     $stmt = $pdo->query("
-        SELECT COUNT(*) as cnt 
-        FROM payroll_auth_audit_log 
+        SELECT COUNT(*) as cnt
+        FROM payroll_auth_audit_log
         WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
     ");
     $row = $stmt->fetch(PDO::FETCH_ASSOC);

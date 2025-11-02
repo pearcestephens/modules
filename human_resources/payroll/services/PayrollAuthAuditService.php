@@ -44,7 +44,7 @@ final class PayrollAuthAuditService
         ?string $ipAddress = null
     ): void {
         $stmt = $this->db->prepare('
-            INSERT INTO payroll_auth_audit_log 
+            INSERT INTO payroll_auth_audit_log
             (actor, action, flag_before, flag_after, ip_address)
             VALUES (?, ?, ?, ?, ?)
         ');
@@ -67,7 +67,7 @@ final class PayrollAuthAuditService
     public function getRecentEntries(int $limit = 50): array
     {
         $stmt = $this->db->prepare('
-            SELECT 
+            SELECT
                 id,
                 timestamp,
                 actor,
@@ -95,7 +95,7 @@ final class PayrollAuthAuditService
     public function getEntriesByActor(string $actor, int $limit = 50): array
     {
         $stmt = $this->db->prepare('
-            SELECT 
+            SELECT
                 id,
                 timestamp,
                 actor,
