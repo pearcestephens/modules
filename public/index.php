@@ -9,6 +9,11 @@ use App\Http\Kernel;
 
 require_once __DIR__ . '/../config/env-loader.php';
 
+$autoload = __DIR__ . '/../vendor/autoload.php';
+if (is_file($autoload)) {
+	require_once $autoload;
+}
+
 $appConfig = require __DIR__ . '/../config/app.php';
 $urlConfig = require __DIR__ . '/../config/urls.php';
 $securityConfig = require __DIR__ . '/../config/security.php';
