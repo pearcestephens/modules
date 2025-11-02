@@ -41,7 +41,7 @@ HELP;
 $days = isset($options['days']) ? (int)$options['days'] : 7;
 $service = $options['service'] ?? null;
 
-$sql = 'SELECT 
+$sql = 'SELECT
     service,
     endpoint,
     http_status,
@@ -63,15 +63,15 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (empty($rows)) {
         echo "✅ No rate limits in the last {$days} day(s)\n";
         exit(0);
     }
-    
+
     echo "Rate Limit Events (last {$days} day(s)):\n";
     echo str_repeat('=', 80) . "\n\n";
-    
+
     foreach ($rows as $row) {
         echo "Service: {$row['service']}\n";
         echo "Endpoint: {$row['endpoint']}\n";
@@ -80,9 +80,9 @@ try {
         echo "Occurred: {$row['occurred_at']}\n";
         echo str_repeat('-', 80) . "\n";
     }
-    
+
     echo "\nTotal events: " . count($rows) . "\n";
-    
+
 } catch (\Throwable $e) {
     fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
     exit(1);

@@ -53,7 +53,7 @@ $service = new ReconciliationService($pdo);
 
 try {
     $variances = $service->compareDeputyToXero($start, $end);
-    
+
     if (empty($variances)) {
         echo "✅ No variances found - Deputy and Xero match perfectly\n";
     } else {
@@ -66,7 +66,7 @@ try {
             echo "  ---\n";
         }
     }
-    
+
     exit(0);
 } catch (\Throwable $e) {
     fwrite(STDERR, "Error: " . $e->getMessage() . "\n");

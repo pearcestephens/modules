@@ -46,7 +46,7 @@ $level = $options['level'] ?? null;
 $category = $options['category'] ?? null;
 $limit = isset($options['limit']) ? (int)$options['limit'] : 50;
 
-$sql = 'SELECT 
+$sql = 'SELECT
     log_level,
     category,
     action,
@@ -73,22 +73,22 @@ $params[] = $limit;
 
 try {
     $stmt = $pdo->prepare($sql);
-    
+
     foreach ($params as $i => $val) {
         $stmt->bindValue($i + 1, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
-    
+
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (empty($rows)) {
         echo "No activity log entries found for the specified criteria\n";
         exit(0);
     }
-    
+
     echo "Payroll Activity Log (last {$hours} hour(s)):\n";
     echo str_repeat('=', 100) . "\n\n";
-    
+
     foreach ($rows as $row) {
         $levelColor = match($row['log_level']) {
             'ERROR' => "\033[31m", // Red
@@ -97,25 +97,25 @@ try {
             default => ""
         };
         $reset = "\033[0m";
-        
+
         echo "{$levelColor}[{$row['log_level']}]{$reset} ";
         echo "{$row['created_at']} | ";
         echo "{$row['category']} | ";
         echo "{$row['action']}\n";
         echo "  Message: {$row['message']}\n";
-        
+
         if ($row['details']) {
             $details = json_decode($row['details'], true);
             if ($details) {
                 echo "  Details: " . json_encode($details, JSON_PRETTY_PRINT) . "\n";
             }
         }
-        
+
         echo str_repeat('-', 100) . "\n";
     }
-    
+
     echo "\nTotal entries: " . count($rows) . "\n";
-    
+
 } catch (\Throwable $e) {
     fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
     exit(1);
