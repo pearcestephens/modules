@@ -1,6 +1,6 @@
 # Consignments Module - Current Status
 
-**Last Updated:** November 1, 2025 05:30 UTC
+**Last Updated:** November 1, 2025 21:00 UTC
 **Version:** 2.0.0-alpha
 **Phase:** Active Refactoring (Hexagonal Architecture Migration)
 
@@ -17,13 +17,13 @@
 | **O5: Lightspeed Client** | 100% | ✅ Complete |
 | **O6: Queue Worker & Poller** | 100% | ✅ Complete |
 | **O7: Webhooks** | 100% | ✅ Complete |
-| **O8: Transfer Type Services** | 25% | 🟡 Partial (PO only) |
+| **O8: Transfer Type Services** | 100% | ✅ Complete |
 | **O9: Receiving & Evidence** | 40% | 🟡 Partial |
 | **O10: Freight Integration** | 80% | 🟢 Mostly Complete |
 | **O11: Admin Dashboard** | 0% | 🔜 Pending |
 | **O12: Tests & CI** | 55% | 🟡 Partial |
 | **O13: Documentation** | 60% | 🟡 Partial |
-| **OVERALL** | **69%** | 🟡 In Progress |
+| **OVERALL** | **77%** | � Mostly Complete |
 
 ---
 
@@ -31,6 +31,7 @@
 
 - **November 1, 2025 05:30 UTC:** O4 Complete (52% → Security Hardening)
 - **November 1, 2025 06:00 UTC:** O5 Complete (58% → Lightspeed Client)
+- **November 1, 2025 21:00 UTC:** O8 Complete (69% → 77% - Transfer Type Services)
 
 ---
 
@@ -39,6 +40,9 @@
 ### Core Features
 - ✅ **Purchase Order Creation** - Draft → Approval → Active workflow
 - ✅ **Multi-Tier Approvals** - $0-2k, $2k-5k, $5k+ tiers with role-based routing
+- ✅ **Outlet Transfers** - Store-to-store transfer service with $2k approval threshold, stock validation
+- ✅ **Supplier Returns** - Return damaged/incorrect/overstock items with photo evidence, refund tracking
+- ✅ **Stocktakes** - Physical count vs system count, variance analysis, auto-adjustment generation
 - ✅ **Freight Integration** - Weight/volume calculation, container suggestions, NZ Post/GoSweetSpot quotes
 - ✅ **Pack Interface** - Barcode scanning, real-time weight updates, draft auto-save
 - ✅ **Receiving Flow** - Partial receives, variance tracking, signature capture
@@ -49,51 +53,44 @@
 - ✅ **Database Schema** - 18+ tables (vend_consignments, transfers, queue tables)
 - ✅ **Lightspeed Sync** - Consignment creation, status updates (at receive time)
 - ✅ **Audit Logging** - Complete before/after tracking in transfer_audit_log
+- ✅ **Transfer API** - 11 endpoints covering outlet/supplier/stocktake operations
+- ✅ **Transfer Tests** - 60 unit tests + 3 integration tests for transfer services
 
 ---
 
 ## 🟡 What's Partially Done
 
 ### Needs Completion
-- 🟡 **Lightspeed Client** - Has retry logic, needs idempotency keys & OAuth2 refresh
-- 🟡 **Outlet Transfers** - Table structure exists, no dedicated service yet
-- 🟡 **Supplier Returns** - Schema ready, workflows undefined
-- 🟡 **Stocktakes** - Structure exists, integration unclear
-- 🟡 **Queue System** - Tables exist, worker process not running
-- 🟡 **Webhook Handler** - queue_webhook_events table exists, no endpoint
-- 🟡 **Testing** - API tests exist, need unit/integration/smoke coverage
+- 🟡 **Receiving Evidence** - Basic capture exists, needs enhancement (O9)
+- 🟡 **Freight Testing** - Integration mostly complete, needs edge case coverage (O10)
+- 🟡 **Testing Coverage** - API tests exist, expanding unit/integration/smoke coverage (O12)
+- � **Documentation** - Core docs complete, needs runbooks and troubleshooting guides (O13)
 
 ---
 
 ## 🔜 What's Not Started
 
 ### Critical Gaps
-- ❌ **State Transition Policy** - No enforcement of illegal status changes
-- ❌ **Status Mapping** - CIS ↔ Lightspeed conversions scattered in code
-- ❌ **Queue Worker** - No bin/queue-worker.php daemon
-- ❌ **Poller** - No bin/poll-ls-consignments.php cursor-based sync
-- ❌ **Webhook Endpoint** - No /api/webhooks/lightspeed.php with HMAC validation
-- ❌ **Admin Dashboard** - No /admin/consignments/sync-status monitoring UI
-- ❌ **Security Audit** - No systematic secret scan, CSRF validation, or path traversal protection
-- ❌ **CI Pipeline** - No GitHub Actions, tests not blocking PRs
+- ❌ **Admin Dashboard** - No /admin/consignments/sync-status monitoring UI (O11)
+- ❌ **CI Pipeline** - No GitHub Actions, tests not blocking PRs (O12)
 
 ---
 
 ## 🎯 Immediate Priorities (This Week)
 
-### Day 1-2: Foundation
-1. **O2: Status Map & Policy** - Canonical state machine, illegal transition blocking
-2. **O3: Service/API Sync** - Fix method mismatches, implement missing methods
-3. **O4: Security** - Remove secrets, enforce env vars, CSRF on writes
+### Day 1: Transfer Services (COMPLETE ✅)
+1. ~~**O8: Transfer Type Services** - OutletTransfer, SupplierReturn, Stocktake~~
 
-### Day 3-4: Sync Infrastructure
-4. **O6: Queue Worker** - Build bin/queue-worker.php with retry & DLQ
-5. **O7: Webhooks** - Create endpoint with HMAC validation
-6. **O5: Lightspeed Client** - Add idempotency keys, OAuth2 token refresh
+### Day 2: Evidence & Receiving (NEXT)
+2. **O9: Receiving & Evidence** - Enhanced photo/signature capture, per-item variance
+3. **O10: Freight Integration** - Edge case testing and polish
 
-### Day 5: Observability
-7. **O11: Admin Dashboard** - Basic sync status page with queue metrics
-8. **O12: Tests** - Expand coverage for new components
+### Day 3-4: Observability & Quality
+4. **O11: Admin Dashboard** - Sync status monitoring with queue metrics
+5. **O12: Tests & CI** - Comprehensive coverage + GitHub Actions
+
+### Day 5: Documentation
+6. **O13: Documentation** - Runbooks, API docs, troubleshooting guides
 
 ---
 

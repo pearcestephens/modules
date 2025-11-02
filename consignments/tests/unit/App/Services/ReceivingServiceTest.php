@@ -410,13 +410,13 @@ class ReceivingServiceTest extends TestCase
                 $callCount++;
                 $stmt = $this->createMock(\PDOStatement::class);
                 $stmt->method('execute')->willReturn(true);
-                
+
                 if ($callCount === 1) {
                     $stmt->method('fetch')->willReturn(['id' => 1]);
                 } else {
                     $stmt->method('fetch')->willReturn(null);
                 }
-                
+
                 return $stmt;
             });
 
@@ -439,7 +439,7 @@ class ReceivingServiceTest extends TestCase
             ->method('prepare')
             ->willReturnCallback(function ($sql) use (&$callCount) {
                 $callCount++;
-                
+
                 if ($callCount === 1) {
                     // First call: check transfer exists
                     $stmt = $this->createMock(\PDOStatement::class);
