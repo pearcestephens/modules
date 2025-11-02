@@ -23,5 +23,10 @@ return [
             'auth' => true,
             'flags' => ['phpinfo'],
         ],
+        'admin/logs/apache-error-tail' => [
+            'script' => __DIR__ . '/../admin/logs/apache-error-tail.php',
+            'auth' => true,
+            'flags' => ['quick_dial'],
+        ],
     ],
 ];

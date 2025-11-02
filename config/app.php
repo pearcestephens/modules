@@ -21,6 +21,7 @@ return [
     'url' => rtrim((string)env('APP_URL', 'https://staff.vapeshed.co.nz'), '/'),
     'locale' => env('APP_LOCALE', 'en_NZ'),
     'log_channel' => env('APP_LOG_CHANNEL', 'stack'),
+    'log_path' => rtrim((string)env('LOG_PATH', __DIR__ . '/../logs'), '/'),
 
     // ============================================================================
     // MODULE-SPECIFIC SETTINGS

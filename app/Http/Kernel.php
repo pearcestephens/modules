@@ -69,6 +69,9 @@ final class Kernel
             if (in_array('phpinfo', $flags, true)) {
                 $this->guardPhpInfo();
             }
+            if (in_array('quick_dial', $flags, true)) {
+                $this->guardQuickDial($clientIp);
+            }
         }
 
         $this->logger->debug('Dispatching endpoint', ['endpoint' => $endpoint, 'ip' => $clientIp]);
@@ -185,6 +188,46 @@ final class Kernel
 
         if (!defined('PHPINFO_ALLOWED')) {
             define('PHPINFO_ALLOWED', true);
+        }
+    }
+
+    private function guardQuickDial(string $clientIp): void
+    {
+        $config = $this->securityConfig['quick_dial'] ?? [];
+        $requestsPerMinute = (int)($config['requests_per_minute'] ?? 0);
+
+        if ($requestsPerMinute <= 0) {
+            return;
+        }
+
+        $bucketKey = hash('sha256', 'quick_dial|' . $clientIp . '|' . date('Y-m-d H:i'));
+        $bucketFile = sys_get_temp_dir() . '/cis_quick_dial_' . $bucketKey;
+
+        $count = 0;
+        $fp = fopen($bucketFile, 'c+');
+        if ($fp !== false) {
+            flock($fp, LOCK_EX);
+            $data = stream_get_contents($fp);
+            if (is_string($data) && $data !== '') {
+                $decoded = json_decode($data, true);
+                if (is_array($decoded) && isset($decoded['count'])) {
+                    $count = (int)$decoded['count'];
+                }
+            }
+
+            $count++;
+
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode(['count' => $count], JSON_THROW_ON_ERROR));
+            fflush($fp);
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+
+        if ($count > $requestsPerMinute) {
+            $this->logger->warning('Quick dial rate limit exceeded', ['ip' => $clientIp, 'count' => $count]);
+            Response::error('Too Many Requests', 429, ['retry_after' => 60]);
         }
     }
 }
