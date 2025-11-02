@@ -478,7 +478,7 @@ php cli/map-staff-identity.php --list
 
 ---
 
-**Version:** 2.0.0  
-**Created:** 2025-10-29  
-**Last Updated:** 2025-11-02 (Payroll Hardening Phase)  
+**Version:** 2.0.0
+**Created:** 2025-10-29
+**Last Updated:** 2025-11-02 (Payroll Hardening Phase)
 **Maintainer:** CIS Development Team
