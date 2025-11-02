@@ -4,8 +4,8 @@
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D8.1-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)]()
 
-**Version:** 2.0.0  
-**Last Updated:** November 2, 2025  
+**Version:** 2.0.0
+**Last Updated:** November 2, 2025
 **Status:** ✅ Production Ready
 
 ---
@@ -15,7 +15,7 @@
 The Consignments module manages all transfer workflows for CIS (Central Information System), integrating with Lightspeed Retail's native consignment model. It handles:
 
 - **Purchase Orders** (SUPPLIER type): External supplier → CIS outlets
-- **Stock Transfers** (OUTLET type): CIS outlet → CIS outlet  
+- **Stock Transfers** (OUTLET type): CIS outlet → CIS outlet
 - **Returns to Supplier** (RETURN type): CIS outlet → External supplier
 - **Freight Integration**: Shipment booking and tracking
 - **Receiving Evidence**: Photo uploads, signatures, damage notes
@@ -471,7 +471,7 @@ Major refactoring with:
 
 ---
 
-**Last Updated:** November 2, 2025  
+**Last Updated:** November 2, 2025
 **Maintained by:** Ecigdis IT Team
 
 - `GET /api/consignments/recent` - List recent consignments

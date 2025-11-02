@@ -1,6 +1,6 @@
 # Consignments Runbook
 
-**Version:** 2.0.0  
+**Version:** 2.0.0
 **Last Updated:** November 2, 2025
 
 ## Quick Reference
@@ -50,7 +50,7 @@ flowchart TD
     Schedule --> PendingRetry[Update status = pending]
     PendingRetry --> Release
     Release --> Claim
-    
+
     StuckReset([Stuck Job Reset - Separate Process]) --> FindStuck[Find jobs with heartbeat > 5min]
     FindStuck --> ResetStuck[Update status = pending, heartbeat = NULL]
     ResetStuck --> StuckDone([Done])
@@ -101,20 +101,20 @@ stateDiagram-v2
     IN_TRANSIT --> RECEIVED: Mark Received
     RECEIVED --> COMPLETE: Complete Consignment
     COMPLETE --> [*]
-    
+
     SENT --> CANCELLED: Cancel Before Transit
     CANCELLED --> [*]
-    
+
     IN_TRANSIT --> FAILED: Lightspeed API Error
     FAILED --> DLQ: Move to Dead Letter Queue
     DLQ --> SENT_TO_LS: Retry
-    
+
     note right of SENT_TO_LS
         Queue job created:
         job_type = po.send_to_ls
         payload = {po_id, consignment_data}
     end note
-    
+
     note right of IN_TRANSIT
         Webhook received:
         event_type = consignment.created
@@ -137,8 +137,8 @@ stateDiagram-v2
 ```bash
 # Check webhook stats
 mysql -u consignments_user -p -e "
-  SELECT status, COUNT(*) 
-  FROM consignments_prod.webhook_events 
+  SELECT status, COUNT(*)
+  FROM consignments_prod.webhook_events
   WHERE received_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
   GROUP BY status;"
 
@@ -190,8 +190,8 @@ mysql -u consignments_user -p -e "
 ```bash
 # Check queue stats
 mysql -u consignments_user -p -e "
-  SELECT 
-    status, 
+  SELECT
+    status,
     COUNT(*) as count,
     MAX(created_at) as oldest
   FROM consignments_prod.queue_jobs
@@ -258,8 +258,8 @@ mysql -u root -p -e "SHOW ENGINE INNODB STATUS\G" | grep -A 20 "TRANSACTIONS"
 ```bash
 # Check DLQ contents
 mysql -u consignments_user -p -e "
-  SELECT 
-    job_type, 
+  SELECT
+    job_type,
     COUNT(*) as count,
     MIN(failed_at) as oldest_failure
   FROM consignments_prod.queue_jobs_dlq
@@ -457,12 +457,12 @@ sudo systemctl status consignments-queue.service | grep "Active:"
 ```bash
 # 1. Review slow queries
 mysql -u consignments_user -p consignments_prod -e "
-  SELECT * FROM information_schema.processlist 
+  SELECT * FROM information_schema.processlist
   WHERE time > 5 AND command != 'Sleep';"
 
 # 2. Check table sizes
 mysql -u consignments_user -p -e "
-  SELECT 
+  SELECT
     table_name,
     ROUND(((data_length + index_length) / 1024 / 1024), 2) as size_mb
   FROM information_schema.tables
@@ -489,7 +489,7 @@ mysql -u consignments_user -p consignments_prod -e "
 
 # 2. Index analysis
 mysql -u consignments_user -p consignments_prod -e "
-  SELECT 
+  SELECT
     table_name,
     index_name,
     cardinality

@@ -643,6 +643,113 @@ CREATE TABLE balance_snapshots (
 - [ ] Update: All services to use masked logger
 - [ ] Tests: 8 unit tests (masking patterns)
 
+
+### 🆕 ALIGNMENT & REPORTING (Week 4-6) - PRIORITY 2-3
+
+#### **T16: Schema Reconciliation & Canonical SQL Sync**
+**Status:** 🔴 Not Started
+**Priority:** P2 (Data integrity)
+**Estimated:** 4 hours
+
+**Problem:**
+- `_schema/complete_payroll_schema.sql` and automation schema lag behind new migrations
+- Missing canonical definitions for `payroll_runs`, `payroll_applications`, `payroll_dlq`, `payroll_residuals`, `staff_identity_map`, `payroll_bonus_events`, `leave_balances`, `leave_conversion_rules`
+- AI automation tables require new columns (`request_id`, `idempotency_key`, `risk`, `evidence_url`, `approved_by`)
+
+**Deliverables:**
+- [ ] Update `_schema/complete_payroll_schema.sql` with all new/updated tables
+- [ ] Update `schema/payroll_ai_automation_schema.sql` with automation columns
+- [ ] Validation script comparing migrations ↔ canonical schema
+- [ ] Document schema diffs in `docs/SCHEMA_CHANGELOG.md`
+
+**Acceptance:**
+- ✅ Running migrations then exporting schema yields zero diff against canonical SQL
+- ✅ AI automation tables support CommentOps/replay metadata
+
+---
+
+#### **T17: README & Runbook Refresh**
+**Status:** 🔴 Not Started
+**Priority:** P3 (Operational clarity)
+**Estimated:** 3 hours
+
+**Problem:**
+- README lacks Tue→Mon runbook, re-run policy, replay/DLQ steps, drift thresholds
+- No documented data contracts for bonuses, leave assignments, timesheet amendments, account deductions
+
+**Deliverables:**
+- [ ] Update `README.md` with execution runbook and replay guidance
+- [ ] Add data contract snippets (bonus, leave assign, timesheet amendment, deductions)
+- [ ] Document DLQ processing and drift thresholds
+- [ ] Add CommentOps command reference (`/plan`, `/apply`, etc.)
+
+**Acceptance:**
+- ✅ Ops can follow README to execute weekly cycle without tribal knowledge
+- ✅ All API/data contracts mirrored in documentation
+
+---
+
+#### **T18: Bonus & Incentive Engine (incl. Google Reviews)**
+**Status:** 🔴 Not Started
+**Priority:** P2 (Financial completeness)
+**Estimated:** 6 hours
+
+**Problem:**
+- Bonuses (manual & Google review) not captured with idempotency/evidence
+- No exporter integration or rejection handling
+
+**Deliverables:**
+- [ ] Migration: `009_create_payroll_bonus_events.php`
+- [ ] DAO/Service: `BonusEventDao.php`, `BonusService.php`
+- [ ] Rule engine enforcing evidence, per-period caps, DLQ on rejection
+- [ ] Exporter integration (merge approved bonuses into pay run)
+- [ ] Tests: 12 unit tests (idempotency, evidence, caps)
+
+**Acceptance:**
+- ✅ Bonuses applied idempotently with evidence captured
+- ✅ Invalid bonuses enter DLQ with actionable reason codes
+
+---
+
+#### **T19: Timesheet Amendment Pipeline**
+**Status:** 🔴 Not Started
+**Priority:** P2 (Payroll accuracy)
+**Estimated:** 5 hours
+
+**Problem:**
+- Approved timesheet amendments not reflected in pay runs
+- No idempotent recalculation keyed by shift
+
+**Deliverables:**
+- [ ] Intake endpoint (controller + validation) for approved amendments
+- [ ] Service to recalc gross/OT/leave accrual for Tue→Mon period
+- [ ] Idempotency key `ts_amend:{shift_id}:{hours_after}`
+- [ ] Tests: 10 unit tests (recalc logic, duplicate skips)
+
+**Acceptance:**
+- ✅ Amendments adjust pay run exactly once and log history
+- ✅ Conflicts flagged to DLQ with category `CONFLICT`
+
+---
+
+#### **T20: Pay Discrepancy Detector & Weekly Report**
+**Status:** 🔴 Not Started
+**Priority:** P3 (Monitoring)
+**Estimated:** 4 hours
+
+**Problem:**
+- No automated detection for HR vs Xero rate mismatches, hour deltas, unapplied bonuses, invalid leave units
+
+**Deliverables:**
+- [ ] Scheduled report comparing HR data vs provider
+- [ ] Summary stored in `payroll_reports` table + CSV export
+- [ ] Dashboard widget surfacing discrepancies with replay links
+- [ ] Tests: 6 unit tests (threshold logic)
+
+**Acceptance:**
+- ✅ Weekly report generated automatically and linked on dashboard
+- ✅ Ops can remediate discrepancies before payday
+
 ---
 
 ### 🆕 Scope Additions (Nov 2, 2025 Review) - PRIORITY MIXED
