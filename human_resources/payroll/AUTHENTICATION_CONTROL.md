@@ -220,6 +220,114 @@ curl -I http://localhost/modules/human_resources/payroll/?view=dashboard
 
 ---
 
-**Last Updated:** November 1, 2025
+## 🔍 Audit Trail (NEW)
+
+### Authentication Change Logging
+
+**As of November 2, 2025**, all authentication flag toggles are automatically logged for compliance and security auditing.
+
+### Audit Table Schema
+
+```sql
+CREATE TABLE payroll_auth_audit_log (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    actor VARCHAR(64) NOT NULL,
+    action VARCHAR(32) NOT NULL,
+    flag_before TINYINT(1) NOT NULL,
+    flag_after TINYINT(1) NOT NULL,
+    ip_address VARCHAR(64),
+    INDEX idx_timestamp (timestamp),
+    INDEX idx_actor (actor)
+);
+```
+
+### Recording Changes
+
+```php
+use HumanResources\Payroll\Services\PayrollAuthAuditService;
+
+$pdo = new PDO(/* your connection */);
+$auditService = PayrollAuthAuditService::make($pdo);
+
+// Record when enabling auth
+$auditService->recordToggle(
+    actor: 'admin_user',
+    action: 'enable',
+    flagBefore: false,
+    flagAfter: true,
+    ipAddress: $_SERVER['REMOTE_ADDR'] ?? null
+);
+```
+
+### Viewing Audit History
+
+```bash
+# Recent audit entries
+mysql -u jcepnzzkmj -p'wprKh9Jq63' jcepnzzkmj -e "
+  SELECT 
+    DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') as time,
+    actor,
+    action,
+    CASE flag_before WHEN 1 THEN 'enabled' ELSE 'disabled' END as before,
+    CASE flag_after WHEN 1 THEN 'enabled' ELSE 'disabled' END as after,
+    ip_address
+  FROM payroll_auth_audit_log
+  ORDER BY timestamp DESC
+  LIMIT 20;
+"
+
+# Or use the service
+$recent = $auditService->getRecentEntries(limit: 50);
+$userActions = $auditService->getEntriesByActor('admin_user');
+```
+
+### Health Check
+
+```bash
+# Comprehensive diagnostics including auth status
+php cli/payroll-health.php
+```
+
+Output includes:
+- ✅ PHP version and system info
+- ✅ Database connectivity
+- ✅ Authentication flag status
+- ✅ Table counts (including payroll_auth_audit_log)
+- ✅ Service availability
+- ✅ Recent activity statistics
+
+### Compliance Requirements
+
+- **Retention:** Keep audit logs for minimum 12 months (36 months recommended)
+- **Access Control:** Only authorized administrators may toggle flag
+- **Incident Response:** Document reason for disabling auth in incident ticket
+- **Monitoring:** Review audit log weekly for unauthorized changes
+
+### Rollback Procedure
+
+If authentication needs to be reverted:
+
+1. Check audit history to identify last known good state
+2. Record rollback action with reason
+3. Update flag to previous state
+4. Verify change in health check
+5. Monitor for 24 hours
+
+```php
+// Example rollback
+$auditService->recordToggle(
+    actor: 'admin_user',
+    action: 'disable',
+    flagBefore: true,
+    flagAfter: false,
+    ipAddress: $_SERVER['REMOTE_ADDR'] ?? null
+);
+```
+
+---
+
+**Last Updated:** November 2, 2025
 **Flag Location:** `modules/config/app.php:29`
 **Current Value:** `false` (Authentication DISABLED)
+**Audit Trail:** ✅ Active (since November 2, 2025)
