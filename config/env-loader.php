@@ -114,3 +114,29 @@ if (!function_exists('env')) {
         return $value === false ? $default : $value;
     }
 }
+
+if (!function_exists('requireEnv')) {
+    /**
+     * Retrieve a required environment variable.
+     *
+     * Throws RuntimeException if the variable is not set or is empty.
+     * Use this for critical configuration like database passwords.
+     *
+     * @param string $key The environment variable name
+     * @return string The environment variable value (never null/empty)
+     * @throws RuntimeException If the variable is not set or empty
+     */
+    function requireEnv(string $key): string
+    {
+        $value = env($key);
+
+        if ($value === null || $value === '') {
+            throw new RuntimeException(
+                "Required environment variable not set: {$key}. " .
+                "Please ensure this is defined in your .env file or server environment."
+            );
+        }
+
+        return (string)$value;
+    }
+}

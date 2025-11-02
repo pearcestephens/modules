@@ -234,13 +234,21 @@ try {
 
             if ($status === '') {
                 json_fail('status required', 400, [
-                    'allowed' => ['draft', 'sent', 'receiving', 'received', 'completed']
+                    'allowed' => ['draft', 'sent', 'receiving', 'received', 'completed', 'cancelled']
                 ]);
             }
 
-            $updated = $svc->updateStatus($id, $status);
-
-            json_ok(['updated' => $updated, 'id' => $id, 'status' => $status]);
+            // Use updateStatus which validates the status value
+            try {
+                $updated = $svc->updateStatus($id, $status);
+                json_ok(['updated' => $updated, 'id' => $id, 'status' => $status]);
+            } catch (\InvalidArgumentException $e) {
+                // Status validation or illegal transition
+                json_fail($e->getMessage(), 422, [
+                    'field' => 'status',
+                    'value' => $status
+                ]);
+            }
             break;
 
         case 'update_item_qty':
@@ -253,9 +261,15 @@ try {
                 json_fail('item_id required', 400);
             }
 
-            $updated = $svc->updateItemPackedQty($itemId, $packedQty);
-
-            json_ok(['updated' => $updated, 'item_id' => $itemId, 'packed_qty' => $packedQty]);
+            try {
+                $updated = $svc->updateItemPackedQty($itemId, $packedQty);
+                json_ok(['updated' => $updated, 'item_id' => $itemId, 'packed_qty' => $packedQty]);
+            } catch (\InvalidArgumentException $e) {
+                json_fail($e->getMessage(), 422, [
+                    'field' => 'packed_qty',
+                    'value' => $packedQty
+                ]);
+            }
             break;
 
         // ====================================================================
