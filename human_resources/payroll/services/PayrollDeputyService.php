@@ -11,24 +11,19 @@
 
 declare(strict_types=1);
 
+use PayrollModule\Lib\PayrollLogger;
+
 class PayrollDeputyService
 {
     private $db;
-    private $logger;
+    private PayrollLogger $logger;
 
     public function __construct(PDO $db)
     {
         $this->db = $db;
-        $this->logger = function($msg, $meta = []) {
-            $entry = [
-                'timestamp' => date('Y-m-d H:i:s'),
-                'message' => $msg,
-                'meta' => json_encode($meta)
-            ];
-            $sql = "INSERT INTO payroll_activity_log (timestamp, message, meta) VALUES (?, ?, ?)";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([$entry['timestamp'], $entry['message'], $entry['meta']]);
-        };
+
+        require_once __DIR__ . '/../lib/PayrollLogger.php';
+        $this->logger = new PayrollLogger();
     $docRoot = !empty($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(__DIR__, 4);
         $deputyPath = rtrim((string) $docRoot, '/') . '/assets/functions/deputy.php';
         if (!is_file($deputyPath)) {
@@ -49,7 +44,7 @@ class PayrollDeputyService
         $endpoint = 'Deputy::getTimesheets';
         try {
             $result = Deputy::getTimesheets($params);
-            ($this->logger)("Deputy API call", [
+            $this->logInfo('deputy.api.call', 'Deputy API call successful', [
                 'endpoint' => $endpoint,
                 'params' => $params,
                 'result_count' => is_array($result) ? count($result) : 0
@@ -57,7 +52,7 @@ class PayrollDeputyService
             return $result;
         } catch (DeputyRateLimitException $e) {
             $retryAfter = $e->getRetryAfter() ?? null;
-            ($this->logger)("Deputy API 429", [
+            $this->logWarning('deputy.api.rate_limit', 'Deputy API returned 429', [
                 'endpoint' => $endpoint,
                 'params' => $params,
                 'error' => 'rate_limit',
@@ -66,10 +61,10 @@ class PayrollDeputyService
             $this->persistRateLimit('deputy', $endpoint, $retryAfter);
             throw $e;
         } catch (\Throwable $e) {
-            ($this->logger)("Deputy API error", [
+            $this->logError('deputy.api.error', 'Deputy API error', [
                 'endpoint' => $endpoint,
                 'params' => $params,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -87,5 +82,29 @@ class PayrollDeputyService
         $sql = "INSERT INTO payroll_rate_limits (provider, endpoint, retry_after, occurred_at) VALUES (?, ?, ?, NOW())";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$provider, $endpoint, $retryAfter]);
+    }
+
+    private function logInfo(string $action, string $message, array $context = []): void
+    {
+        $this->logger->log(PayrollLogger::INFO, $message, array_merge($context, [
+            'module' => 'payroll.deputy',
+            'action' => $action,
+        ]));
+    }
+
+    private function logWarning(string $action, string $message, array $context = []): void
+    {
+        $this->logger->log(PayrollLogger::WARNING, $message, array_merge($context, [
+            'module' => 'payroll.deputy',
+            'action' => $action,
+        ]));
+    }
+
+    private function logError(string $action, string $message, array $context = []): void
+    {
+        $this->logger->log(PayrollLogger::ERROR, $message, array_merge($context, [
+            'module' => 'payroll.deputy',
+            'action' => $action,
+        ]));
     }
 }
