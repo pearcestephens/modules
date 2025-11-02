@@ -32,6 +32,48 @@ class ReconciliationService
     }
 
     /**
+     * Compare Deputy timesheets to Xero payslips for date range
+     *
+     * @param string $start Start date (Y-m-d)
+     * @param string $end End date (Y-m-d)
+     * @return array Stub - returns empty array for now
+     */
+    public function compareDeputyToXero(string $start, string $end): array
+    {
+        $this->logActivity('recon.stub', [
+            'from' => $start,
+            'to' => $end
+        ]);
+        
+        return [];
+    }
+
+    /**
+     * Log reconciliation activity
+     *
+     * @param string $action Action identifier
+     * @param array $context Additional context
+     */
+    private function logActivity(string $action, array $context = []): void
+    {
+        try {
+            $sql = 'INSERT INTO payroll_activity_log (log_level, category, action, message, details, created_at)
+                    VALUES (:level, :category, :action, :message, :details, NOW())';
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                ':level' => 'info',
+                ':category' => 'reconciliation',
+                ':action' => $action,
+                ':message' => 'Reconciliation action: ' . $action,
+                ':details' => empty($context) ? null : json_encode($context, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            ]);
+        } catch (\Throwable $e) {
+            error_log('ReconciliationService activity log failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get reconciliation overview for a pay run
      *
      * @param int $runId Pay run ID
