@@ -3,7 +3,7 @@
  * File: config/urls.php
  * Purpose: Define safe endpoint routing metadata consumed by the HTTP kernel.
  * Author: GitHub Copilot
- * Last Modified: 2025-11-01
+ * Last Modified: 2025-11-02
  * Dependencies: config/env-loader.php
  */
 

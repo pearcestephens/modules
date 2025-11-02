@@ -11,7 +11,7 @@ require_once __DIR__ . '/../config/env-loader.php';
 
 $autoload = __DIR__ . '/../vendor/autoload.php';
 if (is_file($autoload)) {
-	require_once $autoload;
+    require_once $autoload;
 }
 
 $appConfig = require __DIR__ . '/../config/app.php';

@@ -3,7 +3,7 @@
  * File: config/app.php
  * Purpose: Provide environment-driven application configuration shared across modules.
  * Author: GitHub Copilot
- * Last Modified: 2025-11-01
+ * Last Modified: 2025-11-02
  * Dependencies: config/env-loader.php
  *
  * All entries are environment driven to keep secrets out of source control.
