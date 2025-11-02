@@ -35,7 +35,7 @@ class DashboardTest extends TestCase
         // Create test data
         $this->pdo->exec("
             INSERT INTO queue_jobs (job_type, payload, status, created_at)
-            VALUES 
+            VALUES
                 ('test.job', '{}', 'pending', NOW()),
                 ('test.job', '{}', 'processing', NOW()),
                 ('test.job', '{}', 'failed', NOW())
@@ -61,7 +61,7 @@ class DashboardTest extends TestCase
         // Create test DLQ entries
         $this->pdo->exec("
             INSERT INTO queue_jobs_dlq (job_type, payload, failed_at, attempts, error_message)
-            VALUES 
+            VALUES
                 ('test.job', '{}', NOW(), 3, 'Test error'),
                 ('test.job2', '{}', NOW(), 5, 'Another error')
         ");

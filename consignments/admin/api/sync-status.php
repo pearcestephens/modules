@@ -25,7 +25,7 @@ try {
 
     // Queue statistics
     $queueStmt = $pdo->query("
-        SELECT 
+        SELECT
             status,
             COUNT(*) as count
         FROM queue_jobs
@@ -43,7 +43,7 @@ try {
 
     // Webhook statistics (last 24 hours)
     $webhookStmt = $pdo->query("
-        SELECT 
+        SELECT
             COUNT(*) as total,
             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful,
             event_type,
@@ -52,20 +52,20 @@ try {
         WHERE received_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
         GROUP BY event_type
     ");
-    
+
     $webhookTotal = 0;
     $webhookSuccessful = 0;
     $webhookByType = [];
-    
+
     while ($row = $webhookStmt->fetch(PDO::FETCH_ASSOC)) {
         if ($row['event_type']) {
             $webhookByType[$row['event_type']] = (int)$row['count'];
         }
     }
-    
+
     // Get totals
     $totalStmt = $pdo->query("
-        SELECT 
+        SELECT
             COUNT(*) as total,
             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful
         FROM webhook_events
@@ -78,7 +78,7 @@ try {
 
     // DLQ statistics
     $dlqStmt = $pdo->query("
-        SELECT 
+        SELECT
             COUNT(*) as count,
             MIN(failed_at) as oldest
         FROM queue_jobs_dlq
@@ -91,7 +91,7 @@ try {
 
     // Sync cursor
     $cursorStmt = $pdo->query("
-        SELECT 
+        SELECT
             last_processed_id,
             updated_at
         FROM sync_cursors

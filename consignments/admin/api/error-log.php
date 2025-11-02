@@ -25,7 +25,7 @@ try {
 
     // Get webhook failures
     $webhookStmt = $pdo->query("
-        SELECT 
+        SELECT
             'webhook' as source,
             event_id as identifier,
             received_at as timestamp,
@@ -39,7 +39,7 @@ try {
 
     // Get queue failures
     $queueStmt = $pdo->query("
-        SELECT 
+        SELECT
             'queue' as source,
             id as identifier,
             updated_at as timestamp,

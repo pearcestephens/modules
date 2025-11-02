@@ -29,7 +29,7 @@ header('Content-Type: application/json');
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
-    
+
     if (!isset($input['dlq_id'])) {
         http_response_code(400);
         echo json_encode(['error' => 'Missing dlq_id']);
@@ -42,7 +42,7 @@ try {
 
     // Get job from DLQ
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             job_type,
             payload,
             priority

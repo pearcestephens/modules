@@ -24,7 +24,7 @@ try {
     $pdo = getDbConnection();
 
     $stmt = $pdo->query("
-        SELECT 
+        SELECT
             id,
             job_type,
             failed_at,
