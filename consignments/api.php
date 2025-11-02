@@ -282,6 +282,24 @@ try {
     ]);
 
 } catch (Throwable $e) {
+    // Write to DLQ on unexpected errors
+    try {
+        $requestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? uniqid('req_', true);
+        $endpoint = $_SERVER['REQUEST_URI'] ?? '/consignments/api.php';
+        $payloadJson = json_encode($input ?? []);
+        $errorCode = (string)$e->getCode();
+        $errorMessage = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+        
+        $dlqStmt = $pdo->prepare("
+            INSERT INTO consignments_dlq 
+            (request_id, endpoint, payload_json, error_code, error_message)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $dlqStmt->execute([$requestId, $endpoint, $payloadJson, $errorCode, $errorMessage]);
+    } catch (\Exception $dlqError) {
+        error_log('[ConsignmentsAPI] DLQ write failed: ' . $dlqError->getMessage());
+    }
+    
     // Catch-all for unexpected errors
     error_log('[ConsignmentsAPI] Throwable: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
     json_fail('Server error', 500, [
