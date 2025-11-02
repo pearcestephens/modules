@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../../app.php';
+require_once __DIR__ . '/../../../config/env-loader.php';
 
 class CreatePayrollRateLimits
 {
@@ -21,8 +21,27 @@ class CreatePayrollRateLimits
 
     public function __construct()
     {
-        global $pdo;
-        $this->db = $pdo;
+        $this->db = $this->resolveConnection();
+    }
+
+    private function resolveConnection(): PDO
+    {
+        if (isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO) {
+            return $GLOBALS['pdo'];
+        }
+
+        $host = (string) env('PAYROLL_DB_HOST', env('DB_HOST', '127.0.0.1'));
+        $port = (string) env('PAYROLL_DB_PORT', env('DB_PORT', '3306'));
+        $name = (string) env('PAYROLL_DB_NAME', env('DB_DATABASE', 'jcepnzzkmj'));
+        $user = (string) env('PAYROLL_DB_USER', env('DB_USERNAME', 'jcepnzzkmj'));
+    $pass = (string) env('PAYROLL_DB_PASS', env('DB_PASSWORD', 'wprKh9Jq63'));
+
+        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $name);
+
+        return new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
     }
 
     public function up(): void
