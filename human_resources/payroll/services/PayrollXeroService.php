@@ -5,9 +5,6 @@
 
 declare(strict_types=1);
 
-use PDO;
-use PDOException;
-
 final class PayrollXeroService
 {
     private function __construct(private readonly PDO $db)
