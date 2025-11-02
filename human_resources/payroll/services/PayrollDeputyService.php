@@ -15,10 +15,10 @@ use PayrollModule\Lib\PayrollLogger;
 
 class PayrollDeputyService
 {
-    private $db;
+    private PDO $db;
     private PayrollLogger $logger;
 
-    public function __construct(PDO $db)
+    private function __construct(PDO $db)
     {
         $this->db = $db;
 
@@ -33,20 +33,29 @@ class PayrollDeputyService
         require_once $deputyPath;
     }
 
+    public static function make(PDO $db): self
+    {
+        return new self($db);
+    }
+
     /**
      * Fetch timesheets from Deputy
      *
-     * @param array $params
+     * @param string $start Start date YYYY-MM-DD
+     * @param string $end End date YYYY-MM-DD
      * @return array
      */
-    public function fetchTimesheets(array $params = []): array
+    public function fetchTimesheets(string $start, string $end): array
     {
         $endpoint = 'Deputy::getTimesheets';
+        $params = ['start' => $start, 'end' => $end];
+
         try {
             $result = Deputy::getTimesheets($params);
             $this->logInfo('deputy.api.call', 'Deputy API call successful', [
                 'endpoint' => $endpoint,
-                'params' => $params,
+                'start' => $start,
+                'end' => $end,
                 'result_count' => is_array($result) ? count($result) : 0
             ]);
             return $result;
@@ -54,7 +63,8 @@ class PayrollDeputyService
             $retryAfter = $e->getRetryAfter() ?? null;
             $this->logWarning('deputy.api.rate_limit', 'Deputy API returned 429', [
                 'endpoint' => $endpoint,
-                'params' => $params,
+                'start' => $start,
+                'end' => $end,
                 'error' => 'rate_limit',
                 'retry_after' => $retryAfter
             ]);
@@ -63,7 +73,8 @@ class PayrollDeputyService
         } catch (\Throwable $e) {
             $this->logError('deputy.api.error', 'Deputy API error', [
                 'endpoint' => $endpoint,
-                'params' => $params,
+                'start' => $start,
+                'end' => $end,
                 'error' => $e->getMessage(),
             ]);
             throw $e;
