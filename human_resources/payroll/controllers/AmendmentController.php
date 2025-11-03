@@ -340,9 +340,20 @@ class AmendmentController extends BaseController
      *
      * @return int User ID
      */
-    private function getCurrentUserId(): int
+    protected function getCurrentUserId(): ?int
     {
-        // TODO: Implement based on your auth system
-        return $_SESSION['user_id'] ?? 0;
+        // Prefer BaseController user resolution; fallback to CIS session
+        try {
+            return parent::getCurrentUserId();
+        } catch (\Throwable $e) {
+            // Fallback to common CIS session keys
+            if (isset($_SESSION['userID'])) {
+                return (int)$_SESSION['userID'];
+            }
+            if (isset($_SESSION['user_id'])) {
+                return (int)$_SESSION['user_id'];
+            }
+        }
+        return null;
     }
 }

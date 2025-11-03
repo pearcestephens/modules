@@ -43,10 +43,23 @@ final class XeroTokenStore
      */
     public function getAccessToken(): ?string
     {
+        // Primary token store (new schema)
         $statement = $this->db->query("SELECT access_token FROM oauth_tokens WHERE provider = 'xero' LIMIT 1");
         $record = $statement ? $statement->fetch(PDO::FETCH_ASSOC) : null;
 
         $storedToken = $record['access_token'] ?? null;
+
+        // No token in oauth_tokens, try legacy xero_tokens table (fallback for tests/older installs)
+        if ($storedToken === null) {
+            try {
+                $stmt = $this->db->query("SELECT access_token FROM xero_tokens ORDER BY created_at DESC LIMIT 1");
+                $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+                $storedToken = $row['access_token'] ?? null;
+            } catch (PDOException $e) {
+                // ignore - fallback to env below
+                error_log('XeroTokenStore: legacy xero_tokens lookup failed - ' . $e->getMessage());
+            }
+        }
 
         // No token in database, try environment
         if ($storedToken === null) {
@@ -86,10 +99,22 @@ final class XeroTokenStore
      */
     public function getRefreshToken(): ?string
     {
+        // Primary token store (new schema)
         $statement = $this->db->query("SELECT refresh_token FROM oauth_tokens WHERE provider = 'xero' LIMIT 1");
         $record = $statement ? $statement->fetch(PDO::FETCH_ASSOC) : null;
 
         $storedToken = $record['refresh_token'] ?? null;
+
+        // Fallback to legacy xero_tokens table
+        if ($storedToken === null) {
+            try {
+                $stmt = $this->db->query("SELECT refresh_token FROM xero_tokens ORDER BY created_at DESC LIMIT 1");
+                $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+                $storedToken = $row['refresh_token'] ?? null;
+            } catch (PDOException $e) {
+                error_log('XeroTokenStore: legacy xero_tokens lookup failed - ' . $e->getMessage());
+            }
+        }
 
         // No token in database, try environment
         if ($storedToken === null) {
@@ -179,15 +204,57 @@ final class XeroTokenStore
         }
 
         $record = $statement ? $statement->fetch(PDO::FETCH_ASSOC) : null;
-        if (!$record || empty($record['expires_at'])) {
+        // If primary schema has expiry, use it
+        if ($record && !empty($record['expires_at'])) {
+            $expiry = strtotime((string)$record['expires_at']);
+            if ($expiry === false) {
+                return true;
+            }
+
+            return $expiry <= (time() + 300); // refresh within five minutes of expiry
+        }
+
+        // Fallback to legacy xero_tokens table
+        try {
+            $stmt = $this->db->query("SELECT expires_at FROM xero_tokens ORDER BY created_at DESC LIMIT 1");
+            $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+            if ($row && !empty($row['expires_at'])) {
+                $expiry = strtotime((string)$row['expires_at']);
+                if ($expiry === false) {
+                    return true;
+                }
+
+                return $expiry <= (time() + 300);
+            }
+        } catch (PDOException $e) {
+            error_log('XeroTokenStore: legacy xero_tokens expiry lookup failed - ' . $e->getMessage());
             return true;
         }
 
-        $expiry = strtotime((string)$record['expires_at']);
-        if ($expiry === false) {
-            return true;
-        }
+        return true;
+    }
 
-        return $expiry <= (time() + 300); // refresh within five minutes of expiry
+    /**
+     * Store tokens with expiry seconds (convenience method for PayrollXeroService)
+     *
+     * @param string $accessToken Plaintext access token
+     * @param string $refreshToken Plaintext refresh token
+     * @param int $expiresIn Seconds until token expires
+     */
+    public function storeTokens(string $accessToken, string $refreshToken, int $expiresIn): void
+    {
+        $expiresAt = time() + $expiresIn;
+        $this->saveTokens($accessToken, $refreshToken, $expiresAt);
+    }
+
+    /**
+     * Check if token is expired (convenience method for PayrollXeroService)
+     *
+     * @param int $buffer Buffer in seconds (default 300 = 5 minutes)
+     * @return bool True if token is expired or about to expire
+     */
+    public function isTokenExpired(int $buffer = 300): bool
+    {
+        return $this->isExpiringSoon();
     }
 }

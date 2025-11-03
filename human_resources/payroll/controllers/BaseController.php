@@ -40,16 +40,36 @@ abstract class BaseController
         $this->validator = new \stdClass();
         $this->response = new \stdClass();
 
-        // Load user session - use CIS session structure
+        // Load user session - prefer module helper (supports bot bypass), fallback to CIS session structure
         $this->user = [];
-        if (!empty($_SESSION['userID']) && !empty($_SESSION['authenticated'])) {
-            $this->user = [
-                'id' => (int)$_SESSION['userID'],
-                'email' => $_SESSION['username'] ?? '',
-                'name' => $_SESSION['username'] ?? 'User',
-                'role' => $_SESSION['role'] ?? 'staff',
-                'permissions' => $_SESSION['permissions'] ?? []
-            ];
+        try {
+            if (function_exists('payroll_get_current_user')) {
+                $u = payroll_get_current_user();
+                if (is_array($u)) {
+                    // Normalize expected keys
+                    $this->user = [
+                        'id' => (int)($u['id'] ?? 0),
+                        'email' => $u['email'] ?? '',
+                        'name' => $u['name'] ?? 'User',
+                        'role' => $u['role'] ?? 'staff',
+                        'permissions' => $u['permissions'] ?? []
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silent fallback to session structure
+        }
+
+        if (empty($this->user)) {
+            if (!empty($_SESSION['userID']) && !empty($_SESSION['authenticated'])) {
+                $this->user = [
+                    'id' => (int)$_SESSION['userID'],
+                    'email' => $_SESSION['username'] ?? '',
+                    'name' => $_SESSION['username'] ?? 'User',
+                    'role' => $_SESSION['role'] ?? 'staff',
+                    'permissions' => $_SESSION['permissions'] ?? []
+                ];
+            }
         }
 
         // Log request
@@ -84,7 +104,8 @@ abstract class BaseController
     protected function validateCsrf(): bool
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $token = $_POST['csrf_token'] ?? '';
+            // Accept token from POST body or X-CSRF-Token header (aligned with router-level check)
+            $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
             $sessionToken = $_SESSION['csrf_token'] ?? '';
 
             if (!hash_equals($sessionToken, $token)) {

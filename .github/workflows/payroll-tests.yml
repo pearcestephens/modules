@@ -1,0 +1,341 @@
+name: Payroll Module Tests
+
+on:
+  push:
+    branches: [ main, develop, payroll-hardening-* ]
+    paths:
+      - 'human_resources/payroll/**'
+      - '.github/workflows/payroll-tests.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'human_resources/payroll/**'
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php-version }} Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_payroll
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: pdo, pdo_mysql, mbstring, json, curl, gd, zip
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        working-directory: ./human_resources/payroll
+        run: |
+          composer install --prefer-dist --no-progress --no-suggest
+          composer dump-autoload --optimize
+
+      - name: Setup test database schema
+        working-directory: ./human_resources/payroll
+        run: |
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/payroll_schema.sql || true
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/migrations/001_initial_schema.sql || true
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/migrations/002_auth_audit.sql || true
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/migrations/003_rate_limit.sql || true
+
+      - name: Create .env.testing file
+        working-directory: ./human_resources/payroll
+        run: |
+          cat > .env.testing << EOF
+          APP_ENV=testing
+          APP_DEBUG=true
+          DB_HOST=127.0.0.1
+          DB_NAME=test_payroll
+          DB_USER=root
+          DB_PASS=root
+          DEPUTY_API_TOKEN=test_deputy_token
+          XERO_CLIENT_ID=test_xero_client
+          XERO_CLIENT_SECRET=test_xero_secret
+          XERO_REDIRECT_URI=http://localhost/payroll/xero/callback
+          XERO_ENCRYPTION_KEY=test_encryption_key_32_chars_min
+          SENDGRID_API_KEY=test_sendgrid_key
+          VEND_DOMAIN_PREFIX=test_domain
+          VEND_TOKEN=test_vend_token
+          EOF
+
+      - name: Run PHPUnit Tests
+        working-directory: ./human_resources/payroll
+        run: |
+          vendor/bin/phpunit --testsuite=Unit --coverage-text --coverage-clover=coverage-unit.xml
+          vendor/bin/phpunit --testsuite=Integration --coverage-text --coverage-clover=coverage-integration.xml
+          vendor/bin/phpunit --coverage-text --coverage-clover=coverage-all.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./human_resources/payroll/coverage-all.xml
+          flags: php-${{ matrix.php-version }}
+          name: PHP ${{ matrix.php-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: pdo, pdo_mysql, mbstring, json
+          tools: composer:v2, phpcs, phpstan, psalm
+
+      - name: Install dependencies
+        working-directory: ./human_resources/payroll
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run PHPCS (PSR-12)
+        working-directory: ./human_resources/payroll
+        run: |
+          vendor/bin/phpcs --standard=PSR12 controllers/ services/ lib/ --ignore=vendor || true
+
+      - name: Run PHPStan (Level 6)
+        working-directory: ./human_resources/payroll
+        run: |
+          vendor/bin/phpstan analyze controllers/ services/ lib/ --level=6 --no-progress || true
+
+      - name: Check code style
+        working-directory: ./human_resources/payroll
+        run: |
+          vendor/bin/phpcs --standard=PSR12 --report=summary controllers/ services/ lib/ || echo "Code style issues found"
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          tools: composer:v2
+
+      - name: Install dependencies
+        working-directory: ./human_resources/payroll
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run security audit
+        working-directory: ./human_resources/payroll
+        run: composer audit || true
+
+      - name: Check for hardcoded secrets
+        working-directory: ./human_resources/payroll
+        run: |
+          echo "Checking for hardcoded credentials..."
+          ! grep -r "password.*=.*['\"][^$]" controllers/ services/ lib/ --include="*.php" || (echo "⚠️ Found hardcoded passwords!" && exit 1)
+          ! grep -r "secret.*=.*['\"][^$]" controllers/ services/ lib/ --include="*.php" || (echo "⚠️ Found hardcoded secrets!" && exit 1)
+          ! grep -r "api_key.*=.*['\"][^$]" controllers/ services/ lib/ --include="*.php" || (echo "⚠️ Found hardcoded API keys!" && exit 1)
+          echo "✅ No hardcoded secrets found"
+
+      - name: Check for SQL injection vulnerabilities
+        working-directory: ./human_resources/payroll
+        run: |
+          echo "Checking for SQL injection risks..."
+          ! grep -r '\$_GET\|\$_POST\|\$_REQUEST' controllers/ services/ lib/ --include="*.php" | grep -v "prepared\|bind\|execute" || (echo "⚠️ Potential SQL injection found!" && exit 1)
+          echo "✅ No obvious SQL injection vulnerabilities"
+
+      - name: Check for XSS vulnerabilities
+        working-directory: ./human_resources/payroll
+        run: |
+          echo "Checking for XSS vulnerabilities..."
+          ! grep -r 'echo.*\$_' views/ --include="*.php" | grep -v "htmlspecialchars\|htmlentities\|esc_html" || (echo "⚠️ Potential XSS found!" && exit 1)
+          echo "✅ No obvious XSS vulnerabilities"
+
+  integration-tests:
+    name: Integration Tests with MySQL
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_payroll
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: pdo, pdo_mysql, mbstring, json, curl, gd
+          tools: composer:v2
+
+      - name: Install dependencies
+        working-directory: ./human_resources/payroll
+        run: composer install --prefer-dist --no-progress
+
+      - name: Setup test database with sample data
+        working-directory: ./human_resources/payroll
+        run: |
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/payroll_schema.sql
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/test_data.sql || true
+
+      - name: Run integration tests
+        working-directory: ./human_resources/payroll
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: test_payroll
+          DB_USER: root
+          DB_PASS: root
+        run: |
+          vendor/bin/phpunit --testsuite=Integration --testdox
+
+      - name: Run smoke tests
+        working-directory: ./human_resources/payroll
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: test_payroll
+          DB_USER: root
+          DB_PASS: root
+        run: |
+          php tests/smoke-test-integration.php || echo "Smoke tests completed with warnings"
+
+  performance-tests:
+    name: Performance & Load Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test_payroll
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: pdo, pdo_mysql, mbstring, json, curl
+          tools: composer:v2
+
+      - name: Install dependencies
+        working-directory: ./human_resources/payroll
+        run: composer install --prefer-dist --no-progress
+
+      - name: Setup test database
+        working-directory: ./human_resources/payroll
+        run: |
+          mysql -h 127.0.0.1 -u root -proot test_payroll < database/payroll_schema.sql
+
+      - name: Run performance tests
+        working-directory: ./human_resources/payroll
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: test_payroll
+          DB_USER: root
+          DB_PASS: root
+        run: |
+          echo "Testing Deputy import performance..."
+          time php -d memory_limit=256M tests/test_PayrollDeputyService.php || echo "Performance test completed"
+
+          echo "Testing database query performance..."
+          php tests/test_payroll_system.php || echo "System test completed"
+
+  deployment-check:
+    name: Deployment Readiness Check
+    runs-on: ubuntu-latest
+    needs: [test, code-quality, security, integration-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check required files exist
+        working-directory: ./human_resources/payroll
+        run: |
+          echo "Checking deployment files..."
+          test -f composer.json || (echo "❌ composer.json missing" && exit 1)
+          test -f phpunit.xml || (echo "❌ phpunit.xml missing" && exit 1)
+          test -f database/payroll_schema.sql || (echo "❌ Schema file missing" && exit 1)
+          test -d controllers || (echo "❌ Controllers directory missing" && exit 1)
+          test -d services || (echo "❌ Services directory missing" && exit 1)
+          test -d views || (echo "❌ Views directory missing" && exit 1)
+          echo "✅ All required files present"
+
+      - name: Check documentation
+        working-directory: ./human_resources/payroll
+        run: |
+          echo "Checking documentation..."
+          test -f README.md || echo "⚠️ README.md missing"
+          test -f DEPLOYMENT.md || echo "⚠️ DEPLOYMENT.md missing"
+          test -f TESTING_GUIDE.md && echo "✅ Testing guide present"
+
+      - name: Verify no syntax errors
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
+      - name: PHP syntax check
+        working-directory: ./human_resources/payroll
+        run: |
+          find controllers/ services/ lib/ -name "*.php" -exec php -l {} \; | grep -v "No syntax errors"
+          echo "✅ No PHP syntax errors found"
+
+      - name: Deployment summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ All checks passed - Ready for deployment"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

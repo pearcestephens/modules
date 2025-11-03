@@ -9,18 +9,42 @@
 
 header('Content-Type: application/json');
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
+// Fast-fail for HEAD to avoid executing heavy includes (scanner-friendly)
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') {
+    header('Allow: GET, POST, OPTIONS');
+    http_response_code(405);
+    // Do not output body on HEAD
+    exit;
+}
+
+// Install a safe error handler to avoid emitting HTML fatals
+set_exception_handler(function ($e) {
+    http_response_code(500);
+    echo json_encode(['success'=>false,'error'=>'Unhandled exception: '.($e->getMessage() ?? 'unknown')]);
+});
+
+// Load app after method guard
+try {
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
+} catch (\Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['success'=>false,'error'=>'Bootstrap failure: '.$e->getMessage()]);
+    exit;
+}
 
 // =====================================================================
 // SECURITY CHECKS
 // =====================================================================
 
 // Base directories that can be accessed
-$allowed_dirs = [
-    realpath($_SERVER['DOCUMENT_ROOT'] . '/modules'),
-    realpath($_SERVER['DOCUMENT_ROOT'] . '/private_html'),
-    realpath($_SERVER['DOCUMENT_ROOT'] . '/conf'),
-];
+// Build allowed directories list and drop any non-existent paths to prevent TypeErrors
+$allowed_dirs = array_values(array_filter([
+    realpath($_SERVER['DOCUMENT_ROOT'] . '/modules') ?: null,
+    realpath($_SERVER['DOCUMENT_ROOT'] . '/private_html') ?: null,
+    realpath($_SERVER['DOCUMENT_ROOT'] . '/conf') ?: null,
+], function ($p) {
+    return is_string($p) && $p !== '';
+}));
 
 function is_safe_path($path) {
     global $allowed_dirs;
@@ -29,6 +53,7 @@ function is_safe_path($path) {
     if (!$real_path) return false;
 
     foreach ($allowed_dirs as $allowed) {
+        if (!is_string($allowed)) { continue; }
         if (strpos($real_path, $allowed) === 0) {
             return true;
         }

@@ -607,7 +607,7 @@ try {
         echo json_encode([
             'success' => false,
             'error' => 'Internal server error',
-            'message' => $_ENV['APP_ENV'] === 'development' ? $e->getMessage() : null
+            'message' => (($_ENV['APP_ENV'] ?? ($_SERVER['APP_ENV'] ?? 'production')) === 'development') ? $e->getMessage() : null
         ]);
     } else {
         require __DIR__ . '/views/errors/500.php';

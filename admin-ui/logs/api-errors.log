@@ -53,3 +53,45 @@
 2025-11-01 07:42:47 | JS version saved with AI analysis | {"file":"modules\/test.js","version_id":"1761936167_51078a7d","duration":0.004,"ai_suggestions":0,"code_quality_score":null,"ai_enabled":false,"timestamp_micro":1761936167.153435,"memory_usage":2097152}
 2025-11-01 07:42:47 | Retrieved JS versions | {"file":"modules\/test.js","count":3,"ai_enabled":false,"timestamp_micro":1761936167.232865,"memory_usage":2097152}
 2025-11-01 07:42:47 | JavaScript minified | {"original_size":44,"minified_size":0,"savings":44,"savings_percent":100,"ai_enabled":false,"timestamp_micro":1761936167.327038,"memory_usage":2097152}
+2025-11-03 08:29:16 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/analytics.php(404): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:29:16 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/build.php(469): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:29:16 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/components.php(459): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:29:16 | CIS Logger not found, using fallback logging
+2025-11-03 08:29:16 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/css.php(514): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:29:16 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/js.php(543): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:29:17 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/themes.php(216): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:49:17 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/analytics.php(404): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:49:17 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/build.php(469): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:49:17 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/components.php(459): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:49:17 | CIS Logger not found, using fallback logging
+2025-11-03 08:49:17 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/css.php(514): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:49:18 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/js.php(543): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:49:18 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/themes.php(216): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:52:35 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/analytics.php(404): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:52:35 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/build.php(469): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:52:35 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/components.php(459): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:52:35 | CIS Logger not found, using fallback logging
+2025-11-03 08:52:35 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/css.php(514): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:52:35 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/js.php(543): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:52:35 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/themes.php(216): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:54:24 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/analytics.php(404): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:54:24 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/build.php(469): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:54:25 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/components.php(459): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:54:25 | CIS Logger not found, using fallback logging
+2025-11-03 08:54:25 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/css.php(514): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:54:25 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/js.php(543): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 08:54:25 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/themes.php(216): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:06:04 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/analytics.php(404): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:06:04 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/build.php(469): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:06:04 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/components.php(459): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:06:04 | CIS Logger not found, using fallback logging
+2025-11-03 09:06:04 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/css.php(514): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:06:05 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/js.php(543): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:06:05 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/themes.php(216): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:08:50 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/analytics.php(404): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:08:50 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/build.php(469): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:08:50 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/components.php(459): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:08:50 | CIS Logger not found, using fallback logging
+2025-11-03 09:08:50 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/css.php(514): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:08:50 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/js.php(543): BaseAPI->handleRequest()\n#1 {main}"}
+2025-11-03 09:08:50 | Only POST requests allowed | {"action":"unknown","trace":"#0 \/home\/129337.cloudwaysapps.com\/jcepnzzkmj\/public_html\/modules\/admin-ui\/api\/themes.php(216): BaseAPI->handleRequest()\n#1 {main}"}

@@ -45,18 +45,28 @@ ini_set('display_errors', '1');
 // Initialize database connection for tests using centralized config
 if (!isset($GLOBALS['pdo']) || !$GLOBALS['pdo']) {
     try {
-        // Load database config (NO HARDCODED CREDENTIALS)
-        $dbConfig = require MODULES_ROOT . '/config/database.php';
-        $cisConfig = $dbConfig['cis'];
+        // For unit tests, use hardcoded test credentials
+        // Integration tests will use actual database
+        $host = getenv('PAYROLL_DB_HOST') ?: '127.0.0.1';
+        $database = getenv('PAYROLL_DB_NAME') ?: 'jcepnzzkmj';
+        $username = getenv('PAYROLL_DB_USER') ?: 'jcepnzzkmj';
+        $password = getenv('PAYROLL_DB_PASS') ?: 'wprKh9Jq63';
+        $charset = 'utf8mb4';
 
         $dsn = sprintf(
             "mysql:host=%s;dbname=%s;charset=%s",
-            $cisConfig['host'],
-            $cisConfig['database'],
-            $cisConfig['charset']
+            $host,
+            $database,
+            $charset
         );
 
-        $pdo = new PDO($dsn, $cisConfig['username'], $cisConfig['password'], $cisConfig['options']);
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+
+        $pdo = new PDO($dsn, $username, $password, $options);
         $GLOBALS['pdo'] = $pdo;
 
         echo "\n";

@@ -19,14 +19,18 @@ use PDO;
  */
 class DashboardController extends BaseController
 {
-    private PDO $db;
+    private ?PDO $db = null;
 
     public function __construct()
     {
         parent::__construct();
 
-        // Get database connection from global function
-        $this->db = getPayrollDb();
+        // Lazy: don't hard-fail if DB env is missing; defer to method-level guards
+        try {
+            $this->db = getPayrollDb();
+        } catch (\Throwable $e) {
+            $this->db = null;
+        }
     }
 
     /**
@@ -100,11 +104,14 @@ class DashboardController extends BaseController
     /**
      * Get amendment counts
      */
-    private function getAmendmentCounts(bool $isAdmin, int $staffId): array
+    private function getAmendmentCounts(bool $isAdmin, ?int $staffId): array
     {
-        $where = $isAdmin ? "1=1" : "staff_id = {$staffId}";
-
-        $stmt = $this->db->query("
+        $defaults = ['total' => 0, 'pending' => 0, 'approved' => 0, 'declined' => 0];
+        if (!$this->tableExists('payroll_timesheet_amendments')) {
+            return $defaults;
+        }
+        $where = $isAdmin ? "1=1" : ($staffId !== null ? "staff_id = " . (int)$staffId : "1=0");
+        $sql = "
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
@@ -112,19 +119,21 @@ class DashboardController extends BaseController
                 SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) as declined
             FROM payroll_timesheet_amendments
             WHERE {$where}
-        ");
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        ";
+        return $this->safeQueryFetchAssoc($sql, $defaults);
     }
 
     /**
      * Get discrepancy counts
      */
-    private function getDiscrepancyCounts(bool $isAdmin, int $staffId): array
+    private function getDiscrepancyCounts(bool $isAdmin, ?int $staffId): array
     {
-        $where = $isAdmin ? "1=1" : "staff_id = {$staffId}";
-
-        $stmt = $this->db->query("
+        $defaults = ['total' => 0, 'pending' => 0, 'ai_review' => 0, 'approved' => 0, 'declined' => 0, 'urgent' => 0];
+        if (!$this->tableExists('payroll_wage_discrepancies')) {
+            return $defaults;
+        }
+        $where = $isAdmin ? "1=1" : ($staffId !== null ? "staff_id = " . (int)$staffId : "1=0");
+        $sql = "
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
@@ -134,19 +143,21 @@ class DashboardController extends BaseController
                 SUM(CASE WHEN priority = 'urgent' THEN 1 ELSE 0 END) as urgent
             FROM payroll_wage_discrepancies
             WHERE {$where}
-        ");
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        ";
+        return $this->safeQueryFetchAssoc($sql, $defaults);
     }
 
     /**
      * Get leave counts
      */
-    private function getLeaveCounts(bool $isAdmin, int $staffId): array
+    private function getLeaveCounts(bool $isAdmin, ?int $staffId): array
     {
-        $where = $isAdmin ? "1=1" : "staff_id = {$staffId}";
-
-        $stmt = $this->db->query("
+        $defaults = ['total' => 0, 'pending' => 0, 'approved' => 0, 'declined' => 0];
+        if (!$this->tableExists('leave_requests')) {
+            return $defaults;
+        }
+        $where = $isAdmin ? "1=1" : ($staffId !== null ? "staff_id = " . (int)$staffId : "1=0");
+        $sql = "
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending,
@@ -154,43 +165,52 @@ class DashboardController extends BaseController
                 SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as declined
             FROM leave_requests
             WHERE {$where}
-        ");
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        ";
+        return $this->safeQueryFetchAssoc($sql, $defaults);
     }
 
     /**
      * Get bonus counts
      */
-    private function getBonusCounts(bool $isAdmin, int $staffId): array
+    private function getBonusCounts(bool $isAdmin, ?int $staffId): array
     {
-        $where = $isAdmin ? "1=1" : "staff_id = {$staffId}";
+        $where = $isAdmin ? "1=1" : ($staffId !== null ? "staff_id = " . (int)$staffId : "1=0");
 
-        $monthly = $this->db->query("
-            SELECT
-                COUNT(*) as total,
-                SUM(CASE WHEN approved = 0 THEN 1 ELSE 0 END) as pending,
-                SUM(bonus_amount) as total_amount
-            FROM monthly_bonuses
-            WHERE {$where}
-        ")->fetch(PDO::FETCH_ASSOC);
+        $monthlyDefaults = ['total' => 0, 'pending' => 0, 'total_amount' => 0];
+        $vapeDefaults = ['total' => 0, 'unpaid' => 0];
+        $googleDefaults = ['total' => 0, 'unpaid' => 0, 'total_bonus' => 0];
 
-        $vapeDrops = $this->db->query("
-            SELECT
-                COUNT(*) as total,
-                SUM(CASE WHEN bonus_paid = 0 AND completed = 1 THEN 1 ELSE 0 END) as unpaid
-            FROM vape_drops
-            WHERE {$where}
-        ")->fetch(PDO::FETCH_ASSOC);
+        $monthly = $this->tableExists('monthly_bonuses')
+            ? $this->safeQueryFetchAssoc("
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN approved = 0 THEN 1 ELSE 0 END) as pending,
+                    SUM(bonus_amount) as total_amount
+                FROM monthly_bonuses
+                WHERE {$where}
+            ", $monthlyDefaults)
+            : $monthlyDefaults;
 
-        $googleReviews = $this->db->query("
-            SELECT
-                COUNT(*) as total,
-                SUM(CASE WHEN bonus_paid = 0 THEN 1 ELSE 0 END) as unpaid,
-                SUM(final_bonus) as total_bonus
-            FROM google_reviews_gamification
-            WHERE {$where} AND false_positive = 0
-        ")->fetch(PDO::FETCH_ASSOC);
+        $vapeDrops = $this->tableExists('vape_drops')
+            ? $this->safeQueryFetchAssoc("
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN bonus_paid = 0 AND completed = 1 THEN 1 ELSE 0 END) as unpaid
+                FROM vape_drops
+                WHERE {$where}
+            ", $vapeDefaults)
+            : $vapeDefaults;
+
+        $googleReviews = $this->tableExists('google_reviews_gamification')
+            ? $this->safeQueryFetchAssoc("
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN bonus_paid = 0 THEN 1 ELSE 0 END) as unpaid,
+                    SUM(final_bonus) as total_bonus
+                FROM google_reviews_gamification
+                WHERE {$where} AND false_positive = 0
+            ", $googleDefaults)
+            : $googleDefaults;
 
         return [
             'monthly' => $monthly,
@@ -202,11 +222,14 @@ class DashboardController extends BaseController
     /**
      * Get Vend payment counts
      */
-    private function getVendPaymentCounts(bool $isAdmin, int $staffId): array
+    private function getVendPaymentCounts(bool $isAdmin, ?int $staffId): array
     {
-        $where = $isAdmin ? "1=1" : "staff_id = {$staffId}";
-
-        $stmt = $this->db->query("
+        $defaults = ['total' => 0, 'pending' => 0, 'ai_review' => 0, 'approved' => 0, 'completed' => 0, 'total_amount' => 0];
+        if (!$this->tableExists('payroll_vend_payment_requests')) {
+            return $defaults;
+        }
+        $where = $isAdmin ? "1=1" : ($staffId !== null ? "staff_id = " . (int)$staffId : "1=0");
+        $sql = "
             SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
@@ -216,9 +239,8 @@ class DashboardController extends BaseController
                 SUM(payment_amount) as total_amount
             FROM payroll_vend_payment_requests
             WHERE {$where}
-        ");
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        ";
+        return $this->safeQueryFetchAssoc($sql, $defaults);
     }
 
     /**
@@ -229,8 +251,16 @@ class DashboardController extends BaseController
         if (!$isAdmin) {
             return ['available' => false];
         }
-
-        $stmt = $this->db->query("
+        $defaults = [
+            'total_decisions' => 0,
+            'auto_approved' => 0,
+            'escalated' => 0,
+            'avg_confidence' => 0,
+        ];
+        if (!$this->tableExists('payroll_ai_decisions')) {
+            return $defaults;
+        }
+        $sql = "
             SELECT
                 COUNT(*) as total_decisions,
                 SUM(CASE WHEN decision = 'auto_approve' THEN 1 ELSE 0 END) as auto_approved,
@@ -238,8 +268,51 @@ class DashboardController extends BaseController
                 AVG(confidence_score) as avg_confidence
             FROM payroll_ai_decisions
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        ");
+        ";
+        return $this->safeQueryFetchAssoc($sql, $defaults);
+    }
 
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+    /**
+     * Check if a table exists in the current database
+     */
+    private function tableExists(string $tableName): bool
+    {
+        if (!$this->db instanceof PDO) {
+            return false;
+        }
+        try {
+            $dbName = $this->db->query('SELECT DATABASE()')->fetchColumn();
+            $stmt = $this->db->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :db AND table_name = :tbl');
+            $stmt->execute([':db' => $dbName, ':tbl' => $tableName]);
+            return (int)$stmt->fetchColumn() > 0;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Execute a query and fetch assoc safely, returning defaults on failure
+     */
+    private function safeQueryFetchAssoc(string $sql, array $defaults): array
+    {
+        if (!$this->db instanceof PDO) {
+            return $defaults;
+        }
+        try {
+            $stmt = $this->db->query($sql);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!is_array($row)) {
+                return $defaults;
+            }
+            // Ensure all default keys exist
+            foreach ($defaults as $k => $v) {
+                if (!array_key_exists($k, $row)) {
+                    $row[$k] = $v;
+                }
+            }
+            return $row;
+        } catch (\Throwable $e) {
+            return $defaults;
+        }
     }
 }

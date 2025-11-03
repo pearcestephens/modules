@@ -22,7 +22,8 @@ use PDOException;
 
 class PayrollLogger
 {
-    private PDO $db;
+    // DB handle is optional; when unavailable we fallback to file logging only
+    private ?PDO $db = null;
     private ?string $requestId = null;
     private ?int $userId = null;
     private array $context = [];
@@ -53,12 +54,22 @@ class PayrollLogger
      */
     public function __construct()
     {
-        $this->initializeDatabase();
+        // Never let logger construction break requests
+        try {
+            $this->initializeDatabase();
+        } catch (\Throwable $e) {
+            // Swallow to ensure logger never causes a 500; we will file-log instead
+            $this->db = null;
+            error_log('PayrollLogger bootstrap fallback: ' . $e->getMessage());
+        }
+
         $this->requestId = $this->generateRequestId();
 
-        // Get current user if in session
+        // Get current user if in session (support both legacy and CIS keys)
         if (isset($_SESSION['user_id'])) {
             $this->userId = (int)$_SESSION['user_id'];
+        } elseif (isset($_SESSION['userID'])) {
+            $this->userId = (int)$_SESSION['userID'];
         }
     }
 
@@ -67,11 +78,29 @@ class PayrollLogger
      */
     private function initializeDatabase(): void
     {
+        // Prefer reusing the module's DB connection if available
+        if (function_exists('getPayrollDb')) {
+            try {
+                $this->db = getPayrollDb();
+                return;
+            } catch (\Throwable $e) {
+                // Continue to env-based fallback
+                error_log('PayrollLogger: getPayrollDb() reuse failed - ' . $e->getMessage());
+            }
+        }
+
+        // Env-based fallback (do not throw if it fails)
         try {
             $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
             $dbname = $_ENV['DB_NAME'] ?? 'jcepnzzkmj';
             $username = $_ENV['DB_USER'] ?? 'jcepnzzkmj';
-            $password = $_ENV['DB_PASS'] ?? 'wprKh9Jq63';
+            $password = $_ENV['DB_PASSWORD'] ?? ($_ENV['DB_PASS'] ?? '');
+
+            if ($password === '') {
+                // No credentials available; operate in file-only mode
+                $this->db = null;
+                return;
+            }
 
             $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8mb4";
 
@@ -82,9 +111,9 @@ class PayrollLogger
             ]);
 
         } catch (PDOException $e) {
-            // Fallback to error_log if database unavailable
+            // Fallback to file logging only
+            $this->db = null;
             error_log('PayrollLogger: Database connection failed - ' . $e->getMessage());
-            throw $e;
         }
     }
 
@@ -220,53 +249,53 @@ class PayrollLogger
      */
     public function log(string $level, string $message, array $context = []): void
     {
-        try {
-            // Merge with persistent context
-            $mergedContext = array_merge($this->context, $context);
+        // Merge with persistent context
+        $mergedContext = array_merge($this->context, $context);
 
-            // Add system context
-            $mergedContext['request_id'] = $this->requestId;
-            $mergedContext['user_id'] = $this->userId;
-            $mergedContext['ip_address'] = $this->getClientIp();
-            $mergedContext['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? null;
-            $mergedContext['url'] = $_SERVER['REQUEST_URI'] ?? null;
-            $mergedContext['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
+        // Add system context
+        $mergedContext['request_id'] = $this->requestId;
+        $mergedContext['user_id'] = $this->userId;
+        $mergedContext['ip_address'] = $this->getClientIp();
+        $mergedContext['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $mergedContext['url'] = $_SERVER['REQUEST_URI'] ?? null;
+        $mergedContext['method'] = $_SERVER['REQUEST_METHOD'] ?? null;
 
-            // Insert into database
-            $sql = "INSERT INTO payroll_activity_log (
-                        user_id, action, module, message, log_level,
-                        context_data, ip_address, user_agent, created_at
-                    ) VALUES (
-                        :user_id, :action, :module, :message, :log_level,
-                        :context_data, :ip_address, :user_agent, NOW()
-                    )";
+        // Try DB insert if available; otherwise, file-only
+        if ($this->db instanceof PDO) {
+            try {
+                // Conservative column set to match existing schema (no 'module' column)
+                $sql = "INSERT INTO payroll_activity_log (
+                            user_id, action, message, log_level,
+                            context_data, ip_address, user_agent, created_at
+                        ) VALUES (
+                            :user_id, :action, :message, :log_level,
+                            :context_data, :ip_address, :user_agent, NOW()
+                        )";
 
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                ':user_id' => $this->userId,
-                ':action' => $this->extractAction($mergedContext),
-                ':module' => $this->extractModule($mergedContext),
-                ':message' => $message,
-                ':log_level' => $level,
-                ':context_data' => json_encode($mergedContext, JSON_UNESCAPED_UNICODE),
-                ':ip_address' => $this->getClientIp(),
-                ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
-            ]);
-
-            // Also log to file for critical errors
-            if ($this->levelPriority[$level] >= $this->levelPriority[self::ERROR]) {
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([
+                    ':user_id' => $this->userId,
+                    ':action' => $this->extractAction($mergedContext),
+                    ':message' => $message,
+                    ':log_level' => $level,
+                    ':context_data' => json_encode($mergedContext, JSON_UNESCAPED_UNICODE),
+                    ':ip_address' => $this->getClientIp(),
+                    ':user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
+                ]);
+            } catch (PDOException $e) {
+                // Downgrade to file log if DB write fails
+                error_log('PayrollLogger: DB write failed - ' . $e->getMessage());
                 $this->logToFile($level, $message, $mergedContext);
+                return;
             }
+        } else {
+            $this->logToFile($level, $message, $mergedContext);
+            return;
+        }
 
-        } catch (PDOException $e) {
-            // Fallback to error_log
-            error_log(sprintf(
-                '[%s] PayrollLogger: %s | Context: %s | Error: %s',
-                strtoupper($level),
-                $message,
-                json_encode($context),
-                $e->getMessage()
-            ));
+        // Also log to file for critical errors
+        if ($this->levelPriority[$level] >= $this->levelPriority[self::ERROR]) {
+            $this->logToFile($level, $message, $mergedContext);
         }
     }
 
@@ -293,12 +322,14 @@ class PayrollLogger
      */
     private function logToFile(string $level, string $message, array $context): void
     {
-        $logDir = $_SERVER['DOCUMENT_ROOT'] . '/../logs';
+        // Prefer configured LOG_PATH, else default to public_html/logs
+        $defaultDir = ($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/logs';
+        $logDir = rtrim($_ENV['LOG_PATH'] ?? $defaultDir, '/');
         $logFile = $logDir . '/payroll_' . date('Y-m-d') . '.log';
 
         // Create log directory if it doesn't exist
         if (!is_dir($logDir)) {
-            mkdir($logDir, 0755, true);
+            @mkdir($logDir, 0755, true);
         }
 
         $logLine = sprintf(
@@ -311,7 +342,7 @@ class PayrollLogger
             json_encode($context, JSON_UNESCAPED_UNICODE)
         );
 
-        file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+        @file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
     }
 
     /**

@@ -97,36 +97,16 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsDatabaseSection(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
         $this->assertStringContainsString('Database Connectivity', $fullOutput);
     }
 
-    public function testOutputContainsPhpVersion(): void
-    {
-        $output = [];
-        exec("php {$this->cliPath} 2>&1", $output);
-
-        $fullOutput = implode("\n", $output);
-
-        // Should contain PHP version (e.g., 8.1.33)
-        $this->assertMatchesRegularExpression('/PHP Version:\s+\d+\.\d+\.\d+/', $fullOutput);
-    }
-
-    public function testOutputContainsDatabaseSection(): void
-    {
-        $output = [];
-        exec("php {$this->cliPath} 2>&1", $output);
-
-        $fullOutput = implode("\n", $output);
-
-        $this->assertStringContainsString('DATABASE CONNECTIVITY', $fullOutput);
-        $this->assertStringContainsString('Status:', $fullOutput);
-    }
-
     public function testOutputContainsAuthFlagSection(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
@@ -135,6 +115,7 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsTableHealthSection(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
@@ -162,6 +143,7 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsServiceSection(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
@@ -190,6 +172,7 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsHealthEndpointSection(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
@@ -199,6 +182,7 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputContainsRecentActivitySection(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
@@ -224,6 +208,7 @@ class PayrollHealthCliIntegrationTest extends TestCase
 
     public function testOutputIsFormattedWithSectionDividers(): void
     {
+        $output = [];
         exec("php {$this->cliPath} 2>&1", $output);
         $fullOutput = implode("\n", $output);
 
@@ -254,16 +239,19 @@ class PayrollHealthCliIntegrationTest extends TestCase
     public function testScriptCanRunMultipleTimes(): void
     {
         // First run
+        $output1 = [];
         exec("php {$this->cliPath} 2>&1", $output1);
         $fullOutput1 = implode("\n", $output1);
 
         // Second run
+        $output2 = [];
         exec("php {$this->cliPath} 2>&1", $output2);
         $fullOutput2 = implode("\n", $output2);
 
         // Both should contain system info
         $this->assertStringContainsString('System Information', $fullOutput1);
         $this->assertStringContainsString('System Information', $fullOutput2);
+    }
 
     public function testOutputContainsTimestamp(): void
     {

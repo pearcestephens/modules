@@ -23,8 +23,9 @@ $results = [
 /**
  * Run a test
  */
-function test(string $name, callable $testFn) use (&$results): void
+function test(string $name, callable $testFn): void
 {
+    global $results;
     $results['tests_run']++;
 
     try {

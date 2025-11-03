@@ -1,7 +1,7 @@
 # 🔧 PAYROLL R2 TEST SUITE - TODO FOR COMPLETION
 
-**Current Status:** 27/44 tests passing (61%)  
-**Date:** 2025-11-02  
+**Current Status:** 27/44 tests passing (61%)
+**Date:** 2025-11-02
 **Branch:** payroll-hardening-20251101
 
 ---
@@ -26,8 +26,8 @@
 ## ⚠️ **INCOMPLETE (17 tests blocked)**
 
 ### 3. PayrollHealthCliIntegrationTest.php - ❌ SYNTAX ERRORS
-**Status:** 0/20 tests running (syntax errors preventing execution)  
-**Priority:** HIGH  
+**Status:** 0/20 tests running (syntax errors preventing execution)
+**Priority:** HIGH
 **Effort:** 15 minutes
 
 **Problem:**
@@ -54,8 +54,8 @@
 ---
 
 ### 4. PayrollAuthAuditServiceTest.php - ❌ 0/4 AUTOLOAD ERROR
-**Status:** Class not found error  
-**Priority:** MEDIUM  
+**Status:** Class not found error
+**Priority:** MEDIUM
 **Effort:** 10 minutes
 
 **Problem:**
@@ -89,8 +89,8 @@ require_once __DIR__ . '/../services/PayrollAuthAuditService.php';
 ---
 
 ### 5. HealthEndpointTest.php - ❌ 12/13 PASSED (1 failure)
-**Status:** One table check missing  
-**Priority:** LOW  
+**Status:** One table check missing
+**Priority:** LOW
 **Effort:** 5 minutes
 
 **Problem:**
@@ -148,7 +148,7 @@ $checks[] = [
 
 ### Time to 100% Pass Rate:
 - Fix CLI syntax: ~15 minutes
-- Add autoload: ~10 minutes  
+- Add autoload: ~10 minutes
 - Add table checks: ~5 minutes
 - **Total:** ~30 minutes of focused work
 

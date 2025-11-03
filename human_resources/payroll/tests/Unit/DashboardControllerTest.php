@@ -3,93 +3,454 @@ declare(strict_types=1);
 
 namespace HumanResources\Payroll\Tests\Unit;
 
+use HumanResources\Payroll\Controllers\DashboardController;
+use Mockery;
+use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
-use PDO;
-use PDOStatement;
 
-/**
- * DashboardController Test Suite
- *
- * Tests dashboard data aggregation and rendering
- */
 class DashboardControllerTest extends TestCase
 {
-    private PDO $mockDb;
-    private PDOStatement $mockStmt;
+    use MockeryPHPUnitIntegration;
+
+    private DashboardController $controller;
+    private MockInterface $db;
 
     protected function setUp(): void
     {
-        $this->mockDb = $this->createMock(PDO::class);
-        $this->mockStmt = $this->createMock(PDOStatement::class);
-        $_SESSION = [];
+        parent::setUp();
+
+        // Initialize session
+        if (!isset($_SESSION)) {
+            $_SESSION = [];
+        }
+        $_SESSION['authenticated'] = true;
+        $_SESSION['userID'] = 1;
+
+        $this->controller = new DashboardController();
+
+        // Mock PDO database
+        $this->db = Mockery::mock(\PDO::class);
+
+        // Inject via Reflection
+        $reflector = new \ReflectionObject($this->controller);
+        $property = $reflector->getProperty('db');
+        $property->setAccessible(true);
+        $property->setValue($this->controller, $this->db);
+
+        // Mock BaseController methods
+        $this->mockBaseControllerMethods();
     }
 
-    protected function tearDown(): void
+    private function mockBaseControllerMethods(): void
     {
-        $_SESSION = [];
+        // Mock permission check method
+        $reflector = new \ReflectionClass($this->controller);
+        $hasPermissionMethod = $reflector->getMethod('hasPermission');
+        $hasPermissionMethod->setAccessible(true);
     }
 
-    public function testIndexRequiresAuth(): void
+    /**
+     * Test index requires authentication
+     */
+    public function testIndexRequiresAuthentication(): void
     {
-        unset($_SESSION['user_id']);
+        // Clear session
+        $_SESSION['authenticated'] = false;
+        $_SESSION['userID'] = null;
 
-        $response = $this->callIndex();
+        // Expect redirect to login
+        ob_start();
+        $this->controller->index();
+        $output = ob_get_clean();
 
-        $this->assertEquals(401, http_response_code());
+        $this->assertStringContainsString('Location:', $GLOBALS['http_response_header'][0] ?? '');
     }
 
-    public function testGetDataReturnsStatistics(): void
+    /**
+     * Test index checks permissions
+     */
+    public function testIndexChecksPermissions(): void
     {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.view'];
+        $_SESSION['authenticated'] = true;
+        $_SESSION['userID'] = 1;
 
-        $expectedData = [
-            'pending_amendments' => 5,
-            'pending_bonuses' => 3,
-            'pending_leave' => 2,
-            'current_payrun' => ['id' => 123, 'period' => '2025-11'],
-            'upcoming_deadlines' => [
-                ['task' => 'Approve amendments', 'date' => '2025-11-05'],
-                ['task' => 'Submit payrun', 'date' => '2025-11-15']
-            ]
-        ];
+        ob_start();
+        $this->controller->index();
+        $output = ob_get_clean();
 
-        $response = $this->callGetDataWithStats($expectedData);
+        // View should be rendered or access denied
+        $this->assertTrue(
+            (bool)preg_match('/dashboard|access denied/i', $output) ||
+            headers_sent() === false
+        );
+    }
 
-        $data = json_decode($response, true);
+    /**
+     * Test getData validates admin flag
+     */
+    public function testGetDataValidatesAdminFlag(): void
+    {
+        // Setup mock PDO statements for all count methods
+        $amendmentStmt = Mockery::mock(\PDOStatement::class);
+        $amendmentStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 5, 'pending' => 2, 'approved' => 3, 'declined' => 0]);
+
+        $discrepancyStmt = Mockery::mock(\PDOStatement::class);
+        $discrepancyStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'total' => 3,
+                'pending' => 1,
+                'ai_review' => 1,
+                'approved' => 1,
+                'declined' => 0,
+                'urgent' => 0
+            ]);
+
+        $leaveStmt = Mockery::mock(\PDOStatement::class);
+        $leaveStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 2, 'pending' => 1, 'approved' => 1, 'declined' => 0]);
+
+        $bonusStmt = Mockery::mock(\PDOStatement::class);
+        $bonusStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'monthly' => ['total' => 2, 'pending' => 0, 'total_amount' => 100.00],
+                'vape_drops' => ['total' => 5, 'unpaid' => 2],
+                'google_reviews' => ['total' => 10, 'unpaid' => 3, 'total_bonus' => 45.00]
+            ]);
+
+        $vendStmt = Mockery::mock(\PDOStatement::class);
+        $vendStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'total' => 4,
+                'pending' => 1,
+                'ai_review' => 1,
+                'approved' => 2,
+                'completed' => 0,
+                'total_amount' => 250.00
+            ]);
+
+        $automationStmt = Mockery::mock(\PDOStatement::class);
+        $automationStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'total_decisions' => 50,
+                'auto_approved' => 40,
+                'escalated' => 10,
+                'avg_confidence' => 0.92
+            ]);
+
+        // Setup query method to return appropriate statements
+        $this->db->shouldReceive('query')->andReturn($amendmentStmt);
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
         $this->assertTrue($data['success']);
-        $this->assertEquals(5, $data['data']['pending_amendments']);
-        $this->assertEquals(3, $data['data']['pending_bonuses']);
-        $this->assertCount(2, $data['data']['upcoming_deadlines']);
+        $this->assertArrayHasKey('data', $data);
     }
 
-    public function testGetDataHandlesNoCurrentPayrun(): void
+    /**
+     * Test getData returns amendment counts
+     */
+    public function testGetDataReturnsAmendmentCounts(): void
     {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.view'];
+        $amendmentStmt = Mockery::mock(\PDOStatement::class);
+        $amendmentStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 5, 'pending' => 2, 'approved' => 3, 'declined' => 0]);
 
-        $expectedData = [
-            'pending_amendments' => 0,
-            'pending_bonuses' => 0,
-            'pending_leave' => 0,
-            'current_payrun' => null,
-            'upcoming_deadlines' => []
-        ];
+        $this->setupAllMockStatementsForGetData();
 
-        $response = $this->callGetDataWithStats($expectedData);
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
 
-        $data = json_decode($response, true);
+        $this->assertJson($output);
+        $data = json_decode($output, true);
         $this->assertTrue($data['success']);
-        $this->assertNull($data['data']['current_payrun']);
+        $this->assertArrayHasKey('amendments', $data['data']);
     }
 
-    private function callIndex(): string
+    /**
+     * Test getData returns discrepancy counts
+     */
+    public function testGetDataReturnsDiscrepancyCounts(): void
     {
-        return json_encode(['success' => false, 'error' => 'Unauthorized']);
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('discrepancies', $data['data']);
+        $this->assertArrayHasKey('total', $data['data']['discrepancies']);
     }
 
-    private function callGetDataWithStats(array $stats): string
+    /**
+     * Test getData returns leave counts
+     */
+    public function testGetDataReturnsLeaveCounts(): void
     {
-        return json_encode(['success' => true, 'data' => $stats]);
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('leave', $data['data']);
+    }
+
+    /**
+     * Test getData returns bonus counts with breakdown
+     */
+    public function testGetDataReturnsBonusCountsWithBreakdown(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('bonuses', $data['data']);
+        $this->assertArrayHasKey('monthly', $data['data']['bonuses']);
+        $this->assertArrayHasKey('vape_drops', $data['data']['bonuses']);
+        $this->assertArrayHasKey('google_reviews', $data['data']['bonuses']);
+    }
+
+    /**
+     * Test getData returns Vend payment counts
+     */
+    public function testGetDataReturnsVendPaymentCounts(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('vend_payments', $data['data']);
+        $this->assertArrayHasKey('total_amount', $data['data']['vend_payments']);
+    }
+
+    /**
+     * Test getData returns automation stats for admin
+     */
+    public function testGetDataReturnsAutomationStatsForAdmin(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertArrayHasKey('automation', $data['data']);
+    }
+
+    /**
+     * Test getData handles exception gracefully
+     */
+    public function testGetDataHandlesExceptionGracefully(): void
+    {
+        // Make query throw exception
+        $this->db->shouldReceive('query')
+            ->andThrow(new \Exception('Database error'));
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
+        $this->assertArrayHasKey('error', $data);
+    }
+
+    /**
+     * Test getData includes admin flag
+     */
+    public function testGetDataIncludesAdminFlag(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertArrayHasKey('is_admin', $data);
+    }
+
+    /**
+     * Test getData includes staff ID
+     */
+    public function testGetDataIncludesStaffId(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertArrayHasKey('staff_id', $data);
+    }
+
+    /**
+     * Test getData returns proper structure for non-admin users
+     */
+    public function testGetDataReturnsProperStructureForNonAdminUsers(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+
+        // All data sections should be present regardless of admin status
+        $this->assertArrayHasKey('amendments', $data['data']);
+        $this->assertArrayHasKey('discrepancies', $data['data']);
+        $this->assertArrayHasKey('leave', $data['data']);
+        $this->assertArrayHasKey('bonuses', $data['data']);
+        $this->assertArrayHasKey('vend_payments', $data['data']);
+    }
+
+    /**
+     * Test getData returns correct HTTP response code on success
+     */
+    public function testGetDataReturnsCorrectHttpResponseCodeOnSuccess(): void
+    {
+        $this->setupAllMockStatementsForGetData();
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        // Response code should be 200 (default)
+        $this->assertJson($output);
+    }
+
+    /**
+     * Test getData returns 500 on error
+     */
+    public function testGetDataReturns500OnError(): void
+    {
+        $this->db->shouldReceive('query')
+            ->andThrow(new \Exception('Database connection failed'));
+
+        ob_start();
+        $this->controller->getData();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
+    }
+
+    /**
+     * Helper method to setup all mock statements for getData
+     */
+    private function setupAllMockStatementsForGetData(): void
+    {
+        $amendmentStmt = Mockery::mock(\PDOStatement::class);
+        $amendmentStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 5, 'pending' => 2, 'approved' => 3, 'declined' => 0]);
+
+        $discrepancyStmt = Mockery::mock(\PDOStatement::class);
+        $discrepancyStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'total' => 3,
+                'pending' => 1,
+                'ai_review' => 1,
+                'approved' => 1,
+                'declined' => 0,
+                'urgent' => 0
+            ]);
+
+        $leaveStmt = Mockery::mock(\PDOStatement::class);
+        $leaveStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 2, 'pending' => 1, 'approved' => 1, 'declined' => 0]);
+
+        $bonusMonthlyStmt = Mockery::mock(\PDOStatement::class);
+        $bonusMonthlyStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 2, 'pending' => 0, 'total_amount' => 100.00]);
+
+        $bonusVapeDropStmt = Mockery::mock(\PDOStatement::class);
+        $bonusVapeDropStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 5, 'unpaid' => 2]);
+
+        $bonusGoogleStmt = Mockery::mock(\PDOStatement::class);
+        $bonusGoogleStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn(['total' => 10, 'unpaid' => 3, 'total_bonus' => 45.00]);
+
+        $vendStmt = Mockery::mock(\PDOStatement::class);
+        $vendStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'total' => 4,
+                'pending' => 1,
+                'ai_review' => 1,
+                'approved' => 2,
+                'completed' => 0,
+                'total_amount' => 250.00
+            ]);
+
+        $automationStmt = Mockery::mock(\PDOStatement::class);
+        $automationStmt->shouldReceive('fetch')
+            ->with(\PDO::FETCH_ASSOC)
+            ->andReturn([
+                'total_decisions' => 50,
+                'auto_approved' => 40,
+                'escalated' => 10,
+                'avg_confidence' => 0.92
+            ]);
+
+        // Setup query to return statements in order
+        $this->db->shouldReceive('query')
+            ->times(7)
+            ->andReturnValues([
+                $amendmentStmt,
+                $discrepancyStmt,
+                $leaveStmt,
+                $bonusMonthlyStmt,
+                $bonusVapeDropStmt,
+                $bonusGoogleStmt,
+                $vendStmt,
+                $automationStmt
+            ]);
     }
 }

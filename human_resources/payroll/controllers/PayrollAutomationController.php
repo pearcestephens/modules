@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace PayrollModule\Controllers;
+namespace HumanResources\Payroll\Controllers;
 
 /**
  * Payroll Automation Controller
@@ -327,8 +327,8 @@ class PayrollAutomationController extends BaseController
      */
     private function isAdmin(): bool
     {
-        // TODO: Implement based on your auth system
-        return $_SESSION['is_admin'] ?? false;
+        // Defer to BaseController permissions if available
+        return $this->hasPermission('payroll.admin');
     }
 
     /**
@@ -336,9 +336,8 @@ class PayrollAutomationController extends BaseController
      *
      * @return int User ID
      */
-    private function getCurrentUserId(): int
+    protected function getCurrentUserId(): ?int
     {
-        // TODO: Implement based on your auth system
-        return $_SESSION['user_id'] ?? 0;
+        return parent::getCurrentUserId();
     }
 }

@@ -28,7 +28,7 @@ class BaseControllerHelpersTest extends TestCase
         }
     }
 
-    public function testRequirePostThrowsOn GET(): void
+    public function testRequirePostThrowsOnGET(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
 

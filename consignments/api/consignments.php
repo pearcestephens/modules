@@ -1,11 +1,22 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/../../assets/functions/config.php';
-require_once __DIR__ . '/../lib/ConsignmentService.php';
+// Early method guard for scanners
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') { header('Allow: POST, OPTIONS'); http_response_code(405); exit; }
+try {
+  require_once __DIR__ . '/../../assets/functions/config.php';
+  require_once __DIR__ . '/../lib/ConsignmentService.php';
+} catch (\Throwable $e) {
+  http_response_code(500);
+  header('Content-Type: application/json');
+  echo json_encode(['ok'=>false,'error'=>'Bootstrap failure: '.$e->getMessage()]);
+  exit;
+}
 
 use Consignments\ConsignmentService;
 
 header('Cache-Control: no-store');
+header('Content-Type: application/json');
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') { header('Allow: POST, OPTIONS'); http_response_code(405); exit; }
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { http_response_code(405); exit; }
 
 $in = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];

@@ -1,280 +1,209 @@
 <?php
+/**
+ * Unit Test for PayRunController
+ *
+ * @package CIS\Payroll\Tests\Unit
+ */
+
 declare(strict_types=1);
 
 namespace HumanResources\Payroll\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PDO;
+use PDOStatement;
+use HumanResources\Payroll\Controllers\PayRunController;
+use PayrollModule\Lib\PayrollLogger;
 
-/**
- * PayRunController Test Suite
- *
- * Tests payrun creation, approval, and export functionality
- */
-class PayRunControllerTest extends TestCase
+// Mock the BaseController if it has abstract methods or significant constructor logic.
+// For now, we assume it's concrete enough to extend.
+if (!class_exists('BaseController')) {
+    class BaseController {
+        protected $logger;
+        public function __construct() {
+            // Mock constructor
+        }
+        protected function json(array $data, int $statusCode = 200): void {
+            http_response_code($statusCode);
+            echo json_encode($data);
+        }
+        protected function getCurrentUserId(): int {
+            return 1; // Mocked
+        }
+        protected function getJsonInput(): array {
+            return json_decode(file_get_contents('php://input'), true) ?? [];
+        }
+    }
+}
+// Mock the global function if it doesn't exist in the test environment
+if (!function_exists('getPayrollDb')) {
+    function getPayrollDb() {
+        // This will be replaced by the mock injected via reflection
+    }
+}
+
+
+final class PayRunControllerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
+    private $pdo;
+    private $logger;
+    private $controller;
+
     protected function setUp(): void
     {
-        $_SESSION = [];
+        $this->pdo = Mockery::mock(PDO::class);
+        $this->logger = Mockery::mock(PayrollLogger::class);
+        $this->logger->shouldReceive('error'); // Default mock for error logging
+
+        $this->controller = new PayRunController();
+
+        // Use reflection to inject our mocked dependencies, bypassing the global function call.
+        $reflector = new \ReflectionObject($this->controller);
+
+        try {
+            $dbProperty = $reflector->getProperty('db');
+            $dbProperty->setAccessible(true);
+            $dbProperty->setValue($this->controller, $this->pdo);
+        } catch (\ReflectionException $e) {
+            // Property might not exist in the version of the file, ignore.
+        }
+
+        // The logger is in the parent, so we need to go up.
+        $parentReflector = $reflector->getParentClass();
+        if ($parentReflector) {
+            try {
+                $loggerProperty = $parentReflector->getProperty('logger');
+                $loggerProperty->setAccessible(true);
+                $loggerProperty->setValue($this->controller, $this->logger);
+            } catch (\ReflectionException $e) {
+                // Property might not exist, ignore.
+            }
+        }
+
+        $_GET = [];
         $_POST = [];
     }
 
     protected function tearDown(): void
     {
-        $_SESSION = [];
-        $_POST = [];
+        Mockery::close();
     }
 
-    public function testIndexRequiresAuth(): void
+    public function testIndexRendersViewOnSuccess()
     {
-        unset($_SESSION['user_id']);
+        $statement = Mockery::mock(PDOStatement::class);
+        $statement->shouldReceive('execute')->with([20, 0]);
+        $statement->shouldReceive('fetchAll')->with(PDO::FETCH_ASSOC)->andReturn([]);
 
-        $response = $this->callIndex();
+        $countStatement = Mockery::mock(PDOStatement::class);
+        $countStatement->shouldReceive('fetchColumn')->andReturn(0);
 
-        $this->assertEquals(401, http_response_code());
+        $this->pdo->shouldReceive('prepare')->andReturn($statement);
+        $this->pdo->shouldReceive('query')->andReturn($countStatement);
+
+        ob_start();
+        $this->controller->index();
+        $output = ob_get_clean();
+
+        // We can't easily test the `require_once` output, but we can check that it doesn't throw an error
+        // and that some expected output is present.
+        $this->assertStringContainsString('Pay Runs', $output);
     }
 
-    public function testListReturnsPayruns(): void
+    public function testListReturnsPayRunsJson()
     {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.view'];
+        $_GET['page'] = '1';
+        $_GET['limit'] = '20';
 
-        $response = $this->callListWithData([
-            ['id' => 1, 'period' => '2025-10', 'status' => 'completed'],
-            ['id' => 2, 'period' => '2025-11', 'status' => 'draft']
-        ]);
+        $statement = Mockery::mock(PDOStatement::class);
+        $statement->shouldReceive('execute')->with([20, 0]);
+        $statement->shouldReceive('fetchAll')->with(PDO::FETCH_ASSOC)->andReturn([['period_start' => '2025-01-01']]);
 
-        $data = json_decode($response, true);
+        $countStatement = Mockery::mock(PDOStatement::class);
+        $countStatement->shouldReceive('fetchColumn')->andReturn(1);
+
+        $this->pdo->shouldReceive('prepare')->andReturn($statement);
+        $this->pdo->shouldReceive('query')->andReturn($countStatement);
+
+        ob_start();
+        $this->controller->list();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
         $this->assertTrue($data['success']);
-        $this->assertCount(2, $data['data']);
+        $this->assertCount(1, $data['data']['pay_runs']);
+        $this->assertEquals(1, $data['data']['pagination']['total']);
     }
 
-    public function testCreateRequiresPermission(): void
+    public function testShowReturnsPayRunDetailsJson()
     {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.view']; // Not create
+        $_GET['period_start'] = '2025-01-01';
+        $_GET['period_end'] = '2025-01-07';
 
-        $response = $this->callCreate();
+        $statement = Mockery::mock(PDOStatement::class);
+        $statement->shouldReceive('execute')->with(['2025-01-01', '2025-01-07']);
+        $statement->shouldReceive('fetchAll')->with(PDO::FETCH_ASSOC)->andReturn([['staff_id' => 1, 'gross_pay' => 100]]);
 
-        $this->assertEquals(403, http_response_code());
-    }
+        $this->pdo->shouldReceive('prepare')->andReturn($statement);
 
-    public function testCreateValidatesPeriod(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.create'];
-        $_POST = [
-            'period' => 'invalid-format',
-            'csrf_token' => 'valid'
-        ];
+        ob_start();
+        $this->controller->show();
+        $output = ob_get_clean();
 
-        $response = $this->callCreate();
-
-        $this->assertEquals(400, http_response_code());
-        $this->assertStringContainsString('period', strtolower($response));
-    }
-
-    public function testCreateInitializesPayrun(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.create'];
-        $_POST = [
-            'period' => '2025-11',
-            'start_date' => '2025-11-01',
-            'end_date' => '2025-11-30',
-            'payment_date' => '2025-12-05',
-            'csrf_token' => 'valid'
-        ];
-
-        $response = $this->callCreateWithSuccess(123);
-
-        $data = json_decode($response, true);
+        $this->assertJson($output);
+        $data = json_decode($output, true);
         $this->assertTrue($data['success']);
-        $this->assertEquals(123, $data['data']['id']);
-        $this->assertEquals('draft', $data['data']['status']);
+        $this->assertCount(1, $data['data']['payslips']);
+        $this->assertEquals(100, $data['data']['summary']['total_gross']);
     }
 
-    public function testViewRequiresAuth(): void
+    public function testApproveUpdatesStatusAndLogsAction()
     {
-        unset($_SESSION['user_id']);
+        $_POST['period_start'] = '2025-01-01';
+        $_POST['period_end'] = '2025-01-07';
 
-        $response = $this->callView(123);
+        $statement = Mockery::mock(PDOStatement::class);
+        // We expect user ID 1 from the mocked BaseController
+        $statement->shouldReceive('execute')->with([1, '2025-01-01', '2025-01-07'])->andReturn(true);
+        $statement->shouldReceive('rowCount')->andReturn(5);
 
-        $this->assertEquals(401, http_response_code());
-    }
+        $this->pdo->shouldReceive('prepare')->andReturn($statement);
+        $this->logger->shouldReceive('info')->once()->with('Pay run approved', Mockery::any());
 
-    public function testViewReturnsPayrunDetails(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.view'];
+        ob_start();
+        $this->controller->approve();
+        $output = ob_get_clean();
 
-        $payrunData = [
-            'id' => 123,
-            'period' => '2025-11',
-            'status' => 'draft',
-            'employees' => [
-                ['employee_id' => 1, 'name' => 'John', 'gross_pay' => 5000],
-                ['employee_id' => 2, 'name' => 'Jane', 'gross_pay' => 6000]
-            ],
-            'totals' => [
-                'gross_pay' => 11000,
-                'tax' => 2200,
-                'net_pay' => 8800
-            ]
-        ];
-
-        $response = $this->callViewWithData(123, $payrunData);
-
-        $data = json_decode($response, true);
+        $this->assertJson($output);
+        $data = json_decode($output, true);
         $this->assertTrue($data['success']);
-        $this->assertEquals(123, $data['data']['id']);
-        $this->assertCount(2, $data['data']['employees']);
-        $this->assertEquals(11000, $data['data']['totals']['gross_pay']);
+        $this->assertEquals(5, $data['data']['approved_count']);
     }
 
-    public function testApproveRequiresAdminPermission(): void
+    public function testShowReturns404ForNotFound()
     {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.view']; // Not approve
+        $_GET['period_start'] = '2025-01-01';
+        $_GET['period_end'] = '2025-01-07';
 
-        $response = $this->callApprove(123);
+        $statement = Mockery::mock(PDOStatement::class);
+        $statement->shouldReceive('execute')->with(['2025-01-01', '2025-01-07']);
+        $statement->shouldReceive('fetchAll')->with(PDO::FETCH_ASSOC)->andReturn([]);
 
-        $this->assertEquals(403, http_response_code());
-    }
+        $this->pdo->shouldReceive('prepare')->andReturn($statement);
 
-    public function testApproveValidatesStatus(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.approve'];
+        ob_start();
+        $this->controller->show();
+        $output = ob_get_clean();
 
-        // Payrun already approved
-        $response = $this->callApproveWithStatus(123, 'completed');
-
-        $this->assertEquals(400, http_response_code());
-        $this->assertStringContainsString('already', strtolower($response));
-    }
-
-    public function testApproveUpdatesStatus(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.approve'];
-
-        $response = $this->callApproveWithSuccess(123);
-
-        $data = json_decode($response, true);
-        $this->assertTrue($data['success']);
-        $this->assertStringContainsString('approved', strtolower($data['message']));
-    }
-
-    public function testExportRequiresAuth(): void
-    {
-        unset($_SESSION['user_id']);
-
-        $response = $this->callExport(123);
-
-        $this->assertEquals(401, http_response_code());
-    }
-
-    public function testExportReturnsCSV(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.export'];
-
-        $response = $this->callExportWithCSV(123);
-
-        $this->assertStringContainsString('Employee,Gross Pay,Tax,Net Pay', $response);
-        $this->assertStringContainsString('John Smith,5000,1000,4000', $response);
-    }
-
-    public function testPrintRequiresAuth(): void
-    {
-        unset($_SESSION['user_id']);
-
-        $response = $this->callPrint(123);
-
-        $this->assertEquals(401, http_response_code());
-    }
-
-    public function testPrintReturnsHTML(): void
-    {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['permissions'] = ['payroll.payruns.view'];
-
-        $response = $this->callPrintWithHTML(123);
-
-        $this->assertStringContainsString('<table', $response);
-        $this->assertStringContainsString('Payroll Summary', $response);
-    }
-
-    // Helper methods
-    private function callIndex(): string
-    {
-        return json_encode(['success' => false, 'error' => 'Unauthorized']);
-    }
-
-    private function callListWithData(array $payruns): string
-    {
-        return json_encode(['success' => true, 'data' => $payruns]);
-    }
-
-    private function callCreate(): string
-    {
-        return json_encode(['success' => false, 'error' => 'Forbidden']);
-    }
-
-    private function callCreateWithSuccess(int $id): string
-    {
-        return json_encode([
-            'success' => true,
-            'data' => ['id' => $id, 'status' => 'draft'],
-            'message' => 'Payrun created successfully'
-        ]);
-    }
-
-    private function callView(int $id): string
-    {
-        return json_encode(['success' => false, 'error' => 'Unauthorized']);
-    }
-
-    private function callViewWithData(int $id, array $data): string
-    {
-        return json_encode(['success' => true, 'data' => $data]);
-    }
-
-    private function callApprove(int $id): string
-    {
-        return json_encode(['success' => false, 'error' => 'Forbidden']);
-    }
-
-    private function callApproveWithStatus(int $id, string $status): string
-    {
-        return json_encode(['success' => false, 'error' => 'Payrun already ' . $status]);
-    }
-
-    private function callApproveWithSuccess(int $id): string
-    {
-        return json_encode([
-            'success' => true,
-            'message' => 'Payrun approved successfully'
-        ]);
-    }
-
-    private function callExport(int $id): string
-    {
-        return json_encode(['success' => false, 'error' => 'Unauthorized']);
-    }
-
-    private function callExportWithCSV(int $id): string
-    {
-        return "Employee,Gross Pay,Tax,Net Pay\nJohn Smith,5000,1000,4000\nJane Doe,6000,1200,4800";
-    }
-
-    private function callPrint(int $id): string
-    {
-        return json_encode(['success' => false, 'error' => 'Unauthorized']);
-    }
-
-    private function callPrintWithHTML(int $id): string
-    {
-        return "<html><body><h1>Payroll Summary</h1><table><tr><th>Employee</th><th>Net Pay</th></tr></table></body></html>";
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
+        $this->assertEquals('Pay run not found', $data['error']);
+        $this->assertEquals(404, http_response_code());
     }
 }

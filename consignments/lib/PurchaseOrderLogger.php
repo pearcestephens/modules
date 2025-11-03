@@ -42,12 +42,90 @@ class PurchaseOrderLogger {
 
     private const CATEGORY = 'purchase_orders';
 
+    // ========================================================================
+    // UI INTERACTION EVENT LOGGERS (used by /api/purchase-orders/log-interaction.php)
+    // These are lightweight wrappers that never throw; they write to a module
+    // interaction log file and/or delegate to existing CIS logging if present.
+    // ========================================================================
+
+    // Note: init() is defined later in this class; do not redeclare here.
+
+    // Adapter shims: keep method names referenced by API endpoint but delegate to
+    // the fuller implementations defined later in this class when possible; otherwise
+    // fall back to interaction file log to avoid breaking the API.
+    // (Adapter methods removed to avoid duplicate declarations; core implementations exist later in class.)
+
+    // --- Private helpers ---------------------------------------------------
+
+    private static function writeInteraction(string $event, array $payload): void
+    {
+        $record = [
+            'ts' => date('c'),
+            'category' => self::CATEGORY,
+            'event' => $event,
+            'payload' => $payload,
+        ];
+
+        $json = json_encode($record, JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            $json = '{"error":"json_encode_failed"}';
+        }
+
+        $dir = self::resolveInteractionLogDir();
+        $file = $dir ? rtrim($dir, '/') . '/purchase_order_interactions.log' : null;
+
+        if ($file) {
+            @error_log($json . PHP_EOL, 3, $file);
+            return;
+        }
+
+        // Fallback to PHP error_log if directory resolution failed
+        error_log('[PO-INTERACTION] ' . $json);
+    }
+
+    private static function resolveInteractionLogDir(): ?string
+    {
+        $root = $_SERVER['DOCUMENT_ROOT'] ?? null;
+        if (!$root || !is_string($root)) {
+            return null;
+        }
+        return $root . '/logs/consignments';
+    }
+
     /**
      * Initialize logger (called automatically by bootstrap)
      */
     public static function init(): void {
         if (class_exists('CISLogger', false)) {
             \CISLogger::init();
+        }
+        // Ensure interaction log directory exists (safe to call multiple times)
+        $dir = self::resolveInteractionLogDir();
+        if ($dir && !is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+    }
+
+    /**
+     * Public generic client event hook for unknown/uncategorized events
+     * Never throws; persists to interaction log and (when available) CIS action log
+     */
+    public static function clientEvent(?int $poId, array $payload = []): void
+    {
+        // Write lightweight interaction record
+        self::writeInteraction('client_event', [
+            'po_id' => $poId,
+            'payload' => $payload,
+        ]);
+
+        // Also attempt to record in CIS action log when available
+        try {
+            self::log('client_event', 'success', 'client_event', $poId, [
+                'payload' => $payload,
+            ]);
+        } catch (\Throwable $e) {
+            // Swallow any logging errors; never break the app
+            error_log('[PurchaseOrderLogger] clientEvent logging failed: ' . $e->getMessage());
         }
     }
 

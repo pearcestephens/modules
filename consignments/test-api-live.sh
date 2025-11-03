@@ -11,21 +11,22 @@ BASE_URL="https://staff.vapeshed.co.nz/modules/consignments/api"
 
 echo "1. Testing Central Router - Missing Action (should return 400)"
 echo "-----------------------------------------------------------"
-curl -s -X POST "$BASE_URL/api.php" \
+CURL_OPTS=${CURL_OPTS:-"-s --connect-timeout 5 --max-time 15"}
+curl $CURL_OPTS -X POST "$BASE_URL/api.php" \
   -H "Content-Type: application/json" \
   -d '{}' | jq '.'
 echo ""
 
 echo "2. Testing Central Router - Unknown Action (should return 404)"
 echo "-----------------------------------------------------------"
-curl -s -X POST "$BASE_URL/api.php" \
+curl $CURL_OPTS -X POST "$BASE_URL/api.php" \
   -H "Content-Type: application/json" \
   -d '{"action":"invalid_test_action"}' | jq '.'
 echo ""
 
 echo "3. Testing Submit Transfer - Invalid Transfer ID (should return 400)"
 echo "-----------------------------------------------------------"
-curl -s -X POST "$BASE_URL/api.php" \
+curl $CURL_OPTS -X POST "$BASE_URL/api.php" \
   -H "Content-Type: application/json" \
   -d '{"action":"submit_transfer","transfer_id":0,"items":[]}' | jq '.'
 echo ""

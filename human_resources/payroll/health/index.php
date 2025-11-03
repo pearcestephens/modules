@@ -26,6 +26,14 @@ try {
         return tableExists($pdo, 'payroll_activity_log');
     });
 
+    $response['checks'][] = runCheck('table_exists:payroll_rate_limits', static function () use ($pdo) {
+        return tableExists($pdo, 'payroll_rate_limits');
+    });
+
+    $response['checks'][] = runCheck('table_exists:payroll_auth_audit_log', static function () use ($pdo) {
+        return tableExists($pdo, 'payroll_auth_audit_log');
+    });
+
     $response['ok'] = collectOkStatus($response['checks']);
 } catch (Throwable $exception) {
     $response['checks'][] = [

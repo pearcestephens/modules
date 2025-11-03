@@ -7,3 +7,8 @@
 [2025-10-31 01:02:25] Uncaught ErrorException: include(/home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/_templates/components/template-wrapper.php): Failed to open stream: No such file or directory in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/theme-builder-pro.php:1003
 [2025-10-31 01:09:14] Uncaught ErrorException: include(/home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/_templates/components/template-wrapper.php): Failed to open stream: No such file or directory in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/theme-builder-pro.php:1003
 [2025-11-01 15:14:12] Uncaught Error: Cannot access "self" when no class scope is active in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/theme-generator.php:424
+[2025-11-03 08:29:17] Uncaught ParseError: Unmatched '}' in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/lib/ThemeManager.php:536
+[2025-11-03 08:49:18] Uncaught ParseError: Unmatched '}' in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/lib/ThemeManager.php:536
+[2025-11-03 08:52:35] Uncaught ParseError: Unmatched '}' in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/lib/ThemeManager.php:536
+[2025-11-03 09:14:43] Uncaught Error: Cannot access "self" when no class scope is active in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/theme-generator.php:424
+[2025-11-03 09:14:43] Uncaught Error: Cannot access "self" when no class scope is active in /home/129337.cloudwaysapps.com/jcepnzzkmj/public_html/modules/admin-ui/theme-generator.php:424

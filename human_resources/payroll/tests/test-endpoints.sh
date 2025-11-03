@@ -12,7 +12,7 @@ BASE_URL="https://staff.vapeshed.co.nz/modules"
 echo "TEST 1: PDF API Status"
 echo "────────────────────────────────────────────────────────────────"
 echo "  Checking PDF service status..."
-curl -s "${BASE_URL}/shared/api/pdf.php?action=status" | python3 -m json.tool
+curl -s --connect-timeout 5 --max-time 15 "${BASE_URL}/shared/api/pdf.php?action=status" | python3 -m json.tool
 echo ""
 echo ""
 
@@ -20,7 +20,7 @@ echo ""
 echo "TEST 2: Generate Simple PDF"
 echo "────────────────────────────────────────────────────────────────"
 echo "  Generating PDF from HTML..."
-curl -X POST "${BASE_URL}/shared/api/pdf.php?action=generate" \
+curl --connect-timeout 5 --max-time 15 -X POST "${BASE_URL}/shared/api/pdf.php?action=generate" \
   -H "Content-Type: application/json" \
   -d '{
     "html": "<html><body><h1>Test PDF</h1><p>This is a test PDF generated via API.</p></body></html>",
@@ -35,7 +35,7 @@ echo "TEST 3: Payslip PDF Download"
 echo "────────────────────────────────────────────────────────────────"
 echo "  Attempting to download payslip PDF (ID=1)..."
 echo "  NOTE: This will fail if no payslip with ID=1 exists"
-curl -I "${BASE_URL}/human_resources/payroll/payslips.php?action=pdf&id=1"
+curl -I --connect-timeout 5 --max-time 15 "${BASE_URL}/human_resources/payroll/payslips.php?action=pdf&id=1"
 echo ""
 echo ""
 
@@ -44,7 +44,7 @@ echo "TEST 4: Payslip View"
 echo "────────────────────────────────────────────────────────────────"
 echo "  Checking payslip view loads..."
 echo "  NOTE: This will fail if no payslip with ID=1 exists"
-curl -I "${BASE_URL}/human_resources/payroll/views/payslip.php?id=1"
+curl -I --connect-timeout 5 --max-time 15 "${BASE_URL}/human_resources/payroll/views/payslip.php?id=1"
 echo ""
 echo ""
 

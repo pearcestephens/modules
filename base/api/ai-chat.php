@@ -1,11 +1,11 @@
 <?php
 /**
  * AI Chat API Endpoint
- * 
+ *
  * Handles AI chat requests from any module's AI widget
- * 
+ *
  * POST /modules/base/api/ai-chat.php
- * 
+ *
  * Payload:
  * {
  *   "message": "User's question or command",
@@ -19,7 +19,7 @@
  *     "history": [...]
  *   }
  * }
- * 
+ *
  * Response:
  * {
  *   "success": true,
@@ -56,6 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// HEAD probe support
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') {
+    header('Allow: POST, OPTIONS');
+    http_response_code(405);
+    exit;
+}
+
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::json([
@@ -71,7 +78,7 @@ if (!Session::isLoggedIn()) {
         'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
     ]);
-    
+
     Response::json([
         'success' => false,
         'error' => 'Authentication required',
@@ -88,7 +95,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
         'error' => json_last_error_msg(),
         'raw_input' => substr($rawInput, 0, 200)
     ]);
-    
+
     Response::json([
         'success' => false,
         'error' => 'Invalid JSON payload',
@@ -123,7 +130,7 @@ if ($rateLimitCount >= $rateLimitMax) {
         'user_id' => $userId,
         'count' => $rateLimitCount
     ]);
-    
+
     Response::json([
         'success' => false,
         'error' => 'Too many requests. Please wait a moment.',
@@ -147,7 +154,7 @@ Logger::info('AI Chat Request', [
 try {
     // Initialize AI Chat Service
     $ai = AIChatService::getInstance();
-    
+
     // Enhance context with session data
     $enrichedContext = array_merge($context, [
         'user_id' => $userId,
@@ -156,12 +163,12 @@ try {
         'timestamp' => date('Y-m-d H:i:s'),
         'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
     ]);
-    
+
     // Get AI response
     $startTime = microtime(true);
     $response = $ai->chat($message, $enrichedContext);
     $responseTime = round((microtime(true) - $startTime) * 1000, 2); // milliseconds
-    
+
     // Log successful response
     Logger::info('AI Chat Response', [
         'user_id' => $userId,
@@ -172,7 +179,7 @@ try {
         'suggested_function' => $response['suggested_function'] ?? null,
         'response_time_ms' => $responseTime
     ]);
-    
+
     // Store conversation in database (optional - for analytics)
     try {
         $db = Database::getInstance();
@@ -194,7 +201,7 @@ try {
             'error' => $dbError->getMessage()
         ]);
     }
-    
+
     // Return successful response
     Response::json([
         'success' => true,
@@ -204,7 +211,7 @@ try {
         'timestamp' => date('Y-m-d H:i:s'),
         'response_time_ms' => $responseTime
     ]);
-    
+
 } catch (Exception $e) {
     // Log error
     Logger::error('AI Chat Error', [
@@ -215,12 +222,12 @@ try {
         'line' => $e->getLine(),
         'trace' => $e->getTraceAsString()
     ]);
-    
+
     // Determine error type and response
     $errorCode = 'AI_ERROR';
     $statusCode = 500;
     $userMessage = 'Sorry, I encountered an error. Please try again.';
-    
+
     if (strpos($e->getMessage(), 'AI Hub') !== false) {
         $errorCode = 'AI_HUB_ERROR';
         $userMessage = 'AI service is temporarily unavailable. Please try again in a moment.';
@@ -231,7 +238,7 @@ try {
         $errorCode = 'DATABASE_ERROR';
         $userMessage = 'Database error occurred. Please contact support if this persists.';
     }
-    
+
     // Return error response
     Response::json([
         'success' => false,

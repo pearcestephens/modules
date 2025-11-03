@@ -4,10 +4,17 @@
  * Handles all theme management AJAX requests
  */
 
+header('Content-Type: application/json');
+
+// HEAD probe support: do not execute logic for HEAD requests
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') {
+    header('Allow: GET, POST, OPTIONS');
+    http_response_code(405);
+    exit;
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/modules/base/bootstrap.php';
 require_once __DIR__ . '/../lib/ThemeManager.php';
-
-header('Content-Type: application/json');
 
 try {
     $themeManager = new ThemeManager();

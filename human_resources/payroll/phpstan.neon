@@ -1,0 +1,14 @@
+parameters:
+    level: 6
+    paths:
+        - controllers
+        - services
+        - lib
+    excludePaths:
+        - vendor
+        - tests
+    ignoreErrors:
+        - '#Call to an undefined method PDO::#'
+        - '#Access to an undefined property#'
+    checkMissingIterableValueType: false
+    reportUnmatchedIgnoredErrors: false

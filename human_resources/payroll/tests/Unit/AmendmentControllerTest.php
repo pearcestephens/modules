@@ -1,31 +1,323 @@
 <?php
+/**
+ * Unit Test for AmendmentController
+ *
+ * @package CIS\Payroll\Tests\Unit
+ */
+
 declare(strict_types=1);
 
 namespace HumanResources\Payroll\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use PDO;
-use PDOStatement;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use HumanResources\Payroll\Controllers\AmendmentController;
+use PayrollModule\Services\AmendmentService;
+use PayrollModule\Lib\PayrollLogger;
 
-/**
- * AmendmentController Test Suite
- *
- * Tests all amendment creation, approval, and history functionality
- */
-class AmendmentControllerTest extends TestCase
+final class AmendmentControllerTest extends TestCase
 {
-    private PDO $mockDb;
-    private PDOStatement $mockStmt;
+    use MockeryPHPUnitIntegration;
+
+    private $amendmentService;
+    private $logger;
+    private $controller;
 
     protected function setUp(): void
     {
-        $this->mockDb = $this->createMock(PDO::class);
-        $this->mockStmt = $this->createMock(PDOStatement::class);
+        $this->amendmentService = Mockery::mock(AmendmentService::class);
+        $this->logger = Mockery::mock(PayrollLogger::class);
+        $this->logger->shouldReceive('error');
+        $this->logger->shouldReceive('info');
 
-        // Reset session for each test
-        $_SESSION = [];
-        $_POST = [];
+        $this->controller = new AmendmentController();
+
+        // Use reflection to inject mocked dependencies
+        $reflector = new \ReflectionObject($this->controller);
+
+        try {
+            $serviceProperty = $reflector->getProperty('amendmentService');
+            $serviceProperty->setAccessible(true);
+            $serviceProperty->setValue($this->controller, $this->amendmentService);
+        } catch (\ReflectionException $e) {
+            // Property might not exist
+        }
+
+        // Inject logger (in parent)
+        $parentReflector = $reflector->getParentClass();
+        if ($parentReflector) {
+            try {
+                $loggerProperty = $parentReflector->getProperty('logger');
+                $loggerProperty->setAccessible(true);
+                $loggerProperty->setValue($this->controller, $this->logger);
+            } catch (\ReflectionException $e) {
+                // Property might not exist
+            }
+        }
+
         $_GET = [];
+        $_POST = [];
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+    }
+
+    /**
+     * Test: create validates required fields
+     */
+    public function testCreateValidatesRequiredFields()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['staff_id' => 1]; // Missing required fields
+
+        ob_start();
+        $this->controller->create();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
+        // Should contain validation error
+        $this->assertArrayHasKey('error', $data);
+    }
+
+    /**
+     * Test: create successfully creates amendment
+     */
+    public function testCreateAmendmentSuccess()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'staff_id' => 1,
+            'pay_period_id' => 1,
+            'original_start' => '2025-01-01 08:00:00',
+            'original_end' => '2025-01-01 17:00:00',
+            'new_start' => '2025-01-01 08:30:00',
+            'new_end' => '2025-01-01 17:30:00',
+            'reason' => 'Adjusted start time due to traffic delay',
+            'new_break_minutes' => 60
+        ];
+
+        $amendmentResult = [
+            'success' => true,
+            'amendment_id' => 100,
+            'ai_decision_id' => 'AI-12345'
+        ];
+
+        $this->amendmentService->shouldReceive('createAmendment')->andReturn($amendmentResult);
+        $this->logger->shouldReceive('info')->once();
+
+        ob_start();
+        $this->controller->create();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertEquals(100, $data['data']['amendment_id']);
+        $this->assertStringContainsString('AI review', $data['data']['message']);
+    }
+
+    /**
+     * Test: create handles service errors
+     */
+    public function testCreateHandlesServiceError()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'staff_id' => 1,
+            'pay_period_id' => 1,
+            'original_start' => '2025-01-01 08:00:00',
+            'original_end' => '2025-01-01 17:00:00',
+            'new_start' => '2025-01-01 08:30:00',
+            'new_end' => '2025-01-01 17:30:00',
+            'reason' => 'Adjusted start time due to traffic delay'
+        ];
+
+        $this->amendmentService->shouldReceive('createAmendment')
+            ->andReturn(['success' => false, 'error' => 'Timesheet locked']);
+
+        ob_start();
+        $this->controller->create();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
+        $this->assertStringContainsString('Failed to create', $data['error']);
+    }
+
+    /**
+     * Test: getAmendment returns amendment details
+     */
+    public function testGetAmendmentSuccess()
+    {
+        $amendmentData = [
+            'id' => 100,
+            'staff_id' => 1,
+            'status' => 'pending',
+            'original_start' => '2025-01-01 08:00:00',
+            'new_start' => '2025-01-01 08:30:00',
+            'reason' => 'Adjusted for traffic delay',
+            'ai_status' => 'pending',
+            'ai_decision' => null
+        ];
+
+        $this->amendmentService->shouldReceive('getAmendment')->with(100)->andReturn($amendmentData);
+
+        ob_start();
+        $this->controller->getAmendment(100);
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertEquals($amendmentData, $data['data']['amendment']);
+    }
+
+    /**
+     * Test: getAmendment returns 404 when not found
+     */
+    public function testGetAmendmentNotFound()
+    {
+        $this->amendmentService->shouldReceive('getAmendment')->with(999)->andReturn(null);
+
+        ob_start();
+        $this->controller->getAmendment(999);
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
+        $this->assertStringContainsString('not found', $data['error']);
+    }
+
+    /**
+     * Test: approveAmendment successfully approves
+     */
+    public function testApproveAmendmentSuccess()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $this->amendmentService->shouldReceive('approveAmendment')->with(100, 1)->andReturn(['success' => true]);
+        $this->logger->shouldReceive('info')->once();
+
+        ob_start();
+        $this->controller->approveAmendment(100);
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertStringContainsString('approved', $data['message']);
+    }
+
+    /**
+     * Test: declineAmendment successfully declines
+     */
+    public function testDeclineAmendmentSuccess()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = ['decline_reason' => 'Outside amendment window'];
+
+        $this->amendmentService->shouldReceive('declineAmendment')
+            ->with(100, 'Outside amendment window')
+            ->andReturn(['success' => true]);
+        $this->logger->shouldReceive('info')->once();
+
+        ob_start();
+        $this->controller->declineAmendment(100);
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertStringContainsString('declined', $data['message']);
+    }
+
+    /**
+     * Test: getPendingAmendments returns list
+     */
+    public function testGetPendingAmendmentsSuccess()
+    {
+        $_GET['page'] = '1';
+        $_GET['limit'] = '10';
+
+        $pendingAmendments = [
+            ['id' => 100, 'staff_id' => 1, 'status' => 'pending'],
+            ['id' => 101, 'staff_id' => 2, 'status' => 'pending']
+        ];
+
+        $this->amendmentService->shouldReceive('getPendingAmendments')->andReturn($pendingAmendments);
+
+        ob_start();
+        $this->controller->getPendingAmendments();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertCount(2, $data['data']);
+    }
+
+    /**
+     * Test: getAmendmentHistory returns historical records
+     */
+    public function testGetAmendmentHistorySuccess()
+    {
+        $_GET['staff_id'] = '1';
+        $_GET['limit'] = '20';
+
+        $history = [
+            ['id' => 100, 'status' => 'approved', 'created_at' => '2025-01-15'],
+            ['id' => 99, 'status' => 'declined', 'created_at' => '2025-01-10']
+        ];
+
+        $this->amendmentService->shouldReceive('getAmendmentHistory')
+            ->andReturn($history);
+
+        ob_start();
+        $this->controller->getAmendmentHistory();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertTrue($data['success']);
+        $this->assertCount(2, $data['data']);
+    }
+
+    /**
+     * Test: Exception handling
+     */
+    public function testCreateCatchesException()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST = [
+            'staff_id' => 1,
+            'pay_period_id' => 1,
+            'original_start' => '2025-01-01 08:00:00',
+            'original_end' => '2025-01-01 17:00:00',
+            'new_start' => '2025-01-01 08:30:00',
+            'new_end' => '2025-01-01 17:30:00',
+            'reason' => 'Adjusted start time due to traffic delay'
+        ];
+
+        $this->amendmentService->shouldReceive('createAmendment')
+            ->andThrow(new \Exception('Database error'));
+
+        $this->logger->shouldReceive('error')->once();
+
+        ob_start();
+        $this->controller->create();
+        $output = ob_get_clean();
+
+        $this->assertJson($output);
+        $data = json_decode($output, true);
+        $this->assertFalse($data['success']);
     }
 
     protected function tearDown(): void

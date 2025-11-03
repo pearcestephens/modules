@@ -26,6 +26,11 @@ class XeroService extends BaseService
     private ?string $accessToken = null;
     private ?string $refreshToken = null;
     private ?int $tokenExpiry = null;
+    // HTTP timeout and retry controls
+    private int $httpTimeoutSeconds = 20;       // total request timeout
+    private int $httpConnectTimeoutSeconds = 5; // TCP connect timeout
+    private int $httpMaxRetries = 2;            // number of retries on timeout
+    private int $httpRetryBackoffMs = 250;      // backoff between retries
 
     /**
      * Constructor
@@ -341,27 +346,57 @@ class XeroService extends BaseService
             'Accept: application/json'
         ];
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $attempt = 0;
+        $lastError = null;
 
-        if ($method === 'POST' || $method === 'PUT') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-            if ($data) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        do {
+            $attempt++;
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->httpConnectTimeoutSeconds);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $this->httpTimeoutSeconds);
+
+            if ($method === 'POST' || $method === 'PUT') {
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+                if ($data) {
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                }
             }
-        }
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+            $response = curl_exec($ch);
+            $curlErrNo = curl_errno($ch);
+            $curlErr = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
-        if ($httpCode >= 400) {
-            throw new \RuntimeException("Xero API error: HTTP {$httpCode} - {$response}");
-        }
+            // Retry on timeout errors only
+            if ($curlErrNo === CURLE_OPERATION_TIMEDOUT) {
+                $lastError = $curlErr ?: 'cURL operation timed out';
+                $this->logger->warning('Xero API request timed out, retrying', [
+                    'endpoint' => $endpoint,
+                    'attempt' => $attempt,
+                    'max_retries' => $this->httpMaxRetries,
+                ]);
+                if ($attempt <= $this->httpMaxRetries) {
+                    usleep($this->httpRetryBackoffMs * 1000);
+                    continue;
+                }
+                throw new \RuntimeException('Xero API request timed out: ' . $lastError);
+            }
 
-        return json_decode($response, true) ?? [];
+            if ($httpCode >= 400) {
+                throw new \RuntimeException("Xero API error: HTTP {$httpCode} - {$response}");
+            }
+
+            return json_decode($response, true) ?? [];
+
+        } while ($attempt <= $this->httpMaxRetries);
+
+        // Should not reach here; fallback error
+        throw new \RuntimeException('Xero API request failed unexpectedly' . ($lastError ? (': ' . $lastError) : ''));
     }
 
     /**
@@ -393,19 +428,30 @@ class XeroService extends BaseService
     private function refreshAccessToken(): bool
     {
         try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'https://identity.xero.com/connect/token');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                'grant_type' => 'refresh_token',
-                'refresh_token' => $this->refreshToken
-            ]));
-            curl_setopt($ch, CURLOPT_USERPWD, $this->clientId . ':' . $this->clientSecret);
+            $attempt = 0;
+            do {
+                $attempt++;
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, 'https://identity.xero.com/connect/token');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => $this->refreshToken
+                ]));
+                curl_setopt($ch, CURLOPT_USERPWD, $this->clientId . ':' . $this->clientSecret);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->httpConnectTimeoutSeconds);
+                curl_setopt($ch, CURLOPT_TIMEOUT, $this->httpTimeoutSeconds);
 
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+                $response = curl_exec($ch);
+                $curlErrNo = curl_errno($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($curlErrNo === CURLE_OPERATION_TIMEDOUT && $attempt <= $this->httpMaxRetries) {
+                    usleep($this->httpRetryBackoffMs * 1000);
+                    continue;
+                }
 
             if ($httpCode === 200) {
                 $data = json_decode($response, true);
@@ -420,7 +466,8 @@ class XeroService extends BaseService
                 return true;
             }
 
-            throw new \RuntimeException("Token refresh failed: HTTP {$httpCode}");
+                throw new \RuntimeException("Token refresh failed: HTTP {$httpCode}");
+            } while ($attempt <= $this->httpMaxRetries);
 
         } catch (\Exception $e) {
             $this->logger->error('Failed to refresh Xero token', [
@@ -503,103 +550,5 @@ class XeroService extends BaseService
     {
         // This would come from config
         return $_ENV['XERO_BANK_ACCOUNT'] ?? '1-1010';
-    }
-
-    /**
-     * Make Xero API request with rate limit telemetry
-     *
-     * @param string $method HTTP method (GET, POST, PUT, DELETE)
-     * @param string $endpoint API endpoint (e.g., '/payroll.xro/1.0/PayRuns')
-     * @param array|null $payload Request payload
-     * @return array API response
-     * @throws \RuntimeException on API errors
-     */
-    private function xeroApiRequest(string $method, string $endpoint, ?array $payload = null): array
-    {
-        $startTime = microtime(true);
-
-        $ch = curl_init();
-        $url = 'https://api.xero.com' . $endpoint;
-
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->accessToken,
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Xero-tenant-id: ' . ($_ENV['XERO_TENANT_ID'] ?? '')
-        ]);
-
-        if ($method !== 'GET') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-            if ($payload) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-            }
-        }
-
-        $response = curl_exec($ch);
-        $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $responseTime = (int)((microtime(true) - $startTime) * 1000);
-
-        // Capture response headers for rate limit info
-        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        curl_close($ch);
-
-        // Parse rate limit headers (Xero provides these)
-        $rateLimitRemaining = null;
-        $rateLimitReset = null;
-        $retryAfter = null;
-
-        if ($httpCode === 429) {
-            // Rate limited - extract retry-after
-            if (preg_match('/Retry-After:\s*(\d+)/i', $response, $matches)) {
-                $retryAfter = (int)$matches[1];
-            }
-        }
-
-        // Log rate limit telemetry
-        $this->logRateLimitTelemetry([
-            'service' => 'xero',
-            'endpoint' => $endpoint,
-            'method' => $method,
-            'status_code' => $httpCode,
-            'response_time_ms' => $responseTime,
-            'retry_after' => $retryAfter,
-            'rate_limit_remaining' => $rateLimitRemaining,
-            'rate_limit_reset' => $rateLimitReset
-        ]);
-
-        // Handle errors
-        if ($httpCode === 429) {
-            throw new \RuntimeException("Xero rate limit exceeded. Retry after {$retryAfter} seconds");
-        }
-
-        if ($httpCode >= 400) {
-            $error = json_decode($response, true);
-            $message = $error['Message'] ?? $error['message'] ?? "HTTP {$httpCode}";
-            throw new \RuntimeException("Xero API error: {$message}");
-        }
-
-        return json_decode($response, true) ?: [];
-    }
-
-    /**
-     * Log rate limit telemetry to database
-     *
-     * @param array $data Telemetry data
-     */
-    private function logRateLimitTelemetry(array $data): void
-    {
-        try {
-            // Use HttpRateLimitReporter if available
-            require_once __DIR__ . '/HttpRateLimitReporter.php';
-
-            $reporter = new \HumanResources\Payroll\Services\HttpRateLimitReporter($this->db);
-            $reporter->logSingle($data);
-
-        } catch (\Exception $e) {
-            // Fallback: log to error log
-            $this->logger->debug('Rate limit telemetry', $data);
-        }
     }
 }

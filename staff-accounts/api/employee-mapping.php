@@ -1,14 +1,14 @@
 <?php
 /**
  * Employee Mapping API Endpoint
- * 
+ *
  * Main API for employee mapping system operations including:
  * - Dashboard data
  * - Unmapped employees
  * - Auto-match suggestions
  * - Analytics data
  * - System status
- * 
+ *
  * @package CIS\StaffAccounts\API
  * @version 1.0.0
  */
@@ -16,6 +16,15 @@
 // Prevent direct access
 if (!defined('ABSPATH')) {
     define('ABSPATH', dirname(__FILE__) . '/../../../../');
+}
+
+// HEAD probe support: short-circuit before heavy includes
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'HEAD') {
+    header('Content-Type: application/json');
+    header('Allow: GET, POST, OPTIONS');
+    http_response_code(405);
+    echo json_encode(['success'=>false,'error'=>'Method not allowed']);
+    exit;
 }
 
 // CRITICAL: Include testing bypass BEFORE bootstrap to prevent authentication redirects
@@ -31,16 +40,16 @@ if ($testingBypass->isBypassActive()) {
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Testing-Bypass');
-    
+
     // Handle preflight OPTIONS request
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
         exit();
     }
-    
+
     // Get action parameter
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
-    
+
     if (empty($action)) {
         echo json_encode([
             'success' => false,
@@ -49,9 +58,9 @@ if ($testingBypass->isBypassActive()) {
         ]);
         exit;
     }
-    
+
     $testingBypass->logTestingActivity("API Request", "Action: $action, Method: {$_SERVER['REQUEST_METHOD']}");
-    
+
     // For GET requests, return mock data immediately
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $mockData = $testingBypass->getMockData($action);
@@ -60,7 +69,7 @@ if ($testingBypass->isBypassActive()) {
             exit;
         }
     }
-    
+
     // For POST requests, return mock success responses
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postData = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -70,7 +79,7 @@ if ($testingBypass->isBypassActive()) {
             exit;
         }
     }
-    
+
     // Fallback for unknown actions in testing mode
     echo json_encode([
         'success' => true,
@@ -99,50 +108,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     // Initialize service (bypass already initialized above)
     $mappingService = new EmployeeMappingService();
-    
+
     // Get action parameter
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
-    
+
     if (empty($action)) {
         throw new Exception('Action parameter is required');
     }
-    
+
     // Route to appropriate handler
     switch ($action) {
         case 'dashboard':
         case 'dashboard_data':
             handleDashboardRequest($mappingService);
             break;
-            
+
         case 'unmapped_employees':
             handleUnmappedEmployeesRequest($mappingService);
             break;
-            
+
         case 'auto_match_suggestions':
         case 'auto_matches':
             handleAutoMatchSuggestionsRequest($mappingService);
             break;
-            
+
         case 'analytics':
             handleAnalyticsRequest($mappingService);
             break;
-            
+
         case 'system_status':
             handleSystemStatusRequest($mappingService);
             break;
-            
+
         case 'mapping_stats':
             handleMappingStatsRequest($mappingService);
             break;
-            
+
         case 'process_mapping':
             handleProcessMappingRequest($mappingService);
             break;
-            
+
         case 'bulk_approve':
             handleBulkApproveRequest($mappingService);
             break;
-            
+
         case 'reject_mapping':
             handleRejectMappingRequest($mappingService);
             break;
@@ -223,14 +232,14 @@ try {
         case 'system_logs':
             handleSystemLogsRequest($mappingService);
             break;
-            
+
         default:
             throw new Exception("Unknown action: {$action}");
     }
-    
+
 } catch (Exception $e) {
     error_log("Employee Mapping API Error: " . $e->getMessage());
-    
+
     http_response_code(500);
     echo json_encode([
         'success' => false,
@@ -246,7 +255,7 @@ function handleDashboardRequest($mappingService)
 {
     try {
         $dashboardData = $mappingService->getDashboardData();
-        
+
         if ($dashboardData['success']) {
             echo json_encode([
                 'success' => true,
@@ -256,7 +265,7 @@ function handleDashboardRequest($mappingService)
         } else {
             throw new Exception($dashboardData['error']);
         }
-        
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
@@ -277,18 +286,18 @@ function handleUnmappedEmployeesRequest($mappingService)
         $search = $_GET['search'] ?? '';
         $sortBy = $_GET['sort_by'] ?? 'blocked_amount';
         $sortOrder = $_GET['sort_order'] ?? 'DESC';
-        
+
         $filters = [
             'status' => 'unmapped',
             'search' => $search,
             'sort_by' => $sortBy,
             'sort_order' => $sortOrder
         ];
-        
+
         $offset = ($page - 1) * $limit;
-        
+
         $result = $mappingService->getUnmappedEmployees($filters, $limit, $offset);
-        
+
         if ($result['success']) {
             echo json_encode([
                 'success' => true,
@@ -299,7 +308,7 @@ function handleUnmappedEmployeesRequest($mappingService)
         } else {
             throw new Exception($result['error']);
         }
-        
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
@@ -318,11 +327,11 @@ function handleAutoMatchSuggestionsRequest($mappingService)
         $page = intval($_GET['page'] ?? 1);
         $limit = intval($_GET['limit'] ?? 20);
         $minConfidence = floatval($_GET['min_confidence'] ?? 0.7);
-        
+
         $offset = ($page - 1) * $limit;
-        
+
         $result = $mappingService->getAutoMatchSuggestions($minConfidence, $limit, $offset);
-        
+
         if ($result['success']) {
             echo json_encode([
                 'success' => true,
@@ -333,7 +342,7 @@ function handleAutoMatchSuggestionsRequest($mappingService)
         } else {
             throw new Exception($result['error']);
         }
-        
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
@@ -351,9 +360,9 @@ function handleAnalyticsRequest($mappingService)
     try {
         $timeRange = $_GET['range'] ?? '7';
         $forceRefresh = ($_GET['force_refresh'] ?? 'false') === 'true';
-        
+
         $result = $mappingService->getAnalyticsData($timeRange, $forceRefresh);
-        
+
         if ($result['success']) {
             echo json_encode([
                 'success' => true,
@@ -363,7 +372,7 @@ function handleAnalyticsRequest($mappingService)
         } else {
             throw new Exception($result['error']);
         }
-        
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
@@ -388,13 +397,13 @@ function handleSystemStatusRequest($mappingService)
             'uptime' => '99.9%',
             'version' => '1.0.0'
         ];
-        
+
         echo json_encode([
             'success' => true,
             'data' => $status,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
@@ -411,7 +420,7 @@ function handleMappingStatsRequest($mappingService)
 {
     try {
         $dashboardData = $mappingService->getDashboardData();
-        
+
         if ($dashboardData['success']) {
             $stats = [
                 'total_employees' => $dashboardData['data']['total_employees'],
@@ -422,7 +431,7 @@ function handleMappingStatsRequest($mappingService)
                 'success_rate' => 87.5, // Would calculate from actual data
                 'last_mapping' => date('Y-m-d H:i:s', strtotime('-2 hours'))
             ];
-            
+
             echo json_encode([
                 'success' => true,
                 'data' => $stats,
@@ -431,7 +440,7 @@ function handleMappingStatsRequest($mappingService)
         } else {
             throw new Exception($dashboardData['error']);
         }
-        
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([
@@ -450,23 +459,23 @@ function handleProcessMappingRequest($mappingService)
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             throw new Exception('Invalid JSON input');
         }
-        
+
         $employeeId = $input['employee_id'] ?? '';
         $customerId = intval($input['customer_id'] ?? 0);
         $method = $input['method'] ?? 'manual';
         $confidence = floatval($input['confidence'] ?? 0.0);
         $notes = $input['notes'] ?? '';
-        
+
         if (empty($employeeId) || empty($customerId)) {
             throw new Exception('Employee ID and Customer ID are required');
         }
-        
+
         // Process the mapping (this would call the actual mapping creation method)
         $result = [
             'success' => true,
@@ -478,14 +487,14 @@ function handleProcessMappingRequest($mappingService)
             'status' => 'active',
             'created_at' => date('Y-m-d H:i:s')
         ];
-        
+
         echo json_encode([
             'success' => true,
             'data' => $result,
             'message' => 'Mapping created successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -504,23 +513,23 @@ function handleBulkApproveRequest($mappingService)
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input || !isset($input['mapping_ids']) || !is_array($input['mapping_ids'])) {
             throw new Exception('mapping_ids array is required');
         }
-        
+
         $mappingIds = $input['mapping_ids'];
         $approved = 0;
         $failed = 0;
-        
+
         foreach ($mappingIds as $mappingId) {
             // Process each mapping approval
             // This would call the actual bulk approval method
             $approved++;
         }
-        
+
         echo json_encode([
             'success' => true,
             'data' => [
@@ -531,7 +540,7 @@ function handleBulkApproveRequest($mappingService)
             'message' => "Successfully approved {$approved} mappings",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -550,20 +559,20 @@ function handleRejectMappingRequest($mappingService)
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             throw new Exception('Invalid JSON input');
         }
-        
+
         $mappingId = $input['mapping_id'] ?? '';
         $reason = $input['reason'] ?? '';
-        
+
         if (empty($mappingId)) {
             throw new Exception('Mapping ID is required');
         }
-        
+
         // Process the rejection
         $result = [
             'mapping_id' => $mappingId,
@@ -571,14 +580,14 @@ function handleRejectMappingRequest($mappingService)
             'reason' => $reason,
             'rejected_at' => date('Y-m-d H:i:s')
         ];
-        
+
         echo json_encode([
             'success' => true,
             'data' => $result,
             'message' => 'Mapping rejected successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -597,7 +606,7 @@ function handleSaveSettingsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $settings = json_decode($_POST['settings'], true);
         // Mock save for demo - in production would save to database
         echo json_encode([
@@ -605,7 +614,7 @@ function handleSaveSettingsRequest($mappingService) {
             'message' => 'Settings saved successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -620,7 +629,7 @@ function handleSaveAlertSettingsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $settings = json_decode($_POST['settings'], true);
         // Mock save for demo
         echo json_encode([
@@ -628,7 +637,7 @@ function handleSaveAlertSettingsRequest($mappingService) {
             'message' => 'Alert settings saved successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -643,17 +652,17 @@ function handleBulkAutoMatchRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock processing - would process all auto-matches
         $processed = 31; // Demo value
-        
+
         echo json_encode([
             'success' => true,
             'processed' => $processed,
             'message' => "Successfully processed {$processed} auto-matches",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -668,17 +677,17 @@ function handleApproveHighConfidenceRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock approval - would approve matches >90% confidence
         $approved = 15; // Demo value
-        
+
         echo json_encode([
             'success' => true,
             'approved' => $approved,
             'message' => "Approved {$approved} high confidence matches",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -693,17 +702,17 @@ function handleResetMappingsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock reset - would reset all pending mappings
         $reset = 23; // Demo value
-        
+
         echo json_encode([
             'success' => true,
             'reset' => $reset,
             'message' => "Reset {$reset} pending mappings",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -718,17 +727,17 @@ function handleFlagForReviewRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock flagging - would flag low confidence matches
         $flagged = 12; // Demo value
-        
+
         echo json_encode([
             'success' => true,
             'flagged' => $flagged,
             'message' => "Flagged {$flagged} items for manual review",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -743,14 +752,14 @@ function handleRefreshAllDataRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock refresh - would refresh from Vend API
         echo json_encode([
             'success' => true,
             'message' => 'All employee data refreshed successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -765,17 +774,17 @@ function handleRecalculateAmountsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock recalculation
         $total = '9,543.36'; // Demo value
-        
+
         echo json_encode([
             'success' => true,
             'total' => $total,
             'message' => "Recalculated blocked amounts: ${total}",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -790,20 +799,20 @@ function handleExportDataRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             throw new Exception('GET method required');
         }
-        
+
         $type = $_GET['type'] ?? 'unmapped';
-        
+
         // Mock CSV export
         $csv = "Employee Name,Employee Code,Blocked Amount,Status\n";
         $csv .= "Sarah Johnson,EMP001,$250.00,Unmapped\n";
         $csv .= "Mike Wilson,EMP002,$175.50,Unmapped\n";
         $csv .= "Lisa Davis,EMP003,$320.25,Unmapped\n";
-        
+
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="employee-mapping-' . $type . '-' . date('Y-m-d') . '.csv"');
         echo $csv;
         exit;
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -818,17 +827,17 @@ function handleImportMappingsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['file'])) {
             throw new Exception('POST method with file required');
         }
-        
+
         // Mock import processing
         $imported = 25; // Demo value
-        
+
         echo json_encode([
             'success' => true,
             'imported' => $imported,
             'message' => "Successfully imported {$imported} mappings",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -843,7 +852,7 @@ function handleHealthMetricsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             throw new Exception('GET method required');
         }
-        
+
         // Mock health metrics
         $metrics = [
             'cpu' => 23,
@@ -851,13 +860,13 @@ function handleHealthMetricsRequest($mappingService) {
             'disk' => 45,
             'database' => 12
         ];
-        
+
         echo json_encode([
             'success' => true,
             'metrics' => $metrics,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -872,7 +881,7 @@ function handleHealthCheckRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock health check results
         $results = [
             'database' => true,
@@ -881,14 +890,14 @@ function handleHealthCheckRequest($mappingService) {
             'storage' => true,
             'overall' => true
         ];
-        
+
         echo json_encode([
             'success' => true,
             'results' => $results,
             'message' => 'System health check completed',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -903,9 +912,9 @@ function handleAuditLogRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             throw new Exception('GET method required');
         }
-        
+
         $filter = $_GET['filter'] ?? 'all';
-        
+
         // Mock audit log data
         $log = [
             [
@@ -939,13 +948,13 @@ function handleAuditLogRequest($mappingService) {
                 'ip_address' => '127.0.0.1'
             ]
         ];
-        
+
         echo json_encode([
             'success' => true,
             'log' => $log,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -960,10 +969,10 @@ function handleLogAuditRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $action = $_POST['audit_action'] ?? '';
         $details = $_POST['details'] ?? '';
-        
+
         // Mock audit logging
         echo json_encode([
             'success' => true,
@@ -971,7 +980,7 @@ function handleLogAuditRequest($mappingService) {
             'message' => 'Audit event logged successfully',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -986,19 +995,19 @@ function handleTestConnectionRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $type = $_POST['type'] ?? 'database';
-        
+
         // Mock connection test
         $success = true; // Demo - would actually test connection
         $message = "Connection test successful";
-        
+
         echo json_encode([
             'success' => $success,
             'message' => $message,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -1013,18 +1022,18 @@ function handleTestPerformanceRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $type = $_POST['type'] ?? 'query';
-        
+
         // Mock performance test
         $message = "Performance test completed - Average response time: 150ms";
-        
+
         echo json_encode([
             'success' => true,
             'message' => $message,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -1039,19 +1048,19 @@ function handleValidateSystemRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         $type = $_POST['type'] ?? 'integrity';
-        
+
         // Mock validation
         $issues = 0; // Demo - no issues found
-        
+
         echo json_encode([
             'success' => true,
             'issues' => $issues,
             'message' => "Validation completed - {$issues} issues found",
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -1066,7 +1075,7 @@ function handleFullDiagnosticRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             throw new Exception('POST method required');
         }
-        
+
         // Mock full diagnostic results
         $results = [
             'total' => 8,
@@ -1084,14 +1093,14 @@ function handleFullDiagnosticRequest($mappingService) {
                 ['test' => 'Data Integrity', 'status' => 'SUCCESS', 'message' => 'No corruption detected']
             ]
         ];
-        
+
         echo json_encode([
             'success' => true,
             'results' => $results,
             'message' => 'Full diagnostic completed',
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([
@@ -1106,9 +1115,9 @@ function handleSystemLogsRequest($mappingService) {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             throw new Exception('GET method required');
         }
-        
+
         $level = $_GET['level'] ?? 'all';
-        
+
         // Mock system logs
         $logs = [
             '[2025-01-01 14:23:15] INFO: Employee mapping service started',
@@ -1122,13 +1131,13 @@ function handleSystemLogsRequest($mappingService) {
             '[2025-01-01 14:23:24] DEBUG: Analytics data refreshed',
             '[2025-01-01 14:23:25] INFO: System ready for operations'
         ];
-        
+
         echo json_encode([
             'success' => true,
             'logs' => $logs,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
-        
+
     } catch (Exception $e) {
         http_response_code(400);
         echo json_encode([

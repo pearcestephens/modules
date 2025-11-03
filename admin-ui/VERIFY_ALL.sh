@@ -167,21 +167,21 @@ echo ""
 echo "Testing HTTPS connectivity to $DOMAIN..."
 
 # Main page
-if curl -I -s -k https://$DOMAIN/modules/admin-ui/index.php 2>/dev/null | grep -q "200"; then
+if curl -I -s -k --connect-timeout 5 --max-time 15 https://$DOMAIN/modules/admin-ui/index.php 2>/dev/null | grep -q "200"; then
     test_passed "Admin UI index.php accessible (HTTP 200)"
 else
     test_failed "Admin UI index.php not accessible"
 fi
 
 # Version API
-if curl -I -s -k https://$DOMAIN/modules/admin-ui/api/version-api.php 2>/dev/null | grep -q "200"; then
+if curl -I -s -k --connect-timeout 5 --max-time 15 https://$DOMAIN/modules/admin-ui/api/version-api.php 2>/dev/null | grep -q "200"; then
     test_passed "Version API accessible (HTTP 200)"
 else
     test_failed "Version API not accessible"
 fi
 
 # AI Config API
-if curl -I -s -k https://$DOMAIN/modules/admin-ui/api/ai-config-api.php 2>/dev/null | grep -q "200"; then
+if curl -I -s -k --connect-timeout 5 --max-time 15 https://$DOMAIN/modules/admin-ui/api/ai-config-api.php 2>/dev/null | grep -q "200"; then
     test_passed "AI Config API accessible (HTTP 200)"
 else
     test_failed "AI Config API not accessible"
@@ -201,7 +201,7 @@ echo ""
 echo "Testing Version API endpoints..."
 
 # Test version info
-version=$(curl -s -k "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=info" 2>/dev/null | grep -o '"version":"[^"]*' | cut -d'"' -f4)
+version=$(curl -s -k --connect-timeout 5 --max-time 15 "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=info" 2>/dev/null | grep -o '"version":"[^\"]*' | cut -d'"' -f4)
 if [ "$version" = "1.0.0" ]; then
     test_passed "Version API (info): Returns correct version $version"
 else
@@ -209,7 +209,7 @@ else
 fi
 
 # Test changelog
-changelog=$(curl -s -k "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=changelog" 2>/dev/null | grep -o '"changelog"' | wc -l)
+changelog=$(curl -s -k --connect-timeout 5 --max-time 15 "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=changelog" 2>/dev/null | grep -o '"changelog"' | wc -l)
 if [ "$changelog" -gt 0 ]; then
     test_passed "Version API (changelog): Returns changelog data"
 else
@@ -217,7 +217,7 @@ else
 fi
 
 # Test features
-features=$(curl -s -k "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=features" 2>/dev/null | grep -o '"validation"' | wc -l)
+features=$(curl -s -k --connect-timeout 5 --max-time 15 "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=features" 2>/dev/null | grep -o '"validation"' | wc -l)
 if [ "$features" -gt 0 ]; then
     test_passed "Version API (features): Returns features list"
 else
@@ -225,7 +225,7 @@ else
 fi
 
 # Test system status
-status=$(curl -s -k "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=system_status" 2>/dev/null | grep -o '"status"' | wc -l)
+status=$(curl -s -k --connect-timeout 5 --max-time 15 "https://$DOMAIN/modules/admin-ui/api/version-api.php?action=system_status" 2>/dev/null | grep -o '"status"' | wc -l)
 if [ "$status" -gt 0 ]; then
     test_passed "Version API (system_status): Returns system status"
 else
@@ -236,7 +236,7 @@ echo ""
 echo "Testing AI Config API endpoints..."
 
 # Test list
-agents=$(curl -s -k "https://$DOMAIN/modules/admin-ui/api/ai-config-api.php?action=list" 2>/dev/null | grep -o '"name"' | wc -l)
+agents=$(curl -s -k --connect-timeout 5 --max-time 15 "https://$DOMAIN/modules/admin-ui/api/ai-config-api.php?action=list" 2>/dev/null | grep -o '"name"' | wc -l)
 if [ "$agents" -ge 3 ]; then
     test_passed "AI Config API (list): Returns $agents agents"
 else
@@ -244,7 +244,7 @@ else
 fi
 
 # Test config
-config=$(curl -s -k "https://$DOMAIN/modules/admin-ui/api/ai-config-api.php?action=config" 2>/dev/null | grep -o '"themes"' | wc -l)
+config=$(curl -s -k --connect-timeout 5 --max-time 15 "https://$DOMAIN/modules/admin-ui/api/ai-config-api.php?action=config" 2>/dev/null | grep -o '"themes"' | wc -l)
 if [ "$config" -gt 0 ]; then
     test_passed "AI Config API (config): Returns configuration"
 else
