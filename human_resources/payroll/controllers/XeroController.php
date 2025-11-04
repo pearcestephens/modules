@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace PayrollModule\Controllers;
+namespace HumanResources\Payroll\Controllers;
 
 /**
  * Xero Controller
@@ -12,12 +12,13 @@ namespace PayrollModule\Controllers;
  * - POST /api/payroll/xero/payments/batch
  * - GET /api/payroll/xero/oauth/callback
  *
- * @package PayrollModule\Controllers
+ * @package HumanResources\Payroll\Controllers
  * @version 1.0.0
  */
 
 use PayrollModule\Services\XeroService;
 use PayrollModule\Lib\PayrollLogger;
+use PDO;
 
 class XeroController extends BaseController
 {

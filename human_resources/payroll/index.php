@@ -432,11 +432,12 @@ if ($isApi) {
     // API request via ?api=dashboard/data
     $route = $method . ' /api/payroll/' . trim($_GET['api'], '/');
 } elseif ($isView) {
-    // View request via ?view=dashboard
-    $route = 'GET /payroll/' . trim($_GET['view'], '/');
+    // View request via ?view=dashboard (map to root-level routes)
+    $viewPath = trim($_GET['view'], '/');
+    $route = 'GET /' . ($viewPath ? $viewPath : '');
 } elseif (isset($_GET['route'])) {
     // Direct route param (for testing or explicit routing)
-    $route = $method . ' ' . trim($_GET['route'], '/');
+    $route = $method . ' /' . ltrim($_GET['route'], '/');
 } else {
     // Check if this is a direct file access or clean URL
     $requestUri = $_SERVER['REQUEST_URI'] ?? '';
@@ -448,16 +449,27 @@ if ($isApi) {
     // Get the module path
     $modulePath = dirname($scriptName);
 
-    // If accessing index.php directly or the directory, show dashboard
+    // If accessing index.php directly or the directory, show dashboard (map to GET /)
     if (strpos($cleanUri, 'index.php') !== false ||
         $cleanUri === $modulePath . '/' ||
         $cleanUri === $modulePath ||
         $cleanUri === rtrim($modulePath, '/')) {
-        $route = 'GET /payroll/dashboard';
+        $route = 'GET /';
     } else {
-        // Try to extract route from URI (for future htaccess support)
+        // Extract path after module directory
         $path = str_replace($modulePath, '', $cleanUri);
-        $route = $method . ' ' . $path;
+
+        // Ensure path starts with / for route matching
+        if ($path && $path[0] !== '/') {
+            $path = '/' . $path;
+        }
+
+        // If path is empty or just /, default to dashboard
+        if (empty($path) || $path === '/') {
+            $route = 'GET /';
+        } else {
+            $route = $method . ' ' . $path;
+        }
     }
 }
 
@@ -581,8 +593,42 @@ try {
         throw new Exception("Controller not found: {$controllerClass}");
     }
 
-    // Instantiate controller (no constructor parameters needed)
-    $controller = new $controllerClass();
+    // Check if controller constructor requires PDO parameter
+    $reflection = new ReflectionClass($controllerClass);
+    $constructor = $reflection->getConstructor();
+    $requiresPDO = false;
+
+    if ($constructor) {
+        $params = $constructor->getParameters();
+        if (!empty($params) && $params[0]->getType() && $params[0]->getType()->getName() === 'PDO') {
+            $requiresPDO = true;
+        }
+    }
+
+    // Instantiate controller with PDO if required
+    if ($requiresPDO) {
+        // Create PDO connection for legacy controllers
+        $dbHost = $_ENV['DB_HOST'] ?? '127.0.0.1';
+        $dbName = $_ENV['DB_NAME'] ?? 'jcepnzzkmj';
+        $dbUser = $_ENV['DB_USER'] ?? 'jcepnzzkmj';
+        $dbPass = $_ENV['DB_PASS'] ?? 'wprKh9Jq63';
+
+        $pdo = new PDO(
+            "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4",
+            $dbUser,
+            $dbPass,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]
+        );
+
+        $controller = new $controllerClass($pdo);
+    } else {
+        $controller = new $controllerClass();
+    }
+
     $action = $matchedRoute['action'];
 
     if (!method_exists($controller, $action)) {

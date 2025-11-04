@@ -1,0 +1,154 @@
+{
+  "ok": true,
+  "mission": "Complete PayrollModule to Production-Ready State",
+  "current_status": {
+    "phase": "Phase 0 Complete (5%)",
+    "database_tables": "✅ All core tables exist",
+    "services": "🟡 6/12 services complete",
+    "endpoints": "🟡 Routes defined, controllers need testing",
+    "tests": "🟡 Test framework exists, coverage gaps",
+    "kb_docs": "✅ Comprehensive documentation complete"
+  },
+
+  "plan": [
+    "1. PRE-FLIGHT: Verify all dependencies (DB, Xero SDK, Vend API)",
+    "2. MIGRATIONS: Apply/verify all schema migrations are idempotent",
+    "3. RATE_LIMITS: Ensure payroll_rate_limits table has proper triggers",
+    "4. STAFF_MAPPING: Verify employee_mapping table + seed data",
+    "5. XERO_SYNC: Test XeroPayrollService (staff-accounts/lib/)",
+    "6. XERO_CLI: Run sync-xero-payroll.php --dry=1 --since=2025-10-01",
+    "7. COMPUTE: Build deduction allocation logic (Account Payment type)",
+    "8. VEND_DRY: Prepare Vend payment bodies with idempotency keys",
+    "9. VEND_APPLY: Apply payments with rate limiting + backoff",
+    "10. RECONCILE: Generate reconciliation reports (JSON + CSV)",
+    "11. TEST_ENDPOINTS: Systematically test all 50+ API endpoints",
+    "12. FIX_ERRORS: Repair any broken controllers/services",
+    "13. E2E_TEST: Full pay run flow from Deputy → Xero → Vend",
+    "14. EDGE_CASES: Test zero deductions, unmapped staff, rate limits",
+    "15. DEPLOY_READY: Generate deployment checklist"
+  ],
+
+  "patches": [],
+
+  "sql": [
+    "-- Verify payroll_rate_limits structure",
+    "DESCRIBE payroll_rate_limits;",
+    "",
+    "-- Check if rate limits tracking is working",
+    "SELECT service, endpoint, COUNT(*) as hits, MAX(occurred_at) as last_hit",
+    "FROM payroll_rate_limits",
+    "WHERE occurred_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)",
+    "GROUP BY service, endpoint;",
+    "",
+    "-- Verify employee mapping coverage",
+    "SELECT mapping_status, COUNT(*) as count",
+    "FROM employee_mapping",
+    "GROUP BY mapping_status;",
+    "",
+    "-- Check recent Xero sync status",
+    "SELECT",
+    "  xp.payment_date,",
+    "  COUNT(DISTINCT xps.payslip_id) as payslip_count,",
+    "  SUM(xps.total_deductions) as total_deductions,",
+    "  COUNT(DISTINCT xpd.id) as deduction_count",
+    "FROM xero_payruns xp",
+    "LEFT JOIN xero_payslips xps ON xp.payrun_id = xps.payrun_id",
+    "LEFT JOIN xero_payslip_deductions xpd ON xps.payslip_id = xpd.payslip_id",
+    "WHERE xp.payment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+    "GROUP BY xp.payment_date",
+    "ORDER BY xp.payment_date DESC;"
+  ],
+
+  "http": [
+    {
+      "description": "Test health endpoint",
+      "method": "GET",
+      "url": "https://staff.vapeshed.co.nz/modules/human_resources/payroll/health/",
+      "headers": {},
+      "expected_status": 200,
+      "expected_body_contains": "\"ok\":true"
+    },
+    {
+      "description": "Test dashboard API (requires auth)",
+      "method": "GET",
+      "url": "https://staff.vapeshed.co.nz/modules/human_resources/payroll/?api=dashboard/data",
+      "headers": {
+        "Cookie": "PHPSESSID=<SESSION_ID>"
+      },
+      "expected_status": 200
+    },
+    {
+      "description": "Dry-run Vend payment via GPT Actions API",
+      "method": "POST",
+      "url": "https://staff.vapeshed.co.nz/assets/services/gpt/gpt_actions.php",
+      "headers": {
+        "Content-Type": "application/json",
+        "x-gpt-secret": "<GPT_SECRET>"
+      },
+      "body": {
+        "action": "apply_vend_payment",
+        "dry": 1,
+        "payrun_id": "PR_2025_11_01",
+        "staff_vend_id": "STAFF_123",
+        "amount": 150.50,
+        "payment_type": "Internet Banking",
+        "idempotency_key": "payroll|PR_2025_11_01|STAFF_123|15050|PS_001"
+      },
+      "idempotency_key": "test_dry_run_20251103_001"
+    }
+  ],
+
+  "checks": [
+    "✅ DB connection works (host=127.0.0.1, db=jcepnzzkmj)",
+    "✅ Core tables exist (xero_payruns, xero_payslips, payroll_rate_limits, employee_mapping)",
+    "⏳ Xero SDK loaded and configured (/assets/services/xero-sdk/xero-init.php)",
+    "⏳ Xero credentials valid (test token refresh)",
+    "⏳ Vend API token valid (test balance fetch)",
+    "⏳ Staff mapping complete (employee_mapping.mapping_status = 'mapped')",
+    "⏳ XeroPayrollService can fetch pay runs",
+    "⏳ sync-xero-payroll.php runs without errors",
+    "⏳ Deduction type 'Account Payment' correctly identified",
+    "⏳ Idempotency keys generate consistently",
+    "⏳ Rate limiting respects payroll_rate_limits",
+    "⏳ DLQ captures unrecoverable failures",
+    "⏳ Reconciliation CSV exports correctly",
+    "⏳ All 50+ API endpoints return valid responses",
+    "⏳ E2E pay run flow completes successfully",
+    "⏳ Edge cases handled (zero deductions, unmapped staff, Vend outage)"
+  ],
+
+  "rollback": [
+    "1. Database: All migrations use CREATE TABLE IF NOT EXISTS (safe to re-run)",
+    "2. Xero Sync: Data stored in staging tables, no destructive operations",
+    "3. Vend Payments: Idempotency prevents duplicates, can replay safely",
+    "4. Logs: All operations logged to payroll_activity_log + /private_html/ai_runs/",
+    "5. Backups: Take DB snapshot before applying payments (dry=0)",
+    "6. Replay: Use payrun_id + staff_id from DLQ to retry failed operations"
+  ],
+
+  "next": [
+    "Phase A: Pre-flight checks (DB, Xero, Vend connectivity)",
+    "Phase B: Schema validation (migrations, indexes, FKs)",
+    "Phase C: Xero sync dry-run (--dry=1 --months=1)",
+    "Phase D: Deduction computation (Account Payment extraction)",
+    "Phase E: Vend dry-run (prepare payloads, validate idempotency)",
+    "Phase F: Endpoint testing (health → dashboard → amendments → payruns)",
+    "Phase G: Error repair (fix broken controllers, add missing methods)",
+    "Phase H: E2E testing (full pay run simulation)",
+    "Phase I: Production hardening (rate limits, retries, DLQ)",
+    "Phase J: Deployment (generate runbook, handoff package)"
+  ],
+
+  "kb_sources": [
+    "human_resources/payroll/_kb/INDEX.md",
+    "human_resources/payroll/_kb/PAYROLL_DEEP_DIVE_ANALYSIS.md",
+    "human_resources/payroll/_kb/QUICK_REFERENCE.md",
+    "human_resources/payroll/schema/payroll_ai_automation_schema.sql (806 lines)",
+    "staff-accounts/schema/xero-payroll-schema.sql (152 lines)",
+    "db/migrations/2025_11_01_payroll_tables.sql",
+    "staff-accounts/lib/XeroPayrollService.php (715 lines)",
+    "human_resources/payroll/services/PayrollXeroService.php (639 lines)",
+    "human_resources/payroll/controllers/VendPaymentController.php (373 lines)",
+    "human_resources/payroll/routes.php (511 lines)"
+  ]
+}

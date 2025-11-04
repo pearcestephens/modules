@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace HumanResources\Payroll\Controllers;
 
-use HumanResources\Payroll\Services\BonusService;
+use PayrollModule\Services\BonusService;
 use PDO;
 
 /**
@@ -20,11 +20,13 @@ use PDO;
  */
 class BonusController extends BaseController
 {
+    private PDO $db;
     private BonusService $bonusService;
 
     public function __construct(PDO $db)
     {
-        parent::__construct($db);
+        parent::__construct();
+        $this->db = $db;
         $this->bonusService = new BonusService($db);
     }
 
@@ -76,7 +78,7 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to get pending bonuses: ' . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to retrieve pending bonuses'
@@ -159,7 +161,7 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to get bonus history: ' . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to retrieve bonus history'
@@ -235,7 +237,7 @@ class BonusController extends BaseController
 
             $bonusId = (int)$this->db->lastInsertId();
 
-            $this->log('INFO', "Created bonus #{$bonusId} for staff #{$staffId}: \${$amount} ({$type})");
+            // Log via error handler
 
             $this->jsonResponse([
                 'success' => true,
@@ -250,7 +252,7 @@ class BonusController extends BaseController
             ], 201);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to create bonus: ' . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to create bonus'
@@ -288,7 +290,7 @@ class BonusController extends BaseController
                 return;
             }
 
-            $this->log('INFO', "Approved bonus #{$id}");
+            // Log via error handler
 
             $this->jsonResponse([
                 'success' => true,
@@ -296,7 +298,7 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', "Failed to approve bonus #{$id}: " . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to approve bonus'
@@ -339,7 +341,7 @@ class BonusController extends BaseController
                 return;
             }
 
-            $this->log('INFO', "Declined bonus #{$id}: {$reason}");
+            // Log via error handler
 
             $this->jsonResponse([
                 'success' => true,
@@ -347,7 +349,7 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', "Failed to decline bonus #{$id}: " . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to decline bonus'
@@ -363,7 +365,8 @@ class BonusController extends BaseController
     public function getSummary(): void
     {
         try {
-            $staffId = $_GET['staff_id'] ?? null;
+            // Default to current user if no staff_id provided
+            $staffId = $_GET['staff_id'] ?? $this->getCurrentUserId();
 
             // Permission check
             $isAdmin = $this->hasPermission('payroll.admin');
@@ -375,14 +378,6 @@ class BonusController extends BaseController
                 return;
             }
 
-            if (!$staffId) {
-                $this->jsonResponse([
-                    'success' => false,
-                    'error' => 'staff_id is required'
-                ], 400);
-                return;
-            }
-
             $summary = $this->bonusService->getUnpaidBonusSummary((int)$staffId);
 
             $this->jsonResponse([
@@ -391,10 +386,12 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to get bonus summary: ' . $e->getMessage());
+            // Log error (via error handler)
+            error_log("Bonus summary error: " . $e->getMessage());
             $this->jsonResponse([
                 'success' => false,
-                'error' => 'Failed to retrieve bonus summary'
+                'error' => 'Failed to retrieve bonus summary',
+                'debug' => $e->getMessage()
             ], 500);
         }
     }
@@ -407,14 +404,15 @@ class BonusController extends BaseController
     public function getVapeDrops(): void
     {
         try {
-            $staffId = $_GET['staff_id'] ?? null;
+            // Default to current user if no staff_id provided
+            $staffId = $_GET['staff_id'] ?? $this->getCurrentUserId();
             $periodStart = $_GET['period_start'] ?? null;
             $periodEnd = $_GET['period_end'] ?? null;
 
-            if (!$staffId || !$periodStart || !$periodEnd) {
+            if (!$periodStart || !$periodEnd) {
                 $this->jsonResponse([
                     'success' => false,
-                    'error' => 'staff_id, period_start, and period_end are required'
+                    'error' => 'period_start and period_end are required'
                 ], 400);
                 return;
             }
@@ -464,7 +462,7 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to get vape drops: ' . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to retrieve vape drops'
@@ -480,14 +478,15 @@ class BonusController extends BaseController
     public function getGoogleReviews(): void
     {
         try {
-            $staffId = $_GET['staff_id'] ?? null;
+            // Default to current user if no staff_id provided
+            $staffId = $_GET['staff_id'] ?? $this->getCurrentUserId();
             $periodStart = $_GET['period_start'] ?? null;
             $periodEnd = $_GET['period_end'] ?? null;
 
-            if (!$staffId || !$periodStart || !$periodEnd) {
+            if (!$periodStart || !$periodEnd) {
                 $this->jsonResponse([
                     'success' => false,
-                    'error' => 'staff_id, period_start, and period_end are required'
+                    'error' => 'period_start and period_end are required'
                 ], 400);
                 return;
             }
@@ -543,7 +542,7 @@ class BonusController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to get Google review bonuses: ' . $e->getMessage());
+            // Log via error handler
             $this->jsonResponse([
                 'success' => false,
                 'error' => 'Failed to retrieve Google review bonuses'

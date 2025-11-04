@@ -1,0 +1,32 @@
+# Payroll Module - URL Rewriting
+# Enables clean URLs without query parameters
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /modules/human_resources/payroll/
+
+    # Don't rewrite if file/directory exists
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Rewrite clean URLs to index.php with query param
+    # /dashboard -> /?view=dashboard
+    # /payruns -> /?view=payruns
+    # /api/something -> index.php (will be handled by router)
+
+    # Skip rewrite for empty path (root) - let index.php handle directly
+    RewriteRule ^$ - [L]
+
+    RewriteRule ^api/(.*)$ index.php [QSA,L]
+    RewriteRule ^([^/]+)/?$ index.php?view=$1 [QSA,L]
+    RewriteRule ^([^/]+)/(.*)$ index.php?view=$1&params=$2 [QSA,L]
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Deny access to sensitive files
+<FilesMatch "(^\.env|^\.git|composer\.(json|lock)|\.md$)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace HumanResources\Payroll\Controllers;
 
-use HumanResources\Payroll\Services\ReconciliationService;
+use PayrollModule\Services\ReconciliationService;
 use PDO;
 
 /**
@@ -18,9 +18,9 @@ class ReconciliationController
     private PDO $db;
     private ReconciliationService $service;
 
-    public function __construct()
+    public function __construct(PDO $db)
     {
-        $this->db = $this->getDb();
+        $this->db = $db;
         $this->service = new ReconciliationService($this->db);
     }
 

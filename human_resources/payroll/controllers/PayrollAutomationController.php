@@ -19,18 +19,21 @@ namespace HumanResources\Payroll\Controllers;
 
 use PayrollModule\Services\PayrollAutomationService;
 use PayrollModule\Lib\PayrollLogger;
+use PDO;
 
 class PayrollAutomationController extends BaseController
 {
+    private PDO $db;
     private PayrollAutomationService $automationService;
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(PDO $db)
     {
         parent::__construct();
-        $this->automationService = new PayrollAutomationService();
+        $this->db = $db;
+        $this->automationService = new PayrollAutomationService($db);
     }
 
     /**
@@ -66,7 +69,7 @@ class PayrollAutomationController extends BaseController
                     GROUP BY DATE(created_at)
                     ORDER BY date DESC";
 
-            $stmt = $this->automationService->query($sql);
+            $stmt = $stmt = $this->db->prepare($sql); $stmt->execute();
             $dailyStats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $this->jsonSuccess([
@@ -79,7 +82,7 @@ class PayrollAutomationController extends BaseController
             $this->logger->error('Failed to fetch dashboard data', [
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -131,7 +134,8 @@ class PayrollAutomationController extends BaseController
             $sql .= " ORDER BY ad.priority DESC, ad.created_at ASC LIMIT ?";
             $params[] = $limit;
 
-            $stmt = $this->automationService->query($sql, $params);
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
             $reviews = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $this->jsonSuccess([
@@ -143,7 +147,7 @@ class PayrollAutomationController extends BaseController
             $this->logger->error('Failed to fetch pending reviews', [
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -191,7 +195,7 @@ class PayrollAutomationController extends BaseController
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -228,7 +232,7 @@ class PayrollAutomationController extends BaseController
 
             $sql .= " ORDER BY priority DESC, created_at DESC";
 
-            $stmt = $this->automationService->query($sql, $params);
+            $stmt = $stmt = $this->db->prepare($sql); $stmt->execute($params);
             $rules = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Decode JSON fields
@@ -246,7 +250,7 @@ class PayrollAutomationController extends BaseController
             $this->logger->error('Failed to fetch AI rules', [
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -285,7 +289,7 @@ class PayrollAutomationController extends BaseController
                     WHERE {$dateCondition}
                     AND status = 'completed'";
 
-            $stmt = $this->automationService->query($sql);
+            $stmt = $stmt = $this->db->prepare($sql); $stmt->execute();
             $stats = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             // Get rule execution stats
@@ -302,7 +306,7 @@ class PayrollAutomationController extends BaseController
                     ORDER BY execution_count DESC
                     LIMIT 10";
 
-            $stmt = $this->automationService->query($sql);
+            $stmt = $stmt = $this->db->prepare($sql); $stmt->execute();
             $ruleStats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $this->jsonSuccess([
@@ -316,7 +320,7 @@ class PayrollAutomationController extends BaseController
             $this->logger->error('Failed to fetch automation stats', [
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 

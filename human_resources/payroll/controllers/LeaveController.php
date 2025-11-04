@@ -19,6 +19,14 @@ use PDO;
  */
 class LeaveController extends BaseController
 {
+    protected PDO $db;
+
+    public function __construct(PDO $db)
+    {
+        parent::__construct();
+        $this->db = $db;
+    }
+
     /**
      * Get pending leave requests
      *
@@ -336,7 +344,8 @@ class LeaveController extends BaseController
     public function getBalances(): void
     {
         try {
-            $staffId = $_GET['staff_id'] ?? null;
+            // Default to current user if no staff_id provided
+            $staffId = $_GET['staff_id'] ?? $this->getCurrentUserId();
 
             // Permission check
             $isAdmin = $this->hasPermission('payroll.admin');
@@ -345,14 +354,6 @@ class LeaveController extends BaseController
                     'success' => false,
                     'error' => 'You can only view your own leave balances'
                 ], 403);
-                return;
-            }
-
-            if (!$staffId) {
-                $this->jsonResponse([
-                    'success' => false,
-                    'error' => 'staff_id is required'
-                ], 400);
                 return;
             }
 

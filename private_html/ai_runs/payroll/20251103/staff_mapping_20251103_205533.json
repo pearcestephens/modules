@@ -1,0 +1,18 @@
+{
+    "run_id": "staff_mapping_20251103_205533",
+    "started_at": "2025-11-03 20:55:33",
+    "dry_run": true,
+    "steps": [
+        {
+            "time": "20:55:33",
+            "step": "Step 1: Retrieving Xero credentials from configuration..."
+        },
+        {
+            "time": "20:55:33",
+            "step": "Step 2: Fetching employees from Xero PayrollNZ API..."
+        }
+    ],
+    "error": "Xero API error: HTTP 400 - {\"Id\":\"4b26fe83-dfed-4a32-a588-7b580379e41c\",\"ProviderName\":\"VapeShedApp\",\"ErrorNumber\":0,\"Type\":\"ValidationException\",\"Message\":\"Not a NZ Customer\",\"Employees\":null}",
+    "status": "failed",
+    "completed_at": "2025-11-03 20:55:34"
+}

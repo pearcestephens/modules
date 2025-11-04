@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace HumanResources\Payroll\Controllers;
 
-use HumanResources\Payroll\Services\VendService;
+use PayrollModule\Services\VendService;
 use PDO;
 
 /**
@@ -20,11 +20,13 @@ use PDO;
  */
 class VendPaymentController extends BaseController
 {
+    private PDO $db;
     private VendService $vendService;
 
     public function __construct(PDO $db)
     {
         parent::__construct($db);
+        $this->db = $db;
         $this->vendService = new VendService($db);
     }
 
@@ -178,10 +180,12 @@ class VendPaymentController extends BaseController
             ]);
 
         } catch (\Exception $e) {
-            $this->log('ERROR', 'Failed to get Vend payment history: ' . $e->getMessage());
+            // Log error
+            error_log('Failed to get Vend payment history: ' . $e->getMessage());
             $this->jsonResponse([
                 'success' => false,
-                'error' => 'Failed to retrieve payment history'
+                'error' => 'Failed to retrieve payment history',
+                'debug' => $e->getMessage()
             ], 500);
         }
     }

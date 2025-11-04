@@ -14,6 +14,72 @@
 return [
 
     // =====================================================================
+    // WEB UI ROUTES (Views)
+    // =====================================================================
+
+    'GET /' => [
+        'controller' => 'DashboardController',
+        'action' => 'index',
+        'auth' => true,
+        'description' => 'Payroll dashboard home page'
+    ],
+
+    'GET /dashboard' => [
+        'controller' => 'DashboardController',
+        'action' => 'index',
+        'auth' => true,
+        'description' => 'Payroll dashboard home page'
+    ],
+
+    'GET /payruns' => [
+        'controller' => 'PayRunController',
+        'action' => 'index',
+        'auth' => true,
+        'description' => 'Pay runs list page'
+    ],
+
+    'GET /payruns/:id' => [
+        'controller' => 'PayRunController',
+        'action' => 'view',
+        'auth' => true,
+        'description' => 'Pay run detail page'
+    ],
+
+    // =====================================================================
+    // BOT API ENDPOINTS (Token-based auth, NO session required)
+    // =====================================================================
+
+    'GET /api/bot/events' => [
+        'controller' => 'BotController',
+        'action' => 'events',
+        'auth' => false,  // Bot token validated in controller
+        'description' => 'Bot event polling endpoint'
+    ],
+
+    'POST /api/bot/actions' => [
+        'controller' => 'BotController',
+        'action' => 'executeAction',
+        'auth' => false,  // Bot token validated in controller
+        'csrf' => false,  // Bot uses token, not CSRF
+        'description' => 'Bot action execution endpoint'
+    ],
+
+    'GET /api/bot/context' => [
+        'controller' => 'BotController',
+        'action' => 'getContext',
+        'auth' => false,  // Bot token validated in controller
+        'description' => 'Bot decision context endpoint'
+    ],
+
+    'POST /api/bot/status' => [
+        'controller' => 'BotController',
+        'action' => 'reportStatus',
+        'auth' => false,  // Bot token validated in controller
+        'csrf' => false,
+        'description' => 'Bot heartbeat/status reporting'
+    ],
+
+    // =====================================================================
     // AMENDMENT ENDPOINTS
     // =====================================================================
 

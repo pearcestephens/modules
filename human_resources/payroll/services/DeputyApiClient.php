@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace CIS\HumanResources\Payroll\Services;
+namespace PayrollModule\Services;
 
 use RuntimeException;
 

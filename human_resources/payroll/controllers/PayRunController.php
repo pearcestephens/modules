@@ -19,12 +19,10 @@ class PayRunController extends BaseController
 {
     private \PDO $db;
 
-    public function __construct()
+    public function __construct(\PDO $db)
     {
         parent::__construct();
-
-        // Get database connection from global function
-        $this->db = getPayrollDb();
+        $this->db = $db;
     }
 
     /**

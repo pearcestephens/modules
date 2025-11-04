@@ -20,18 +20,21 @@ namespace HumanResources\Payroll\Controllers;
 
 use PayrollModule\Services\AmendmentService;
 use PayrollModule\Lib\PayrollLogger;
+use PDO;
 
 class AmendmentController extends BaseController
 {
+    private PDO $db;
     private AmendmentService $amendmentService;
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(PDO $db)
     {
         parent::__construct();
-        $this->amendmentService = new AmendmentService();
+        $this->db = $db;
+        $this->amendmentService = new AmendmentService($db);
     }
 
     /**

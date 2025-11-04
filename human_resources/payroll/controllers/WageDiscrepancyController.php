@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace PayrollModule\Controllers;
+namespace HumanResources\Payroll\Controllers;
 
 /**
  * Wage Discrepancy Controller
@@ -16,24 +16,27 @@ namespace PayrollModule\Controllers;
  * - POST /api/payroll/discrepancies/:id/upload-evidence - Upload evidence file
  * - GET /api/payroll/discrepancies/statistics - Get system statistics (admin)
  *
- * @package PayrollModule\Controllers
+ * @package HumanResources\Payroll\Controllers
  * @version 1.0.0
  */
 
 use PayrollModule\Services\WageDiscrepancyService;
 use PayrollModule\Lib\PayrollLogger;
+use PDO;
 
 class WageDiscrepancyController extends BaseController
 {
+    private PDO $db;
     private WageDiscrepancyService $discrepancyService;
 
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(PDO $db)
     {
         parent::__construct();
-        $this->discrepancyService = new WageDiscrepancyService();
+        $this->db = $db;
+        $this->discrepancyService = new WageDiscrepancyService($db);
     }
 
     /**

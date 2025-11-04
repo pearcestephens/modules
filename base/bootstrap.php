@@ -1,15 +1,15 @@
 <?php
 /**
  * CIS Base Module Bootstrap
- * 
+ *
  * Ultra-minimal bootstrap for all CIS modules.
  * Just loads core services and initializes environment.
- * 
+ *
  * Usage in any module:
  *   require_once $_SERVER['DOCUMENT_ROOT'] . '/base/bootstrap.php';
- * 
+ *
  * That's it! Everything else is ready.
- * 
+ *
  * @package CIS\Base
  * @version 1.0.0
  */
@@ -40,6 +40,12 @@ require_once __DIR__ . '/SecurityMiddleware.php';
 CIS\Base\Database::init();          // Initialize PDO first
 CIS\Base\Session::init();           // Initialize session BEFORE Auth.php loads
 CIS\Base\ErrorHandler::init();      // Set up error/exception handlers
+
+// FORCE DEV MODE - Always show detailed errors (not overridable by modules)
+$_SERVER['ENVIRONMENT'] = 'development';
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 
 // 3. Load services from assets/services/ (heavier utilities) - NOW they can use Database & Session
 $servicesPath = $_SERVER['DOCUMENT_ROOT'] . '/assets/services/';

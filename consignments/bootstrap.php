@@ -55,19 +55,12 @@ if (!defined('CONSIGNMENTS_SHARED_PATH')) {
     define('CONSIGNMENTS_SHARED_PATH', CONSIGNMENTS_MODULE_PATH . '/shared');
 }
 
-// Load all shared utilities (cross-module helpers)
-foreach (glob(ROOT_PATH . '/modules/shared/functions/*.php') as $sharedFunc) {
-    require_once $sharedFunc;
-}
-
 // ============================================================================
-// 3. LOAD BASE MODULE (if in subfolder like stock-transfers)
+// 3. SKIP OLD CIS SHARED FUNCTIONS
 // ============================================================================
-
-// Base module Session class
-if (file_exists(ROOT_PATH . '/modules/base/lib/Session.php')) {
-    require_once ROOT_PATH . '/modules/base/lib/Session.php';
-}
+// DO NOT load old shared functions - use BASE services only
+// OLD: foreach (glob(ROOT_PATH . '/modules/shared/functions/*.php') as $sharedFunc) { ... }
+// NEW: Use CIS\Base\Database, CIS\Base\Session, etc.
 
 // ============================================================================
 // 4. LOAD SHARED API COMPONENTS

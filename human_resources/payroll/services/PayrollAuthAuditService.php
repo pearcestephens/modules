@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace HumanResources\Payroll\Services;
+namespace PayrollModule\Services;
 
 use PDO;
 

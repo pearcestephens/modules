@@ -1,0 +1,233 @@
+/* ============================================================
+   TRANSFER MANAGER - SCOPED STYLES ONLY
+   Global styles removed to avoid template conflicts
+   ============================================================ */
+
+/* ============================================================
+   🎯 MODAL MAXIMUM WIDTH CONSTRAINT
+   ============================================================ */
+#quickViewModal .modal-dialog {
+  max-width: 1400px !important;
+  width: 100% !important;
+  margin: 1rem auto !important;
+}
+
+#quickViewModal .modal-content {
+  max-width: 1400px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+}
+
+@media (max-width: 1440px) {
+  #quickViewModal .modal-dialog { max-width: 1200px !important; }
+}
+
+@media (max-width: 1280px) {
+  #quickViewModal .modal-dialog { max-width: 1100px !important; }
+}
+
+/* ============================================================
+   🎯 INLINE SEARCH INPUT STYLING
+   ============================================================ */
+.input-group-text {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+  font-size: 0.9rem !important;
+}
+
+.input-group .form-control {
+  border-left: none !important;
+}
+
+.input-group .form-control:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.input-group:focus-within .input-group-text {
+  border-color: #3b82f6 !important;
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%) !important;
+  color: #3b82f6 !important;
+}
+
+/* ============================================================
+   🎯 VISUAL SAVE INDICATORS FOR INPUTS
+   ============================================================ */
+input.qty-input,
+input[type="number"].qty-input {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+}
+
+input.qty-input[data-unsaved="true"] {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1) !important;
+}
+
+input.qty-input[data-saving="true"] {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+input.qty-input[data-saved="true"] {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+input.qty-input[data-error="true"] {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-50%) scale(0.8); }
+  to { opacity: 1; transform: translateY(-50%) scale(1); }
+}
+
+.saving-spinner,
+.save-icon {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.consignment-option-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.consignment-option-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.consignment-option-card input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+/* ============================================================
+   TRANSFER-SPECIFIC COMPONENTS
+   ============================================================ */
+.transfer-status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transfer-status-draft { background: #f1f5f9; color: #475569; }
+.transfer-status-pending { background: #fef3c7; color: #92400e; }
+.transfer-status-in_transit { background: #dbeafe; color: #1e40af; }
+.transfer-status-completed { background: #d1fae5; color: #065f46; }
+.transfer-status-cancelled { background: #fee2e2; color: #991b1b; }
+
+/* Transfer item row styling */
+.transfer-item-row {
+  transition: background-color 0.15s ease;
+}
+
+.transfer-item-row:hover {
+  background-color: #f8fafc;
+}
+
+.transfer-item-row.selected {
+  background-color: #dbeafe;
+}
+
+/* Action buttons for transfer items */
+.transfer-action-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  transition: all 0.15s ease;
+}
+
+.transfer-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading states */
+.transfer-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.transfer-loading .spinner-border {
+  margin-right: 1rem;
+}
+
+/* Empty state */
+.transfer-empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+}
+
+.transfer-empty-state i {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+/* Quick stats cards enhancement */
+.transfer-stat-card {
+  border-radius: 0.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transfer-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Filters section */
+.transfer-filters {
+  background: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Table enhancements */
+#transfersTable thead th {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+#transfersTable tbody td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .transfer-stat-card {
+    margin-bottom: 1rem;
+  }
+  
+  .transfer-filters .row > div {
+    margin-bottom: 0.75rem;
+  }
+}

@@ -1,0 +1,30 @@
+{
+    "name": "cis/base",
+    "description": "CIS Base Module - Core Infrastructure & Services",
+    "type": "library",
+    "version": "2.0.0",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "CIS\\Base\\": "src/"
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CIS\\Base\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

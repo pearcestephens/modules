@@ -36,27 +36,14 @@ class DashboardController extends BaseController
     /**
      * Display main dashboard
      *
+     * NOTE: Auth checks removed - now handled by router (index.php) based on config/app.php setting
+     * When payroll_auth_enabled = true, router will enforce auth before calling this method
+     *
      * @return void (renders view)
      */
     public function index(): void
     {
-        // Check if user is authenticated first
-        if (empty($_SESSION['authenticated']) || empty($_SESSION['userID'])) {
-            header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI'] ?? ''));
-            exit;
-        }
-
-        // Check if user has payroll access
-        if (!$this->hasPermission('payroll.view_dashboard')) {
-            http_response_code(403);
-            echo '<!DOCTYPE html><html><head><title>Access Denied</title></head><body>';
-            echo '<h1>403 - Access Denied</h1>';
-            echo '<p>You do not have permission to access the payroll dashboard.</p>';
-            echo '<p><a href="/">Return to Home</a></p>';
-            echo '</body></html>';
-            exit;
-        }
-
+        // Get user info if available (for logged in users)
         $isAdmin = $this->hasPermission('payroll.admin');
         $currentUserId = $this->getCurrentUserId();
 

@@ -1,0 +1,333 @@
+{
+    "timestamp": "2025-11-03 23:15:10",
+    "base_url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll",
+    "summary": {
+        "total": 29,
+        "success": 15,
+        "auth_required": 0,
+        "not_found": 0,
+        "server_error": 12,
+        "client_error": 2
+    },
+    "endpoints": [
+        {
+            "method": "GET",
+            "path": "\/health\/",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/health\/",
+            "description": "System health check",
+            "auth_required": false,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"ok\": true,\n    \"checks\": [\n        {\n            \"name\": \"db_ping\",\n            \"ok\": true\n        },\n        {\n            \"name\": \"table_exists:deputy_timesheets\",\n            \"ok\": true\n        },\n        {\n            \"name\": \"table_exists:payroll_activity_log\",\n            \"ok\": true\n        },\n        {\n            \"name\": \"table_exists:payroll_rate_limits\",\n            \"ok\": true\n        },\n        {\n            \"name\": \"table_exists:payroll_auth_audit_log\",\n            \"ok\": true\n",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/payroll\/dashboard",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?view=dashboard",
+            "description": "Main payroll dashboard view",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" \/>\n    <title>CIS Login<\/title>\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" \/>\n    <link href=\"https:\/\/cdn.jsdelivr.net\/npm\/bootstrap@5.3.0\/dist\/css\/bootstrap.min.css\" rel=\"stylesheet\">\n    <link href=\"https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/font-awesome\/6.4.0\/css\/all.min.css\" rel=\"stylesheet\">\n    <style>\n        \/* Minimal styles *\/\n        body { background-color: #f0f2f5; font-family: sans-serif; }\n",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/dashboard\/data",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=dashboard\/data",
+            "description": "Dashboard data API",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": {\n        \"amendments\": {\n            \"total\": 0,\n            \"pending\": 0,\n            \"approved\": 0,\n            \"declined\": 0\n        },\n        \"discrepancies\": {\n            \"total\": 0,\n            \"pending\": 0,\n            \"ai_review\": 0,\n            \"approved\": 0,\n            \"declined\": 0,\n            \"urgent\": 0\n        },\n        \"leave\": {\n            \"total\": 0,\n            \"pending\": 0,\n            \"approved\": 0,\n            \"declined\": 0\n        }",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/amendments\/pending",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=amendments\/pending",
+            "description": "Get pending amendments",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/amendments\/history",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=amendments\/history",
+            "description": "Get amendment history",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/automation\/dashboard",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/dashboard",
+            "description": "Automation dashboard stats",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/automation\/reviews\/pending",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/reviews\/pending",
+            "description": "Pending AI reviews",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/automation\/rules",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/rules",
+            "description": "Active AI rules",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/automation\/stats",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/stats",
+            "description": "Automation statistics",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/xero\/oauth\/authorize",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=xero\/oauth\/authorize",
+            "description": "Xero OAuth initiation",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\"\/>\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\/>\n    <meta name=\"description\" content=\"Customer Login for Xero Accounting Software. Welcome to Xero, if you don't have an account, try Xero for free.\">\n    <meta name=\"robots\" content=\"noindex\">\n    <title>Xero | Error 500<\/title>\n    <link rel=\"icon\" type=\"image\/x-icon\" href=\"\/identity\/favicon.ico",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/discrepancies\/pending",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=discrepancies\/pending",
+            "description": "Get pending discrepancies",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/discrepancies\/my-history",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=discrepancies\/my-history",
+            "description": "Get my discrepancy history",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/discrepancies\/statistics",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=discrepancies\/statistics",
+            "description": "Discrepancy statistics",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/bonuses\/pending",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=bonuses\/pending",
+            "description": "Get pending bonuses",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": [],\n    \"count\": 0\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/bonuses\/history",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=bonuses\/history",
+            "description": "Get bonus history",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 6,\n            \"staff_id\": 1,\n            \"bonus_type\": \"performance\",\n            \"bonus_amount\": \"100.00\",\n            \"pay_period_start\": \"2025-01-13\",\n            \"pay_period_end\": \"2025-01-19\",\n            \"reason\": \"Excellent work\",\n            \"approved\": 1,\n            \"approved_by\": 1,\n            \"approved_at\": \"2025-10-29 15:31:48\",\n            \"paid_in_payslip_id\": null,\n            \"created_by\": 1,\n            \"created",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/bonuses\/summary",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=bonuses\/summary",
+            "description": "Get staff bonus summary",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "{\n    \"success\": false,\n    \"error\": \"Failed to retrieve bonus summary\"\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/bonuses\/vape-drops",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=bonuses\/vape-drops",
+            "description": "Get vape drops",
+            "auth_required": true,
+            "status_code": 400,
+            "result": "client_error",
+            "response_preview": "{\n    \"success\": false,\n    \"error\": \"period_start and period_end are required\"\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/bonuses\/google-reviews",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=bonuses\/google-reviews",
+            "description": "Get Google review bonuses",
+            "auth_required": true,
+            "status_code": 400,
+            "result": "client_error",
+            "response_preview": "{\n    \"success\": false,\n    \"error\": \"period_start and period_end are required\"\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/vend-payments\/pending",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=vend-payments\/pending",
+            "description": "Get pending Vend payments",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": [],\n    \"count\": 0\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/vend-payments\/history",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=vend-payments\/history",
+            "description": "Get Vend payment history",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/vend-payments\/statistics",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=vend-payments\/statistics",
+            "description": "Vend payment statistics",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": []\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/leave\/pending",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=leave\/pending",
+            "description": "Get pending leave requests",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 2220,\n            \"date_created\": \"2025-11-01 14:47:20\",\n            \"date_from\": \"2025-10-28 00:00:00\",\n            \"date_to\": \"2025-10-28 00:00:00\",\n            \"reason\": \"could not log in as leamington was just setting up ipad. worked the tuesday 28th at the leamington store\",\n            \"leaveTypeID\": \"77a6c632-7aef-4303-8e5e-fa621639f835\",\n            \"LeaveTypeName\": \"Manual Verification Required\",\n            \"status\": 0,\n ",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/leave\/history",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=leave\/history",
+            "description": "Get leave history",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 2082,\n            \"date_created\": \"2025-07-31 19:07:58\",\n            \"date_from\": \"2026-01-05 00:00:00\",\n            \"date_to\": \"2026-01-06 00:00:00\",\n            \"reason\": \"Will be going out of town on holiday for the Christmas and New years period. Have let manager know way in advance.\",\n            \"leaveTypeID\": \"77a6c632-7aef-4303-8e5e-fa621639f835\",\n            \"LeaveTypeName\": \"Annual Leave\",\n            \"status\": 1,\n       ",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/leave\/balances",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=leave\/balances",
+            "description": "Get leave balances",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": [],\n    \"note\": \"For accurate leave balances, integrate with Xero Leave API\"\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/payroll\/payruns",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?view=payruns",
+            "description": "Pay run list view",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\">\n    <title>Pay Runs - CIS Payroll<\/title>\n\n    <!-- Bootstrap 5 CSS -->\n    <link href=\"https:\/\/cdn.jsdelivr.net\/npm\/bootstrap@5.3.0\/dist\/css\/bootstrap.min.css\" rel=\"stylesheet\">\n\n    <!-- Bootstrap Icons -->\n    <link href=\"https:\/\/cdn.jsdelivr.net\/npm\/bootstrap-icons@1.10.0\/font\/bootstrap-icons.cs",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/payruns\/list",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=payruns\/list",
+            "description": "Get pay runs list (AJAX)",
+            "auth_required": true,
+            "status_code": 500,
+            "result": "server_error",
+            "response_preview": "",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/payroll\/reconciliation",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?view=reconciliation",
+            "description": "Reconciliation dashboard view",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Payroll Reconciliation - CIS<\/title>\n    <link rel=\"stylesheet\" href=\"https:\/\/cdn.jsdelivr.net\/npm\/bootstrap@4.6.2\/dist\/css\/bootstrap.min.css\">\n    <link rel=\"stylesheet\" href=\"https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/font-awesome\/6.4.0\/css\/all.min.css\">\n    <style>\n        .variance-card { border-left: 4px solid #ffc107; }\n        .variance-high ",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/reconciliation\/dashboard",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=reconciliation\/dashboard",
+            "description": "Reconciliation dashboard data",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"data\": {\n        \"total_variances\": 0,\n        \"total_amount\": 0,\n        \"recent_reconciliations\": [],\n        \"status\": \"ready\"\n    }\n}",
+            "error": null
+        },
+        {
+            "method": "GET",
+            "path": "\/api\/payroll\/reconciliation\/variances",
+            "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=reconciliation\/variances",
+            "description": "Get current variances",
+            "auth_required": true,
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"variances\": [],\n    \"count\": 0\n}",
+            "error": null
+        }
+    ]
+}
