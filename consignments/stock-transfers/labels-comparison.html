@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Labels vs Shipping Labels - Visual Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: #f6f8fa;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: #fff;
+            border: 2px solid #0366d6;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #24292e;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #6a737d;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .label-type {
+            background: #fff;
+            border: 3px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .label-type.box-label {
+            border-color: #dc3545;
+        }
+
+        .label-type.shipping-label {
+            border-color: #0366d6;
+        }
+
+        .label-header {
+            padding: 25px;
+            text-align: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .label-type.box-label .label-header {
+            background: #dc3545;
+        }
+
+        .label-type.shipping-label .label-header {
+            background: #0366d6;
+        }
+
+        .label-header h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .label-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .label-body {
+            padding: 25px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .feature-list li {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f6f8fa;
+            border-left: 4px solid #28a745;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list i {
+            color: #28a745;
+            font-size: 18px;
+        }
+
+        .btn-demo {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #0366d6;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .btn-demo:hover {
+            background: #0256b8;
+            transform: scale(1.02);
+        }
+
+        .label-type.box-label .btn-demo {
+            background: #dc3545;
+        }
+
+        .label-type.box-label .btn-demo:hover {
+            background: #c82333;
+        }
+
+        .workflow {
+            background: #fff;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .workflow h3 {
+            font-size: 24px;
+            color: #24292e;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .workflow-step {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+            background: #f6f8fa;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .workflow-step.active {
+            background: #e3f2fd;
+            border-color: #0366d6;
+        }
+
+        .workflow-step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #0366d6;
+            color: #fff;
+            border-radius: 50%;
+            line-height: 40px;
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .workflow-step-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #24292e;
+            margin-bottom: 5px;
+        }
+
+        .workflow-step-desc {
+            font-size: 12px;
+            color: #6a737d;
+        }
+
+        .workflow-arrow {
+            font-size: 32px;
+            color: #6a737d;
+            margin: 0 10px;
+        }
+
+        .visual-example {
+            background: #fff;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .visual-example h3 {
+            font-size: 24px;
+            color: #24292e;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .mock-label {
+            border: 3px solid #24292e;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .mock-box-number {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 900;
+            border-bottom: 3px solid #24292e;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .mock-destination {
+            background: #dc3545;
+            color: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .mock-destination-name {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .mock-destination-address {
+            font-size: 14px;
+        }
+
+        .mock-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .mock-detail {
+            background: #f6f8fa;
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .mock-detail strong {
+            display: block;
+            color: #6a737d;
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 Box Labels vs 🏷️ Shipping Labels</h1>
+            <p class="subtitle">Understanding the difference and workflow</p>
+        </header>
+
+        <div class="comparison-grid">
+            <!-- Box Labels -->
+            <div class="label-type box-label">
+                <div class="label-header">
+                    <h2><i class="fa fa-box"></i> BOX LABELS</h2>
+                    <p>Internal Identification</p>
+                </div>
+                <div class="label-body">
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Purpose:</strong> Warehouse identification</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>When:</strong> Print during packing</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Format:</strong> A4 paper (2 per page)</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Shows:</strong> Box # of Total, Destination, Transfer ID</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Critical:</strong> HUGE destination store name</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Tracking:</strong> Optional (if already generated)</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Print:</strong> "Print Only" option available</span>
+                        </li>
+                    </ul>
+                    <a href="print-box-labels.php?transfer_id=12345" class="btn-demo" target="_blank">
+                        <i class="fa fa-external-link-alt"></i> View Box Labels Demo
+                    </a>
+                </div>
+            </div>
+
+            <!-- Shipping Labels -->
+            <div class="label-type shipping-label">
+                <div class="label-header">
+                    <h2><i class="fa fa-shipping-fast"></i> SHIPPING LABELS</h2>
+                    <p>Courier Tracking Labels</p>
+                </div>
+                <div class="label-body">
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Purpose:</strong> Courier tracking & delivery</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>When:</strong> After packing complete</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Format:</strong> Thermal 80mm × 100mm</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Shows:</strong> Tracking barcode, addresses, weight</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Generated:</strong> Via courier API (NZ Post, etc)</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Tracking:</strong> Always includes unique tracking #</span>
+                        </li>
+                        <li>
+                            <i class="fa fa-check-circle"></i>
+                            <span><strong>Database:</strong> Shipment → Parcel → Items</span>
+                        </li>
+                    </ul>
+                    <a href="#" class="btn-demo" onclick="alert('Coming soon: generate-shipping-labels.php'); return false;">
+                        <i class="fa fa-cog"></i> Shipping Labels (Coming Soon)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflow -->
+        <div class="workflow">
+            <h3>🔄 Complete Packing & Shipping Workflow</h3>
+
+            <div class="workflow-steps">
+                <div class="workflow-step active">
+                    <div class="workflow-step-number">1</div>
+                    <div class="workflow-step-title">Pack Items</div>
+                    <div class="workflow-step-desc">Assign products to boxes</div>
+                </div>
+
+                <div class="workflow-arrow">→</div>
+
+                <div class="workflow-step active">
+                    <div class="workflow-step-number">2</div>
+                    <div class="workflow-step-title">Print Box Labels</div>
+                    <div class="workflow-step-desc">A4 internal ID labels</div>
+                </div>
+
+                <div class="workflow-arrow">→</div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">3</div>
+                    <div class="workflow-step-title">Apply to Boxes</div>
+                    <div class="workflow-step-desc">Physical label application</div>
+                </div>
+
+                <div class="workflow-arrow">→</div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">4</div>
+                    <div class="workflow-step-title">Generate Shipping</div>
+                    <div class="workflow-step-desc">Courier API creates tracking</div>
+                </div>
+
+                <div class="workflow-arrow">→</div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-number">5</div>
+                    <div class="workflow-step-title">Print Thermal Labels</div>
+                    <div class="workflow-step-desc">80mm courier labels</div>
+                </div>
+            </div>
+
+            <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 6px; padding: 20px; text-align: center;">
+                <strong style="color: #856404; font-size: 16px;">
+                    💡 TIP: You can "Print Only" box labels without submitting, then continue packing!
+                </strong>
+            </div>
+        </div>
+
+        <!-- Visual Example -->
+        <div class="visual-example">
+            <h3>👁️ Visual Size Comparison</h3>
+
+            <div class="example-grid">
+                <div>
+                    <h4 style="text-align: center; margin-bottom: 15px; color: #dc3545;">Box Label (A4 - 210mm × 297mm)</h4>
+                    <div class="mock-label">
+                        <div class="mock-box-number">BOX 1<br><span style="font-size: 20px;">OF 3</span></div>
+                        <div class="mock-destination">
+                            <div style="font-size: 12px; margin-bottom: 5px;">DESTINATION:</div>
+                            <div class="mock-destination-name">WELLINGTON<br>LAMBTON QUAY</div>
+                            <div class="mock-destination-address">456 Lambton Quay, Wellington 6011</div>
+                        </div>
+                        <div class="mock-details">
+                            <div class="mock-detail">
+                                <strong>Transfer</strong>
+                                #12345
+                            </div>
+                            <div class="mock-detail">
+                                <strong>From</strong>
+                                Auckland Central
+                            </div>
+                            <div class="mock-detail">
+                                <strong>Weight</strong>
+                                5.2kg
+                            </div>
+                            <div class="mock-detail">
+                                <strong>Items</strong>
+                                12 items
+                            </div>
+                        </div>
+                        <div style="background: #fff8e1; border: 1px solid #ffc107; border-radius: 4px; padding: 10px; margin-top: 10px; text-align: center; font-size: 11px;">
+                            <strong>Tracking:</strong> NZ123456789WLG
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="text-align: center; margin-bottom: 15px; color: #0366d6;">Shipping Label (Thermal - 80mm × 100mm)</h4>
+                    <div class="mock-label" style="max-width: 300px; margin: 0 auto;">
+                        <div style="text-align: center; padding: 15px; background: #000; color: #fff; font-family: monospace; margin-bottom: 10px;">
+                            ||||||||||||||||||||||||<br>
+                            NZ123456789WLG<br>
+                            ||||||||||||||||||||||||
+                        </div>
+                        <div style="font-size: 11px; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 8px;">
+                            <strong>FROM:</strong><br>
+                            Auckland Central<br>
+                            123 Queen St, Auckland
+                        </div>
+                        <div style="font-size: 14px; font-weight: 700; background: #000; color: #fff; padding: 10px; text-align: center; margin-bottom: 8px;">
+                            WELLINGTON
+                        </div>
+                        <div style="font-size: 11px;">
+                            <strong>TO:</strong><br>
+                            Wellington Lambton Quay<br>
+                            456 Lambton Quay<br>
+                            Wellington 6011
+                        </div>
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 10px; text-align: center;">
+                            Weight: 5.2kg | Service: Standard
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Differences -->
+        <div style="background: #fff; border: 2px solid #d1d5db; border-radius: 8px; padding: 30px;">
+            <h3 style="text-align: center; font-size: 24px; margin-bottom: 20px;">🔑 Key Differences</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                <div style="background: #f6f8fa; padding: 20px; border-radius: 6px; border-left: 4px solid #dc3545;">
+                    <h4 style="color: #dc3545; margin-bottom: 10px;">🎯 Purpose</h4>
+                    <p style="font-size: 13px; line-height: 1.6;"><strong>Box Labels:</strong> Identify boxes in warehouse, prevent mix-ups</p>
+                    <p style="font-size: 13px; line-height: 1.6; margin-top: 10px;"><strong>Shipping Labels:</strong> Track packages in courier system</p>
+                </div>
+
+                <div style="background: #f6f8fa; padding: 20px; border-radius: 6px; border-left: 4px solid #0366d6;">
+                    <h4 style="color: #0366d6; margin-bottom: 10px;">📏 Size</h4>
+                    <p style="font-size: 13px; line-height: 1.6;"><strong>Box Labels:</strong> A4 (210mm × 297mm), printed on paper</p>
+                    <p style="font-size: 13px; line-height: 1.6; margin-top: 10px;"><strong>Shipping Labels:</strong> Thermal (80mm × 100mm), printer label</p>
+                </div>
+
+                <div style="background: #f6f8fa; padding: 20px; border-radius: 6px; border-left: 4px solid #28a745;">
+                    <h4 style="color: #28a745; margin-bottom: 10px;">⏰ Timing</h4>
+                    <p style="font-size: 13px; line-height: 1.6;"><strong>Box Labels:</strong> Print ANYTIME during packing</p>
+                    <p style="font-size: 13px; line-height: 1.6; margin-top: 10px;"><strong>Shipping Labels:</strong> Generate when ready to ship</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

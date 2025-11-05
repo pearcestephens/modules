@@ -1,177 +1,100 @@
 <?php
 /**
- * Transfer Manager - Main View
+ * Transfer Manager - Standalone Version with Modern Assets
  *
- * High-level management dashboard for consignment transfers.
- * Uses BASE template with full library stack.
+ * Uses CIS app.php for auth/database and loads modern v2.0 assets
  *
  * @package CIS\Consignments
- * @version 3.0.0
+ * @version 2.0.0
  */
 
 declare(strict_types=1);
 
-// Page metadata
-$pageTitle = 'Transfer Manager';
-$breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Transfer Manager', 'url' => '', 'active' => true]
-];
+// Load CIS core
+require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 
-// Custom CSS for Transfer Manager (v2.0 organized)
-$pageCSS = [
-    '/modules/consignments/assets/css/transfer-manager-v2.css'
-];
+// Check authentication
+if (!isLoggedIn()) {
+    header('Location: /login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit;
+}
 
-// Custom JavaScript modules (v2.0 auto-loading)
-$pageJS = [
-    '/modules/consignments/assets/js/app-loader.js'
-];
+// Generate CSRF token
+if (!isset($_SESSION['tt_csrf'])) {
+    $_SESSION['tt_csrf'] = bin2hex(random_bytes(32));
+}
 
-/**
- * Load initialization data for Transfer Manager
- */
-function loadTransferManagerInit(): array
-{
-    try {
-        $pdo = CIS\Base\Database::pdo();
+// Connect to database
+$host = defined('DB_HOST') ? DB_HOST : '127.0.0.1';
+$user = defined('DB_USERNAME') ? DB_USERNAME : (defined('DB_USER') ? DB_USER : 'jcepnzzkmj');
+$pass = defined('DB_PASSWORD') ? DB_PASSWORD : (defined('DB_PASS') ? DB_PASS : '');
+$name = defined('DB_DATABASE') ? DB_DATABASE : (defined('DB_NAME') ? DB_NAME : 'jcepnzzkmj');
 
-        // Generate CSRF token if not exists
-        if (!isset($_SESSION['tt_csrf'])) {
-            $_SESSION['tt_csrf'] = bin2hex(random_bytes(16));
-        }
+$db = new mysqli($host, $user, $pass, $name);
+if ($db->connect_error) {
+    die('Database connection failed: ' . $db->connect_error);
+}
+$db->set_charset('utf8mb4');
 
-        // Load outlets
-        $outletMap = [];
-        $stmt = $pdo->query(
-            "SELECT id, COALESCE(NULLIF(name,''), NULLIF(store_code,''), NULLIF(physical_city,''), id) AS label
-             FROM vend_outlets
-             WHERE deleted_at IS NULL OR deleted_at = '0000-00-00 00:00:00' OR deleted_at = '0000-00-00'
-             ORDER BY label ASC"
-        );
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $outletMap[$row['id']] = $row['label'];
-        }
-
-        // Load suppliers
-        $supplierMap = [];
-        $supplierStmt = $pdo->query(
-            "SELECT id, name FROM vend_suppliers
-             WHERE deleted_at IS NULL OR deleted_at = '' OR deleted_at = '0'
-             ORDER BY name ASC"
-        );
-        while ($row = $supplierStmt->fetch(PDO::FETCH_ASSOC)) {
-            $supplierMap[$row['id']] = $row['name'] ?: $row['id'];
-        }
-
-        // Get sync state
-        $syncFile = dirname(__DIR__) . '/TransferManager/.sync_enabled';
-        $syncEnabled = true;
-        if (file_exists($syncFile)) {
-            $syncEnabled = (trim(file_get_contents($syncFile)) === '1');
-        }
-
-        // Check Lightspeed sync status
-        $syncQuery = "SELECT
-                        GREATEST(
-                          COALESCE(MAX(completed_at), '1970-01-01'),
-                          COALESCE(MAX(updated_at), '1970-01-01')
-                        ) as last_sync,
-                        COUNT(*) as total_jobs,
-                        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_jobs,
-                        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_jobs,
-                        SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing_jobs
-                      FROM vend_consignment_queue
-                      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-
-        $lastSyncTime = null;
-        $syncAgeMinutes = null;
-        $syncStatus = 'unknown';
-        $queueStats = ['total_jobs' => 0, 'completed_jobs' => 0, 'failed_jobs' => 0, 'processing_jobs' => 0];
-
-        $syncStmt = $pdo->query($syncQuery);
-        if ($row = $syncStmt->fetch(PDO::FETCH_ASSOC)) {
-            $lastSyncTime = $row['last_sync'];
-            $queueStats = [
-                'total_jobs' => (int)$row['total_jobs'],
-                'completed_jobs' => (int)$row['completed_jobs'],
-                'failed_jobs' => (int)$row['failed_jobs'],
-                'processing_jobs' => (int)$row['processing_jobs']
-            ];
-
-            if ($lastSyncTime && $lastSyncTime !== '1970-01-01 00:00:00') {
-                $syncTimestamp = strtotime($lastSyncTime);
-                $syncAgeMinutes = round((time() - $syncTimestamp) / 60);
-
-                if ($syncAgeMinutes <= 15) {
-                    $syncStatus = 'healthy';
-                } elseif ($syncAgeMinutes <= 30) {
-                    $syncStatus = 'warning';
-                } else {
-                    $syncStatus = 'critical';
-                }
-            } else {
-                $syncStatus = 'idle';
-            }
-        }
-
-        return [
-            'csrf_token' => $_SESSION['tt_csrf'],
-            'ls_consignment_base' => 'https://vapeshed.retail.lightspeed.app/app/2.0/consignments/',
-            'outlet_map' => $outletMap,
-            'supplier_map' => $supplierMap,
-            'sync_enabled' => $syncEnabled,
-            'sync_status' => $syncStatus,
-            'last_sync_time' => $lastSyncTime,
-            'sync_age_minutes' => $syncAgeMinutes,
-            'queue_stats' => $queueStats
-        ];
-    } catch (Exception $e) {
-        return [
-            '_error' => $e->getMessage(),
-            'csrf_token' => $_SESSION['tt_csrf'] ?? bin2hex(random_bytes(16)),
-            'outlet_map' => [],
-            'supplier_map' => [],
-            'sync_enabled' => true
-        ];
+// Load outlets and suppliers for APP_CONFIG
+$outlets = [];
+$result = $db->query("SELECT outletID, outletName FROM outlets WHERE status = 'active' ORDER BY outletName");
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $outlets[$row['outletID']] = $row['outletName'];
     }
 }
 
-// Load initialization data
-$initData = loadTransferManagerInit();
-$csrf = $initData['csrf_token'] ?? '';
-$syncEnabled = (bool)($initData['sync_enabled'] ?? true);
-$outletMap = $initData['outlet_map'] ?? [];
-$supplierMap = $initData['supplier_map'] ?? [];
-$lsBase = $initData['ls_consignment_base'] ?? '';
+$suppliers = [];
+$result = $db->query("SELECT supplierID, supplierName FROM suppliers WHERE status = 'active' ORDER BY supplierName");
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $suppliers[$row['supplierID']] = $row['supplierName'];
+    }
+}
 
-// Start output buffering for content
-ob_start();
+// Page config
+$pageTitle = 'Transfer Manager';
+$pageName = 'Transfer Manager';
+$pageParent = 'Consignments';
+
+// Include CIS header
+require_once $_SERVER['DOCUMENT_ROOT'] . '/assets/template/html-header.php';
 ?>
 
-<!-- Transfer Manager Configuration -->
+<!-- Modern v2.0 CSS (scoped, no conflicts) -->
+<link rel="stylesheet" href="/modules/consignments/assets/css/transfer-manager-v2.css">
+
+<!-- Inject APP_CONFIG before JS loads -->
 <script>
-    window.TT_CONFIG = {
-        apiUrl: '/modules/consignments/TransferManager/api.php',
-        csrfToken: <?= json_encode($csrf) ?>,
-        lsConsignmentBase: <?= json_encode($lsBase) ?>,
-        outletMap: <?= json_encode($outletMap) ?>,
-        supplierMap: <?= json_encode($supplierMap) ?>,
-        syncEnabled: <?= json_encode($syncEnabled) ?>,
-        syncStatus: <?= json_encode($initData['sync_status'] ?? 'unknown') ?>,
-        lastSyncTime: <?= json_encode($initData['last_sync_time'] ?? null) ?>,
-        syncAgeMinutes: <?= json_encode($initData['sync_age_minutes'] ?? null) ?>,
-        queueStats: <?= json_encode($initData['queue_stats'] ?? []) ?>
-    };
+window.APP_CONFIG = {
+    CSRF: <?= json_encode($_SESSION['tt_csrf']) ?>,
+    LS_CONSIGNMENT_BASE: '/modules/consignments/TransferManager/',
+    OUTLET_MAP: <?= json_encode($outlets, JSON_UNESCAPED_SLASHES) ?>,
+    SUPPLIER_MAP: <?= json_encode($suppliers, JSON_UNESCAPED_SLASHES) ?>,
+    SYNC_ENABLED: true
+};
+console.log('✅ APP_CONFIG injected:', window.APP_CONFIG);
 </script>
 
-<?php
-// Include the actual Transfer Manager UI content
-require_once dirname(__DIR__) . '/TransferManager/frontend-content.php';
+<?php require_once $_SERVER['DOCUMENT_ROOT'] . '/assets/template/header.php'; ?>
 
-// Get buffered content
-$content = ob_get_clean();
+<body class="app header-fixed sidebar-fixed aside-menu-fixed sidebar-lg-show">
+    <div class="app-body">
+        <?php include $_SERVER['DOCUMENT_ROOT'] . '/assets/template/sidemenu.php'; ?>
 
-// Include BASE dashboard layout
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard.php';
+        <main class="main">
+
+            <?php
+            // Include the Transfer Manager frontend content
+            require_once __DIR__ . '/TransferManager/frontend-content.php';
+            ?>
+
+        </main>
+    </div>
+</body>
+
+<!-- Modern v2.0 auto-loading JS -->
+<script src="/modules/consignments/assets/js/app-loader.js"></script>
+
+</html>
