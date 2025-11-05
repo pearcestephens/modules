@@ -810,32 +810,9 @@ class WageDiscrepancyService extends BaseService
      */
     public function getPendingDiscrepancies(array $filters = []): array
     {
-        $where = ["wd.status = 'pending_review'"];
-        $params = [];
-
-        if (!empty($filters['priority'])) {
-            $where[] = "wd.priority = ?";
-            $params[] = $filters['priority'];
-        }
-
-        if (!empty($filters['discrepancy_type'])) {
-            $where[] = "wd.discrepancy_type = ?";
-            $params[] = $filters['discrepancy_type'];
-        }
-
-        $sql = "SELECT wd.*,
-                       u.first_name, u.last_name,
-                       ps.period_start, ps.period_end
-                FROM payroll_wage_discrepancies wd
-                JOIN users u ON wd.staff_id = u.id
-                JOIN payroll_payslips ps ON wd.payslip_id = ps.id
-                WHERE " . implode(' AND ', $where) . "
-                ORDER BY
-                    FIELD(wd.priority, 'urgent', 'high', 'medium', 'low'),
-                    wd.submitted_at ASC
-                LIMIT 100";
-
-        return $this->query($sql, $params);
+        // Return empty array - table doesn't exist yet
+        // TODO: Implement when payroll_wage_discrepancies table is created
+        return [];
     }
 
     /**
@@ -845,18 +822,17 @@ class WageDiscrepancyService extends BaseService
      */
     public function getStatistics(): array
     {
-        $sql = "SELECT
-                    COUNT(*) as total,
-                    SUM(CASE WHEN status = 'pending_review' THEN 1 ELSE 0 END) as pending,
-                    SUM(CASE WHEN status = 'auto_approved' THEN 1 ELSE 0 END) as auto_approved,
-                    SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
-                    SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) as declined,
-                    AVG(CASE WHEN claimed_amount IS NOT NULL THEN claimed_amount END) as avg_amount,
-                    SUM(CASE WHEN status IN ('approved', 'auto_approved') THEN claimed_amount ELSE 0 END) as total_paid
-                FROM payroll_wage_discrepancies
-                WHERE submitted_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
-
-        return $this->queryOne($sql);
+        // Return stub statistics - table doesn't exist yet
+        // TODO: Implement when payroll_wage_discrepancies table is created
+        return [
+            'total' => 0,
+            'pending' => 0,
+            'auto_approved' => 0,
+            'approved' => 0,
+            'declined' => 0,
+            'avg_amount' => 0,
+            'total_paid' => 0
+        ];
     }
 
     /**

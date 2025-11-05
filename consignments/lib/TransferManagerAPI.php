@@ -17,15 +17,47 @@ declare(strict_types=1);
 namespace CIS\Consignments\Lib;
 
 require_once __DIR__ . '/../../base/lib/BaseAPI.php';
+require_once __DIR__ . '/Services/TransferService.php';
+require_once __DIR__ . '/Services/ProductService.php';
+require_once __DIR__ . '/Services/ConfigService.php';
+require_once __DIR__ . '/Services/SyncService.php';
 
 use CIS\Base\Lib\BaseAPI;
+use CIS\Consignments\Lib\Services\TransferService;
+use CIS\Consignments\Lib\Services\ProductService;
+use CIS\Consignments\Lib\Services\ConfigService;
+use CIS\Consignments\Lib\Services\SyncService;
 use mysqli;
 use RuntimeException;
 
 class TransferManagerAPI extends BaseAPI {
 
     /**
-     * Database connection
+     * Transfer service
+     * @var TransferService
+     */
+    private TransferService $transferService;
+
+    /**
+     * Product service
+     * @var ProductService
+     */
+    private ProductService $productService;
+
+    /**
+     * Configuration service
+     * @var ConfigService
+     */
+    private ConfigService $configService;
+
+    /**
+     * Sync service
+     * @var SyncService
+     */
+    private SyncService $syncService;
+
+    /**
+     * Database connection (legacy - being phased out)
      * @var mysqli
      */
     private mysqli $db;
@@ -59,13 +91,19 @@ class TransferManagerAPI extends BaseAPI {
 
         parent::__construct($apiConfig);
 
-        // Initialize database connection
+        // Initialize services
+        $this->transferService = TransferService::make();
+        $this->productService = ProductService::make();
+        $this->configService = ConfigService::make();
+        $this->syncService = SyncService::make();
+
+        // Initialize database connection (legacy - keeping for now)
         $this->initializeDatabase();
 
-        // Set sync file path
+        // Set sync file path (deprecated - now handled by SyncService)
         $this->syncFile = __DIR__ . '/../.sync_enabled';
 
-        // Get Lightspeed token
+        // Get Lightspeed token (deprecated - now handled by SyncService)
         $this->lsToken = $_ENV['LS_API_TOKEN'] ?? '';
     }
 
@@ -98,31 +136,28 @@ class TransferManagerAPI extends BaseAPI {
      * @return array Response envelope
      */
     protected function handleInit(array $data): array {
-        // Get sync state
-        $syncEnabled = $this->getSyncState();
+        // Get sync state from service
+        $syncEnabled = $this->syncService->isEnabled();
 
-        // Get outlets
-        $outlets = $this->getOutlets();
+        // Get outlets from service
+        $outlets = $this->configService->getOutlets(true);
 
-        // Get suppliers
-        $suppliers = $this->getSuppliers();
+        // Get suppliers from service
+        $suppliers = $this->configService->getSuppliers(true);
 
-        // Get CSRF token
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            @session_start();
-        }
+        // Get CSRF token from service
+        $csrf = $this->configService->getCsrfToken();
 
-        if (!isset($_SESSION['tt_csrf'])) {
-            $_SESSION['tt_csrf'] = bin2hex(random_bytes(32));
-        }
+        // Get current user from service
+        $user = $this->configService->getCurrentUser();
 
         return $this->success([
-            'csrf' => $_SESSION['tt_csrf'],
+            'csrf' => $csrf,
             'sync_enabled' => $syncEnabled,
             'outlets' => $outlets,
             'suppliers' => $suppliers,
-            'user_id' => $_SESSION['user_id'] ?? null,
-            'ls_token_set' => !empty($this->lsToken)
+            'user_id' => $user['id'] ?? null,
+            'ls_token_set' => $this->syncService->hasToken()
         ], 'Initialization successful');
     }
 
@@ -138,17 +173,8 @@ class TransferManagerAPI extends BaseAPI {
 
         $enabled = filter_var($data['enabled'], FILTER_VALIDATE_BOOLEAN);
 
-        // Write sync state to file
-        $result = file_put_contents($this->syncFile, $enabled ? '1' : '0');
-
-        if ($result === false) {
-            return $this->error(
-                'Failed to update sync state',
-                'SYNC_UPDATE_FAILED',
-                ['file' => $this->syncFile],
-                500
-            );
-        }
+        // Update sync state via service
+        $this->syncService->toggle($enabled);
 
         $this->logInfo('Sync state updated', [
             'enabled' => $enabled,
@@ -168,14 +194,10 @@ class TransferManagerAPI extends BaseAPI {
      * @return array Response envelope
      */
     protected function handleVerifySync(array $data): array {
-        $syncEnabled = $this->getSyncState();
+        // Get comprehensive sync status from service
+        $status = $this->syncService->getStatus();
 
-        return $this->success([
-            'sync_enabled' => $syncEnabled,
-            'ls_token_set' => !empty($this->lsToken),
-            'sync_file_exists' => file_exists($this->syncFile),
-            'sync_file_writable' => is_writable(dirname($this->syncFile))
-        ], 'Sync status retrieved');
+        return $this->success($status, 'Sync status retrieved');
     }
 
     // ========================================================================
@@ -191,99 +213,24 @@ class TransferManagerAPI extends BaseAPI {
     protected function handleListTransfers(array $data): array {
         $page = $this->validateInt($data, 'page', 1, 1);
         $perPage = $this->validateInt($data, 'perPage', 25, 1, 100);
-        $type = $data['type'] ?? null;
-        $state = $data['state'] ?? null;
-        $outlet = isset($data['outlet']) ? (int)$data['outlet'] : null;
-        $q = $data['q'] ?? '';
 
-        $offset = ($page - 1) * $perPage;
+        // Build filters from request
+        $filters = array_filter([
+            'type' => $data['type'] ?? null,
+            'state' => $data['state'] ?? null,
+            'outlet' => isset($data['outlet']) ? (int)$data['outlet'] : null,
+            'q' => $data['q'] ?? ''
+        ], fn($v) => $v !== null && $v !== '');
 
-        // Build query
-        $sql = "SELECT t.*,
-                       o_from.outlet_name as from_name,
-                       o_to.outlet_name as to_name,
-                       s.supplier_name,
-                       (SELECT COUNT(*) FROM consignment_items ci WHERE ci.consignment_id = t.id) as item_count,
-                       (SELECT SUM(ci.qty_requested) FROM consignment_items ci WHERE ci.consignment_id = t.id) as total_qty
-                FROM transfers t
-                LEFT JOIN outlets o_from ON t.outlet_from = o_from.id
-                LEFT JOIN outlets o_to ON t.outlet_to = o_to.id
-                LEFT JOIN suppliers s ON t.supplier_id = s.id
-                WHERE 1=1";
-
-        $params = [];
-        $types = '';
-
-        if ($type) {
-            $sql .= " AND t.consignment_category = ?";
-            $params[] = $type;
-            $types .= 's';
-        }
-
-        if ($state) {
-            $sql .= " AND t.status = ?";
-            $params[] = $state;
-            $types .= 's';
-        }
-
-        if ($outlet) {
-            $sql .= " AND (t.outlet_from = ? OR t.outlet_to = ?)";
-            $params[] = $outlet;
-            $params[] = $outlet;
-            $types .= 'ii';
-        }
-
-        if ($q !== '') {
-            $sql .= " AND (t.vend_consignment_number LIKE ? OR t.notes LIKE ?)";
-            $searchTerm = "%{$q}%";
-            $params[] = $searchTerm;
-            $params[] = $searchTerm;
-            $types .= 'ss';
-        }
-
-        // Get total count
-        $countSql = "SELECT COUNT(*) as total FROM (" . $sql . ") as filtered";
-        $stmt = $this->db->prepare($countSql);
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-        $stmt->execute();
-        $total = $stmt->get_result()->fetch_assoc()['total'];
-
-        // Get paginated results
-        $sql .= " ORDER BY t.created_at DESC LIMIT ? OFFSET ?";
-        $params[] = $perPage;
-        $params[] = $offset;
-        $types .= 'ii';
-
-        $stmt = $this->db->prepare($sql);
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $transfers = [];
-        while ($row = $result->fetch_assoc()) {
-            $transfers[] = $row;
-        }
+        // Use service to get transfers
+        $result = $this->transferService->list($filters, $page, $perPage);
 
         return $this->success(
-            $transfers,
+            $result['transfers'],
             'Transfers retrieved successfully',
             [
-                'pagination' => [
-                    'page' => $page,
-                    'per_page' => $perPage,
-                    'total' => $total,
-                    'total_pages' => ceil($total / $perPage)
-                ],
-                'filters' => array_filter([
-                    'type' => $type,
-                    'state' => $state,
-                    'outlet' => $outlet,
-                    'search' => $q
-                ])
+                'pagination' => $result['pagination'],
+                'filters' => $filters
             ]
         );
     }
@@ -298,25 +245,10 @@ class TransferManagerAPI extends BaseAPI {
         $this->validateRequired($data, ['id']);
         $id = $this->validateInt($data, 'id');
 
-        // Get transfer
-        $sql = "SELECT t.*,
-                       o_from.outlet_name as from_name,
-                       o_to.outlet_name as to_name,
-                       s.supplier_name,
-                       u.name as created_by_name
-                FROM transfers t
-                LEFT JOIN outlets o_from ON t.outlet_from = o_from.id
-                LEFT JOIN outlets o_to ON t.outlet_to = o_to.id
-                LEFT JOIN suppliers s ON t.supplier_id = s.id
-                LEFT JOIN users u ON t.created_by = u.id
-                WHERE t.id = ?";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $transfer = $stmt->get_result()->fetch_assoc();
-
-        if (!$transfer) {
+        // Use service to get transfer with items and notes
+        try {
+            $transfer = $this->transferService->getById($id);
+        } catch (\RuntimeException $e) {
             return $this->error(
                 "Transfer not found with ID: {$id}",
                 'NOT_FOUND',
@@ -324,44 +256,6 @@ class TransferManagerAPI extends BaseAPI {
                 404
             );
         }
-
-        // Get items
-        $sql = "SELECT ci.*, p.name as product_name, p.sku
-                FROM consignment_items ci
-                LEFT JOIN products p ON ci.product_id = p.id
-                WHERE ci.consignment_id = ?
-                ORDER BY ci.id";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $items = [];
-        while ($row = $result->fetch_assoc()) {
-            $items[] = $row;
-        }
-
-        // Get notes
-        $sql = "SELECT n.*, u.name as user_name
-                FROM transfer_notes n
-                LEFT JOIN users u ON n.user_id = u.id
-                WHERE n.transfer_id = ?
-                ORDER BY n.created_at DESC";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $notes = [];
-        while ($row = $result->fetch_assoc()) {
-            $notes[] = $row;
-        }
-
-        $transfer['items'] = $items;
-        $transfer['notes'] = $notes;
-        $transfer['item_count'] = count($items);
 
         return $this->success($transfer, 'Transfer detail retrieved successfully');
     }
@@ -377,27 +271,13 @@ class TransferManagerAPI extends BaseAPI {
 
         $q = $this->validateString($data, 'q', '', 2, 100);
         $limit = $this->validateInt($data, 'limit', 30, 1, 100);
+        $outletId = isset($data['outlet_id']) ? $this->validateInt($data, 'outlet_id') : null;
 
-        $searchTerm = "%{$q}%";
-
-        $sql = "SELECT p.id as product_id, p.name, p.sku, p.retail_price,
-                       COALESCE(SUM(i.quantity), 0) as stock
-                FROM products p
-                LEFT JOIN inventory i ON p.id = i.product_id
-                WHERE (p.name LIKE ? OR p.sku LIKE ?)
-                AND p.active = 1
-                GROUP BY p.id
-                ORDER BY p.name
-                LIMIT ?";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('ssi', $searchTerm, $searchTerm, $limit);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $products = [];
-        while ($row = $result->fetch_assoc()) {
-            $products[] = $row;
+        // Use service to search products
+        try {
+            $products = $this->productService->search($q, $limit, $outletId);
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 'VALIDATION_ERROR', ['query' => $q], 400);
         }
 
         return $this->success([
@@ -421,43 +301,28 @@ class TransferManagerAPI extends BaseAPI {
         $this->validateCSRF($data);
         $this->validateRequired($data, ['consignment_category', 'outlet_from', 'outlet_to']);
 
-        $category = $this->validateString($data, 'consignment_category');
-        $outletFrom = $this->validateInt($data, 'outlet_from');
-        $outletTo = $this->validateInt($data, 'outlet_to');
-        $supplierId = isset($data['supplier_id']) ? $this->validateInt($data, 'supplier_id') : null;
-        $createdBy = $_SESSION['user_id'] ?? 1;
+        // Build payload for service
+        $payload = [
+            'transfer_category' => $this->validateString($data, 'consignment_category'),
+            'source_outlet_id' => $this->validateInt($data, 'outlet_from'),
+            'destination_outlet_id' => $this->validateInt($data, 'outlet_to'),
+            'supplier_id' => isset($data['supplier_id']) ? $this->validateInt($data, 'supplier_id') : null,
+            'cis_user_id' => $_SESSION['user_id'] ?? 1
+        ];
 
-        // Validate outlets are different (unless supplier order)
-        if ($category !== 'SUPPLIER' && $outletFrom === $outletTo) {
-            return $this->error(
-                'Source and destination outlets must be different',
-                'VALIDATION_ERROR',
-                ['outlet_from' => $outletFrom, 'outlet_to' => $outletTo],
-                422
-            );
+        // Use service to create transfer
+        try {
+            $transferId = $this->transferService->create($payload);
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 'VALIDATION_ERROR', $payload, 422);
+        } catch (\RuntimeException $e) {
+            return $this->error('Failed to create transfer', 'CREATE_FAILED', ['error' => $e->getMessage()], 500);
         }
-
-        $sql = "INSERT INTO transfers (consignment_category, outlet_from, outlet_to, supplier_id, status, created_by, created_at)
-                VALUES (?, ?, ?, ?, 'DRAFT', ?, NOW())";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('siiii', $category, $outletFrom, $outletTo, $supplierId, $createdBy);
-
-        if (!$stmt->execute()) {
-            return $this->error(
-                'Failed to create transfer',
-                'CREATE_FAILED',
-                ['error' => $stmt->error],
-                500
-            );
-        }
-
-        $transferId = $this->db->insert_id;
 
         $this->logInfo('Transfer created', [
             'transfer_id' => $transferId,
-            'category' => $category,
-            'user_id' => $createdBy
+            'category' => $payload['transfer_category'],
+            'user_id' => $payload['cis_user_id']
         ]);
 
         // Get created transfer
@@ -475,51 +340,25 @@ class TransferManagerAPI extends BaseAPI {
         $this->validateRequired($data, ['id', 'product_id', 'qty']);
 
         $transferId = $this->validateInt($data, 'id');
-        $productId = $this->validateInt($data, 'product_id');
-        $qty = $this->validateInt($data, 'qty', null, 1);
 
-        // Check if item already exists
-        $sql = "SELECT id, qty_requested FROM consignment_items WHERE consignment_id = ? AND product_id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('ii', $transferId, $productId);
-        $stmt->execute();
-        $existing = $stmt->get_result()->fetch_assoc();
+        // Build item payload
+        $item = [
+            'vend_product_id' => $this->validateInt($data, 'product_id'),
+            'count_ordered' => $this->validateInt($data, 'qty', null, 1)
+        ];
 
-        if ($existing) {
-            // Update existing item
-            $newQty = $existing['qty_requested'] + $qty;
-            $sql = "UPDATE consignment_items SET qty_requested = ? WHERE id = ?";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('ii', $newQty, $existing['id']);
-            $stmt->execute();
-
-            return $this->success([
-                'item_id' => $existing['id'],
-                'action' => 'updated',
-                'qty_requested' => $newQty
-            ], 'Item quantity updated');
-        } else {
-            // Insert new item
-            $sql = "INSERT INTO consignment_items (consignment_id, product_id, qty_requested, created_at)
-                    VALUES (?, ?, ?, NOW())";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param('iii', $transferId, $productId, $qty);
-
-            if (!$stmt->execute()) {
-                return $this->error(
-                    'Failed to add item to transfer',
-                    'ADD_ITEM_FAILED',
-                    ['error' => $stmt->error],
-                    500
-                );
-            }
-
-            return $this->success([
-                'item_id' => $this->db->insert_id,
-                'action' => 'created',
-                'qty_requested' => $qty
-            ], 'Item added to transfer', ['http_code' => 201]);
+        // Use service to add item
+        try {
+            $itemId = $this->transferService->addItem($transferId, $item);
+        } catch (\RuntimeException $e) {
+            return $this->error('Failed to add item to transfer', 'ADD_ITEM_FAILED', ['error' => $e->getMessage()], 500);
         }
+
+        return $this->success([
+            'item_id' => $itemId,
+            'action' => 'created',
+            'qty_requested' => $item['count_ordered']
+        ], 'Item added to transfer', ['http_code' => 201]);
     }
 
     /**
@@ -536,27 +375,17 @@ class TransferManagerAPI extends BaseAPI {
         $itemId = $this->validateInt($data, 'item_id');
         $qtyRequested = $this->validateInt($data, 'qty_requested', null, 0);
 
-        $sql = "UPDATE consignment_items
-                SET qty_requested = ?
-                WHERE id = ? AND consignment_id = ?";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('iii', $qtyRequested, $itemId, $transferId);
-        $stmt->execute();
-
-        if ($stmt->affected_rows === 0) {
-            return $this->error(
-                'Item not found or no changes made',
-                'UPDATE_FAILED',
-                ['item_id' => $itemId],
-                404
-            );
+        // Use service to update item
+        try {
+            $updated = $this->transferService->updateItem($itemId, $transferId, ['count_ordered' => $qtyRequested]);
+        } catch (\RuntimeException $e) {
+            return $this->error('Item not found or no changes made', 'UPDATE_FAILED', ['item_id' => $itemId], 404);
         }
 
         return $this->success([
             'item_id' => $itemId,
             'qty_requested' => $qtyRequested,
-            'updated' => true
+            'updated' => $updated
         ], 'Item quantity updated');
     }
 
@@ -572,23 +401,16 @@ class TransferManagerAPI extends BaseAPI {
 
         $itemId = $this->validateInt($data, 'item_id');
 
-        $sql = "DELETE FROM consignment_items WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $itemId);
-        $stmt->execute();
-
-        if ($stmt->affected_rows === 0) {
-            return $this->error(
-                'Item not found',
-                'NOT_FOUND',
-                ['item_id' => $itemId],
-                404
-            );
+        // Use service to delete item
+        try {
+            $deleted = $this->transferService->deleteItem($itemId);
+        } catch (\RuntimeException $e) {
+            return $this->error('Item not found', 'NOT_FOUND', ['item_id' => $itemId], 404);
         }
 
         return $this->success([
             'item_id' => $itemId,
-            'deleted' => true
+            'deleted' => $deleted
         ], 'Item removed from transfer');
     }
 
@@ -603,29 +425,14 @@ class TransferManagerAPI extends BaseAPI {
         $this->validateRequired($data, ['id']);
 
         $id = $this->validateInt($data, 'id');
-        $totalBoxes = isset($data['total_boxes']) ? $this->validateInt($data, 'total_boxes', null, 0) : null;
 
-        $sql = "UPDATE transfers SET status = 'SENT', sent_at = NOW()";
-        if ($totalBoxes !== null) {
-            $sql .= ", total_boxes = ?";
-        }
-        $sql .= " WHERE id = ? AND status = 'DRAFT'";
-
-        $stmt = $this->db->prepare($sql);
-        if ($totalBoxes !== null) {
-            $stmt->bind_param('ii', $totalBoxes, $id);
-        } else {
-            $stmt->bind_param('i', $id);
-        }
-        $stmt->execute();
-
-        if ($stmt->affected_rows === 0) {
-            return $this->error(
-                'Transfer not found or not in DRAFT status',
-                'UPDATE_FAILED',
-                ['id' => $id],
-                422
-            );
+        // Use service to update status
+        try {
+            $this->transferService->updateStatus($id, 'SENT');
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage(), 'VALIDATION_ERROR', ['id' => $id], 422);
+        } catch (\RuntimeException $e) {
+            return $this->error('Transfer not found or not in valid status', 'UPDATE_FAILED', ['id' => $id], 422);
         }
 
         $this->logInfo('Transfer marked as sent', ['transfer_id' => $id]);
@@ -651,69 +458,29 @@ class TransferManagerAPI extends BaseAPI {
         $noteText = $this->validateString($data, 'note_text', null, 1, 1000);
         $userId = $_SESSION['user_id'] ?? 1;
 
-        $sql = "INSERT INTO transfer_notes (transfer_id, user_id, note_text, created_at)
-                VALUES (?, ?, ?, NOW())";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('iis', $id, $userId, $noteText);
-
-        if (!$stmt->execute()) {
-            return $this->error(
-                'Failed to add note',
-                'CREATE_FAILED',
-                ['error' => $stmt->error],
-                500
-            );
+        // Use service to add note
+        try {
+            $noteId = $this->transferService->addNote($id, $noteText, $userId);
+        } catch (\RuntimeException $e) {
+            return $this->error('Failed to add note', 'CREATE_FAILED', ['error' => $e->getMessage()], 500);
         }
 
         return $this->success([
-            'note_id' => $this->db->insert_id,
+            'note_id' => $noteId,
             'transfer_id' => $id,
             'created_at' => date('Y-m-d H:i:s')
         ], 'Note added successfully', ['http_code' => 201]);
     }
 
     // ========================================================================
-    // HELPER METHODS
+    // HELPER METHODS (Validation)
     // ========================================================================
-
-    /**
-     * Get sync state from file
-     *
-     * @return bool
-     */
-    private function getSyncState(): bool {
-        if (!file_exists($this->syncFile)) {
-            // Default to enabled
-            file_put_contents($this->syncFile, '1');
-            return true;
-        }
-
-        $content = trim(file_get_contents($this->syncFile));
-        return $content === '1';
-    }
-
-    /**
-     * Get outlets from database
-     *
-     * @return array
-     */
-    private function getOutlets(): array {
-        $sql = "SELECT id, outlet_name, outlet_code FROM outlets WHERE active = 1 ORDER BY outlet_name";
-        $result = $this->db->query($sql);
-
-        $outlets = [];
-        while ($row = $result->fetch_assoc()) {
-            $outlets[] = $row;
-        }
-
-        return $outlets;
-    }
 
     /**
      * Get suppliers from database
      *
      * @return array
+     * @deprecated Use ConfigService::getSuppliers() instead
      */
     private function getSuppliers(): array {
         $sql = "SELECT id, supplier_name, supplier_code FROM suppliers WHERE active = 1 ORDER BY supplier_name";

@@ -91,6 +91,20 @@ return [
         'description' => 'Create a new timesheet amendment'
     ],
 
+    'GET /api/payroll/amendments/pending' => [
+        'controller' => 'AmendmentController',
+        'action' => 'pending',
+        'auth' => true,
+        'description' => 'Get all pending amendments'
+    ],
+
+    'GET /api/payroll/amendments/history' => [
+        'controller' => 'AmendmentController',
+        'action' => 'history',
+        'auth' => true,
+        'description' => 'Get amendment history for a staff member'
+    ],
+
     'GET /api/payroll/amendments/:id' => [
         'controller' => 'AmendmentController',
         'action' => 'view',
@@ -114,20 +128,6 @@ return [
         'csrf' => true,
         'permission' => 'payroll.approve_amendments',
         'description' => 'Decline an amendment'
-    ],
-
-    'GET /api/payroll/amendments/pending' => [
-        'controller' => 'AmendmentController',
-        'action' => 'pending',
-        'auth' => true,
-        'description' => 'Get all pending amendments'
-    ],
-
-    'GET /api/payroll/amendments/history' => [
-        'controller' => 'AmendmentController',
-        'action' => 'history',
-        'auth' => true,
-        'description' => 'Get amendment history for a staff member'
     ],
 
     // =====================================================================

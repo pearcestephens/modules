@@ -419,7 +419,7 @@ abstract class BaseController
      */
     protected function json(array $data, int $statusCode = 200): void
     {
-        $this->response->json($data, $statusCode);
+        $this->jsonResponse($data, $statusCode);
     }
 
     /**

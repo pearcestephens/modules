@@ -483,7 +483,7 @@ class ConsignmentsAPI extends BaseAPI {
      * @param array $required Required field names
      * @throws \Exception
      */
-    private function validateRequired(array $data, array $required): void {
+    protected function validateRequired(array $data, array $required): void {
         $missing = [];
 
         foreach ($required as $field) {

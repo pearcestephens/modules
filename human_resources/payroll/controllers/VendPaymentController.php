@@ -137,7 +137,7 @@ class VendPaymentController extends BaseController
                     u.last_name,
                     u.email,
                     COUNT(vpa.id) as allocation_count,
-                    SUM(vpa.payment_amount) as total_allocated
+                    SUM(vpa.allocation_amount) as total_allocated
                 FROM payroll_vend_payment_requests vpr
                 INNER JOIN users u ON vpr.staff_id = u.id
                 LEFT JOIN payroll_vend_payment_allocations vpa

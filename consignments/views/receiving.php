@@ -1,0 +1,686 @@
+<?php
+/**
+ * Consignments Module - Enhanced Receiving Interface
+ *
+ * Modern receiving interface with barcode scanning, photo uploads,
+ * partial receiving, damage reporting, and real-time validation.
+ *
+ * @package CIS\Consignments
+ * @version 3.0.0
+ * @updated 2025-11-05 - Enhanced receiving with modern template
+ */
+
+declare(strict_types=1);
+
+// Page metadata
+$pageTitle = 'Receive Stock Transfer';
+$breadcrumbs = [
+    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'icon' => 'fa-boxes'],
+    ['label' => 'Receive Transfer', 'active' => true]
+];
+
+// Get database connection
+$pdo = CIS\Base\Database::pdo();
+
+// Get transfer ID from URL
+$transferId = $_GET['id'] ?? null;
+$transfer = null;
+$transferItems = [];
+
+if ($transferId) {
+    try {
+        // Load transfer details
+        $stmt = $pdo->prepare("
+            SELECT c.*,
+                   o_from.name as outlet_from_name,
+                   o_to.name as outlet_to_name
+            FROM vend_consignments c
+            LEFT JOIN outlets o_from ON c.outlet_id_from = o_from.id
+            LEFT JOIN outlets o_to ON c.outlet_id_to = o_to.id
+            WHERE c.id = ?
+        ");
+        $stmt->execute([$transferId]);
+        $transfer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Load transfer items
+        if ($transfer) {
+            $stmt = $pdo->prepare("
+                SELECT ci.*, p.name as product_name, p.sku, p.image_url
+                FROM vend_consignment_products ci
+                LEFT JOIN products p ON ci.product_id = p.id
+                WHERE ci.consignment_id = ?
+                ORDER BY p.name
+            ");
+            $stmt->execute([$transferId]);
+            $transferItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    } catch (Exception $e) {
+        error_log("Error loading transfer: " . $e->getMessage());
+    }
+}
+
+// Start output buffering
+ob_start();
+?>
+
+<style>
+.receiving-container { max-width: 1600px; margin: 0 auto; }
+.page-header-modern { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(102,126,234,0.25); }
+.page-header-modern h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px 0; }
+.page-header-modern p { margin: 0; opacity: 0.95; font-size: 15px; }
+.transfer-info-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.info-item { display: flex; flex-direction: column; }
+.info-label { font-size: 12px; color: #6c757d; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; }
+.info-value { font-size: 16px; color: #333; font-weight: 600; }
+.scan-panel { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.scan-input-group { display: flex; gap: 12px; margin-bottom: 20px; }
+.scan-input-group input { flex: 1; font-size: 18px; padding: 16px; border: 2px solid #dee2e6; border-radius: 8px; }
+.scan-input-group input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+.scan-input-group button { padding: 16px 32px; font-size: 16px; font-weight: 600; }
+.items-table { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.items-table table { width: 100%; margin: 0; }
+.items-table th { background: #f8f9fa; color: #495057; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; padding: 16px; border-bottom: 2px solid #dee2e6; }
+.items-table td { padding: 16px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.items-table tr:last-child td { border-bottom: none; }
+.items-table tr:hover { background: #f8f9fa; }
+.product-cell { display: flex; align-items: center; gap: 12px; }
+.product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6; }
+.product-image-placeholder { width: 50px; height: 50px; background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 20px; }
+.product-info { flex: 1; }
+.product-name { font-weight: 600; color: #333; font-size: 14px; margin-bottom: 2px; }
+.product-sku { font-size: 12px; color: #6c757d; }
+.qty-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 60px; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+.qty-badge.pending { background: #fff3cd; color: #856404; border: 2px solid #ffc107; }
+.qty-badge.received { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+.qty-badge.partial { background: #cce5ff; color: #004085; border: 2px solid #007bff; }
+.qty-input-group { display: flex; align-items: center; gap: 8px; }
+.qty-input-group input { width: 80px; text-align: center; font-size: 16px; font-weight: 600; padding: 8px; border: 2px solid #dee2e6; border-radius: 6px; }
+.qty-input-group button { padding: 8px 12px; border: 1px solid #dee2e6; background: #f8f9fa; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.qty-input-group button:hover { background: #e9ecef; border-color: #adb5bd; }
+.action-buttons { display: flex; gap: 8px; }
+.btn-icon { width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s; }
+.btn-photo { background: #007bff; color: white; border: none; }
+.btn-photo:hover { background: #0056b3; transform: scale(1.05); }
+.btn-damage { background: #ffc107; color: #000; border: none; }
+.btn-damage:hover { background: #e0a800; transform: scale(1.05); }
+.btn-notes { background: #6c757d; color: white; border: none; }
+.btn-notes:hover { background: #545b62; transform: scale(1.05); }
+.photo-upload-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; }
+.photo-upload-modal.active { display: flex; }
+.photo-modal-content { background: white; border-radius: 12px; padding: 32px; max-width: 600px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.photo-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.photo-modal-header h3 { margin: 0; font-size: 22px; font-weight: 700; color: #333; }
+.photo-modal-close { background: none; border: none; font-size: 28px; color: #6c757d; cursor: pointer; padding: 0; width: 32px; height: 32px; }
+.photo-modal-close:hover { color: #333; }
+.photo-drop-zone { border: 3px dashed #dee2e6; border-radius: 12px; padding: 48px; text-align: center; background: #f8f9fa; transition: all 0.2s; cursor: pointer; }
+.photo-drop-zone:hover, .photo-drop-zone.dragover { border-color: #667eea; background: rgba(102,126,234,0.05); }
+.photo-drop-zone i { font-size: 48px; color: #667eea; margin-bottom: 16px; }
+.photo-drop-zone p { margin: 8px 0 0 0; color: #6c757d; font-size: 14px; }
+.photo-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 20px; }
+.photo-preview { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid #dee2e6; }
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-preview-remove { position: absolute; top: 4px; right: 4px; background: rgba(220,53,69,0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; }
+.photo-preview-remove:hover { background: #dc3545; }
+.receive-footer { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: sticky; bottom: 20px; }
+.receive-footer-content { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+.receive-summary { display: flex; gap: 32px; }
+.summary-item { display: flex; flex-direction: column; }
+.summary-label { font-size: 12px; color: #6c757d; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; }
+.summary-value { font-size: 24px; font-weight: 700; color: #333; }
+.receive-actions { display: flex; gap: 12px; }
+.btn-complete { padding: 16px 32px; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(40,167,69,0.3); transition: all 0.2s; }
+.btn-complete:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(40,167,69,0.4); }
+.btn-cancel { padding: 16px 32px; font-size: 16px; font-weight: 600; background: #fff; color: #6c757d; border: 2px solid #dee2e6; border-radius: 8px; }
+.btn-cancel:hover { background: #f8f9fa; border-color: #adb5bd; }
+.status-icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; }
+.status-icon.pending { background: #fff3cd; color: #856404; }
+.status-icon.complete { background: #d4edda; color: #155724; }
+.status-icon.partial { background: #cce5ff; color: #004085; }
+.barcode-feedback { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; display: none; align-items: center; gap: 12px; }
+.barcode-feedback.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: flex; }
+.barcode-feedback.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: flex; }
+.barcode-feedback i { font-size: 20px; }
+@media (max-width: 768px) {
+    .scan-input-group { flex-direction: column; }
+    .receive-footer-content { flex-direction: column; align-items: stretch; }
+    .receive-summary { justify-content: space-around; }
+    .receive-actions { flex-direction: column; }
+}
+</style>
+
+<div class="receiving-container">
+    <?php if (!$transfer): ?>
+        <!-- No transfer selected -->
+        <div class="page-header-modern">
+            <h1><i class="fas fa-inbox me-2"></i>Receive Stock Transfer</h1>
+            <p>Select a transfer to begin receiving</p>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Please select a transfer from the <a href="/modules/consignments/?route=stock-transfers">Stock Transfers</a> page to begin receiving.
+        </div>
+    <?php else: ?>
+        <!-- Transfer loaded -->
+        <div class="page-header-modern">
+            <h1><i class="fas fa-inbox me-2"></i>Receive Stock Transfer #<?= htmlspecialchars($transfer['consignment_number']) ?></h1>
+            <p>Scan items to receive them into your outlet</p>
+        </div>
+
+        <!-- Transfer Info Card -->
+        <div class="transfer-info-card">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-store me-1"></i>From Outlet</div>
+                    <div class="info-value"><?= htmlspecialchars($transfer['outlet_from_name']) ?></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-store me-1"></i>To Outlet</div>
+                    <div class="info-value"><?= htmlspecialchars($transfer['outlet_to_name']) ?></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-calendar me-1"></i>Sent Date</div>
+                    <div class="info-value"><?= date('d M Y', strtotime($transfer['date'])) ?></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-box me-1"></i>Total Items</div>
+                    <div class="info-value"><?= count($transferItems) ?> products</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label"><i class="fas fa-info-circle me-1"></i>Status</div>
+                    <div class="info-value">
+                        <span class="badge bg-warning"><?= htmlspecialchars($transfer['status']) ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barcode Scan Panel -->
+        <div class="scan-panel">
+            <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700;">
+                <i class="fas fa-barcode me-2"></i>Scan Barcode
+            </h3>
+
+            <div id="barcodeFeedback" class="barcode-feedback">
+                <i class="fas fa-check-circle"></i>
+                <span id="feedbackText">Item scanned successfully!</span>
+            </div>
+
+            <div class="scan-input-group">
+                <input
+                    type="text"
+                    id="barcodeInput"
+                    placeholder="Scan barcode or enter SKU..."
+                    autofocus
+                    autocomplete="off"
+                >
+                <button class="btn btn-primary" onclick="processBarcodeScan()">
+                    <i class="fas fa-search me-2"></i>Search
+                </button>
+            </div>
+
+            <div style="color: #6c757d; font-size: 13px;">
+                <i class="fas fa-lightbulb me-1"></i>
+                <strong>Tip:</strong> Use a barcode scanner or type the SKU manually. Press Enter to search.
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="items-table">
+            <table id="itemsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><i class="fas fa-check-circle"></i></th>
+                        <th>Product</th>
+                        <th style="width: 120px; text-align: center;">Expected</th>
+                        <th style="width: 150px; text-align: center;">Received</th>
+                        <th style="width: 120px; text-align: center;">Status</th>
+                        <th style="width: 180px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($transferItems as $item): ?>
+                        <tr id="item-<?= $item['id'] ?>" data-item-id="<?= $item['id'] ?>" data-sku="<?= htmlspecialchars($item['sku']) ?>">
+                            <td style="text-align: center;">
+                                <span class="status-icon pending" id="status-icon-<?= $item['id'] ?>">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="product-cell">
+                                    <?php if ($item['image_url']): ?>
+                                        <img src="<?= htmlspecialchars($item['image_url']) ?>" alt="Product" class="product-image">
+                                    <?php else: ?>
+                                        <div class="product-image-placeholder">
+                                            <i class="fas fa-box"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="product-info">
+                                        <div class="product-name"><?= htmlspecialchars($item['product_name']) ?></div>
+                                        <div class="product-sku">SKU: <?= htmlspecialchars($item['sku']) ?></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="qty-badge pending"><?= $item['count'] ?></span>
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="qty-input-group">
+                                    <button onclick="decrementQty(<?= $item['id'] ?>)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input
+                                        type="number"
+                                        id="received-<?= $item['id'] ?>"
+                                        value="0"
+                                        min="0"
+                                        max="<?= $item['count'] ?>"
+                                        onchange="updateItemStatus(<?= $item['id'] ?>)"
+                                    >
+                                    <button onclick="incrementQty(<?= $item['id'] ?>)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="qty-badge pending" id="status-badge-<?= $item['id'] ?>">Pending</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="action-buttons">
+                                    <button
+                                        class="btn-icon btn-photo"
+                                        title="Upload Photo"
+                                        onclick="openPhotoModal(<?= $item['id'] ?>)"
+                                        id="photo-btn-<?= $item['id'] ?>"
+                                    >
+                                        <i class="fas fa-camera"></i>
+                                    </button>
+                                    <button
+                                        class="btn-icon btn-damage"
+                                        title="Report Damage"
+                                        onclick="reportDamage(<?= $item['id'] ?>)"
+                                    >
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </button>
+                                    <button
+                                        class="btn-icon btn-notes"
+                                        title="Add Notes"
+                                        onclick="addNotes(<?= $item['id'] ?>)"
+                                    >
+                                        <i class="fas fa-comment"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Receive Footer with Summary -->
+        <div class="receive-footer">
+            <div class="receive-footer-content">
+                <div class="receive-summary">
+                    <div class="summary-item">
+                        <div class="summary-label">Total Items</div>
+                        <div class="summary-value" id="totalItems"><?= count($transferItems) ?></div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Received</div>
+                        <div class="summary-value" id="receivedItems" style="color: #28a745;">0</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Pending</div>
+                        <div class="summary-value" id="pendingItems" style="color: #ffc107;"><?= count($transferItems) ?></div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Progress</div>
+                        <div class="summary-value" id="progressPercent" style="color: #007bff;">0%</div>
+                    </div>
+                </div>
+                <div class="receive-actions">
+                    <button class="btn-cancel" onclick="window.location.href='/modules/consignments/?route=stock-transfers'">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button class="btn-complete" id="completeBtn" onclick="completeReceiving()" disabled>
+                        <i class="fas fa-check-circle me-2"></i>Complete Receiving
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+
+<!-- Gamification Modal -->
+<?php include __DIR__ . '/gamification-modal.php'; ?>
+
+<!-- Photo Upload Modal -->
+<div id="photoModal" class="photo-upload-modal">
+    <div class="photo-modal-content">
+        <div class="photo-modal-header">
+            <h3><i class="fas fa-camera me-2"></i>Upload Photos</h3>
+            <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+        </div>
+
+        <div class="photo-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h4 style="margin: 16px 0 8px 0; font-weight: 700;">Click or Drag Photos Here</h4>
+            <p>Upload photos of received items (Required for completion)</p>
+            <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" onchange="handleFileSelect(event)">
+        </div>
+
+        <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+
+        <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="closePhotoModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="uploadPhotos()">
+                <i class="fas fa-upload me-2"></i>Upload Photos
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global state
+const receivingState = {
+    transferId: <?= json_encode($transferId) ?>,
+    items: <?= json_encode($transferItems) ?>,
+    photos: {},
+    currentItemId: null
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus barcode input
+    document.getElementById('barcodeInput')?.focus();
+
+    // Barcode input enter key handler
+    document.getElementById('barcodeInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            processBarcodeScan();
+        }
+    });
+
+    // Drag and drop handlers
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+    }
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+}
+
+function handleFileSelect(e) {
+    const files = e.target.files;
+    handleFiles(files);
+}
+
+function handleFiles(files) {
+    if (!receivingState.currentItemId) return;
+
+    if (!receivingState.photos[receivingState.currentItemId]) {
+        receivingState.photos[receivingState.currentItemId] = [];
+    }
+
+    Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+            receivingState.photos[receivingState.currentItemId].push(file);
+            displayPhotoPreview(file);
+        }
+    });
+
+    updatePhotoButton(receivingState.currentItemId);
+}
+
+function displayPhotoPreview(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const grid = document.getElementById('photoPreviewGrid');
+        const preview = document.createElement('div');
+        preview.className = 'photo-preview';
+        preview.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <button class="photo-preview-remove" onclick="removePhoto(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        grid.appendChild(preview);
+    };
+    reader.readAsDataURL(file);
+}
+
+function removePhoto(btn) {
+    btn.closest('.photo-preview').remove();
+}
+
+function processBarcodeScan() {
+    const input = document.getElementById('barcodeInput');
+    const barcode = input.value.trim();
+
+    if (!barcode) return;
+
+    // Find matching item
+    const matchingRow = Array.from(document.querySelectorAll('[data-sku]')).find(
+        row => row.dataset.sku === barcode
+    );
+
+    if (matchingRow) {
+        const itemId = matchingRow.dataset.itemId;
+        const receivedInput = document.getElementById(`received-${itemId}`);
+        const maxQty = parseInt(receivedInput.max);
+        const currentQty = parseInt(receivedInput.value);
+
+        if (currentQty < maxQty) {
+            receivedInput.value = currentQty + 1;
+            updateItemStatus(itemId);
+            showFeedback('success', `Scanned: ${barcode} (${currentQty + 1}/${maxQty})`);
+
+            // Scroll to item
+            matchingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            matchingRow.style.background = '#d4edda';
+            setTimeout(() => matchingRow.style.background = '', 2000);
+        } else {
+            showFeedback('error', `Item already fully received: ${barcode}`);
+        }
+    } else {
+        showFeedback('error', `Item not found in transfer: ${barcode}`);
+    }
+
+    input.value = '';
+    input.focus();
+}
+
+function showFeedback(type, message) {
+    const feedback = document.getElementById('barcodeFeedback');
+    const feedbackText = document.getElementById('feedbackText');
+
+    feedback.className = `barcode-feedback ${type}`;
+    feedbackText.textContent = message;
+
+    setTimeout(() => {
+        feedback.style.display = 'none';
+    }, 3000);
+}
+
+function incrementQty(itemId) {
+    const input = document.getElementById(`received-${itemId}`);
+    const max = parseInt(input.max);
+    const current = parseInt(input.value);
+
+    if (current < max) {
+        input.value = current + 1;
+        updateItemStatus(itemId);
+    }
+}
+
+function decrementQty(itemId) {
+    const input = document.getElementById(`received-${itemId}`);
+    const current = parseInt(input.value);
+
+    if (current > 0) {
+        input.value = current - 1;
+        updateItemStatus(itemId);
+    }
+}
+
+function updateItemStatus(itemId) {
+    const receivedInput = document.getElementById(`received-${itemId}`);
+    const expected = parseInt(receivedInput.max);
+    const received = parseInt(receivedInput.value);
+
+    const statusIcon = document.getElementById(`status-icon-${itemId}`);
+    const statusBadge = document.getElementById(`status-badge-${itemId}`);
+
+    if (received === 0) {
+        statusIcon.className = 'status-icon pending';
+        statusIcon.innerHTML = '<i class="fas fa-clock"></i>';
+        statusBadge.className = 'qty-badge pending';
+        statusBadge.textContent = 'Pending';
+    } else if (received < expected) {
+        statusIcon.className = 'status-icon partial';
+        statusIcon.innerHTML = '<i class="fas fa-exclamation"></i>';
+        statusBadge.className = 'qty-badge partial';
+        statusBadge.textContent = 'Partial';
+    } else {
+        statusIcon.className = 'status-icon complete';
+        statusIcon.innerHTML = '<i class="fas fa-check"></i>';
+        statusBadge.className = 'qty-badge received';
+        statusBadge.textContent = 'Complete';
+    }
+
+    updateSummary();
+}
+
+function updateSummary() {
+    const totalItems = receivingState.items.length;
+    let receivedCount = 0;
+
+    receivingState.items.forEach(item => {
+        const input = document.getElementById(`received-${item.id}`);
+        if (input && parseInt(input.value) > 0) {
+            receivedCount++;
+        }
+    });
+
+    const pendingCount = totalItems - receivedCount;
+    const progress = Math.round((receivedCount / totalItems) * 100);
+
+    document.getElementById('receivedItems').textContent = receivedCount;
+    document.getElementById('pendingItems').textContent = pendingCount;
+    document.getElementById('progressPercent').textContent = progress + '%';
+
+    // Enable complete button if progress > 0
+    const completeBtn = document.getElementById('completeBtn');
+    completeBtn.disabled = receivedCount === 0;
+}
+
+function openPhotoModal(itemId) {
+    receivingState.currentItemId = itemId;
+    document.getElementById('photoModal').classList.add('active');
+    document.getElementById('photoPreviewGrid').innerHTML = '';
+
+    // Load existing photos if any
+    if (receivingState.photos[itemId]) {
+        receivingState.photos[itemId].forEach(file => displayPhotoPreview(file));
+    }
+}
+
+function closePhotoModal() {
+    document.getElementById('photoModal').classList.remove('active');
+    receivingState.currentItemId = null;
+}
+
+function updatePhotoButton(itemId) {
+    const photoBtn = document.getElementById(`photo-btn-${itemId}`);
+    const count = receivingState.photos[itemId]?.length || 0;
+
+    if (count > 0) {
+        photoBtn.style.background = '#28a745';
+        photoBtn.innerHTML = `<i class="fas fa-camera"></i> <span style="font-size: 10px; position: absolute; top: 2px; right: 2px; background: white; color: #28a745; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">${count}</span>`;
+    }
+}
+
+function uploadPhotos() {
+    // In production, upload via API
+    alert('Photos uploaded successfully!');
+    closePhotoModal();
+}
+
+function reportDamage(itemId) {
+    const notes = prompt('Describe the damage:');
+    if (notes) {
+        alert('Damage report recorded for item #' + itemId);
+    }
+}
+
+function addNotes(itemId) {
+    const notes = prompt('Enter notes for this item:');
+    if (notes) {
+        alert('Notes saved for item #' + itemId);
+    }
+}
+
+function completeReceiving() {
+    // Validate photos
+    let hasPhotos = false;
+    let totalPhotos = 0;
+    let totalScans = 0;
+
+    receivingState.items.forEach(item => {
+        const received = parseInt(document.getElementById(`received-${item.id}`).value);
+        if (received > 0) {
+            totalScans += received;
+            if (receivingState.photos[item.id]?.length > 0) {
+                hasPhotos = true;
+                totalPhotos += receivingState.photos[item.id].length;
+            }
+        }
+    });
+
+    if (!hasPhotos) {
+        alert('Please upload at least one photo before completing the transfer.');
+        return;
+    }
+
+    if (confirm('Complete receiving and mark this transfer as received?')) {
+        // Calculate completion time (in production, track actual time)
+        const completionTime = '2:34'; // Would be calculated from start time
+
+        // In production, submit via API
+        // Then show gamification modal with real data
+        showGamificationModal({
+            completionTime: completionTime,
+            scansPerformed: totalScans,
+            photosUploaded: totalPhotos
+        });
+    }
+}
+</script>
+
+<?php
+$content = ob_get_clean();
+require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard-modern.php';

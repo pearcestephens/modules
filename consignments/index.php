@@ -1,71 +1,72 @@
 <?php
 /**
- * Consignments Module - Router Entry Point
+ * Consignments Module - Main Router
  *
- * Routes requests to appropriate views within the Consignments module.
- * Uses BASE template system for consistent layout and full library stack.
+ * Routes requests to appropriate views within the consignments module.
+ * This is the central entry point for all consignment-related pages.
  *
  * @package CIS\Consignments
  * @version 3.0.0
- * @created 2025-11-01
- * @updated 2025-11-04 - Converted to BASE template
+ * @updated 2025-11-05 - Added home page as default route
  */
 
 declare(strict_types=1);
 
-// Load module bootstrap (includes base/bootstrap.php)
+// Load bootstrap to initialize sessions and database
 require_once __DIR__ . '/bootstrap.php';
 
-// Initialize session if not already started
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    CIS\Base\Session::init();
-}
+// Determine which view to load based on route parameter
+// Default to 'home' for dashboard landing page (no more dead breadcrumb spots!)
+$route = $_GET['route'] ?? 'home';
 
-// Get route from query string
-$route = CIS\Base\Router::getRoute();
-
-// Route to appropriate view
 switch ($route) {
-    case 'transfer-manager':
-    case 'index':
+    case 'home':
     case '':
-    default:
-        // Main Transfer Manager interface - EXACT existing view
+        // Home dashboard - central hub with quick access to all features
+        require_once __DIR__ . '/views/home.php';
+        break;
+
+    case 'transfer-manager':
         require_once __DIR__ . '/views/transfer-manager.php';
         break;
 
     case 'control-panel':
-        // System monitoring dashboard - EXACT existing view
         require_once __DIR__ . '/views/control-panel.php';
         break;
 
     case 'purchase-orders':
-        // Purchase orders list - EXACT existing view
         require_once __DIR__ . '/views/purchase-orders.php';
         break;
 
     case 'stock-transfers':
-        // Stock transfers list - EXACT existing view
         require_once __DIR__ . '/views/stock-transfers.php';
         break;
 
+    case 'receiving':
+        require_once __DIR__ . '/views/receiving.php';
+        break;
+
     case 'freight':
-        // Freight management - EXACT existing view
         require_once __DIR__ . '/views/freight.php';
         break;
 
     case 'queue-status':
-        // Queue worker status - EXACT existing view
         require_once __DIR__ . '/views/queue-status.php';
         break;
 
     case 'admin-controls':
-        // Admin control panel - EXACT existing view
         require_once __DIR__ . '/views/admin-controls.php';
         break;
 
     case 'ai-insights':
-        // AI Insights & Recommendations Dashboard
-        require_once __DIR__ . '/purchase-orders/ai-insights.php';
+        require_once __DIR__ . '/views/ai-insights.php';
         break;
+
+    default:
+        // Invalid route - show 404 with link back to home
+        header('HTTP/1.0 404 Not Found');
+        echo '<h1>404 - Page Not Found</h1>';
+        echo '<p>The requested page could not be found.</p>';
+        echo '<p><a href="/modules/consignments/">Return to Consignments Home</a></p>';
+        exit;
 }

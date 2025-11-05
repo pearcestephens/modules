@@ -101,13 +101,13 @@ class AmendmentController extends BaseController
             }
 
         } catch (\InvalidArgumentException $e) {
-            $this->jsonError('Validation failed: ' . $e->getMessage(), null, 400);
+            $this->jsonError('Validation failed: ' . $e->getMessage(), [], 400);
         } catch (\Exception $e) {
             $this->logger->error('Failed to create amendment', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -129,7 +129,7 @@ class AmendmentController extends BaseController
             if ($amendment) {
                 $this->jsonSuccess(['amendment' => $amendment]);
             } else {
-                $this->jsonError('Amendment not found', null, 404);
+                $this->jsonError('Amendment not found', [], 404);
             }
 
         } catch (\Exception $e) {
@@ -137,7 +137,7 @@ class AmendmentController extends BaseController
                 'amendment_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -185,7 +185,7 @@ class AmendmentController extends BaseController
                 'amendment_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -209,7 +209,7 @@ class AmendmentController extends BaseController
         try {
             // Validate reason
             if (empty($_POST['reason'])) {
-                $this->jsonError('Decline reason is required', null, 400);
+                $this->jsonError('Decline reason is required', [], 400);
                 return;
             }
 
@@ -240,7 +240,7 @@ class AmendmentController extends BaseController
                 'amendment_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -273,7 +273,7 @@ class AmendmentController extends BaseController
                 $amendments = array_values($amendments); // Re-index
             }
 
-            $this->jsonSuccess([
+            $this->jsonSuccess('Success', [
                 'amendments' => $amendments,
                 'count' => count($amendments)
             ]);
@@ -282,7 +282,7 @@ class AmendmentController extends BaseController
             $this->logger->error('Failed to fetch pending amendments', [
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 
@@ -303,7 +303,7 @@ class AmendmentController extends BaseController
 
         try {
             if (!isset($_GET['staff_id'])) {
-                $this->jsonError('staff_id parameter is required', null, 400);
+                $this->jsonError('staff_id parameter is required', [], 400);
                 return;
             }
 
@@ -320,10 +320,11 @@ class AmendmentController extends BaseController
                     ORDER BY ah.created_at DESC
                     LIMIT ?";
 
-            $stmt = $this->amendmentService->query($sql, [$staffId, $limit]);
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$staffId, $limit]);
             $history = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            $this->jsonSuccess([
+            $this->jsonSuccess('Success', [
                 'history' => $history,
                 'count' => count($history),
                 'staff_id' => $staffId
@@ -334,7 +335,7 @@ class AmendmentController extends BaseController
                 'staff_id' => $_GET['staff_id'] ?? null,
                 'error' => $e->getMessage()
             ]);
-            $this->jsonError('Internal server error', null, 500);
+            $this->jsonError('Internal server error', [], 500);
         }
     }
 

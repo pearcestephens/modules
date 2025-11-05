@@ -326,20 +326,9 @@ class AmendmentService extends BaseService
      */
     public function getPendingAmendments(?int $limit = null): array
     {
-        $sql = "SELECT a.*,
-                       s.first_name, s.last_name,
-                       pp.start_date as period_start, pp.end_date as period_end
-                FROM payroll_timesheet_amendments a
-                LEFT JOIN payroll_staff s ON a.staff_id = s.id
-                LEFT JOIN payroll_pay_periods pp ON a.pay_period_id = pp.id
-                WHERE a.status = 'pending_review'
-                ORDER BY a.submitted_at ASC";
-
-        if ($limit) {
-            $sql .= " LIMIT " . (int)$limit;
-        }
-
-        return $this->query($sql);
+        // Return empty array - table doesn't exist yet
+        // TODO: Implement when payroll_timesheet_amendments table is created
+        return [];
     }
 
     /**

@@ -1,0 +1,542 @@
+<?php
+/**
+ * Consignments Module - Home Page
+ *
+ * Central hub for all consignment operations
+ *
+ * @package CIS\Consignments
+ * @version 3.0.0
+ * @created 2025-11-05
+ */
+
+declare(strict_types=1);
+
+// Page metadata
+$pageTitle = 'Consignments Management';
+$breadcrumbs = [
+    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'active' => true]
+];
+
+// Get database connection
+$pdo = CIS\Base\Database::pdo();
+
+// Load statistics
+$stats = [];
+try {
+    // Active transfers
+    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'OPEN'");
+    $stats['active_transfers'] = $stmt->fetchColumn();
+
+    // Completed today
+    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'RECEIVED' AND DATE(received_at) = CURDATE()");
+    $stats['completed_today'] = $stmt->fetchColumn();
+
+    // Pending receive
+    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'SENT'");
+    $stats['pending_receive'] = $stmt->fetchColumn();
+
+    // Active POs
+    $stmt = $pdo->query("SELECT COUNT(*) FROM purchase_orders WHERE status = 'OPEN'");
+    $stats['active_pos'] = $stmt->fetchColumn();
+} catch (Exception $e) {
+    $stats = [
+        'active_transfers' => 0,
+        'completed_today' => 0,
+        'pending_receive' => 0,
+        'active_pos' => 0
+    ];
+}
+
+// Start output buffering
+ob_start();
+?>
+
+<style>
+    .consignments-home {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header-box {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .page-header-box h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 8px 0;
+    }
+
+    .page-header-box p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 14px;
+    }        .container-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-trend {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            text-decoration: none;
+        }
+
+        .action-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .action-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .action-card p {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .action-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .section-header {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 15px 0;
+            margin-bottom: 0;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: white;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* Color variations for action cards */
+        .color-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .color-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+        .color-warning { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white; }
+        .color-danger { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; }
+        .color-info { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; }
+        .color-purple { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white; }
+
+        .recent-activity {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section with Breadcrumbs -->
+    <div class="hero-section">
+        <div class="container-main">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/"><i class="fa fa-home"></i> Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Consignments</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-boxes"></i> Consignments Management</h1>
+            <p>Central hub for all consignment operations, transfers, and inventory management</p>
+        </div>
+    </div>
+
+    <div class="container-main" style="padding-top: 20px;">
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-card" style="border-left-color: #667eea;">
+                <div class="stat-icon color-primary">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div class="stat-value" id="activeTransfers">--</div>
+                <div class="stat-label">Active Transfers</div>
+                <div class="stat-trend trend-up">
+                    <i class="bi bi-arrow-up"></i> 12% from last week
+                </div>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #28a745;">
+                <div class="stat-icon color-success">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="stat-value" id="completedToday">--</div>
+                <div class="stat-label">Completed Today</div>
+                <div class="stat-trend trend-up">
+                    <i class="bi bi-arrow-up"></i> 8% from yesterday
+                </div>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #ffc107;">
+                <div class="stat-icon color-warning">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-value" id="pendingReceive">--</div>
+                <div class="stat-label">Pending Receive</div>
+                <div class="stat-trend">
+                    <i class="bi bi-dash"></i> No change
+                </div>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #17a2b8;">
+                <div class="stat-icon color-info">
+                    <i class="bi bi-cart"></i>
+                </div>
+                <div class="stat-value" id="purchaseOrders">--</div>
+                <div class="stat-label">Active POs</div>
+                <div class="stat-trend trend-down">
+                    <i class="bi bi-arrow-down"></i> 5% from last week
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section-header">
+            <i class="bi bi-lightning-charge-fill"></i> Quick Actions
+        </div>
+
+        <div class="quick-actions">
+            <a href="/modules/consignments/?route=transfer-manager" class="action-card">
+                <div class="action-icon color-primary">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <h3>Transfer Manager</h3>
+                <p>Manage stock transfers, create new consignments, and track shipments between outlets.</p>
+                <span class="action-badge bg-primary text-white">Most Used</span>
+            </a>
+
+            <a href="/modules/consignments/?route=purchase-orders" class="action-card">
+                <div class="action-icon color-success">
+                    <i class="bi bi-cart-plus"></i>
+                </div>
+                <h3>Purchase Orders</h3>
+                <p>View and manage purchase orders, supplier shipments, and incoming inventory.</p>
+                <span class="action-badge bg-success text-white">Active</span>
+            </a>
+
+            <a href="/modules/consignments/?route=stock-transfers" class="action-card">
+                <div class="action-icon color-info">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <h3>Stock Transfers</h3>
+                <p>Browse all stock transfer history, search transfers, and view detailed reports.</p>
+                <span class="action-badge bg-info text-white">View All</span>
+            </a>
+
+            <a href="/modules/consignments/analytics/" class="action-card">
+                <div class="action-icon color-purple">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+                <h3>Analytics Dashboard</h3>
+                <p>Performance tracking, leaderboards, achievements, and security monitoring.</p>
+                <span class="action-badge bg-purple text-white">New!</span>
+            </a>
+
+            <a href="/modules/consignments/?route=freight" class="action-card">
+                <div class="action-icon color-warning">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <h3>Freight Management</h3>
+                <p>Track freight shipments, manage carriers, and view delivery schedules.</p>
+                <span class="action-badge bg-warning text-dark">Logistics</span>
+            </a>
+
+            <a href="/modules/consignments/?route=control-panel" class="action-card">
+                <div class="action-icon color-danger">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <h3>Control Panel</h3>
+                <p>System monitoring, queue status, admin controls, and configuration settings.</p>
+                <span class="action-badge bg-danger text-white">Admin</span>
+            </a>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="row g-4 mt-4">
+            <!-- Analytics Links -->
+            <div class="col-lg-6">
+                <div class="recent-activity">
+                    <div class="section-header" style="font-size: 20px;">
+                        <i class="bi bi-bar-chart-line"></i> Analytics & Performance
+                    </div>
+
+                    <a href="/modules/consignments/analytics/performance-dashboard.php" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Performance Dashboard</div>
+                            <div class="activity-time">Track your scanning stats, achievements, and personal bests</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="/modules/consignments/analytics/leaderboard.php" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white;">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Leaderboard Rankings</div>
+                            <div class="activity-time">See how you rank against colleagues, daily/weekly/monthly</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="/modules/consignments/analytics/security-dashboard.php" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+                            <i class="bi bi-shield-exclamation"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Security Dashboard</div>
+                            <div class="activity-time">Monitor suspicious scans, fraud alerts, and investigations</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="/modules/consignments/analytics/" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white;">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Testing Tools Hub</div>
+                            <div class="activity-time">Access system testing tools and health checks</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Additional Tools -->
+            <div class="col-lg-6">
+                <div class="recent-activity">
+                    <div class="section-header" style="font-size: 20px;">
+                        <i class="bi bi-gear"></i> Additional Tools
+                    </div>
+
+                    <a href="/modules/consignments/?route=queue-status" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: #6f42c1; color: white;">
+                            <i class="bi bi-list-task"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Queue Status</div>
+                            <div class="activity-time">Monitor background jobs and queue workers</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="/modules/consignments/?route=admin-controls" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: #6c757d; color: white;">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Admin Controls</div>
+                            <div class="activity-time">System configuration and administrative settings</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="/modules/consignments/?route=ai-insights" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <i class="bi bi-lightbulb"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">AI Insights</div>
+                            <div class="activity-time">AI-powered recommendations and analytics</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+
+                    <a href="/modules/consignments/purchase-orders/approvals/dashboard.php" class="activity-item" style="text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        <div class="activity-icon" style="background: #28a745; color: white;">
+                            <i class="bi bi-check2-square"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">PO Approvals</div>
+                            <div class="activity-time">Review and approve purchase orders</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center mt-5 mb-4" style="color: #6c757d;">
+            <p><i class="bi bi-info-circle"></i> Consignments Module v3.0.0 | Last Updated: November 2025</p>
+            <p><small>For support, contact IT Department | <a href="/modules/DASHBOARDS_INDEX.md" target="_blank">View All Dashboards</a></small></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load statistics
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate loading stats (replace with real API calls)
+            setTimeout(() => {
+                document.getElementById('activeTransfers').textContent = '23';
+                document.getElementById('completedToday').textContent = '8';
+                document.getElementById('pendingReceive').textContent = '5';
+                document.getElementById('purchaseOrders').textContent = '12';
+            }, 500);
+        });
+    </script>
+</body>
+</html>

@@ -85,7 +85,7 @@ class TransferManagerAPITest extends TestCase
         $this->assertIsArray($response);
         $this->assertArrayHasKey('success', $response);
         $this->assertFalse($response['success']);
-        
+
         // Should have error object
         $this->assertArrayHasKey('error', $response);
         $this->assertArrayHasKey('code', $response['error']);
@@ -126,7 +126,7 @@ class TransferManagerAPITest extends TestCase
 
         $this->assertTrue($response['success']);
         $this->assertArrayHasKey('transfers', $response['data']);
-        
+
         if (!empty($response['data']['transfers'])) {
             foreach ($response['data']['transfers'] as $transfer) {
                 $this->assertEquals('STOCK', $transfer['type']);

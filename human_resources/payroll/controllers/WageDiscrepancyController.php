@@ -102,7 +102,7 @@ class WageDiscrepancyController extends BaseController
                     'type' => $data['discrepancy_type']
                 ]);
 
-                $this->jsonSuccess([
+                $this->jsonSuccess('Success', [
                     'discrepancy_id' => $result['discrepancy_id'],
                     'status' => $result['status'],
                     'ai_analysis' => $result['ai_analysis'],
@@ -184,7 +184,7 @@ class WageDiscrepancyController extends BaseController
 
             $discrepancies = $this->discrepancyService->getPendingDiscrepancies($filters);
 
-            $this->jsonSuccess([
+            $this->jsonSuccess('Success', [
                 'discrepancies' => $discrepancies,
                 'count' => count($discrepancies)
             ]);
@@ -235,13 +235,13 @@ class WageDiscrepancyController extends BaseController
             $stmt->execute($params);
             $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $this->jsonSuccess([
+            $this->jsonSuccess('Success', [
                 'history' => $history,
                 'count' => count($history)
             ]);
 
         } catch (\Exception $e) {
-            $this->handleError($e);
+            $this->jsonError('Failed to retrieve discrepancy history: ' . $e->getMessage(), [], 500);
         }
     }
 
@@ -278,7 +278,7 @@ class WageDiscrepancyController extends BaseController
                     'amendment_id' => $result['amendment_id']
                 ]);
 
-                $this->jsonSuccess([
+                $this->jsonSuccess('Success', [
                     'message' => 'Discrepancy approved successfully',
                     'amendment_id' => $result['amendment_id']
                 ]);
@@ -329,7 +329,7 @@ class WageDiscrepancyController extends BaseController
                     'reason' => $data['decline_reason']
                 ]);
 
-                $this->jsonSuccess([
+                $this->jsonSuccess('Success', [
                     'message' => 'Discrepancy declined'
                 ]);
             } else {
@@ -409,7 +409,7 @@ class WageDiscrepancyController extends BaseController
                 'file_hash' => $uploadResult['hash']
             ]);
 
-            $this->jsonSuccess([
+            $this->jsonSuccess('Success', [
                 'message' => 'Evidence uploaded successfully',
                 'evidence_hash' => $uploadResult['hash'],
                 'ocr_data' => $ocrData
@@ -435,7 +435,7 @@ class WageDiscrepancyController extends BaseController
         try {
             $stats = $this->discrepancyService->getStatistics();
 
-            $this->jsonSuccess([
+            $this->jsonSuccess('Success', [
                 'statistics' => $stats,
                 'auto_approval_rate' => $stats['total'] > 0
                     ? round(($stats['auto_approved'] / $stats['total']) * 100, 1)
