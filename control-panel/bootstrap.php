@@ -46,7 +46,8 @@ try {
     if (class_exists('CIS\\Base\\Database')) {
         $db = CIS\Base\Database::getConnection();
     } else {
-        require_once $_SERVER['DOCUMENT_ROOT'] . '/mysql.php';
+        // Fixed: Removed leading slash to prevent double-slash (DOCUMENT_ROOT already ends with /)
+        require_once $_SERVER['DOCUMENT_ROOT'] . 'assets/functions/mysql.php';
         $db = new PDO("mysql:host=127.0.0.1;dbname=jcepnzzkmj;charset=utf8mb4", "jcepnzzkmj", "wprKh9Jq63");
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
