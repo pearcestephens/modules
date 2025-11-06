@@ -1,0 +1,549 @@
+/**
+ * Staff Performance Module - Main Stylesheet
+ *
+ * CIS Template Compatible Styling
+ *
+ * @package CIS\Modules\StaffPerformance
+ * @version 1.0.0
+ */
+
+/* ============================================================================
+   ROOT VARIABLES - CIS Color Scheme
+   ============================================================================ */
+:root {
+    --sp-primary: #667eea;
+    --sp-secondary: #764ba2;
+    --sp-success: #28a745;
+    --sp-info: #17a2b8;
+    --sp-warning: #ffc107;
+    --sp-danger: #dc3545;
+    --sp-gold: #FFD700;
+    --sp-silver: #C0C0C0;
+    --sp-bronze: #CD7F32;
+    --sp-platinum: #E5E4E2;
+    --sp-diamond: #B9F2FF;
+    --sp-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --sp-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --sp-border-radius: 0.5rem;
+    --sp-transition: all 0.3s ease;
+}
+
+/* ============================================================================
+   GLOBAL MODULE STYLES
+   ============================================================================ */
+.staff-performance-module {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ============================================================================
+   CARDS & CONTAINERS
+   ============================================================================ */
+.stats-card {
+    border: none;
+    border-radius: var(--sp-border-radius);
+    box-shadow: var(--sp-shadow);
+    transition: var(--sp-transition);
+    overflow: hidden;
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sp-shadow-hover);
+}
+
+.stats-card .card-header {
+    background: linear-gradient(135deg, var(--sp-primary) 0%, var(--sp-secondary) 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+/* ============================================================================
+   DASHBOARD HEADER
+   ============================================================================ */
+.dashboard-header {
+    background: linear-gradient(135deg, var(--sp-primary) 0%, var(--sp-secondary) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--sp-border-radius);
+    margin-bottom: 2rem;
+    box-shadow: var(--sp-shadow);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-weight: 700;
+}
+
+/* ============================================================================
+   STAT ICONS & VALUES
+   ============================================================================ */
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 1rem;
+}
+
+.stat-icon.reviews {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: var(--sp-warning);
+}
+
+.stat-icon.drops {
+    background-color: rgba(23, 162, 184, 0.1);
+    color: var(--sp-info);
+}
+
+.stat-icon.earnings {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--sp-success);
+}
+
+.stat-icon.rank {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--sp-danger);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+}
+
+.stat-money {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+/* ============================================================================
+   LEADERBOARD
+   ============================================================================ */
+.leaderboard-position {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--sp-gold) 0%, var(--sp-bronze) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.leaderboard-row {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--sp-transition);
+}
+
+.leaderboard-row:hover {
+    background-color: #f8f9fa;
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-row .rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    min-width: 60px;
+    text-align: center;
+}
+
+.leaderboard-row .name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.leaderboard-row .stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.leaderboard-row .points {
+    font-weight: 700;
+    color: var(--sp-primary);
+}
+
+.leaderboard-row .earnings {
+    font-weight: 700;
+    color: var(--sp-success);
+    min-width: 100px;
+    text-align: right;
+}
+
+/* ============================================================================
+   COMPETITION BANNER
+   ============================================================================ */
+.competition-banner {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: var(--sp-border-radius);
+    margin-bottom: 2rem;
+    box-shadow: var(--sp-shadow);
+}
+
+.competition-banner h3 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.competition-banner .badge {
+    font-size: 1rem;
+}
+
+/* ============================================================================
+   ACHIEVEMENT CARDS
+   ============================================================================ */
+.achievement-card {
+    border: 2px solid #dee2e6;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: var(--sp-transition);
+    cursor: pointer;
+    height: 100%;
+    position: relative;
+}
+
+.achievement-card.unlocked {
+    background: linear-gradient(135deg, #fff9e6 0%, #fff 100%);
+    border-color: var(--sp-gold);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.achievement-card.locked {
+    opacity: 0.5;
+    filter: grayscale(0.8);
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--sp-shadow-hover);
+}
+
+.achievement-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.achievement-icon.bronze { color: var(--sp-bronze); }
+.achievement-icon.silver { color: var(--sp-silver); }
+.achievement-icon.gold { color: var(--sp-gold); }
+.achievement-icon.platinum { color: var(--sp-platinum); }
+.achievement-icon.diamond { color: var(--sp-diamond); }
+
+/* ============================================================================
+   BADGES & PILLS
+   ============================================================================ */
+.achievement-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0.25rem;
+}
+
+.badge-gold {
+    background-color: var(--sp-gold);
+    color: #000;
+}
+
+.badge-silver {
+    background-color: var(--sp-silver);
+    color: #000;
+}
+
+.badge-bronze {
+    background-color: var(--sp-bronze);
+    color: #fff;
+}
+
+/* ============================================================================
+   PROGRESS BARS
+   ============================================================================ */
+.progress {
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--sp-primary) 0%, var(--sp-secondary) 100%);
+    transition: width 0.6s ease;
+}
+
+.progress-bar-animated {
+    animation: progress-animation 1s ease-in-out;
+}
+
+@keyframes progress-animation {
+    from { width: 0%; }
+}
+
+/* ============================================================================
+   PODIUM (History View)
+   ============================================================================ */
+.winner-podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.podium-place {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: var(--sp-border-radius);
+    background: white;
+    box-shadow: var(--sp-shadow);
+    transition: var(--sp-transition);
+}
+
+.podium-place:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--sp-shadow-hover);
+}
+
+.podium-first {
+    order: 2;
+    flex-basis: 35%;
+    background: linear-gradient(135deg, var(--sp-gold) 0%, #FFA500 100%);
+    color: white;
+    transform: scale(1.1);
+}
+
+.podium-second {
+    order: 1;
+    flex-basis: 30%;
+    background: linear-gradient(135deg, var(--sp-silver) 0%, #A8A8A8 100%);
+    color: white;
+}
+
+.podium-third {
+    order: 3;
+    flex-basis: 30%;
+    background: linear-gradient(135deg, var(--sp-bronze) 0%, #B87333 100%);
+    color: white;
+}
+
+/* ============================================================================
+   TIMELINE
+   ============================================================================ */
+.timeline-month {
+    border-left: 3px solid var(--sp-primary);
+    padding-left: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.timeline-month::before {
+    content: '';
+    width: 15px;
+    height: 15px;
+    background: var(--sp-primary);
+    border-radius: 50%;
+    position: absolute;
+    left: -9px;
+    top: 0;
+    box-shadow: 0 0 0 4px white, 0 0 0 6px var(--sp-primary);
+}
+
+/* ============================================================================
+   HALL OF FAME
+   ============================================================================ */
+.hall-of-fame-card {
+    background: linear-gradient(135deg, var(--sp-gold) 0%, #FFA500 100%);
+    color: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    transition: var(--sp-transition);
+}
+
+.hall-of-fame-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* ============================================================================
+   RANK BADGES
+   ============================================================================ */
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 700;
+}
+
+.rank-1 {
+    background: linear-gradient(135deg, var(--sp-gold), #FFA500);
+    color: white;
+    font-size: 1.2rem;
+}
+
+.rank-2 {
+    background: linear-gradient(135deg, var(--sp-silver), #A8A8A8);
+    color: white;
+    font-size: 1.1rem;
+}
+
+.rank-3 {
+    background: linear-gradient(135deg, var(--sp-bronze), #B87333);
+    color: white;
+    font-size: 1.1rem;
+}
+
+/* ============================================================================
+   USER HIGHLIGHT
+   ============================================================================ */
+.user-row {
+    background-color: #e3f2fd !important;
+    font-weight: 600;
+}
+
+.user-row:hover {
+    background-color: #bbdefb !important;
+}
+
+/* ============================================================================
+   SIDEBAR
+   ============================================================================ */
+.sidebar-nav .list-group-item {
+    border-left: 3px solid transparent;
+    transition: var(--sp-transition);
+}
+
+.sidebar-nav .list-group-item:hover {
+    background-color: #f8f9fa;
+    border-left-color: var(--sp-primary);
+}
+
+.sidebar-nav .list-group-item.active {
+    background: linear-gradient(135deg, var(--sp-primary) 0%, var(--sp-secondary) 100%);
+    border-color: var(--sp-primary);
+    color: white;
+}
+
+.sidebar-nav .list-group-item.active i {
+    color: white;
+}
+
+/* ============================================================================
+   QUICK STATS GRID
+   ============================================================================ */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+@media (max-width: 768px) {
+    .stat-value {
+        font-size: 2rem;
+    }
+
+    .quick-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .winner-podium {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .podium-first,
+    .podium-second,
+    .podium-third {
+        flex-basis: 100%;
+        max-width: 300px;
+        order: unset !important;
+    }
+
+    .podium-first {
+        transform: scale(1);
+    }
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+/* ============================================================================
+   LOADING STATES
+   ============================================================================ */
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 2000px 100%;
+    animation: shimmer 2s infinite;
+    border-radius: var(--sp-border-radius);
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+@media print {
+    .sidebar-nav,
+    .competition-banner,
+    [data-action="refresh"] {
+        display: none !important;
+    }
+
+    .stats-card {
+        box-shadow: none;
+        border: 1px solid #dee2e6;
+    }
+}

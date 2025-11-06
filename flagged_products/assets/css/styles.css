@@ -1,0 +1,211 @@
+/**
+ * Flagged Products Module - Styles
+ *
+ * @package CIS\Modules\FlaggedProducts
+ * @version 1.0.0
+ */
+
+/* ============================================================================
+   VARIABLES
+   ========================================================================== */
+:root {
+    --fp-primary: #4169E1;
+    --fp-success: #28a745;
+    --fp-warning: #ffc107;
+    --fp-danger: #dc3545;
+    --fp-info: #17a2b8;
+    --fp-dark: #343a40;
+    --fp-light: #f8f9fa;
+}
+
+/* ============================================================================
+   OUTLET CARDS
+   ========================================================================== */
+.outlet-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: none;
+    border-radius: 12px;
+}
+
+.outlet-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.outlet-icon {
+    opacity: 0.1;
+}
+
+/* ============================================================================
+   STATS CARDS
+   ========================================================================== */
+.stats-card {
+    border-left: 4px solid var(--fp-primary);
+    border-radius: 8px;
+}
+
+.stats-card.success {
+    border-left-color: var(--fp-success);
+}
+
+.stats-card.warning {
+    border-left-color: var(--fp-warning);
+}
+
+.stats-card.danger {
+    border-left-color: var(--fp-danger);
+}
+
+/* ============================================================================
+   PRODUCT TABLE
+   ========================================================================== */
+.product-table {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.product-table thead {
+    background: linear-gradient(135deg, var(--fp-primary) 0%, #3457D5 100%);
+    color: white;
+}
+
+.product-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.product-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.product-table tbody tr:hover {
+    background-color: rgba(65, 105, 225, 0.05);
+}
+
+/* ============================================================================
+   ACTION BUTTONS
+   ========================================================================== */
+.btn-complete {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    transition: all 0.3s;
+}
+
+.btn-complete:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+}
+
+/* ============================================================================
+   BADGES
+   ========================================================================== */
+.badge-accurate {
+    background: var(--fp-success);
+    color: white;
+}
+
+.badge-inaccurate {
+    background: var(--fp-danger);
+    color: white;
+}
+
+.badge-pending {
+    background: var(--fp-warning);
+    color: #333;
+}
+
+/* ============================================================================
+   ACCURACY PROGRESS
+   ========================================================================== */
+.accuracy-progress {
+    height: 30px;
+    border-radius: 15px;
+    background: #e9ecef;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.accuracy-progress-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+}
+
+.accuracy-progress-bar.high {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.accuracy-progress-bar.medium {
+    background: linear-gradient(90deg, #ffc107, #fd7e14);
+}
+
+.accuracy-progress-bar.low {
+    background: linear-gradient(90deg, #dc3545, #c82333);
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ========================================================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 768px) {
+    .outlet-card {
+        margin-bottom: 1rem;
+    }
+
+    .product-table {
+        font-size: 0.85rem;
+    }
+
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+.text-primary-gradient {
+    background: linear-gradient(135deg, var(--fp-primary) 0%, #3457D5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-primary {
+    box-shadow: 0 4px 15px rgba(65, 105, 225, 0.2);
+}
+
+.border-primary-thick {
+    border-left: 5px solid var(--fp-primary) !important;
+}

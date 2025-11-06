@@ -26,7 +26,7 @@ class PayslipController
     public function __construct(PDO $db)
     {
         $this->db = $db;
-        $this->payslipService = new PayslipService($db);
+        $this->payslipService = new PayslipService();
         $this->bonusService = new BonusService($db);
         $this->bankExportService = new BankExportService($db);
     }

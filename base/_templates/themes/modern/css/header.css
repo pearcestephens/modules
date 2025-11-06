@@ -1,0 +1,207 @@
+/* ============================================================================
+   MODERN HEADER - Fixed Top, Clean Design
+   ============================================================================ */
+
+.cis-header {
+    position: fixed;
+    top: 0;
+    left: var(--cis-sidebar-width);
+    right: 0;
+    height: var(--cis-header-height);
+    background: var(--cis-header-bg);
+    border-bottom: 1px solid var(--cis-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+body.sidebar-collapsed .cis-header {
+    left: var(--cis-sidebar-collapsed-width);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-toggle-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--cis-text-dark);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.header-toggle-btn:hover {
+    background: var(--cis-bg-light);
+}
+
+.header-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 14px;
+    color: var(--cis-text-light);
+}
+
+.header-breadcrumb a {
+    color: var(--cis-text-light);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.header-breadcrumb a:hover {
+    color: var(--cis-primary);
+}
+
+.header-breadcrumb .active {
+    color: var(--cis-text-dark);
+    font-weight: 500;
+}
+
+.header-search {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 2rem;
+    position: relative;
+}
+
+.header-search input {
+    width: 100%;
+    height: 36px;
+    border: 1px solid var(--cis-border);
+    border-radius: 8px;
+    padding: 0 1rem 0 2.5rem;
+    font-size: 14px;
+    background: var(--cis-bg-light);
+    transition: all 0.2s;
+}
+
+.header-search input:focus {
+    outline: none;
+    border-color: var(--cis-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+.header-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cis-text-light);
+    font-size: 14px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-icon-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--cis-text-dark);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.header-icon-btn:hover {
+    background: var(--cis-bg-light);
+}
+
+.header-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    background: #dc3545;
+    color: white;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.header-user:hover {
+    background: var(--cis-bg-light);
+}
+
+.header-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.header-user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--cis-text-dark);
+    line-height: 1.2;
+}
+
+.header-user-role {
+    font-size: 11px;
+    color: var(--cis-text-light);
+    line-height: 1.2;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .cis-header {
+        left: 0 !important;
+    }
+
+    .header-search {
+        display: none;
+    }
+
+    .header-user-info {
+        display: none;
+    }
+}

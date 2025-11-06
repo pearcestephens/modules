@@ -34,7 +34,7 @@ class AmendmentController extends BaseController
     {
         parent::__construct();
         $this->db = $db;
-        $this->amendmentService = new AmendmentService($db);
+        $this->amendmentService = new AmendmentService();
     }
 
     /**

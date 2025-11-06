@@ -185,17 +185,25 @@ abstract class BaseController
     }
 
     /**
-     * Render a view with data
+     * Render view with layout
      *
-     * @param string $view View file path
+     * @param string $view View path relative to module root
      * @param array $data Data to pass to view
      */
     protected function render(string $view, array $data = []): void
     {
+        // Generate CSRF token if not exists
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+
+        // Add CSRF token to data
+        $data['csrfToken'] = $_SESSION['csrf_token'];
+
+        // Extract data to make variables available in view
         extract($data);
 
         $viewPath = BANK_TRANSACTIONS_MODULE_PATH . '/' . $view;
-
         if (!file_exists($viewPath)) {
             $this->abort(500, "View not found: $view");
         }
@@ -213,9 +221,7 @@ abstract class BaseController
             echo $content;
         }
         exit;
-    }
-
-    /**
+    }    /**
      * Return JSON response
      *
      * @param mixed $data Response data

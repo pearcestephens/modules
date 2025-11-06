@@ -1,0 +1,10 @@
+FLAGGED PRODUCTS MODULE - TEST REPORT
+Generated: Wed Nov  5 18:50:24 UTC 2025
+
+SUMMARY:
+  Passed: 65
+  Failed: 0
+  Warnings: 3
+  Success Rate: 95.6%
+
+For detailed results, review the test output above.

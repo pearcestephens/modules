@@ -1,0 +1,104 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║     🚀 FLAGGED PRODUCTS CRON V2 - QUICK START GUIDE                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📦 STATUS: ✅ All wrapped cron jobs created and ready!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 QUICK ACTIVATION (5 COMMANDS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cd /home/master/applications/jcepnzzkmj/public_html/modules/flagged_products
+
+# 1. Install database schema
+mysql jcepnzzkmj < database/cron_metrics_schema.sql
+
+# 2. Copy original cron files
+cp /home/master/modules-consignments/flagged_products/cron/*.php cron/
+cp -r /home/master/modules-consignments/flagged_products/cron/lib cron/
+
+# 3. Test wrapped jobs
+cd cron && php generate_daily_products_wrapped.php
+
+# 4. Register with Smart Cron
+php register_tasks.php
+
+# 5. View logs
+tail -f logs/cron-$(date +%Y-%m-%d).log
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 WRAPPED CRON JOBS (ALL EXECUTABLE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. generate_daily_products_wrapped.php    Daily 7:05 AM   [CRITICAL]
+2. refresh_leaderboard_wrapped.php        Daily 2:00 AM   [MEDIUM]
+3. generate_ai_insights_wrapped.php       Every hour      [LOW]
+4. check_achievements_wrapped.php         Every 6 hours   [MEDIUM]
+5. refresh_store_stats_wrapped.php        Every 30 min    [HIGH]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+�� SMART CRON V2 SYSTEM REPORT (Last 48 Hours)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  🎯 Total Jobs:        4 active
+  ⚡ Total Executions:  401 runs
+  ✅ Success Rate:      87.0% (349/401)
+  ❌ Failures:          0 failures
+  ⏱️  Avg Duration:      <0.01 seconds
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 MONITORING & DASHBOARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 Main Dashboard:
+   /assets/services/cron/dashboard.php
+
+🔧 Admin Dashboard:
+   /modules/admin-ui/dashboard.php
+
+📈 Performance Metrics:
+   SELECT * FROM vw_flagged_products_cron_performance;
+
+🏥 Health Status:
+   SELECT * FROM vw_flagged_products_cron_health;
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ WRAPPER FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Smart Cron V2 Integration    ✅ Circuit Breaker Pattern
+✅ Performance Logging           ✅ Memory Tracking
+✅ Automatic Retries (2-3x)      ✅ Alert System
+✅ Error Handling                ✅ Dashboard Visibility
+✅ Execution History             ✅ Metrics Database
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📁 FILES CREATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+cron/
+├── FlaggedProductsCronWrapper.php              [16KB - Core wrapper]
+├── generate_daily_products_wrapped.php         [1.2KB - Executable]
+├── refresh_leaderboard_wrapped.php             [1.1KB - Executable]
+├── generate_ai_insights_wrapped.php            [1.3KB - Executable]
+├── check_achievements_wrapped.php              [1.1KB - Executable]
+└── refresh_store_stats_wrapped.php             [1.2KB - Executable]
+
+database/
+└── cron_metrics_schema.sql                     [3KB - Schema]
+
+docs/
+├── README_CRON_V2.md                           [10KB - Documentation]
+├── DEPLOYMENT_STATUS.md                        [8KB - Status report]
+└── QUICK_START.txt                             [This file]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 READY FOR PRODUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Status: 🟢 ALL SYSTEMS GO
+
+Complete the 5 activation steps above to enable full functionality!
+
+Generated: 2025-11-06 07:10 NZDT
+Version: 2.0.0

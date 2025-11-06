@@ -1,12 +1,12 @@
 {
-    "timestamp": "2025-11-06 06:16:13",
+    "timestamp": "2025-11-06 07:16:35",
     "base_url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll",
     "summary": {
         "total": 29,
-        "success": 20,
+        "success": 24,
         "auth_required": 2,
         "not_found": 0,
-        "server_error": 4,
+        "server_error": 0,
         "client_error": 3
     },
     "endpoints": [
@@ -18,7 +18,7 @@
             "auth_required": false,
             "status_code": 200,
             "result": "success",
-            "response_preview": "{\"status\":\"healthy\",\"module\":\"payroll\",\"timestamp\":\"2025-11-06T06:16:13+13:00\",\"version\":\"3.0\"}",
+            "response_preview": "{\"status\":\"healthy\",\"module\":\"payroll\",\"timestamp\":\"2025-11-06T07:16:35+13:00\",\"version\":\"3.0\"}",
             "error": null
         },
         {
@@ -51,7 +51,7 @@
             "auth_required": true,
             "status_code": 200,
             "result": "success",
-            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"amendments\": [],\n        \"count\": 0\n    },\n    \"request_id\": \"req_690b865d4305a3.97562270\",\n    \"timestamp\": \"2025-11-06 06:16:13\"\n}",
+            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"amendments\": [],\n        \"count\": 0\n    },\n    \"request_id\": \"req_690b9483906ec1.79837210\",\n    \"timestamp\": \"2025-11-06 07:16:35\"\n}",
             "error": null
         },
         {
@@ -62,7 +62,7 @@
             "auth_required": true,
             "status_code": 400,
             "result": "client_error",
-            "response_preview": "{\n    \"success\": false,\n    \"error\": {\n        \"message\": \"staff_id parameter is required\",\n        \"details\": [],\n        \"code\": 400\n    },\n    \"request_id\": \"req_690b865d4a08b8.97750663\",\n    \"timestamp\": \"2025-11-06 06:16:13\"\n}",
+            "response_preview": "{\n    \"success\": false,\n    \"error\": {\n        \"message\": \"staff_id parameter is required\",\n        \"details\": [],\n        \"code\": 400\n    },\n    \"request_id\": \"req_690b948396e1c9.17594834\",\n    \"timestamp\": \"2025-11-06 07:16:35\"\n}",
             "error": null
         },
         {
@@ -71,9 +71,9 @@
             "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/dashboard",
             "description": "Automation dashboard stats",
             "auth_required": true,
-            "status_code": 500,
-            "result": "server_error",
-            "response_preview": "",
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"stats\": {\n            \"pending_reviews\": 0,\n            \"auto_approval_rate\": 0,\n            \"avg_processing_time_seconds\": 0,\n            \"recent_decisions\": []\n        },\n        \"daily_stats\": [],\n        \"timestamp\": \"2025-11-06 07:16:35\"\n    },\n    \"request_id\": \"req_690b94839d96c5.24306816\",\n    \"timestamp\": \"2025-11-06 07:16:35\"\n}",
             "error": null
         },
         {
@@ -82,9 +82,9 @@
             "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/reviews\/pending",
             "description": "Pending AI reviews",
             "auth_required": true,
-            "status_code": 500,
-            "result": "server_error",
-            "response_preview": "",
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"reviews\": [],\n        \"count\": 0,\n        \"note\": \"No pending reviews or table structure needs verification\"\n    },\n    \"request_id\": \"req_690b9483a57b48.21640950\",\n    \"timestamp\": \"2025-11-06 07:16:35\"\n}",
             "error": null
         },
         {
@@ -93,9 +93,9 @@
             "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/rules",
             "description": "Active AI rules",
             "auth_required": true,
-            "status_code": 500,
-            "result": "server_error",
-            "response_preview": "",
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"rules\": [\n            {\n                \"id\": 8,\n                \"rule_name\": \"Duplicate Amendment Detection\",\n                \"rule_type\": \"fraud\",\n                \"description\": \"Flag potential duplicate submissions\",\n                \"conditions_json\": \"{\\\"duplicate_window_hours\\\": 24}\",\n                \"threshold_value\": \"24.00\",\n                \"threshold_type\": \"hours\",\n                \"auto_approve\": 0,\n               ",
             "error": null
         },
         {
@@ -104,9 +104,9 @@
             "url": "https:\/\/staff.vapeshed.co.nz\/modules\/human_resources\/payroll\/?api=automation\/stats",
             "description": "Automation statistics",
             "auth_required": true,
-            "status_code": 500,
-            "result": "server_error",
-            "response_preview": "",
+            "status_code": 200,
+            "result": "success",
+            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"period\": \"week\",\n        \"overall\": {\n            \"total_decisions\": 0,\n            \"auto_approved\": 0,\n            \"auto_declined\": 0,\n            \"manual_review\": 0,\n            \"escalated\": 0,\n            \"avg_confidence\": 0,\n            \"avg_processing_seconds\": 0\n        },\n        \"top_rules\": [],\n        \"timestamp\": \"2025-11-06 07:16:35\",\n        \"note\": \"No data available or tables empty\"\n    },\n    \"request_id\": \"r",
             "error": null
         },
         {
@@ -128,7 +128,7 @@
             "auth_required": true,
             "status_code": 401,
             "result": "auth_required",
-            "response_preview": "{\n    \"success\": false,\n    \"error\": {\n        \"message\": \"Unauthorized\",\n        \"details\": [],\n        \"code\": 401\n    },\n    \"request_id\": \"req_690b865e43be20.18842827\",\n    \"timestamp\": \"2025-11-06 06:16:14\"\n}",
+            "response_preview": "{\n    \"success\": false,\n    \"error\": {\n        \"message\": \"Unauthorized\",\n        \"details\": [],\n        \"code\": 401\n    },\n    \"request_id\": \"req_690b94844e1c59.48510512\",\n    \"timestamp\": \"2025-11-06 07:16:36\"\n}",
             "error": null
         },
         {
@@ -139,7 +139,7 @@
             "auth_required": true,
             "status_code": 200,
             "result": "success",
-            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"history\": [],\n        \"count\": 0\n    },\n    \"request_id\": \"req_690b865e49e347.53714310\",\n    \"timestamp\": \"2025-11-06 06:16:14\"\n}",
+            "response_preview": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"history\": [],\n        \"count\": 0\n    },\n    \"request_id\": \"req_690b948454e338.60021156\",\n    \"timestamp\": \"2025-11-06 07:16:36\"\n}",
             "error": null
         },
         {
@@ -150,7 +150,7 @@
             "auth_required": true,
             "status_code": 401,
             "result": "auth_required",
-            "response_preview": "{\n    \"success\": false,\n    \"error\": {\n        \"message\": \"Unauthorized\",\n        \"details\": [],\n        \"code\": 401\n    },\n    \"request_id\": \"req_690b865e501663.41080245\",\n    \"timestamp\": \"2025-11-06 06:16:14\"\n}",
+            "response_preview": "{\n    \"success\": false,\n    \"error\": {\n        \"message\": \"Unauthorized\",\n        \"details\": [],\n        \"code\": 401\n    },\n    \"request_id\": \"req_690b94845b8f33.35809084\",\n    \"timestamp\": \"2025-11-06 07:16:36\"\n}",
             "error": null
         },
         {

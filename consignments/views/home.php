@@ -1,7 +1,6 @@
 <?php
 /**
  * Consignments Module - Home Page
- *
  * Central hub for all consignment operations
  *
  * @package CIS\Consignments
@@ -10,12 +9,8 @@
 
 declare(strict_types=1);
 
-// Page metadata
-$pageTitle = 'Consignments Management';
-$breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'active' => true]
-];
+// Load CIS Template
+require_once __DIR__ . '/../lib/CISTemplate.php';
 
 // Get database connection
 $pdo = CIS\Base\Database::pdo();
@@ -38,174 +33,235 @@ try {
     $stats = ['active_transfers' => 0, 'completed_today' => 0, 'pending_receive' => 0, 'active_pos' => 0];
 }
 
-// Start output buffering
-ob_start();
+// Initialize template
+$template = new CISTemplate();
+$template->setTitle('Consignments Management');
+$template->setBreadcrumbs([
+    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'active' => true]
+]);
+
+// Start content capture
+$template->startContent();
 ?>
 
-<style>
-.consignments-home { max-width: 1400px; margin: 0 auto; }
-.page-header-box { background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-.page-header-box h1 { font-size: 24px; font-weight: 600; color: #333; margin: 0 0 8px 0; }
-.page-header-box p { color: #6c757d; margin: 0; font-size: 14px; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.stat-card { background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 18px; border-left: 3px solid #007bff; }
-.stat-card.success { border-left-color: #28a745; }
-.stat-card.warning { border-left-color: #ffc107; }
-.stat-card.info { border-left-color: #17a2b8; }
-.stat-value { font-size: 32px; font-weight: 700; color: #333; margin: 8px 0; }
-.stat-label { font-size: 12px; color: #6c757d; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
-.quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.action-card { background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 20px; text-decoration: none; color: inherit; display: block; transition: all 0.2s; }
-.action-card:hover { border-color: #007bff; box-shadow: 0 2px 8px rgba(0,123,255,0.15); text-decoration: none; transform: translateY(-2px); }
-.action-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #333; }
-.action-card p { font-size: 13px; color: #6c757d; margin-bottom: 12px; line-height: 1.5; }
-.action-badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; background: #e9ecef; color: #495057; }
-.section-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #dee2e6; }
-.links-section { background: #fff; border: 1px solid #dee2e6; border-radius: 6px; padding: 20px; margin-bottom: 20px; }
-.link-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; transition: background 0.2s; }
-.link-item:hover { background: #f8f9fa; text-decoration: none; }
-.link-item:last-child { border-bottom: none; }
-.link-icon { width: 36px; height: 36px; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 16px; background: #f8f9fa; color: #495057; }
-.link-title { font-weight: 600; color: #333; font-size: 14px; margin-bottom: 2px; }
-.link-desc { font-size: 12px; color: #6c757d; }
-</style>
 
-<div class="consignments-home">
-    <div class="page-header-box">
-        <h1><i class="fas fa-boxes me-2"></i>Consignments Management</h1>
-        <p>Central hub for all consignment operations, transfers, and inventory management</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-arrow-left-right me-1"></i>Active Transfers</div>
-            <div class="stat-value"><?= number_format($stats['active_transfers']) ?></div>
-        </div>
-        <div class="stat-card success">
-            <div class="stat-label"><i class="fas fa-check-circle me-1"></i>Completed Today</div>
-            <div class="stat-value"><?= number_format($stats['completed_today']) ?></div>
-        </div>
-        <div class="stat-card warning">
-            <div class="stat-label"><i class="fas fa-clock me-1"></i>Pending Receive</div>
-            <div class="stat-value"><?= number_format($stats['pending_receive']) ?></div>
-        </div>
-        <div class="stat-card info">
-            <div class="stat-label"><i class="fas fa-cart-shopping me-1"></i>Active Purchase Orders</div>
-            <div class="stat-value"><?= number_format($stats['active_pos']) ?></div>
-        </div>
-    </div>
-
-    <div class="section-title"><i class="fas fa-bolt me-2"></i>Quick Actions</div>
-
-    <div class="quick-actions-grid">
-        <a href="/modules/consignments/?route=transfer-manager" class="action-card">
-            <h3><i class="fas fa-arrow-left-right me-2"></i>Transfer Manager</h3>
-            <p>Manage stock transfers, create new consignments, and track shipments between outlets.</p>
-            <span class="action-badge">Most Used</span>
-        </a>
-        <a href="/modules/consignments/?route=purchase-orders" class="action-card">
-            <h3><i class="fas fa-cart-plus me-2"></i>Purchase Orders</h3>
-            <p>View and manage purchase orders, supplier shipments, and incoming inventory.</p>
-            <span class="action-badge">Active</span>
-        </a>
-        <a href="/modules/consignments/?route=stock-transfers" class="action-card">
-            <h3><i class="fas fa-box me-2"></i>Stock Transfers</h3>
-            <p>Browse all stock transfer history, search transfers, and view detailed reports.</p>
-            <span class="action-badge">View All</span>
-        </a>
-        <a href="/modules/consignments/analytics/" class="action-card">
-            <h3><i class="fas fa-chart-line me-2"></i>Analytics Dashboard</h3>
-            <p>Performance tracking, leaderboards, achievements, and security monitoring.</p>
-            <span class="action-badge">Analytics</span>
-        </a>
-        <a href="/modules/consignments/?route=freight" class="action-card">
-            <h3><i class="fas fa-truck me-2"></i>Freight Management</h3>
-            <p>Track freight shipments, manage carriers, and view delivery schedules.</p>
-            <span class="action-badge">Logistics</span>
-        </a>
-        <a href="/modules/consignments/?route=control-panel" class="action-card">
-            <h3><i class="fas fa-gauge me-2"></i>Control Panel</h3>
-            <p>System monitoring, queue status, admin controls, and configuration settings.</p>
-            <span class="action-badge">Admin</span>
-        </a>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="links-section">
-                <div class="section-title"><i class="fas fa-chart-bar me-2"></i>Analytics & Performance</div>
-                <a href="/modules/consignments/analytics/performance-dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                    <div>
-                        <div class="link-title">Performance Dashboard</div>
-                        <div class="link-desc">Track scanning stats, achievements, and personal bests</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/analytics/leaderboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-trophy"></i></div>
-                    <div>
-                        <div class="link-title">Leaderboard Rankings</div>
-                        <div class="link-desc">See how you rank against colleagues</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/analytics/security-dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-shield-alt"></i></div>
-                    <div>
-                        <div class="link-title">Security Dashboard</div>
-                        <div class="link-desc">Monitor suspicious scans and fraud alerts</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/analytics/" class="link-item">
-                    <div class="link-icon"><i class="fas fa-vial"></i></div>
-                    <div>
-                        <div class="link-title">Testing Tools</div>
-                        <div class="link-desc">Access system testing and health checks</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="links-section">
-                <div class="section-title"><i class="fas fa-tools me-2"></i>System Tools</div>
-                <a href="/modules/consignments/?route=queue-status" class="link-item">
-                    <div class="link-icon"><i class="fas fa-tasks"></i></div>
-                    <div>
-                        <div class="link-title">Queue Status</div>
-                        <div class="link-desc">Monitor background jobs and queue workers</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/?route=admin-controls" class="link-item">
-                    <div class="link-icon"><i class="fas fa-cog"></i></div>
-                    <div>
-                        <div class="link-title">Admin Controls</div>
-                        <div class="link-desc">System configuration and settings</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/?route=ai-insights" class="link-item">
-                    <div class="link-icon"><i class="fas fa-brain"></i></div>
-                    <div>
-                        <div class="link-title">AI Insights</div>
-                        <div class="link-desc">AI-powered recommendations and analytics</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/purchase-orders/approvals/dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-check-square"></i></div>
-                    <div>
-                        <div class="link-title">PO Approvals</div>
-                        <div class="link-desc">Review and approve purchase orders</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="text-center mt-4 mb-4" style="color: #6c757d; font-size: 13px;">
-        <p class="mb-1"><i class="fas fa-info-circle me-1"></i>Consignments Module v3.0.0 | Last Updated: November 2025</p>
-        <p class="mb-0">For support, contact IT Department</p>
+<!-- Page Header -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="mb-2"><i class="fas fa-boxes mr-2"></i>Consignments Management</h2>
+        <p class="text-muted mb-0">Central hub for all consignment operations, transfers, and inventory management</p>
     </div>
 </div>
 
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-left-primary shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Transfers</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800"><?= number_format($stats['active_transfers']) ?></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-left-success shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Completed Today</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800"><?= number_format($stats['completed_today']) ?></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-left-warning shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Receive</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800"><?= number_format($stats['pending_receive']) ?></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-left-info shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Purchase Orders</div>
+                <div class="h3 mb-0 font-weight-bold text-gray-800"><?= number_format($stats['active_pos']) ?></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Section -->
+<h4 class="mb-3"><i class="fas fa-bolt mr-2"></i>Quick Actions</h4>
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-arrow-left-right mr-2 text-primary"></i>Transfer Manager</h5>
+                <p class="card-text">Manage stock transfers, create new consignments, and track shipments between outlets.</p>
+                <a href="/modules/consignments/?route=transfer-manager" class="btn btn-primary btn-sm">Open Manager</a>
+                <span class="badge badge-info ml-2">Most Used</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-cart-plus mr-2 text-success"></i>Purchase Orders</h5>
+                <p class="card-text">View and manage purchase orders, supplier shipments, and incoming inventory.</p>
+                <a href="/modules/consignments/?route=purchase-orders" class="btn btn-success btn-sm">View POs</a>
+                <span class="badge badge-success ml-2">Active</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-box mr-2 text-info"></i>Stock Transfers</h5>
+                <p class="card-text">Browse all stock transfer history, search transfers, and view detailed reports.</p>
+                <a href="/modules/consignments/?route=stock-transfers" class="btn btn-info btn-sm">View All</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-chart-line mr-2 text-warning"></i>Analytics Dashboard</h5>
+                <p class="card-text">Performance tracking, leaderboards, achievements, and security monitoring.</p>
+                <a href="/modules/consignments/analytics/" class="btn btn-warning btn-sm">View Analytics</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-truck mr-2 text-secondary"></i>Freight Management</h5>
+                <p class="card-text">Track freight shipments, manage carriers, and view delivery schedules.</p>
+                <a href="/modules/consignments/?route=freight" class="btn btn-secondary btn-sm">Manage Freight</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 hover-shadow">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-gauge mr-2 text-dark"></i>Control Panel</h5>
+                <p class="card-text">System monitoring, queue status, admin controls, and configuration settings.</p>
+                <a href="/modules/consignments/?route=control-panel" class="btn btn-dark btn-sm">Open Panel</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Tools Section -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar mr-2"></i>Analytics & Performance</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/modules/consignments/analytics/performance-dashboard.php" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-tachometer-alt text-primary mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">Performance Dashboard</h6>
+                            <small class="text-muted">Track scanning stats, achievements, and personal bests</small>
+                        </div>
+                    </div>
+                </a>
+                <a href="/modules/consignments/analytics/leaderboard.php" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-trophy text-warning mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">Leaderboard Rankings</h6>
+                            <small class="text-muted">See how you rank against colleagues</small>
+                        </div>
+                    </div>
+                </a>
+                <a href="/modules/consignments/analytics/security-dashboard.php" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-shield-alt text-danger mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">Security Dashboard</h6>
+                            <small class="text-muted">Monitor suspicious scans and fraud alerts</small>
+                        </div>
+                    </div>
+                </a>
+                <a href="/modules/consignments/analytics/" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-vial text-info mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">Testing Tools</h6>
+                            <small class="text-muted">Access system testing and health checks</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-tools mr-2"></i>System Tools</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/modules/consignments/?route=queue-status" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-tasks text-secondary mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">Queue Status</h6>
+                            <small class="text-muted">Monitor background jobs and queue workers</small>
+                        </div>
+                    </div>
+                </a>
+                <a href="/modules/consignments/?route=admin-controls" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-cog text-secondary mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">Admin Controls</h6>
+                            <small class="text-muted">System configuration and settings</small>
+                        </div>
+                    </div>
+                </a>
+                <a href="/modules/consignments/?route=ai-insights" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-brain text-primary mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">AI Insights</h6>
+                            <small class="text-muted">AI-powered recommendations and analytics</small>
+                        </div>
+                    </div>
+                </a>
+                <a href="/modules/consignments/purchase-orders/approvals/dashboard.php" class="list-group-item list-group-item-action">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-square text-success mr-3 fa-lg"></i>
+                        <div>
+                            <h6 class="mb-0">PO Approvals</h6>
+                            <small class="text-muted">Review and approve purchase orders</small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer Info -->
+<div class="alert alert-light text-center mt-4">
+    <p class="mb-1"><i class="fas fa-info-circle mr-1"></i><strong>Consignments Module v3.0.0</strong> | Last Updated: November 2025</p>
+    <p class="mb-0 text-muted small">For support, contact IT Department</p>
+</div>
+
+<style>
+.border-left-primary { border-left: 4px solid #007bff !important; }
+.border-left-success { border-left: 4px solid #28a745 !important; }
+.border-left-warning { border-left: 4px solid #ffc107 !important; }
+.border-left-info { border-left: 4px solid #17a2b8 !important; }
+.hover-shadow { transition: all 0.3s ease; }
+.hover-shadow:hover { box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important; transform: translateY(-2px); }
+</style>
+
 <?php
-$content = ob_get_clean();
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard-modern.php';
+// End content capture and render
+$template->endContent();
+$template->render();

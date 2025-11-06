@@ -45,9 +45,9 @@ try {
         if (!is_numeric($transactionId)) continue;
 
         try {
-            $transaction = $transactionModel->findById((int)$transactionId);
+            $transaction = $transactionModel->find((int)$transactionId);
             if ($transaction && $transaction['status'] !== 'matched') {
-                $transactionModel->updateStatus((int)$transactionId, 'review', null, null, 0, 'MANUAL');
+                $transactionModel->updateStatus((int)$transactionId, 'review', ['matched_by' => 'MANUAL']);
                 $updated++;
             }
         } catch (Exception $e) {

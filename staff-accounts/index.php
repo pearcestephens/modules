@@ -1,10 +1,10 @@
 <?php
 /**
  * Staff Accounts - Management Dashboard
- * 
+ *
  * Comprehensive overview of all staff accounts, statistics, and system health
  * Management view with account summaries, payment tracking, and quick actions
- * 
+ *
  * @package CIS\Modules\StaffAccounts
  * @version 3.0.0
  */
@@ -29,7 +29,7 @@ $pdo = cis_resolve_pdo();
 
 // Get all staff accounts with balances
 $stmt = $pdo->query("
-    SELECT 
+    SELECT
         u.id,
         vu.username,
         u.email,
@@ -56,7 +56,7 @@ $average_balance = $accounts_with_balance > 0 ? $total_outstanding / $accounts_w
 
 // Get recent payments (last 30 days)
 $stmt = $pdo->query("
-    SELECT 
+    SELECT
         sp.id,
         sp.amount,
         sp.payment_date,
@@ -77,7 +77,7 @@ $recent_payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get payment statistics (last 30 days)
 $stmt = $pdo->query("
-    SELECT 
+    SELECT
         COUNT(*) as payment_count,
         SUM(sp.amount) as total_amount,
         AVG(sp.amount) as average_amount,
@@ -97,8 +97,8 @@ $total_payments_30d = array_sum(array_column($payment_stats, 'total_amount'));
 $payment_count_30d = array_sum(array_column($payment_stats, 'payment_count'));
 
 // Get accounts needing attention (balance > $500)
-$high_balance_accounts = array_filter($staff_accounts, function($a) { 
-    return $a['vend_balance'] > 500; 
+$high_balance_accounts = array_filter($staff_accounts, function($a) {
+    return $a['vend_balance'] > 500;
 });
 
 // Get unmapped employees (no vend_customer_account set)
@@ -225,6 +225,29 @@ ob_start();
         </div>
     </div>
 
+    <!-- PROMINENT ACTION BUTTON -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1" style="color: white; font-weight: bold;">
+                            <i class="fas fa-clipboard-list me-2"></i>PAYMENTS TO BE APPLIED
+                        </h4>
+                        <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                            View payroll deductions and apply pending payments to staff accounts
+                        </p>
+                    </div>
+                    <div>
+                        <a href="views/apply-payments.php" class="btn btn-light btn-lg" style="font-size: 18px; font-weight: bold; padding: 15px 30px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                            <i class="fas fa-arrow-right me-2"></i>GO TO PAYMENTS
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- High Balance Accounts -->
         <div class="col-md-6 mb-4">
@@ -261,7 +284,7 @@ ob_start();
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <a href="views/my-account.php?user_id=<?php echo $account['id']; ?>" 
+                                        <a href="views/my-account.php?user_id=<?php echo $account['id']; ?>"
                                            class="btn btn-sm btn-outline-primary" title="View Account">
                                             <i class="fas fa-eye"></i>
                                         </a>
@@ -319,7 +342,7 @@ ob_start();
                                         </span>
                                     </td>
                                     <td>
-                                        <?php 
+                                        <?php
                                         $status_class = $payment['status'] === 'completed' ? 'success' : 'warning';
                                         ?>
                                         <span class="badge badge-<?php echo $status_class; ?>">
@@ -396,7 +419,7 @@ ob_start();
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-right">
-                                        <?php 
+                                        <?php
                                         $balance = floatval($account['vend_balance']);
                                         if ($balance > 500):
                                             $badge_class = 'danger';
@@ -426,12 +449,12 @@ ob_start();
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="views/my-account.php?user_id=<?php echo $account['id']; ?>" 
+                                            <a href="views/my-account.php?user_id=<?php echo $account['id']; ?>"
                                                class="btn btn-outline-primary" title="View Account">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <?php if ($balance > 0): ?>
-                                            <a href="views/make-payment.php?user_id=<?php echo $account['id']; ?>" 
+                                            <a href="views/make-payment.php?user_id=<?php echo $account['id']; ?>"
                                                class="btn btn-outline-success" title="Make Payment">
                                                 <i class="fas fa-credit-card"></i>
                                             </a>
@@ -457,6 +480,9 @@ ob_start();
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
+                        <a href="views/apply-payments.php" class="list-group-item list-group-item-action" style="background: #d4edda; border-left: 4px solid #28a745; font-weight: bold;">
+                            <i class="fas fa-clipboard-list text-success"></i> 🎯 PAYMENTS TO BE APPLIED
+                        </a>
                         <a href="views/make-payment.php" class="list-group-item list-group-item-action">
                             <i class="fas fa-credit-card text-success"></i> Process Payment
                         </a>
@@ -501,7 +527,7 @@ ob_start();
                                         </span>
                                     </td>
                                     <td>
-                                        <?php 
+                                        <?php
                                         $status_class = $stat['status'] === 'completed' ? 'success' : 'warning';
                                         ?>
                                         <span class="badge badge-<?php echo $status_class; ?>">
@@ -527,8 +553,11 @@ ob_start();
 
 <?php
 // Capture output
-$page_content = ob_get_clean();
+$content = ob_get_clean();
 
-// Load CIS base layout
-require_once ROOT_PATH . '/assets/template/base-layout.php';
+// Set page title
+$pageTitle = 'Staff Accounts Management Dashboard';
+
+// Load modern CIS dashboard template (same as consignments)
+require_once dirname(__DIR__) . '/base/_templates/layouts/dashboard-modern.php';
 ?>

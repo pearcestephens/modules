@@ -1,0 +1,233 @@
+/* ============================================================================
+   MODERN SIDEBAR - Thin, Clean, Icon-First Design
+   ============================================================================ */
+
+.cis-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: var(--cis-sidebar-width);
+    height: 100vh;
+    background: var(--cis-sidebar-bg);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+body.sidebar-collapsed .cis-sidebar {
+    width: var(--cis-sidebar-collapsed-width);
+}
+
+.sidebar-brand {
+    height: var(--cis-header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    text-decoration: none;
+    color: white;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+body.sidebar-collapsed .sidebar-brand-text {
+    opacity: 0;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.75rem 0;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+}
+
+.nav-section-title {
+    padding: 1rem 1.25rem 0.5rem;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: opacity 0.3s;
+}
+
+body.sidebar-collapsed .nav-section-title {
+    opacity: 0;
+}
+
+.nav-item {
+    margin: 2px 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.625rem 0.75rem;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.nav-link:hover {
+    background: var(--cis-sidebar-hover);
+    color: white;
+}
+
+.nav-link.active {
+    background: var(--cis-primary);
+    color: white;
+}
+
+.nav-link-icon {
+    width: 20px;
+    font-size: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.nav-link-text {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex: 1;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+body.sidebar-collapsed .nav-link-text {
+    opacity: 0;
+}
+
+.nav-link-arrow {
+    font-size: 10px;
+    transition: transform 0.2s, opacity 0.3s;
+    flex-shrink: 0;
+}
+
+body.sidebar-collapsed .nav-link-arrow {
+    opacity: 0;
+}
+
+.nav-item.open .nav-link-arrow {
+    transform: rotate(180deg);
+}
+
+.nav-submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.nav-item.open .nav-submenu {
+    max-height: 500px;
+}
+
+body.sidebar-collapsed .nav-submenu {
+    display: none;
+}
+
+.nav-submenu a {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem 0.5rem 2.75rem;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    font-size: 12px;
+    border-radius: 6px;
+    margin: 2px 0.5rem;
+    transition: all 0.2s;
+}
+
+.nav-submenu a:hover {
+    background: var(--cis-sidebar-hover);
+    color: white;
+}
+
+.nav-submenu a.active {
+    color: var(--cis-primary);
+}
+
+.sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.sidebar-footer-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    white-space: nowrap;
+    transition: opacity 0.3s;
+}
+
+body.sidebar-collapsed .sidebar-footer-text {
+    opacity: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .cis-sidebar {
+        transform: translateX(-100%);
+    }
+
+    body.sidebar-open .cis-sidebar {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}

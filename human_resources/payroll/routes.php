@@ -596,4 +596,178 @@ return [
         'description' => 'Compare CIS vs Xero for specific run'
     ],
 
+    // ========================================
+    // VEND CONSIGNMENT MANAGEMENT API
+    // ========================================
+
+    // CONSIGNMENT CRUD OPERATIONS
+    'POST /api/vend/consignments/create' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'create',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Create new Vend consignment'
+    ],
+
+    'GET /api/vend/consignments/:id' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'get',
+        'auth' => true,
+        'permission' => 'payroll.view_consignments',
+        'description' => 'Get consignment details with products'
+    ],
+
+    'GET /api/vend/consignments/list' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'listConsignments',
+        'auth' => true,
+        'permission' => 'payroll.view_consignments',
+        'description' => 'List consignments with filters (type, status, outlet)'
+    ],
+
+    'PUT /api/vend/consignments/:id' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'update',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Update consignment details (name, due_at, reference)'
+    ],
+
+    'PATCH /api/vend/consignments/:id/status' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'updateStatus',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Update consignment status (OPEN, SENT, RECEIVED, etc.)'
+    ],
+
+    'DELETE /api/vend/consignments/:id' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'delete',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Delete consignment'
+    ],
+
+    // CONSIGNMENT PRODUCT MANAGEMENT
+    'POST /api/vend/consignments/:id/products' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'addProduct',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Add product to consignment'
+    ],
+
+    'GET /api/vend/consignments/:id/products' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'listProducts',
+        'auth' => true,
+        'permission' => 'payroll.view_consignments',
+        'description' => 'List all products in consignment'
+    ],
+
+    'PUT /api/vend/consignments/:id/products/:pid' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'updateProduct',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Update product in consignment (count, cost, received)'
+    ],
+
+    'DELETE /api/vend/consignments/:id/products/:pid' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'deleteProduct',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Remove product from consignment'
+    ],
+
+    'POST /api/vend/consignments/:id/products/bulk' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'bulkAddProducts',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Bulk add products to consignment'
+    ],
+
+    // SYNC OPERATIONS
+    'POST /api/vend/consignments/:id/sync' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'sync',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Sync consignment to Lightspeed (async by default)'
+    ],
+
+    'GET /api/vend/consignments/:id/sync/status' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'syncStatus',
+        'auth' => true,
+        'permission' => 'payroll.view_consignments',
+        'description' => 'Get sync status for consignment'
+    ],
+
+    'POST /api/vend/consignments/:id/sync/retry' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'syncRetry',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Retry failed sync operation'
+    ],
+
+    // WORKFLOW OPERATIONS
+    'POST /api/vend/consignments/:id/send' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'send',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Send consignment (mark as SENT)'
+    ],
+
+    'POST /api/vend/consignments/:id/receive' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'receive',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Receive consignment with quantities'
+    ],
+
+    'POST /api/vend/consignments/:id/cancel' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'cancel',
+        'auth' => true,
+        'csrf' => true,
+        'permission' => 'payroll.manage_consignments',
+        'description' => 'Cancel consignment'
+    ],
+
+    // REPORTING
+    'GET /api/vend/consignments/statistics' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'statistics',
+        'auth' => true,
+        'permission' => 'payroll.view_consignments',
+        'description' => 'Get consignment statistics (totals by status, period)'
+    ],
+
+    'GET /api/vend/consignments/sync-history' => [
+        'controller' => 'VendConsignmentController',
+        'action' => 'syncHistory',
+        'auth' => true,
+        'permission' => 'payroll.view_consignments',
+        'description' => 'Get sync history with logs (limit 200)'
+    ],
+
 ];

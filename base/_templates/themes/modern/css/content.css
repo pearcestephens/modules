@@ -1,0 +1,34 @@
+/* ============================================================================
+   MAIN CONTENT AREA
+   ============================================================================ */
+
+.cis-main {
+    margin-left: var(--cis-sidebar-width);
+    margin-top: var(--cis-header-height);
+    min-height: calc(100vh - var(--cis-header-height));
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-collapsed .cis-main {
+    margin-left: var(--cis-sidebar-collapsed-width);
+}
+
+.cis-content {
+    padding: 1.5rem;
+}
+
+.cis-footer {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--cis-text-light);
+    font-size: 13px;
+    border-top: 1px solid var(--cis-border);
+    background: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .cis-main {
+        margin-left: 0 !important;
+    }
+}

@@ -1,0 +1,120 @@
+
+================================================================================
+[36mCOMPREHENSIVE PAYROLL MODULE TEST SUITE[0m
+================================================================================
+Started: 2025-11-06 07:31:08
+Base URL: https://staff.vapeshed.co.nz/modules/human_resources/payroll/
+
+[34mAPI ENDPOINT TESTS[0m
+--------------------------------------------------------------------------------
+[32m✓[0m GET    /health/                                           - 200 (expected 200) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Response missing standard fields (success/data/error)
+[0m[32m✓[0m GET    /payroll/dashboard                                 - 200 (expected 200) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - 7 potentially broken resource links
+[0m[32m✓[0m GET    /api/payroll/dashboard/data                        - 200 (expected 200) [22ms]
+[32m✓[0m GET    /api/payroll/amendments/pending                    - 200 (expected 200) [22ms]
+[32m✓[0m GET    /api/payroll/amendments/history                    - 400 (expected 400/200) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: {"message":"staff_id parameter is required","details":[],"code":400}
+[0m[32m✓[0m POST   /api/payroll/amendments/create                     - 403 (expected 401/403/422) [24ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m POST   /api/payroll/amendments/1/approve                  - 403 (expected 401/403/404) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m POST   /api/payroll/amendments/1/decline                  - 403 (expected 401/403/404) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m GET    /api/payroll/automation/dashboard                  - 200 (expected 200) [26ms]
+[32m✓[0m GET    /api/payroll/automation/reviews/pending            - 200 (expected 200) [24ms]
+[32m✓[0m GET    /api/payroll/automation/rules                      - 200 (expected 200) [24ms]
+[32m✓[0m GET    /api/payroll/automation/stats                      - 200 (expected 200) [28ms]
+[32m✓[0m POST   /api/payroll/automation/process                    - 403 (expected 401/403/422) [21ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m GET    /api/payroll/xero/oauth/authorize                  - 200 (expected 200) [598ms]
+[33m  ⚠ Warnings:
+[0m[33m    - 5 potentially broken resource links
+[0m[32m✓[0m POST   /api/payroll/xero/payrun/create                    - 403 (expected 401/403/422) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m POST   /api/payroll/xero/payments/batch                   - 403 (expected 401/403/422) [24ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m GET    /api/payroll/discrepancies/pending                 - 401 (expected 200/401) [29ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: {"message":"Unauthorized","details":[],"code":401}
+[0m[32m✓[0m GET    /api/payroll/discrepancies/my-history              - 200 (expected 200) [25ms]
+[32m✓[0m GET    /api/payroll/discrepancies/statistics              - 401 (expected 200/401) [28ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: {"message":"Unauthorized","details":[],"code":401}
+[0m[32m✓[0m POST   /api/payroll/discrepancies/submit                  - 403 (expected 401/403/422) [22ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m POST   /api/payroll/discrepancies/1/approve               - 403 (expected 401/403/404) [24ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m POST   /api/payroll/discrepancies/1/decline               - 403 (expected 401/403/404) [23ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m GET    /api/payroll/bonuses/pending                       - 200 (expected 200) [26ms]
+[32m✓[0m GET    /api/payroll/bonuses/history                       - 200 (expected 200) [26ms]
+[32m✓[0m GET    /api/payroll/bonuses/summary                       - 200 (expected 200) [28ms]
+[32m✓[0m GET    /api/payroll/vend-payments/pending                 - 200 (expected 200) [26ms]
+[32m✓[0m GET    /api/payroll/vend-payments/history                 - 200 (expected 200) [25ms]
+[32m✓[0m GET    /api/payroll/vend-payments/statistics              - 200 (expected 200) [23ms]
+[32m✓[0m GET    /api/payroll/leave/pending                         - 200 (expected 200) [23ms]
+[32m✓[0m GET    /api/payroll/leave/history                         - 200 (expected 200) [27ms]
+[32m✓[0m GET    /api/payroll/leave/balances                        - 200 (expected 200) [25ms]
+[32m✓[0m GET    /payroll/payruns                                   - 200 (expected 200) [27ms]
+[33m  ⚠ Warnings:
+[0m[33m    - 10 potentially broken resource links
+[0m[32m✓[0m GET    /api/payroll/payruns/list                          - 200 (expected 200) [26ms]
+[32m✓[0m POST   /api/payroll/payruns/create                        - 403 (expected 401/403/422) [24ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m POST   /api/payroll/payruns/2025-01/approve               - 403 (expected 401/403/404) [26ms]
+[33m  ⚠ Warnings:
+[0m[33m    - Error response: CSRF validation failed
+[0m[32m✓[0m GET    /payroll/reconciliation                            - 200 (expected 200) [26ms]
+[32m✓[0m GET    /api/payroll/reconciliation/dashboard              - 200 (expected 200) [26ms]
+[32m✓[0m GET    /api/payroll/reconciliation/variances              - 200 (expected 200) [24ms]
+
+[34mVIEW PAGE TESTS[0m
+--------------------------------------------------------------------------------
+[32m✓[0m VIEW /payroll/dashboard                            - 200 [21ms]
+[33m  ⚠ Issues found:
+[0m[33m    - 7 potentially broken resource links
+[0m[32m✓[0m VIEW /payroll/payruns                              - 200 [24ms]
+[33m  ⚠ Issues found:
+[0m[33m    - 10 potentially broken resource links
+[0m[32m✓[0m VIEW /payroll/reconciliation                       - 200 [22ms]
+[32m  ✓ HTML structure looks good
+[0m
+[34mPERFORMANCE ANALYSIS[0m
+--------------------------------------------------------------------------------
+Note: Performance metrics collected during endpoint tests
+All response times shown in milliseconds
+
+[34mSECURITY CHECKS[0m
+--------------------------------------------------------------------------------
+✓ HTTPS enforced: Yes
+✓ Auth required on sensitive endpoints: Testing...
+[32m✓[0m Auth protection on /api/payroll/amendments/create: 403
+[32m✓[0m Auth protection on /api/payroll/automation/process: 403
+[32m✓[0m Auth protection on /api/payroll/discrepancies/submit: 403
+
+================================================================================
+[36mTEST SUMMARY[0m
+================================================================================
+Total Tests:  41
+Passed:       [32m41[0m
+Failed:       0
+Warnings:     [33m20[0m
+Pass Rate:    100.0%
+
+[32m🎉 EXCELLENT! Module is performing well![0m
+
+Detailed results saved to: comprehensive-test-results.json

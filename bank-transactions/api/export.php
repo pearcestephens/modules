@@ -42,14 +42,9 @@ try {
 
     // Get all transactions matching filters (no limit)
     $transactions = $transactionModel->findUnmatched(
-        $filters['status'],
-        $filters['type'],
-        $filters['date_from'],
-        $filters['date_to'],
-        $filters['store_id'],
-        $filters['search'],
-        10000,  // Max 10k rows
-        0
+        10000,  // limit: Max 10k rows
+        0,      // offset: Start from beginning
+        $filters // Pass filters as array
     );
 
     // Set headers for CSV download
