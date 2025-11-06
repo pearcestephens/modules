@@ -1,16 +1,16 @@
 <?php
 /**
  * Staff Accounts - Payment Success Page
- * 
+ *
  * Purpose: Display payment confirmation receipt after successful payment
- * 
+ *
  * Features:
  * - Transaction summary with receipt
  * - Downloadable PDF receipt (future)
  * - Return to account link
  * - Print receipt button
  * - High-end professional design
- * 
+ *
  * @package CIS\Modules\StaffAccounts
  * @version 2.0.0
  */
@@ -34,7 +34,7 @@ if (empty($transaction_id)) {
 // CHECK TABLE: staff_payment_transactions - Fetch transaction details
 // VERIFIED: staff_payment_transactions columns = id, user_id, transaction_type, amount, request_id, response_data, created_at
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         spt.id,
         spt.user_id,
         spt.amount,
@@ -83,7 +83,7 @@ ob_start();
                 <h1>Payment Successful!</h1>
                 <p>Your payment has been processed securely</p>
             </div>
-            
+
             <!-- Receipt Body -->
             <div class="receipt-body">
                 <!-- Amount Section -->
@@ -91,11 +91,11 @@ ob_start();
                     <div class="amount-label">Amount Paid</div>
                     <div class="amount-value">$<?= number_format($transaction['amount'], 2) ?></div>
                 </div>
-                
+
                 <!-- Transaction Details -->
                 <div class="receipt-section">
                     <h3 class="receipt-section-title">Transaction Details</h3>
-                    
+
                     <table class="transaction-table">
                         <tr>
                             <td>Request ID</td>
@@ -115,11 +115,11 @@ ob_start();
                         </tr>
                     </table>
                 </div>
-                
+
                 <!-- Account Information -->
                 <div class="receipt-section">
                     <h3 class="receipt-section-title">Account Information</h3>
-                    
+
                     <div class="receipt-info-grid">
                         <div class="receipt-info-item">
                             <div class="receipt-info-label">Account Holder</div>
@@ -127,21 +127,21 @@ ob_start();
                                 <?= htmlspecialchars($transaction['employee_name'] ?? ($transaction['first_name'] . ' ' . $transaction['last_name'])) ?>
                             </div>
                         </div>
-                        
+
                         <div class="receipt-info-item">
                             <div class="receipt-info-label">Email</div>
                             <div class="receipt-info-value">
                                 <?= htmlspecialchars($transaction['email']) ?>
                             </div>
                         </div>
-                        
+
                         <div class="receipt-info-item">
                             <div class="receipt-info-label">Current Balance</div>
                             <div class="receipt-info-value large">
                                 $<?= number_format(abs($transaction['current_balance'] ?? 0), 2) ?>
                             </div>
                         </div>
-                        
+
                         <div class="receipt-info-item">
                             <div class="receipt-info-label">Vend Account</div>
                             <div class="receipt-info-value">
@@ -150,15 +150,15 @@ ob_start();
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Success Message -->
                 <div style="background: rgba(39, 174, 96, 0.1); border-left: 4px solid var(--success-color); padding: 16px; border-radius: 8px; margin: 24px 0;">
                     <p style="margin: 0; color: var(--success-color); font-weight: 600;">
-                        <i class="fas fa-info-circle"></i> 
+                        <i class="fas fa-info-circle"></i>
                         Your payment has been applied to your Vend account. Your updated balance will be reflected in your next statement.
                     </p>
                 </div>
-                
+
                 <!-- Action Buttons -->
                 <div class="receipt-actions">
                     <a href="my-account.php" class="btn-receipt btn-receipt-primary">
@@ -170,7 +170,7 @@ ob_start();
                 </div>
             </div>
         </div>
-        
+
         <!-- Support Info -->
         <div style="text-align: center; color: white; margin-top: 24px; opacity: 0.9;">
             <p style="margin: 0 0 8px 0;">
@@ -183,10 +183,6 @@ ob_start();
         </div> <!-- /receipt-container -->
     </div> <!-- /receipt-wrapper -->
 </div> <!-- /container-fluid.staff-accounts -->
-    
-    <!-- jQuery + Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.bundle.min.js"></script>
 
 <?php
 $page_content = ob_get_clean();

@@ -1,9 +1,9 @@
 <?php
 /**
  * Staff Accounts - Make Payment View
- * 
+ *
  * Purpose: Payment processing interface for staff to pay down account balances
- * 
+ *
  * Features:
  * - Amount input with balance validation
  * - Payment method selection (credit card, saved cards, bank transfer)
@@ -11,12 +11,12 @@
  * - Real-time validation
  * - Confirmation flow with receipt
  * - High-end professional CSS
- * 
+ *
  * Database Tables:
  * - staff_payment_transactions (records payments)
  * - staff_saved_cards (stored payment methods)
  * - staff_account_reconciliation (updates balance)
- * 
+ *
  * @package CIS\Modules\StaffAccounts
  * @version 2.0.0
  */
@@ -31,7 +31,7 @@ $user_id = $_SESSION['userID'];
 
 // STEP 1: CHECK TABLE - Fetch account details from staff_account_reconciliation
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         sar.id,
         sar.user_id,
         sar.vend_customer_id,
@@ -69,7 +69,7 @@ $can_make_payment = $vend_balance < 0 && $amount_owed >= 10;
 // STEP 2: CHECK TABLE - Fetch saved payment methods from staff_saved_cards
 // NOTE: cardholder_name column removed - not in schema
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         id,
         card_type,
         last_four_digits,
@@ -86,7 +86,7 @@ $saved_cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Get recent payment history for context
 // VERIFIED: staff_payment_transactions columns = id, user_id, transaction_type, amount, request_id, response_data, created_at
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         amount,
         transaction_type,
         created_at
@@ -117,7 +117,7 @@ ob_start();
                 <h1><i class="fas fa-credit-card"></i> Make a Payment</h1>
                 <p>Pay down your staff account balance securely</p>
             </div>
-            
+
             <div class="payment-body">
                 <!-- Balance Display -->
                 <div class="balance-display <?= $vend_balance >= 0 ? 'positive' : '' ?>">
@@ -128,7 +128,7 @@ ob_start();
                         $<?= number_format($amount_owed, 2) ?>
                     </div>
                 </div>
-                
+
                 <?php if (!$can_make_payment): ?>
                     <!-- No Payment Needed Alert -->
                     <div class="alert-custom alert-info">
@@ -139,7 +139,7 @@ ob_start();
                             <strong>Minimum payment not met.</strong> Payments must be at least $10.00
                         <?php endif; ?>
                     </div>
-                    
+
                     <div class="payment-actions">
                         <a href="my-account.php" class="btn-payment btn-payment-secondary">
                             <i class="fas fa-arrow-left"></i> Back to My Account
@@ -151,24 +151,24 @@ ob_start();
                         <!-- CSRF Token -->
                         <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                         <input type="hidden" name="vend_customer_id" value="<?= htmlspecialchars($account['vend_customer_id'] ?? '') ?>">
-                        
+
                         <!-- Amount Section -->
                         <div class="form-section">
                             <h3 class="form-section-title">
                                 <i class="fas fa-dollar-sign"></i> Payment Amount
                             </h3>
-                            
+
                             <div class="amount-input-group">
                                 <div class="amount-input-wrapper">
                                     <span class="currency-symbol">$</span>
-                                    <input 
-                                        type="number" 
-                                        id="paymentAmount" 
-                                        name="amount" 
-                                        class="amount-input" 
-                                        placeholder="0.00" 
-                                        min="10" 
-                                        max="<?= number_format($amount_owed, 2, '.', '') ?>" 
+                                    <input
+                                        type="number"
+                                        id="paymentAmount"
+                                        name="amount"
+                                        class="amount-input"
+                                        placeholder="0.00"
+                                        min="10"
+                                        max="<?= number_format($amount_owed, 2, '.', '') ?>"
                                         step="0.01"
                                         required
                                         autocomplete="off"
@@ -176,7 +176,7 @@ ob_start();
                                 </div>
                                 <div id="amountValidation" class="validation-message" style="display: none;"></div>
                             </div>
-                            
+
                             <!-- Quick Amount Suggestions -->
                             <div class="amount-suggestions">
                                 <div class="amount-suggestion" data-amount="50">$50</div>
@@ -189,23 +189,23 @@ ob_start();
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Payment Method Section -->
                         <div class="form-section">
                             <h3 class="form-section-title">
                                 <i class="fas fa-wallet"></i> Payment Method
                             </h3>
-                            
+
                             <div class="payment-methods">
                                 <!-- Saved Cards -->
                                 <?php if (!empty($saved_cards)): ?>
                                     <?php foreach ($saved_cards as $index => $card): ?>
                                         <label class="payment-method-card <?= $index === 0 ? 'selected' : '' ?>" for="card_<?= $card['id'] ?>">
-                                            <input 
-                                                type="radio" 
-                                                name="payment_method" 
-                                                id="card_<?= $card['id'] ?>" 
-                                                value="saved_card:<?= $card['id'] ?>" 
+                                            <input
+                                                type="radio"
+                                                name="payment_method"
+                                                id="card_<?= $card['id'] ?>"
+                                                value="saved_card:<?= $card['id'] ?>"
                                                 class="payment-method-radio"
                                                 <?= $index === 0 ? 'checked' : '' ?>
                                             >
@@ -228,14 +228,14 @@ ob_start();
                                         </label>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
-                                
+
                                 <!-- New Credit Card -->
                                 <label class="payment-method-card" for="new_card">
-                                    <input 
-                                        type="radio" 
-                                        name="payment_method" 
-                                        id="new_card" 
-                                        value="new_card" 
+                                    <input
+                                        type="radio"
+                                        name="payment_method"
+                                        id="new_card"
+                                        value="new_card"
                                         class="payment-method-radio"
                                         <?= empty($saved_cards) ? 'checked' : '' ?>
                                     >
@@ -249,14 +249,14 @@ ob_start();
                                         </div>
                                     </div>
                                 </label>
-                                
+
                                 <!-- Bank Transfer (Future) -->
                                 <label class="payment-method-card" for="bank_transfer" style="opacity: 0.5; cursor: not-allowed;">
-                                    <input 
-                                        type="radio" 
-                                        name="payment_method" 
-                                        id="bank_transfer" 
-                                        value="bank_transfer" 
+                                    <input
+                                        type="radio"
+                                        name="payment_method"
+                                        id="bank_transfer"
+                                        value="bank_transfer"
                                         class="payment-method-radio"
                                         disabled
                                     >
@@ -272,7 +272,7 @@ ob_start();
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Action Buttons -->
                         <div class="payment-actions">
                             <button type="submit" id="submitBtn" class="btn-payment btn-payment-primary" disabled>
@@ -284,7 +284,7 @@ ob_start();
                         </div>
                     </form>
                 <?php endif; ?>
-                
+
                 <!-- Recent Payments -->
                 <?php if (!empty($recent_payments)): ?>
                     <div class="recent-payments">
@@ -311,34 +311,30 @@ ob_start();
             </div>
         </div>
     </div>
-    
-    <!-- jQuery + Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // ===================================================================
         // PAYMENT FORM JAVASCRIPT - REAL-TIME VALIDATION & INTERACTIONS
         // ===================================================================
-        
+
         $(document).ready(function() {
             const maxAmount = <?= $amount_owed ?>;
             const minAmount = 10;
-            
+
             // Amount Input Validation
             $('#paymentAmount').on('input', function() {
                 const amount = parseFloat($(this).val());
                 const $validation = $('#amountValidation');
                 const $submitBtn = $('#submitBtn');
-                
+
                 $(this).removeClass('error');
                 $validation.hide();
-                
+
                 if (!amount || isNaN(amount)) {
                     $submitBtn.prop('disabled', true);
                     return;
                 }
-                
+
                 if (amount < minAmount) {
                     $(this).addClass('error');
                     $validation
@@ -349,7 +345,7 @@ ob_start();
                     $submitBtn.prop('disabled', true);
                     return;
                 }
-                
+
                 if (amount > maxAmount) {
                     $(this).addClass('error');
                     $validation
@@ -360,7 +356,7 @@ ob_start();
                     $submitBtn.prop('disabled', true);
                     return;
                 }
-                
+
                 // Valid amount
                 $validation
                     .removeClass('validation-error')
@@ -369,34 +365,34 @@ ob_start();
                     .show();
                 $submitBtn.prop('disabled', false);
             });
-            
+
             // Quick Amount Suggestions
             $('.amount-suggestion').on('click', function() {
                 const amount = $(this).data('amount');
                 $('#paymentAmount').val(amount).trigger('input');
-                
+
                 // Visual feedback
                 $('.amount-suggestion').removeClass('active');
                 $(this).addClass('active');
             });
-            
+
             // Payment Method Selection
             $('.payment-method-card').on('click', function() {
                 $('.payment-method-card').removeClass('selected');
                 $(this).addClass('selected');
                 $(this).find('input[type="radio"]').prop('checked', true);
             });
-            
+
             // Form Submission
             $('#paymentForm').on('submit', function(e) {
                 e.preventDefault();
-                
+
                 const $submitBtn = $('#submitBtn');
                 const $form = $(this);
-                
+
                 // Disable submit button and show loading
                 $submitBtn.prop('disabled', true).html('<span class="spinner"></span> Processing...');
-                
+
                 // Submit form via AJAX
                 $.ajax({
                     url: $form.attr('action'),

@@ -1,9 +1,9 @@
 <?php
 /**
  * Staff Accounts - Staff List View (Manager Dashboard)
- * 
+ *
  * Purpose: Browse and manage all staff accounts (manager-only view)
- * 
+ *
  * Features:
  * - Browse all 247 staff accounts with pagination
  * - Search by name/email/vend_customer/xero_employee
@@ -14,18 +14,18 @@
  * - View payment history
  * - Bulk actions
  * - High-end professional design
- * 
+ *
  * Database Tables:
  * - users (browse staff)
  * - staff_account_reconciliation (balances)
  * - cis_staff_vend_map (Xero-Vend mappings)
- * 
+ *
  * @package CIS\Modules\StaffAccounts
  * @version 2.0.0
  */
 
 // Bootstrap the module
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 // Require authentication
 cis_require_login();
@@ -94,7 +94,7 @@ $total_pages = ceil($total_records / $per_page);
 
 // CHECK TABLE: Fetch staff list with reconciliation data
 $sql = "
-    SELECT 
+    SELECT
         u.id,
         u.first_name,
         u.last_name,
@@ -151,7 +151,7 @@ ob_start();
                     </div>
                 </div>
             </div>
-            
+
             <div class="container-fluid">
         <!-- Filter Bar -->
         <div class="filter-bar">
@@ -163,10 +163,10 @@ ob_start();
                             <div class="filter-label">Search</div>
                             <div class="search-container">
                                 <i class="fas fa-search search-icon"></i>
-                                <input 
-                                    type="text" 
-                                    name="search" 
-                                    class="search-input" 
+                                <input
+                                    type="text"
+                                    name="search"
+                                    class="search-input"
                                     placeholder="Name, email, Vend ID, Xero ID..."
                                     value="<?= htmlspecialchars($search) ?>"
                                 >
@@ -174,7 +174,7 @@ ob_start();
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Status Filter -->
                     <div class="col-md-4">
                         <div class="filter-section">
@@ -198,7 +198,7 @@ ob_start();
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Sort Options -->
                     <div class="col-md-4">
                         <div class="filter-section">
@@ -221,12 +221,12 @@ ob_start();
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Keep pagination on filter changes -->
                 <input type="hidden" name="per_page" value="<?= $per_page ?>">
             </form>
         </div>
-        
+
         <!-- Staff Table -->
         <div class="staff-table-container">
             <table class="table">
@@ -302,7 +302,7 @@ ob_start();
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                    
+
                     <?php if (empty($staff_list)): ?>
                         <tr>
                             <td colspan="8" class="text-center" style="padding: 48px;">
@@ -313,14 +313,14 @@ ob_start();
                     <?php endif; ?>
                 </tbody>
             </table>
-            
+
             <!-- Pagination -->
             <?php if ($total_pages > 1): ?>
                 <div class="pagination-container">
                     <div class="pagination-info">
                         Showing <?= number_format($offset + 1) ?>-<?= number_format(min($offset + $per_page, $total_records)) ?> of <?= number_format($total_records) ?> staff members
                     </div>
-                    
+
                     <nav>
                         <ul class="pagination">
                             <!-- Previous -->
@@ -331,13 +331,13 @@ ob_start();
                                     </a>
                                 </li>
                             <?php endif; ?>
-                            
+
                             <!-- Page Numbers -->
                             <?php
                             $page_range = 2;
                             $start_page = max(1, $page - $page_range);
                             $end_page = min($total_pages, $page + $page_range);
-                            
+
                             for ($i = $start_page; $i <= $end_page; $i++): ?>
                                 <li class="page-item <?= $i === $page ? 'active' : '' ?>">
                                     <a class="page-link" href="?page=<?= $i ?>&search=<?= urlencode($search) ?>&status=<?= $filter_status ?>&sort=<?= $sort_by ?>&dir=<?= $sort_dir ?>&per_page=<?= $per_page ?>">
@@ -345,7 +345,7 @@ ob_start();
                                     </a>
                                 </li>
                             <?php endfor; ?>
-                            
+
                             <!-- Next -->
                             <?php if ($page < $total_pages): ?>
                                 <li class="page-item">
@@ -360,17 +360,13 @@ ob_start();
             <?php endif; ?>
         </div>
         </div>
-        
-        <!-- jQuery + Bootstrap JS -->
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.bundle.min.js"></script>
-        
+
         <script>
             function viewAccount(userId) {
                 // Redirect to employee mapping or account details page
                 window.location.href = 'employee-mapping.php?user_id=' + userId;
             }
-            
+
             function editMapping(userId) {
                 // Redirect to mapping edit page
                 window.location.href = 'employee-mapping.php?user_id=' + userId + '&mode=edit';

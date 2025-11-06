@@ -202,6 +202,33 @@ abstract class BaseController
     }
 
     /**
+     * Require admin role (or throw JSON error)
+     *
+     * @return void Throws JSON error if not admin
+     */
+    protected function requireAdmin(): void
+    {
+        if (!$this->requireAuth()) {
+            $this->jsonError('Unauthorized', [], 401);
+            exit;
+        }
+
+        // Check if user has admin role
+        $role = $this->user['role'] ?? '';
+        $isAdmin = in_array($role, ['admin', 'manager', 'superadmin'], true);
+
+        if (!$isAdmin) {
+            $this->logger->warning('Admin access required', [
+                'request_id' => $this->requestId,
+                'user_id' => $this->user['id'] ?? null,
+                'role' => $role
+            ]);
+            $this->jsonError('Admin access required', [], 403);
+            exit;
+        }
+    }
+
+    /**
      * Redirect to login if not authenticated
      *
      * @param string|null $message Optional message to show on login page
@@ -484,6 +511,14 @@ abstract class BaseController
     protected function jsonError(string $message, array $errors = [], int $statusCode = 400): void
     {
         $this->error($message, $errors, $statusCode);
+    }
+
+    /**
+     * Handle errors/exceptions (alias for handleException)
+     */
+    protected function handleError(\Throwable $e): void
+    {
+        $this->handleException($e);
     }
 
     /**

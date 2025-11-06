@@ -62,7 +62,7 @@ try {
     if ($tableCheck->rowCount() === 0) {
         throw new Exception('Smart Cron tables not installed. Please run install.sh first.');
     }
-    
+
     $logger = new SmartCronLogger('/var/log/smart-cron/dashboard.log');
     $health = new SmartCronHealth($db, $logger);
     $systemStatus = $health->getSystemStatus();
@@ -77,7 +77,7 @@ try {
     $recentExecutions = getRecentExecutions($db, 20);
 } catch (Exception $e) {
     error_log("Smart Cron Dashboard Error: " . $e->getMessage());
-    
+
     // Show user-friendly error page
     ?>
     <!DOCTYPE html>

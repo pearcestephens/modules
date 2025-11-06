@@ -504,39 +504,52 @@ class PayrollAutomationService extends BaseService
      */
     public function getDashboardStats(): array
     {
-        $stats = [];
+        try {
+            $stats = [];
 
-        // Pending reviews
-        $stats['pending_reviews'] = $this->queryOne(
-            "SELECT COUNT(*) as count FROM payroll_ai_decisions WHERE status = 'pending'"
-        )['count'] ?? 0;
+            // Pending reviews
+            $result = $this->queryOne(
+                "SELECT COUNT(*) as count FROM payroll_ai_decisions WHERE status = 'pending'"
+            );
+            $stats['pending_reviews'] = $result['count'] ?? 0;
 
-        // Auto-approval rate (last 30 days)
-        $stats['auto_approval_rate'] = $this->queryOne(
-            "SELECT
-                ROUND(SUM(CASE WHEN decision = 'approve' THEN 1 ELSE 0 END) / COUNT(*) * 100, 1) as rate
-             FROM payroll_ai_decisions
-             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-             AND status = 'completed'"
-        )['rate'] ?? 0;
+            // Auto-approval rate (last 30 days)
+            $result = $this->queryOne(
+                "SELECT
+                    ROUND(SUM(CASE WHEN decision = 'approve' THEN 1 ELSE 0 END) / COUNT(*) * 100, 1) as rate
+                 FROM payroll_ai_decisions
+                 WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                 AND status = 'completed'"
+            );
+            $stats['auto_approval_rate'] = $result['rate'] ?? 0;
 
-        // Avg processing time
-        $stats['avg_processing_time_seconds'] = $this->queryOne(
-            "SELECT AVG(TIMESTAMPDIFF(SECOND, created_at, completed_at)) as avg_time
-             FROM payroll_ai_decisions
-             WHERE completed_at IS NOT NULL
-             AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
-        )['avg_time'] ?? 0;
+            // Avg processing time
+            $result = $this->queryOne(
+                "SELECT AVG(TIMESTAMPDIFF(SECOND, created_at, completed_at)) as avg_time
+                 FROM payroll_ai_decisions
+                 WHERE completed_at IS NOT NULL
+                 AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+            );
+            $stats['avg_processing_time_seconds'] = $result['avg_time'] ?? 0;
 
-        // Recent decisions
-        $stats['recent_decisions'] = $this->query(
-            "SELECT decision, COUNT(*) as count
-             FROM payroll_ai_decisions
-             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-             AND status = 'completed'
-             GROUP BY decision"
-        );
+            // Recent decisions
+            $stats['recent_decisions'] = $this->query(
+                "SELECT decision, COUNT(*) as count
+                 FROM payroll_ai_decisions
+                 WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                 AND status = 'completed'
+                 GROUP BY decision"
+            );
 
-        return $stats;
+            return $stats;
+        } catch (\Exception $e) {
+            // Return empty stats if queries fail (table empty or other issues)
+            return [
+                'pending_reviews' => 0,
+                'auto_approval_rate' => 0,
+                'avg_processing_time_seconds' => 0,
+                'recent_decisions' => []
+            ];
+        }
     }
 }

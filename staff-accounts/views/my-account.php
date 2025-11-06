@@ -2,7 +2,7 @@
 /**
  * Staff Accounts - My Account Page
  * Self-service portal for staff to view and manage their account
- * 
+ *
  * Features:
  * - Current balance display
  * - Purchase & payment history
@@ -13,7 +13,7 @@
  */
 
 // Bootstrap the module
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 // Require authentication (CIS standard)
 cis_require_login();
@@ -23,7 +23,7 @@ $user_id = $_SESSION['userID'];
 
 // Fetch user account details - USING ACTUAL COLUMN NAMES (NO ALIASES)
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         sar.user_id,
         sar.employee_name,
         sar.vend_balance,
@@ -44,21 +44,24 @@ $account = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$account) {
     $account = [
         'employee_name' => $_SESSION['name'] ?? 'User',
-        'current_balance' => 0.00,
-        'total_purchases' => 0.00,
-        'total_payments' => 0.00,
-        'active_plans' => 0
+        'vend_balance' => 0.00,
+        'total_allocated' => 0.00,
+        'total_payments_ytd' => 0.00,
+        'active_plans' => 0,
+        'last_reconciled_at' => null,
+        'last_payment_date' => null,
+        'vend_balance_updated_at' => null
     ];
 }
 
 // Format balance for display - USING ACTUAL COLUMN NAME: vend_balance
-$balance = floatval($account['vend_balance']);
+$balance = floatval($account['vend_balance'] ?? 0);
 $balance_class = $balance < 0 ? 'negative' : 'positive';
 $balance_text = $balance < 0 ? 'Amount Owed' : 'Credit Balance';
 
 // Fetch recent transactions (last 10)
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         t.id as transaction_id,
         t.amount,
         t.transaction_type,
@@ -75,7 +78,7 @@ $recent_transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch active payment plans
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         pp.id as plan_id,
         pp.total_amount,
         pp.installment_amount,
@@ -102,8 +105,8 @@ $stmt = $pdo->prepare("
 $stmt->execute([$user_id]);
 $saved_cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Set page variables for template
-$page_title = 'My Account';
+// Set page variables for CIS template
+$page_title = 'My Account - Staff Account Portal';
 $page_head_extra = '<link rel="stylesheet" href="/modules/staff-accounts/css/staff-accounts.css">';
 $body_class = 'staff-accounts my-account';
 
@@ -111,7 +114,24 @@ $body_class = 'staff-accounts my-account';
 ob_start();
 ?>
 
-<div class="container-fluid staff-accounts"
+<div class="container-fluid staff-accounts">
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-user-circle"></i> My Account
+                </h1>
+                <p class="text-muted mb-0">View your staff account balance, transactions, and payment options</p>
+            </div>
+            <div class="col-md-4 text-right">
+                <a href="make-payment.php" class="btn btn-primary">
+                    <i class="fas fa-credit-card"></i> Make a Payment
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Balance Card -->
     <div class="balance-card <?= $balance_class ?>">
         <div class="balance-label"><?= htmlspecialchars($balance_text) ?></div>
@@ -125,20 +145,22 @@ ob_start();
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="stat-card">
-                <div class="stat-label">Total Purchases</div>
-                <div class="stat-value">$<?= number_format($account['total_allocated'], 2) ?></div>
+                <div class="stat-label">Current Balance</div>
+                <div class="stat-value <?= $balance > 0 ? 'text-danger' : 'text-success' ?>">
+                    $<?= number_format($balance, 2) ?>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="stat-card success">
                 <div class="stat-label">Total Payments</div>
-                <div class="stat-value">$<?= number_format($account['total_payments_ytd'], 2) ?></div>
+                <div class="stat-value">$<?= number_format($account['total_payments_ytd'] ?? 0, 2) ?></div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card <?= $account['active_plans'] > 0 ? 'warning' : '' ?>">
+            <div class="stat-card <?= ($account['active_plans'] ?? 0) > 0 ? 'warning' : '' ?>">
                 <div class="stat-label">Active Payment Plans</div>
-                <div class="stat-value"><?= $account['active_plans'] ?></div>
+                <div class="stat-value"><?= $account['active_plans'] ?? 0 ?></div>
             </div>
         </div>
     </div>
@@ -157,13 +179,13 @@ ob_start();
     <?php if (count($payment_plans) > 0): ?>
     <div class="content-card mb-4">
         <h5 class="mb-3">Active Payment Plans</h5>
-        <?php foreach ($payment_plans as $plan): 
+        <?php foreach ($payment_plans as $plan):
             $progress = $plan['total_count'] > 0 ? ($plan['paid_count'] / $plan['total_count']) * 100 : 0;
         ?>
         <div class="mb-3 pb-3 border-bottom">
             <div class="d-flex justify-content-between mb-2">
                 <div>
-                    <strong>$<?= number_format($plan['total_amount'], 2) ?></strong> 
+                    <strong>$<?= number_format($plan['total_amount'], 2) ?></strong>
                     <span class="text-muted">- <?= ucfirst($plan['frequency']) ?> payments of $<?= number_format($plan['installment_amount'], 2) ?></span>
                 </div>
                 <div class="text-muted">
@@ -209,7 +231,7 @@ ob_start();
         <h5 class="mb-3">Recent Activity</h5>
         <?php if (count($recent_transactions) > 0): ?>
         <div class="timeline">
-            <?php foreach ($recent_transactions as $txn): 
+            <?php foreach ($recent_transactions as $txn):
                 $is_payment = $txn['transaction_type'] === 'payment';
                 $timeline_class = $is_payment ? 'success' : 'danger';
                 $icon = $is_payment ? '✓' : '→';
@@ -250,5 +272,5 @@ ob_start();
 // Capture content
 $page_content = ob_get_clean();
 
-// Render using CIS template
-require_once ROOT_PATH . '/assets/template/base-layout.php';
+// Render using CIS template (shared base-layout)
+require_once __DIR__ . '/../../shared/templates/base-layout.php';

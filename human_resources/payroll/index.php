@@ -586,6 +586,12 @@ if (isset($matchedRoute['csrf']) && $matchedRoute['csrf']) {
 // CONTROLLER DISPATCH
 // ============================================================================
 
+// Handle closure-based routes (like /health)
+if (isset($matchedRoute['action']) && is_callable($matchedRoute['action'])) {
+    $matchedRoute['action']();
+    exit;
+}
+
 try {
     $controllerClass = 'HumanResources\\Payroll\\Controllers\\' . $matchedRoute['controller'];
 

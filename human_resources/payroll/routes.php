@@ -45,6 +45,27 @@ return [
         'description' => 'Pay run detail page'
     ],
 
+    'GET /reconciliation' => [
+        'controller' => 'ReconciliationController',
+        'action' => 'index',
+        'auth' => true,
+        'description' => 'Reconciliation dashboard view'
+    ],
+
+    'GET /health' => [
+        'action' => function() {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'healthy',
+                'module' => 'payroll',
+                'timestamp' => date('c'),
+                'version' => '3.0'
+            ]);
+        },
+        'auth' => false,
+        'description' => 'System health check'
+    ],
+
     // =====================================================================
     // BOT API ENDPOINTS (Token-based auth, NO session required)
     // =====================================================================
@@ -228,14 +249,7 @@ return [
         'description' => 'Submit a new wage discrepancy'
     ],
 
-    'GET /api/payroll/discrepancies/:id' => [
-        'controller' => 'WageDiscrepancyController',
-        'action' => 'getDiscrepancy',
-        'auth' => true,
-        'permission' => 'payroll.view_discrepancy',
-        'description' => 'Get discrepancy details (staff: own only, admin: all)'
-    ],
-
+    // Specific routes MUST come before parameterized routes
     'GET /api/payroll/discrepancies/pending' => [
         'controller' => 'WageDiscrepancyController',
         'action' => 'getPending',
@@ -250,6 +264,23 @@ return [
         'auth' => true,
         'permission' => 'payroll.view_discrepancy',
         'description' => 'Get my discrepancy history (staff)'
+    ],
+
+    'GET /api/payroll/discrepancies/statistics' => [
+        'controller' => 'WageDiscrepancyController',
+        'action' => 'getStatistics',
+        'auth' => true,
+        'permission' => 'payroll.manage_discrepancies',
+        'description' => 'Get discrepancy statistics (admin only)'
+    ],
+
+    // Parameterized route comes AFTER specific routes
+    'GET /api/payroll/discrepancies/:id' => [
+        'controller' => 'WageDiscrepancyController',
+        'action' => 'getDiscrepancy',
+        'auth' => true,
+        'permission' => 'payroll.view_discrepancy',
+        'description' => 'Get discrepancy details (staff: own only, admin: all)'
     ],
 
     'POST /api/payroll/discrepancies/:id/approve' => [
@@ -277,14 +308,6 @@ return [
         'csrf' => true,
         'permission' => 'payroll.submit_discrepancy',
         'description' => 'Upload evidence file (staff: own only, admin: all)'
-    ],
-
-    'GET /api/payroll/discrepancies/statistics' => [
-        'controller' => 'WageDiscrepancyController',
-        'action' => 'getStatistics',
-        'auth' => true,
-        'permission' => 'payroll.manage_discrepancies',
-        'description' => 'Get discrepancy statistics (admin only)'
     ],
 
     // ============================================================================

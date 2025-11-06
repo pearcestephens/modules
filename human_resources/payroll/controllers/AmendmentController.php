@@ -313,10 +313,14 @@ class AmendmentController extends BaseController
             // Query amendment history
             $sql = "SELECT
                         ah.*,
-                        u.full_name as changed_by_name
+                        CONCAT(u.first_name, ' ', u.last_name) as changed_by_name,
+                        ta.claimed_start_time,
+                        ta.claimed_end_time,
+                        ta.status as amendment_status
                     FROM payroll_timesheet_amendment_history ah
-                    LEFT JOIN users u ON ah.changed_by = u.id
-                    WHERE ah.staff_id = ?
+                    LEFT JOIN payroll_timesheet_amendments ta ON ah.amendment_id = ta.id
+                    LEFT JOIN users u ON ah.actor_id = u.id
+                    WHERE ta.staff_id = ?
                     ORDER BY ah.created_at DESC
                     LIMIT ?";
 
