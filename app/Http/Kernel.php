@@ -1,8 +1,7 @@
 <?php
+
 /**
  * Application HTTP kernel responsible for routing and security middleware.
- *
- * @package App\\Http
  */
 
 declare(strict_types=1);
@@ -12,11 +11,26 @@ namespace App\Http;
 use App\Support\Logger;
 use App\Support\Response;
 
+use function define;
+use function defined;
+use function in_array;
+use function is_array;
+use function is_string;
+
+use const FILTER_VALIDATE_IP;
+use const JSON_THROW_ON_ERROR;
+use const LOCK_EX;
+use const LOCK_UN;
+use const PHP_SESSION_ACTIVE;
+
 final class Kernel
 {
     private array $appConfig;
+
     private array $urlConfig;
+
     private array $securityConfig;
+
     private Logger $logger;
 
     /**
@@ -26,10 +40,10 @@ final class Kernel
      */
     public function __construct(array $appConfig, array $urlConfig, array $securityConfig)
     {
-        $this->appConfig = $appConfig;
-        $this->urlConfig = $urlConfig;
+        $this->appConfig      = $appConfig;
+        $this->urlConfig      = $urlConfig;
         $this->securityConfig = $securityConfig;
-        $this->logger = new Logger($appConfig['log_channel'] ?? 'router', $appConfig['timezone'] ?? 'Pacific/Auckland');
+        $this->logger         = new Logger($appConfig['log_channel'] ?? 'router', $appConfig['timezone'] ?? 'Pacific/Auckland');
     }
 
     /**
@@ -46,14 +60,14 @@ final class Kernel
         $this->enforceRateLimit($clientIp);
 
         $endpoint = $this->resolveEndpoint();
-        $entry = $this->urlConfig['whitelist'][$endpoint] ?? null;
+        $entry    = $this->urlConfig['whitelist'][$endpoint] ?? null;
 
         if ($entry === null) {
             $this->logger->warning('Attempted access to unknown endpoint', ['endpoint' => $endpoint, 'ip' => $clientIp]);
             Response::error('Not Found', 404);
         }
 
-        $scriptPath = is_array($entry) ? ($entry['script'] ?? null) : (string)$entry;
+        $scriptPath = is_array($entry) ? ($entry['script'] ?? null) : (string) $entry;
 
         if (!is_string($scriptPath) || !is_file($scriptPath)) {
             $this->logger->error('Endpoint script missing', ['endpoint' => $endpoint, 'path' => $scriptPath]);
@@ -81,7 +95,7 @@ final class Kernel
 
     private function resolveEndpoint(): string
     {
-        $requested = isset($_GET['endpoint']) ? (string)$_GET['endpoint'] : '';
+        $requested = isset($_GET['endpoint']) ? (string) $_GET['endpoint'] : '';
 
         if ($requested === '') {
             return $this->urlConfig['default_endpoint'] ?? 'admin/health/ping';
@@ -99,7 +113,7 @@ final class Kernel
     {
         $forwarded = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
         if (!empty($forwarded)) {
-            $parts = explode(',', $forwarded);
+            $parts     = explode(',', $forwarded);
             $candidate = trim($parts[0]);
             if (filter_var($candidate, FILTER_VALIDATE_IP)) {
                 return $candidate;
@@ -107,6 +121,7 @@ final class Kernel
         }
 
         $remote = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
         return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '0.0.0.0';
     }
 
@@ -122,15 +137,15 @@ final class Kernel
 
     private function enforceRateLimit(string $clientIp): void
     {
-        $limitConfig = $this->securityConfig['rate_limit'] ?? ['requests_per_minute' => 60, 'burst' => 20];
-        $requestsPerMinute = (int)($limitConfig['requests_per_minute'] ?? 60);
-        $burst = (int)($limitConfig['burst'] ?? 20);
+        $limitConfig       = $this->securityConfig['rate_limit'] ?? ['requests_per_minute' => 60, 'burst' => 20];
+        $requestsPerMinute = (int) ($limitConfig['requests_per_minute'] ?? 60);
+        $burst             = (int) ($limitConfig['burst'] ?? 20);
 
         if ($requestsPerMinute <= 0) {
             return;
         }
 
-        $bucketKey = hash('sha256', $clientIp . '|' . date('Y-m-d H:i'));
+        $bucketKey  = hash('sha256', $clientIp . '|' . date('Y-m-d H:i'));
         $bucketFile = sys_get_temp_dir() . '/cis_router_' . $bucketKey;
 
         $count = 0;
@@ -142,7 +157,7 @@ final class Kernel
             if (is_string($data) && $data !== '') {
                 $decoded = json_decode($data, true);
                 if (is_array($decoded) && isset($decoded['count'])) {
-                    $count = (int)$decoded['count'];
+                    $count = (int) $decoded['count'];
                 }
             }
 
@@ -168,7 +183,7 @@ final class Kernel
             session_start();
         }
 
-        $sessionKey = $this->securityConfig['admin_session_key'] ?? 'admin_session';
+        $sessionKey      = $this->securityConfig['admin_session_key'] ?? 'admin_session';
         $isAuthenticated = !empty($_SESSION[$sessionKey]);
 
         if (!$isAuthenticated) {
@@ -179,7 +194,7 @@ final class Kernel
 
     private function guardPhpInfo(): void
     {
-        $allowed = (bool)($this->securityConfig['phpinfo_enabled'] ?? false);
+        $allowed = (bool) ($this->securityConfig['phpinfo_enabled'] ?? false);
 
         if (!$allowed) {
             $this->logger->warning('phpinfo endpoint blocked by configuration');
@@ -193,25 +208,25 @@ final class Kernel
 
     private function guardQuickDial(string $clientIp): void
     {
-        $config = $this->securityConfig['quick_dial'] ?? [];
-        $requestsPerMinute = (int)($config['requests_per_minute'] ?? 0);
+        $config            = $this->securityConfig['quick_dial'] ?? [];
+        $requestsPerMinute = (int) ($config['requests_per_minute'] ?? 0);
 
         if ($requestsPerMinute <= 0) {
             return;
         }
 
-        $bucketKey = hash('sha256', 'quick_dial|' . $clientIp . '|' . date('Y-m-d H:i'));
+        $bucketKey  = hash('sha256', 'quick_dial|' . $clientIp . '|' . date('Y-m-d H:i'));
         $bucketFile = sys_get_temp_dir() . '/cis_quick_dial_' . $bucketKey;
 
         $count = 0;
-        $fp = fopen($bucketFile, 'c+');
+        $fp    = fopen($bucketFile, 'c+');
         if ($fp !== false) {
             flock($fp, LOCK_EX);
             $data = stream_get_contents($fp);
             if (is_string($data) && $data !== '') {
                 $decoded = json_decode($data, true);
                 if (is_array($decoded) && isset($decoded['count'])) {
-                    $count = (int)$decoded['count'];
+                    $count = (int) $decoded['count'];
                 }
             }
 

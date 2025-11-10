@@ -19,11 +19,15 @@
  */
 
 // Ensure this file is included, not accessed directly
-if (!defined('__DIR__') || !isset($outletMap)) {
+// Check that required variables are set from parent scope
+if (!isset($outletMap) || !isset($supplierMap)) {
     http_response_code(403);
-    exit('Direct access forbidden');
+    exit('Direct access forbidden - missing required variables');
 }
 ?>
+
+<!-- Transfer Manager Wrap Container -->
+<div class="wrap transfer-manager-wrap">
 
 <!-- Header -->
 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -385,3 +389,5 @@ if (!defined('__DIR__') || !isset($outletMap)) {
   </div>
 </div>
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+</div><!-- /.transfer-manager-wrap -->

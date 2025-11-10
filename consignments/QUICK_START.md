@@ -31,7 +31,7 @@ use CIS\Consignments\Services\AI\Adapters\IntelligenceHubAdapter;
 
 $hub = new IntelligenceHubAdapter([
     'api_key' => '31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35',
-    'mcp_endpoint' => 'https://gpt.ecigdis.co.nz/mcp/server_v3.php',
+    'mcp_endpoint' => 'https://gpt.ecigdis.co.nz/mcp/server_v4.php',
 ]);
 
 // Ask anything!
@@ -152,7 +152,7 @@ php simple-ai-example.php
 ```bash
 INTELLIGENCE_HUB_ENABLED=true
 INTELLIGENCE_HUB_API_KEY=31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35
-INTELLIGENCE_HUB_MCP_ENDPOINT=https://gpt.ecigdis.co.nz/mcp/server_v3.php
+INTELLIGENCE_HUB_MCP_ENDPOINT=https://gpt.ecigdis.co.nz/mcp/server_v4.php
 ```
 
 ### Optional (add when you want external AI):
@@ -218,7 +218,7 @@ $response = $hub->useMCPTool('health_check', []);
 **Test endpoint:**
 ```bash
 curl -H "X-API-Key: 31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35" \
-  https://gpt.ecigdis.co.nz/mcp/server_v3.php?action=health
+  https://gpt.ecigdis.co.nz/mcp/server_v4.php?action=health
 ```
 
 ### Issue: "Invalid JSON response"

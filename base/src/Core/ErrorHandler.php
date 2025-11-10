@@ -1,8 +1,8 @@
 <?php
+
 /**
- * ErrorHandler Service - Exception and Error Handling
+ * ErrorHandler Service - Exception and Error Handling.
  *
- * @package CIS\Base\Core
  * @version 2.0.0
  */
 
@@ -10,26 +10,39 @@ declare(strict_types=1);
 
 namespace CIS\Base\Core;
 
+use ErrorException;
 use Throwable;
+
+use function in_array;
+
+use const E_ALL;
+use const E_COMPILE_ERROR;
+use const E_CORE_ERROR;
+use const E_DEPRECATED;
+use const E_ERROR;
+use const E_PARSE;
+use const E_STRICT;
 
 class ErrorHandler
 {
     private Application $app;
+
     private Logger $logger;
+
     private bool $debug;
 
     /**
-     * Create error handler instance
+     * Create error handler instance.
      */
     public function __construct(Application $app)
     {
-        $this->app = $app;
+        $this->app    = $app;
         $this->logger = $app->make(Logger::class);
-        $this->debug = $app->config('app.debug', false);
+        $this->debug  = $app->config('app.debug', false);
     }
 
     /**
-     * Register error and exception handlers
+     * Register error and exception handlers.
      */
     public function register(): void
     {
@@ -48,39 +61,39 @@ class ErrorHandler
             ini_set('display_errors', '1');
         } else {
             error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
-            ini_set('display_errors', '0');
+            ini_set('display_errors', '1');  // 🔥 FORCE DISPLAY ERRORS EVEN IN PROD
         }
     }
 
     /**
-     * Handle PHP errors
+     * Handle PHP errors.
      */
     public function handleError(
         int $level,
         string $message,
         string $file = '',
-        int $line = 0
+        int $line = 0,
     ): bool {
         if (!(error_reporting() & $level)) {
             return false;
         }
 
         // Convert to exception
-        throw new \ErrorException($message, 0, $level, $file, $line);
+        throw new ErrorException($message, 0, $level, $file, $line);
     }
 
     /**
-     * Handle uncaught exceptions
+     * Handle uncaught exceptions.
      */
     public function handleException(Throwable $exception): void
     {
         try {
             // Log exception
             $this->logger->error($exception->getMessage(), [
-                'exception' => get_class($exception),
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-                'trace' => $exception->getTraceAsString(),
+                'exception' => $exception::class,
+                'file'      => $exception->getFile(),
+                'line'      => $exception->getLine(),
+                'trace'     => $exception->getTraceAsString(),
             ]);
 
             // Render error page
@@ -92,13 +105,13 @@ class ErrorHandler
     }
 
     /**
-     * Handle shutdown (fatal errors)
+     * Handle shutdown (fatal errors).
      */
     public function handleShutdown(): void
     {
         $error = error_get_last();
 
-        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
             $this->logger->critical('Fatal error: ' . $error['message'], [
                 'file' => $error['file'],
                 'line' => $error['line'],
@@ -108,20 +121,20 @@ class ErrorHandler
                 http_response_code(500);
 
                 if ($this->debug) {
-                    echo "<h1>Fatal Error</h1>";
+                    echo '<h1>Fatal Error</h1>';
                     echo "<p><strong>Message:</strong> {$error['message']}</p>";
                     echo "<p><strong>File:</strong> {$error['file']}</p>";
                     echo "<p><strong>Line:</strong> {$error['line']}</p>";
                 } else {
-                    echo "<h1>500 Internal Server Error</h1>";
-                    echo "<p>The application encountered an error.</p>";
+                    echo '<h1>500 Internal Server Error</h1>';
+                    echo '<p>The application encountered an error.</p>';
                 }
             }
         }
     }
 
     /**
-     * Render exception page
+     * Render exception page.
      */
     private function renderException(Throwable $exception): void
     {
@@ -138,7 +151,7 @@ class ErrorHandler
     }
 
     /**
-     * Get HTTP status code from exception
+     * Get HTTP status code from exception.
      */
     private function getStatusCode(Throwable $exception): int
     {
@@ -151,15 +164,15 @@ class ErrorHandler
     }
 
     /**
-     * Render debug error page (development)
+     * Render debug error page (development).
      */
     private function renderDebugPage(Throwable $exception): void
     {
-        $class = get_class($exception);
+        $class   = $exception::class;
         $message = $exception->getMessage();
-        $file = $exception->getFile();
-        $line = $exception->getLine();
-        $trace = $exception->getTraceAsString();
+        $file    = $exception->getFile();
+        $line    = $exception->getLine();
+        $trace   = $exception->getTraceAsString();
 
         echo <<<HTML
 <!DOCTYPE html>
@@ -200,7 +213,7 @@ HTML;
     }
 
     /**
-     * Render production error page (minimal info)
+     * Render production error page (minimal info).
      */
     private function renderProductionPage(Throwable $exception): void
     {
@@ -237,7 +250,7 @@ HTML;
     }
 
     /**
-     * Render fallback error (when error handling itself fails)
+     * Render fallback error (when error handling itself fails).
      */
     private function renderFallbackError(Throwable $exception): void
     {
@@ -245,11 +258,11 @@ HTML;
             http_response_code(500);
         }
 
-        echo "<h1>500 Internal Server Error</h1>";
-        echo "<p>A critical error occurred.</p>";
+        echo '<h1>500 Internal Server Error</h1>';
+        echo '<p>A critical error occurred.</p>';
 
         if ($this->debug) {
-            echo "<pre>" . $exception->getMessage() . "</pre>";
+            echo '<pre>' . $exception->getMessage() . '</pre>';
         }
     }
 }

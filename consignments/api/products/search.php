@@ -24,7 +24,7 @@ require_once __DIR__ . '/../../lib/Helpers/ValidationHelper.php';
 use CIS\Consignments\Helpers\ValidationHelper;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;

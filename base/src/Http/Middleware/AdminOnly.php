@@ -1,10 +1,9 @@
 <?php
+
 /**
- * Admin Only Middleware
+ * Admin Only Middleware.
  *
  * Ensures user has admin privileges
- *
- * @package CIS\Base\Http\Middleware
  */
 
 declare(strict_types=1);
@@ -14,6 +13,8 @@ namespace CIS\Base\Http\Middleware;
 use CIS\Base\Core\Application;
 use CIS\Base\Http\Request;
 use CIS\Base\Http\Response;
+
+use function in_array;
 
 class AdminOnly
 {
@@ -25,16 +26,16 @@ class AdminOnly
     }
 
     /**
-     * Handle incoming request
+     * Handle incoming request.
      */
     public function handle(Request $request): ?Response
     {
         // Get current user ID from session
-        $userId = $_SESSION['user_id'] ?? null;
+        $userId = $_SESSION['userID'] ?? null;
 
         if (!$userId) {
             return Response::unauthorized([
-                'error' => 'Authentication required',
+                'error'   => 'Authentication required',
                 'message' => 'You must be logged in to access this resource.',
             ]);
         }
@@ -42,15 +43,15 @@ class AdminOnly
         // Check if user is admin
         $adminUsers = $this->app->config('security.admin_users', [1]);
 
-        if (!in_array((int)$userId, $adminUsers, true)) {
+        if (!in_array((int) $userId, $adminUsers, true)) {
             $this->app->logger()->warning('Admin access denied', [
-                'user_id' => $userId,
+                'user_id'  => $userId,
                 'endpoint' => $request->query('endpoint'),
-                'ip' => $request->ip(),
+                'ip'       => $request->ip(),
             ]);
 
             return Response::forbidden([
-                'error' => 'Access denied',
+                'error'   => 'Access denied',
                 'message' => 'You do not have permission to access this resource.',
             ]);
         }

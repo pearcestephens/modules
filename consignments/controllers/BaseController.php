@@ -86,7 +86,7 @@ abstract class BaseController
      */
     protected function isAuthenticated(): bool
     {
-        return !empty($_SESSION['user_id']) || !empty($_SESSION['userID']);
+        return !empty($_SESSION['userID']) || !empty($_SESSION['userID']);
     }
 
     /**
@@ -94,7 +94,7 @@ abstract class BaseController
      */
     protected function getCurrentUser(): ?array
     {
-        $userId = $_SESSION['user_id'] ?? $_SESSION['userID'] ?? 0;
+        $userId = $_SESSION['userID'] ?? $_SESSION['userID'] ?? 0;
         if (!$userId) return null;
 
         $stmt = $this->db->prepare('
@@ -111,7 +111,7 @@ abstract class BaseController
      */
     protected function getUserId(): int
     {
-        return (int)($_SESSION['user_id'] ?? $_SESSION['userID'] ?? 0);
+        return (int)($_SESSION['userID'] ?? $_SESSION['userID'] ?? 0);
     }
 
     /**

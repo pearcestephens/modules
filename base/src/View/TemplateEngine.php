@@ -1,6 +1,7 @@
 <?php
+
 /**
- * Modern Template Engine
+ * Modern Template Engine.
  *
  * Blade/Twig-inspired template engine with:
  * - Layout inheritance (@extends, @section, @yield)
@@ -9,7 +10,6 @@
  * - Template caching
  * - Clean syntax
  *
- * @package CIS\Base\View
  * @version 2.0.0
  */
 
@@ -17,63 +17,47 @@ declare(strict_types=1);
 
 namespace CIS\Base\View;
 
+use Exception;
+
 class TemplateEngine
 {
-    /**
-     * Template paths
-     */
+    /** Template paths */
     private array $paths = [];
 
-    /**
-     * Data to pass to templates
-     */
+    /** Data to pass to templates */
     private array $data = [];
 
-    /**
-     * Sections defined in templates
-     */
+    /** Sections defined in templates */
     private array $sections = [];
 
-    /**
-     * Current section being captured
-     */
+    /** Current section being captured */
     private ?string $currentSection = null;
 
-    /**
-     * Extended layout
-     */
+    /** Extended layout */
     private ?string $extendsLayout = null;
 
-    /**
-     * Cache enabled
-     */
+    /** Cache enabled */
     private bool $cacheEnabled = true;
 
-    /**
-     * Cache path
-     */
+    /** Cache path */
     private string $cachePath;
 
-    /**
-     * Auto-escape output
-     */
+    /** Auto-escape output */
     private bool $autoEscape = true;
 
-    /**
-     * Application instance
-     */
+    /** Application instance */
     private $app;
 
     /**
-     * Constructor
+     * Constructor.
      */
     public function __construct($app)
     {
-        $this->app = $app;
-        $this->paths = $app->config('view.paths', []);
+        $this->app          = $app;
+        $this->paths        = $app->config('view.paths', []);
         $this->cacheEnabled = $app->config('view.cache.enabled', true);
-        $this->cachePath = $app->config('view.cache.path', $_SERVER['DOCUMENT_ROOT'] . '/storage/cache/views');
-        $this->autoEscape = $app->config('view.auto_escape', true);
+        $this->cachePath    = $app->config('view.cache.path', $_SERVER['DOCUMENT_ROOT'] . '/storage/cache/views');
+        $this->autoEscape   = $app->config('view.auto_escape', true);
 
         // Create cache directory if needed
         if ($this->cacheEnabled && !is_dir($this->cachePath)) {
@@ -82,7 +66,7 @@ class TemplateEngine
     }
 
     /**
-     * Render a template
+     * Render a template.
      */
     public function render(string $template, array $data = []): string
     {
@@ -92,7 +76,7 @@ class TemplateEngine
         $templatePath = $this->findTemplate($template);
 
         if (!$templatePath) {
-            throw new \Exception("Template not found: {$template}");
+            throw new Exception("Template not found: {$template}");
         }
 
         // Check cache
@@ -117,7 +101,75 @@ class TemplateEngine
     }
 
     /**
-     * Find template file
+     * Start capturing section.
+     */
+    public function startSection(string $name): void
+    {
+        $this->currentSection = $name;
+        ob_start();
+    }
+
+    /**
+     * End capturing section.
+     */
+    public function endSection(): void
+    {
+        if ($this->currentSection) {
+            $this->sections[$this->currentSection] = ob_get_clean();
+            $this->currentSection                  = null;
+        }
+    }
+
+    /**
+     * Yield section content.
+     */
+    public function yieldSection(string $name, string $default = ''): string
+    {
+        return $this->sections[$name] ?? $default;
+    }
+
+    /**
+     * Render component.
+     */
+    public function renderComponent(string $component, array $data = []): string
+    {
+        $componentPath = $this->findTemplate('components.' . $component);
+
+        if (!$componentPath) {
+            return "<!-- Component not found: {$component} -->";
+        }
+
+        extract(array_merge($this->data, $data));
+
+        ob_start();
+        include $componentPath;
+
+        return ob_get_clean();
+    }
+
+    /**
+     * Clear cache.
+     */
+    public function clearCache(): void
+    {
+        if (is_dir($this->cachePath)) {
+            $files = glob($this->cachePath . '/*.php');
+            foreach ($files as $file) {
+                @unlink($file);
+            }
+        }
+    }
+
+    /**
+     * Share data with all templates.
+     */
+    public function share(string $key, $value): void
+    {
+        $this->data[$key] = $value;
+    }
+
+    /**
+     * Find template file.
      */
     private function findTemplate(string $template): ?string
     {
@@ -134,14 +186,14 @@ class TemplateEngine
     }
 
     /**
-     * Compile template
+     * Compile template.
      */
     private function compile(string $templatePath): string
     {
         $content = file_get_contents($templatePath);
 
         // Reset state
-        $this->sections = [];
+        $this->sections      = [];
         $this->extendsLayout = null;
 
         // Compile directives
@@ -150,77 +202,73 @@ class TemplateEngine
         $content = $this->compileYields($content);
         $content = $this->compileComponents($content);
         $content = $this->compileEchos($content);
-        $content = $this->compilePhp($content);
 
-        return $content;
+        return $this->compilePhp($content);
     }
 
     /**
-     * Compile @extends directive
+     * Compile @extends directive.
      */
     private function compileExtends(string $content): string
     {
         return preg_replace_callback(
             '/@extends\([\'"](.+?)[\'"]\)/',
-            function($matches) {
+            function ($matches) {
                 $this->extendsLayout = $matches[1];
+
                 return '<?php $__layout = "' . $matches[1] . '"; ?>';
             },
-            $content
+            $content,
         );
     }
 
     /**
-     * Compile @section directive
+     * Compile @section directive.
      */
     private function compileSections(string $content): string
     {
-        // @section('name')
+        /** @section('name') */
         $content = preg_replace(
             '/@section\([\'"](.+?)[\'"]\)/',
             '<?php $__engine->startSection("$1"); ?>',
-            $content
+            $content,
         );
 
-        // @endsection
-        $content = preg_replace(
+        /** @endsection */
+        return preg_replace(
             '/@endsection/',
             '<?php $__engine->endSection(); ?>',
-            $content
+            $content,
         );
-
-        return $content;
     }
 
     /**
-     * Compile @yield directive
+     * Compile @yield directive.
      */
     private function compileYields(string $content): string
     {
         return preg_replace(
             '/@yield\([\'"](.+?)[\'"](?:,\s*[\'"](.+?)[\'"]\s*)?\)/',
             '<?php echo $__engine->yieldSection("$1", "$2"); ?>',
-            $content
+            $content,
         );
     }
 
     /**
-     * Compile @component directive
+     * Compile @component directive.
      */
     private function compileComponents(string $content): string
     {
-        // @component('name')
-        $content = preg_replace(
+        /** @component('name') */
+        return preg_replace(
             '/@component\([\'"](.+?)[\'"]\)/',
             '<?php echo $__engine->renderComponent("$1", get_defined_vars()); ?>',
-            $content
+            $content,
         );
-
-        return $content;
     }
 
     /**
-     * Compile {{ }} echo statements
+     * Compile {{ }} echo statements.
      */
     private function compileEchos(string $content): string
     {
@@ -228,31 +276,29 @@ class TemplateEngine
         $content = preg_replace(
             '/\{\{\s*(.+?)\s*\}\}/',
             '<?php echo htmlspecialchars($1, ENT_QUOTES, \'UTF-8\'); ?>',
-            $content
+            $content,
         );
 
         // {!! $var !!} - unescaped
-        $content = preg_replace(
+        return preg_replace(
             '/\{!!\s*(.+?)\s*!!\}/',
             '<?php echo $1; ?>',
-            $content
+            $content,
         );
-
-        return $content;
     }
 
     /**
-     * Compile @php directive
+     * Compile @php directive.
      */
     private function compilePhp(string $content): string
     {
         $content = preg_replace('/@php/', '<?php', $content);
-        $content = preg_replace('/@endphp/', '?>', $content);
-        return $content;
+
+        return preg_replace('/@endphp/', '?>', $content);
     }
 
     /**
-     * Render compiled template
+     * Render compiled template.
      */
     private function renderCompiled(string $compiled): string
     {
@@ -266,6 +312,7 @@ class TemplateEngine
         // If template extends layout, render layout with content
         if ($this->extendsLayout) {
             $this->sections['content'] = $content;
+
             return $this->render($this->extendsLayout, $this->data);
         }
 
@@ -273,7 +320,7 @@ class TemplateEngine
     }
 
     /**
-     * Render cached template
+     * Render cached template.
      */
     private function renderCached(string $cacheFile): string
     {
@@ -281,62 +328,17 @@ class TemplateEngine
     }
 
     /**
-     * Start capturing section
-     */
-    public function startSection(string $name): void
-    {
-        $this->currentSection = $name;
-        ob_start();
-    }
-
-    /**
-     * End capturing section
-     */
-    public function endSection(): void
-    {
-        if ($this->currentSection) {
-            $this->sections[$this->currentSection] = ob_get_clean();
-            $this->currentSection = null;
-        }
-    }
-
-    /**
-     * Yield section content
-     */
-    public function yieldSection(string $name, string $default = ''): string
-    {
-        return $this->sections[$name] ?? $default;
-    }
-
-    /**
-     * Render component
-     */
-    public function renderComponent(string $component, array $data = []): string
-    {
-        $componentPath = $this->findTemplate('components.' . $component);
-
-        if (!$componentPath) {
-            return "<!-- Component not found: {$component} -->";
-        }
-
-        extract(array_merge($this->data, $data));
-
-        ob_start();
-        include $componentPath;
-        return ob_get_clean();
-    }
-
-    /**
-     * Get cache file path
+     * Get cache file path.
      */
     private function getCacheFile(string $templatePath): string
     {
         $hash = md5($templatePath);
+
         return $this->cachePath . '/' . $hash . '.php';
     }
 
     /**
-     * Check if cache is valid
+     * Check if cache is valid.
      */
     private function isCacheValid(string $templatePath, string $cacheFile): bool
     {
@@ -345,26 +347,5 @@ class TemplateEngine
         }
 
         return filemtime($cacheFile) >= filemtime($templatePath);
-    }
-
-    /**
-     * Clear cache
-     */
-    public function clearCache(): void
-    {
-        if (is_dir($this->cachePath)) {
-            $files = glob($this->cachePath . '/*.php');
-            foreach ($files as $file) {
-                @unlink($file);
-            }
-        }
-    }
-
-    /**
-     * Share data with all templates
-     */
-    public function share(string $key, $value): void
-    {
-        $this->data[$key] = $value;
     }
 }

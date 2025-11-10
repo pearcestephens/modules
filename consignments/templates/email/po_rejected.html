@@ -1,0 +1,44 @@
+<h2>Purchase Order Rejected</h2>
+
+<p>Hi {{recipient_name}},</p>
+
+<div class="alert danger">
+    <p><strong>Purchase Order Rejected:</strong> Your purchase order has not been approved.</p>
+</div>
+
+<div class="info-box">
+    <h3>Purchase Order Details</h3>
+    <div class="info-row">
+        <span class="info-label">PO Number:</span>
+        <span class="info-value">{{po_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Supplier:</span>
+        <span class="info-value">{{supplier_name}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Total Value:</span>
+        <span class="info-value">{{total_value}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Rejected By:</span>
+        <span class="info-value">{{rejected_by}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Rejected:</span>
+        <span class="info-value">{{rejected_at}}</span>
+    </div>
+</div>
+
+{{#rejection_reason}}
+<div class="info-box">
+    <h3>Rejection Reason</h3>
+    <p>{{rejection_reason}}</p>
+</div>
+{{/rejection_reason}}
+
+<div class="button-container">
+    <a href="{{po_url}}" class="button">View Purchase Order</a>
+</div>
+
+<p>Please review the rejection reason and make the necessary changes before resubmitting. If you have any questions, please contact the approver directly.</p>

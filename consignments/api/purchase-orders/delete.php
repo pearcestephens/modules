@@ -21,7 +21,7 @@ require_once __DIR__ . '/../../lib/Services/PurchaseOrderService.php';
 use CIS\Consignments\Services\PurchaseOrderService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -64,7 +64,7 @@ try {
     }
 
     // Delete PO
-    $success = $poService->delete($poId, $_SESSION['user_id']);
+    $success = $poService->delete($poId, $_SESSION['userID']);
 
     if (!$success) {
         throw new RuntimeException('Failed to delete purchase order');

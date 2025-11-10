@@ -1,7 +1,7 @@
 <?php
 /**
  * Consignments Module - Control Panel
- * 
+ *
  * @package CIS\Consignments
  * @version 3.0.0
  */
@@ -107,8 +107,6 @@ while ($row = $routeStmt->fetch(PDO::FETCH_ASSOC)) {
     $routes[] = $row;
 }
 
-// Start output buffering
-ob_start();
 ?>
 
 <style>
@@ -222,16 +220,9 @@ ob_start();
     </div>
 </div>
 
-<?php
-// Get buffered content
-$content = ob_get_clean();
-
-// Include BASE dashboard layout
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard.php';
-
+<?php ?>
 </div>
 
 <?php
-// End content capture and render
 $template->endContent();
 $template->render();

@@ -9,7 +9,8 @@
 
 declare(strict_types=1);
 
-// Load CIS Template
+// Load Consignments bootstrap (shared helpers) and CIS Template
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../lib/CISTemplate.php';
 
 // Get database connection
@@ -29,8 +30,12 @@ try {
 
     $stmt = $pdo->query("SELECT COUNT(*) FROM purchase_orders WHERE status = 'OPEN'");
     $stats['active_pos'] = $stmt->fetchColumn();
+
+    // Open transfers created today
+    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'OPEN' AND DATE(created_at) = CURDATE()");
+    $stats['open_today'] = $stmt->fetchColumn();
 } catch (Exception $e) {
-    $stats = ['active_transfers' => 0, 'completed_today' => 0, 'pending_receive' => 0, 'active_pos' => 0];
+    $stats = ['active_transfers' => 0, 'completed_today' => 0, 'pending_receive' => 0, 'active_pos' => 0, 'open_today' => 0];
 }
 
 // Initialize template
@@ -53,6 +58,45 @@ $template->startContent();
         <p class="text-muted mb-0">Central hub for all consignment operations, transfers, and inventory management</p>
     </div>
 </div>
+
+<!-- Recent Stock Transfers (quick view) -->
+<?php
+    $recentTransfers = [];
+    try { $recentTransfers = getRecentTransfersEnrichedDB(5, 'STOCK'); } catch (Throwable $e) { $recentTransfers = []; }
+?>
+<?php if (!empty($recentTransfers)): ?>
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-clock mr-2"></i>Recent Stock Transfers</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            <?php foreach ($recentTransfers as $rt):
+                $received = (int)($rt['items_received'] ?? 0);
+                $total = (int)($rt['item_count_total'] ?? 0);
+                $pct = ($total>0) ? max(0, min(100, (int)round(($received/$total)*100))) : 0;
+                $pctClass = $pct >= 90 ? 'success' : ($pct >= 50 ? 'warning' : ($pct > 0 ? 'danger' : 'secondary'));
+            ?>
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="/modules/consignments/stock-transfers/pack.php?id=<?= urlencode((string)($rt['cis_internal_id'] ?? $rt['id'] ?? '')) ?>">
+                <div>
+                    <div class="font-weight-bold"><?= htmlspecialchars($rt['consignment_number'] ?? '') ?></div>
+                    <div class="small text-muted"><?= htmlspecialchars($rt['from_outlet_name'] ?? '-') ?> → <?= htmlspecialchars($rt['to_outlet_name'] ?? '-') ?></div>
+                </div>
+                <div class="text-right">
+                    <div><span class="badge badge-<?= $pctClass ?>"><?= $pct ?>%</span></div>
+                    <?php if (!empty($rt['to_outlet_phone'])): ?>
+                    <div class="small"><i class="fas fa-phone mr-1"></i><a href="tel:<?= htmlspecialchars($rt['to_outlet_phone']) ?>" onclick="event.stopPropagation();" class="text-decoration-none"><?= htmlspecialchars($rt['to_outlet_phone']) ?></a></div>
+                    <?php endif; ?>
+                </div>
+            </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <div class="card-footer text-right py-2">
+        <a href="/modules/consignments/?route=stock-transfers" class="btn btn-sm btn-outline-secondary">View all</a>
+    </div>
+    </div>
+<?php endif; ?>
 
 <!-- Statistics Cards -->
 <div class="row mb-4">
@@ -119,6 +163,9 @@ $template->startContent();
                 <h5 class="card-title"><i class="fas fa-box mr-2 text-info"></i>Stock Transfers</h5>
                 <p class="card-text">Browse all stock transfer history, search transfers, and view detailed reports.</p>
                 <a href="/modules/consignments/?route=stock-transfers" class="btn btn-info btn-sm">View All</a>
+                <?php if (isset($stats['open_today'])): ?>
+                  <span class="badge badge-info ml-2" title="Open transfers created today"><?= (int)$stats['open_today'] ?> today</span>
+                <?php endif; ?>
             </div>
         </div>
     </div>

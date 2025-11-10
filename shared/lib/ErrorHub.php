@@ -5,7 +5,7 @@ namespace CIS\Shared;
 
 /**
  * CIS Error Hub - Enterprise Error Handling System
- * 
+ *
  * Features:
  * - Beautiful HTML error pages with full stack traces
  * - JSON error responses for API/AJAX requests
@@ -13,7 +13,7 @@ namespace CIS\Shared;
  * - Production-safe (hides details in production)
  * - Comprehensive logging
  * - Memory usage tracking
- * 
+ *
  * @package CIS\Shared
  * @version 2.0.0
  * @author Ecigdis Limited
@@ -21,33 +21,33 @@ namespace CIS\Shared;
 final class ErrorHub
 {
     private const MB = 1048576;
-    
+
     /**
      * Register all error handlers
      */
-    public static function register(): void
-    {
+    public static function register(): void {
         error_reporting(E_ALL);
-        ini_set('display_errors', '0');
-        set_error_handler([self::class, 'onError']);
-        set_exception_handler([self::class, 'onException']);
-        register_shutdown_function([self::class, 'onShutdown']);
+        ini_set('display_errors', '1');  // 🔥 FORCE DISPLAY ERRORS ON
+        ini_set('display_startup_errors', '1');
+        set_error_handler([self::class,'onError']);
+        set_exception_handler([self::class,'onException']);
+        register_shutdown_function([self::class,'onShutdown']);
     }
-    
+
     /**
      * Handle PHP errors
      */
     public static function onError(int $errno, string $errstr, string $file, int $line): bool
     {
         self::logLine(self::format($errno, $errstr, $file, $line));
-        
+
         if (in_array($errno, [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
             self::render(500, self::typeName($errno), $errstr, $file, $line);
         }
-        
+
         return true; // We handled it
     }
-    
+
     /**
      * Handle uncaught exceptions
      */
@@ -56,7 +56,7 @@ final class ErrorHub
         self::logLine(self::format(E_ERROR, $e->getMessage(), $e->getFile(), $e->getLine()));
         self::render(500, 'Fatal Error', $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace());
     }
-    
+
     /**
      * Handle fatal errors on shutdown
      */
@@ -68,7 +68,7 @@ final class ErrorHub
             self::render(500, self::typeName($last['type']), $last['message'], $last['file'], $last['line']);
         }
     }
-    
+
     /**
      * Log error to file
      */
@@ -77,7 +77,7 @@ final class ErrorHub
         $logFile = $_SERVER['DOCUMENT_ROOT'] . '/logs/cis-errors.log';
         @file_put_contents($logFile, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
-    
+
     /**
      * Format error message for logging
      */
@@ -92,7 +92,7 @@ final class ErrorHub
             $line
         );
     }
-    
+
     /**
      * Get human-readable error type name
      */
@@ -116,7 +116,7 @@ final class ErrorHub
             E_USER_DEPRECATED => 'User Deprecated'
         ][$errno] ?? 'Unknown';
     }
-    
+
     /**
      * Detect if request expects JSON response
      */
@@ -127,22 +127,22 @@ final class ErrorHub
         if (stripos($accept, 'application/json') !== false) {
             return true;
         }
-        
+
         // Check if AJAX request
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
             return true;
         }
-        
+
         // Check if API endpoint (has ?action= or /api/ in URL)
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         if (stripos($uri, '?action=') !== false || stripos($uri, '/api/') !== false) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Check if we're in production environment
      */
@@ -152,15 +152,15 @@ final class ErrorHub
         if (defined('APP_DEBUG') && APP_DEBUG === true) {
             return false;
         }
-        
+
         // Check environment
         if (defined('APP_ENV') && APP_ENV === 'production') {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Render error (HTML or JSON based on request type)
      */
@@ -175,17 +175,17 @@ final class ErrorHub
         if (!headers_sent()) {
             http_response_code($code);
         }
-        
+
         // Determine output format
         if (self::isJsonRequest()) {
             self::renderJson($code, $type, $msg, $file, $line, $trace);
         } else {
             self::renderHtml($code, $type, $msg, $file, $line, $trace);
         }
-        
+
         exit;
     }
-    
+
     /**
      * Render JSON error response
      */
@@ -200,9 +200,9 @@ final class ErrorHub
         if (!headers_sent()) {
             header('Content-Type: application/json; charset=UTF-8');
         }
-        
+
         $isProduction = self::isProduction();
-        
+
         $error = [
             'success' => false,
             'error' => [
@@ -217,7 +217,7 @@ final class ErrorHub
                 'environment' => $isProduction ? 'production' : 'development'
             ]
         ];
-        
+
         // Add debug info in development
         if (!$isProduction) {
             $error['debug'] = [
@@ -235,10 +235,10 @@ final class ErrorHub
                 ]
             ];
         }
-        
+
         echo json_encode($error, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
-    
+
     /**
      * Format stack trace for JSON output
      */
@@ -256,7 +256,7 @@ final class ErrorHub
         }
         return $formatted;
     }
-    
+
     /**
      * Render HTML error page
      */
@@ -271,24 +271,24 @@ final class ErrorHub
         if (!headers_sent()) {
             header('Content-Type: text/html; charset=UTF-8');
         }
-        
-        $isProduction = self::isProduction();
-        
-        if ($isProduction) {
-            echo self::renderProductionHtml();
-            return;
-        }
-        
-        // Development mode - show full details
+
+        // 🔥 ALWAYS SHOW DETAILED ERROR PAGE - PRODUCTION CHECK DISABLED
+        // $isProduction = self::isProduction();
+        // if ($isProduction) {
+        //     echo self::renderProductionHtml();
+        //     return;
+        // }
+
+        // Development mode - show full details (FORCED ALWAYS ON)
         $short = str_replace($_SERVER['DOCUMENT_ROOT'], '', $file);
         $mem = number_format(memory_get_usage(true) / self::MB, 2) . ' MB';
         $peak = number_format(memory_get_peak_usage(true) / self::MB, 2) . ' MB';
         $uri = htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/');
         $timestamp = date('Y-m-d H:i:s');
-        
+
         // Prepare full error text for copying
         $copyText = self::formatErrorForCopy($type, $msg, $file, $line, $trace, $mem, $peak);
-        
+
         ?>
 <!doctype html>
 <html lang="en">
@@ -442,32 +442,33 @@ final class ErrorHub
             <strong>🚨 System Error <span class="badge"><?= htmlspecialchars($type) ?></span></strong>
             <div class="hd-sub"><?= $timestamp ?> • <?= $uri ?></div>
         </div>
-        
+
         <div class="sec">
             <div class="sec-title">Error Details</div>
             <div class="kv">
                 <div class="kv-label">Type</div>
                 <div><?= htmlspecialchars($type) ?></div>
-                
+
                 <div class="kv-label">Message</div>
                 <div class="mono"><?= htmlspecialchars($msg) ?></div>
-                
+
                 <div class="kv-label">File</div>
                 <div><?= htmlspecialchars($short) ?></div>
-                
+
                 <div class="kv-label">Line</div>
                 <div><?= $line ?></div>
-                
+
                 <div class="kv-label">Memory Usage</div>
                 <div><?= $mem ?> (peak <?= $peak ?>)</div>
             </div>
-            
+
             <div class="btn-group">
-                <button class="btn" onclick="copyError()">📋 Copy Full Error</button>
-                <button class="btn" onclick="copyTrace()">📋 Copy Stack Trace</button>
+                <button class="btn" onclick="copyError()" style="font-size: 16px; padding: 12px 24px;">
+                    📋 Copy All Error Details
+                </button>
             </div>
         </div>
-        
+
         <?php if (!empty($trace)): ?>
         <div class="sec">
             <div class="sec-title">Stack Trace</div>
@@ -482,30 +483,30 @@ final class ErrorHub
         </div>
         <?php endif; ?>
     </div>
-    
+
     <div class="copy-success" id="copy-success">✓ Copied to clipboard!</div>
-    
+
     <textarea id="copy-buffer" style="position:absolute;left:-9999px;"></textarea>
-    
+
     <script>
         const fullError = <?= json_encode($copyText, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
         const traceOnly = document.getElementById('trace-content')?.innerText || '';
-        
+
         function copyToClipboard(text) {
             const buffer = document.getElementById('copy-buffer');
             buffer.value = text;
             buffer.select();
             document.execCommand('copy');
-            
+
             const success = document.getElementById('copy-success');
             success.classList.add('show');
             setTimeout(() => success.classList.remove('show'), 2000);
         }
-        
+
         function copyError() {
             copyToClipboard(fullError);
         }
-        
+
         function copyTrace() {
             copyToClipboard(traceOnly);
         }
@@ -514,7 +515,7 @@ final class ErrorHub
 </html>
         <?php
     }
-    
+
     /**
      * Render simple production error page
      */
@@ -545,7 +546,7 @@ final class ErrorHub
 </html>
 HTML;
     }
-    
+
     /**
      * Format error for copy/paste
      */
@@ -569,12 +570,12 @@ HTML;
         $output[] = "URI: " . ($_SERVER['REQUEST_URI'] ?? '/');
         $output[] = "";
         $output[] = "=== STACK TRACE ===";
-        
+
         foreach ($trace as $i => $t) {
             $output[] = "#$i " . ($t['file'] ?? 'unknown') . ':' . ($t['line'] ?? '?');
             $output[] = "   " . ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? '');
         }
-        
+
         return implode("\n", $output);
     }
 }

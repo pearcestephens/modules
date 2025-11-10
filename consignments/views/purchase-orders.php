@@ -1,7 +1,7 @@
 <?php
 /**
  * Consignments Module - Purchase Orders
- * 
+ *
  * @package CIS\Consignments
  * @version 3.0.0
  */
@@ -32,29 +32,15 @@ $template->startContent();
     </div>
 
 /**
- * Purchase Orders - List View
- *
- * Browse and manage purchase orders from suppliers.
- *
- * @package CIS\Consignments
- * @version 3.0.0
- */
-
 declare(strict_types=1);
 
-// Page metadata
-$pageTitle = 'Purchase Orders';
-$breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Purchase Orders', 'url' => '', 'active' => true]
-];
+// Load CIS Template
+require_once __DIR__ . '/../lib/CISTemplate.php';
 
-// Get database connection
+// Prepare data
 $pdo = CIS\Base\Database::pdo();
 
-// Load recent purchase orders
-$stmt = $pdo->query("
+$stmt = $pdo->query(<<<SQL
     SELECT
         c.id,
         COALESCE(c.vend_number, c.public_id) as name,
@@ -70,43 +56,38 @@ $stmt = $pdo->query("
     WHERE c.transfer_category = 'PURCHASE_ORDER'
     ORDER BY c.created_at DESC
     LIMIT 100
-");
+SQL);
 
-$purchaseOrders = [];
-while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    $purchaseOrders[] = $row;
-}
+$purchaseOrders = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
-// Start output buffering
-ob_start();
+// Initialize template
+$template = new CISTemplate();
+$template->setTitle('Purchase Orders');
+$template->setBreadcrumbs([
+    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
+    ['label' => 'Purchase Orders', 'url' => '/modules/consignments/?route=purchase-orders', 'active' => true]
+]);
+
+// Start content capture
+$template->startContent();
 ?>
 
-<!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h1 class="h2 mb-1">
-            <i class="fas fa-truck text-primary me-2"></i>
-            Purchase Orders
-        </h1>
-        <p class="text-muted mb-0">Manage incoming orders from suppliers</p>
+      <h2 class="mb-0"><i class="fas fa-shopping-cart mr-2"></i>Purchase Orders</h2>
+      <div class="text-muted small">Manage incoming orders from suppliers</div>
     </div>
+    <div class="left-actions">
+      <a href="/modules/consignments/purchase-orders/create.php" class="btn btn-left-solid-pill btn-primary">
+        <i class="fas fa-plus mr-2"></i> Create Purchase Order
+      </a>
+    </div>
+  </div>
     <div>
         <a href="/modules/consignments/purchase-orders/create.php" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i>
-            Create Purchase Order
-        </a>
-    </div>
-</div>
-
-<!-- Purchase Orders Table -->
-<div class="card">
-    <div class="card-body">
-        <table class="table table-hover" id="poTable">
-            <thead>
-                <tr>
-                    <th>PO #</th>
-                    <th>Supplier</th>
-                    <th>Destination</th>
+<!-- (legacy header replaced by compact header above) -->
                     <th>Status</th>
                     <th>Items</th>
                     <th>Total Cost</th>
@@ -146,24 +127,12 @@ ob_start();
     </div>
 </div>
 
-<?php
-// Get buffered content
-$content = ob_get_clean();
-
-// Add inline script (will be executed after jQuery loads)
-$inlineScripts = "
-    // Initialize DataTable
-    $(document).ready(function() {
-        $('#poTable').DataTable({
-            order: [[6, 'desc']], // Sort by created date desc
-            pageLength: 25,
-            responsive: true
-        });
-    });
-";
-
-// Include BASE dashboard layout
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard.php';
+<script>
+    // Safe init if DataTables is available
+    (function($){
+        $(function(){ if ($.fn.DataTable) { $('#poTable').DataTable({ order:[[6,'desc']], pageLength:25, responsive:true }); } });
+    })(jQuery);
+</script>
 
 </div>
 

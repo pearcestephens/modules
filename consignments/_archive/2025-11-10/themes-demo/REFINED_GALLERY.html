@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS 2.0 - Refined Gallery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .gallery-container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .gallery-title {
+            font-size: 56px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 16px;
+            letter-spacing: -2px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .gallery-subtitle {
+            font-size: 22px;
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+        }
+
+        .section-divider {
+            margin: 60px 0;
+            text-align: center;
+        }
+
+        .section-label {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 12px 32px;
+            border-radius: 50px;
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .layouts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        .layout-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .layout-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        }
+
+        .layout-preview {
+            height: 320px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .layout-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .layout-info {
+            padding: 28px;
+        }
+
+        .layout-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1a202c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .layout-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-new {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .badge-refined {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .badge-feed {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .layout-desc {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+
+        .layout-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .feature-tag {
+            background: #f3f4f6;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+        }
+
+        .layout-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* GRADIENT ICONS */
+        .icon-teal { color: #14b8a6; }
+        .icon-navy { color: #1e40af; }
+        .icon-purple { color: #7c3aed; }
+        .icon-emerald { color: #059669; }
+
+        /* STATS SECTION */
+        .stats-banner {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 60px;
+            border: 2px solid rgba(255,255,255,0.3);
+            text-align: center;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+        }
+
+        .stat-item {
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .stat-label {
+            font-size: 16px;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="gallery-container">
+        <!-- HEADER -->
+        <div class="gallery-header">
+            <div class="gallery-title">🎨 CIS 2.0 Design Gallery</div>
+            <div class="gallery-subtitle">Maximum Polish Refined Collection</div>
+        </div>
+
+        <!-- REFINED SECTION -->
+        <div class="section-divider">
+            <div class="section-label">✨ Refined Layouts (Layout 6 Evolution)</div>
+        </div>
+
+        <div class="layouts-grid">
+            <!-- REFINED 1: TEAL CHAT -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-comments icon-teal"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Teal Chat
+                        <span class="layout-badge badge-refined">Refined</span>
+                    </div>
+                    <div class="layout-desc">
+                        Clean teal design with integrated team collaboration. Tall sidebar, square elements, room-based chat system with online users.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Teal Gradient</span>
+                        <span class="feature-tag">Team Chat</span>
+                        <span class="feature-tag">Square UI</span>
+                        <span class="feature-tag">Chat Rooms</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="REFINED_1_TEAL_CHAT.html" class="action-btn btn-primary">
+                            <i class="fas fa-eye"></i>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REFINED 2: NAVY ELITE -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-bolt icon-navy"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Navy Elite
+                        <span class="layout-badge badge-refined">Refined</span>
+                    </div>
+                    <div class="layout-desc">
+                        Professional dark navy header with top navigation. Enhanced team hub with circular avatars, activity cards, and refined typography.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Navy Gradient</span>
+                        <span class="feature-tag">Top Nav</span>
+                        <span class="feature-tag">Team Hub</span>
+                        <span class="feature-tag">Activity Cards</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="REFINED_2_NAVY_ELITE.html" class="action-btn btn-primary">
+                            <i class="fas fa-eye"></i>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REFINED 3: PURPLE INSIGHTS -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-brain icon-purple"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Purple Insights
+                        <span class="layout-badge badge-refined">Refined</span>
+                    </div>
+                    <div class="layout-desc">
+                        AI-powered insights panel with integrated search in header. Real-time alerts, trends, and predictive analytics in right sidebar.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Purple Theme</span>
+                        <span class="feature-tag">AI Insights</span>
+                        <span class="feature-tag">Header Search</span>
+                        <span class="feature-tag">Analytics</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="REFINED_3_PURPLE_INSIGHTS.html" class="action-btn btn-primary">
+                            <i class="fas fa-eye"></i>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REFINED 4: EMERALD COMMAND -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-rocket icon-emerald"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Emerald Command
+                        <span class="layout-badge badge-refined">Refined</span>
+                    </div>
+                    <div class="layout-desc">
+                        Command-focused design with minimized chat drawer. Split header layout, command palette search, and condensed team avatars.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Emerald Green</span>
+                        <span class="feature-tag">Command Bar</span>
+                        <span class="feature-tag">Mini Drawer</span>
+                        <span class="feature-tag">Split Header</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="REFINED_4_EMERALD_COMMAND.html" class="action-btn btn-primary">
+                            <i class="fas fa-eye"></i>
+                            View Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORIGINAL SECTION -->
+        <div class="section-divider">
+            <div class="section-label">🎯 Original Collection</div>
+        </div>
+
+        <div class="layouts-grid">
+            <!-- LAYOUT 6: ENTERPRISE DENSE -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-th-large" style="color: #64748b;"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Enterprise Dense
+                        <span class="layout-badge badge-new">Original</span>
+                    </div>
+                    <div class="layout-desc">
+                        The foundation layout with maximum information density. Traditional 2-layer header, 8-column stats, comprehensive sidebar navigation.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Gray/Blue</span>
+                        <span class="feature-tag">Dense Info</span>
+                        <span class="feature-tag">8 Columns</span>
+                        <span class="feature-tag">Traditional</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="LAYOUT_6_ENTERPRISE_DENSE.html" class="action-btn btn-secondary">
+                            <i class="fas fa-eye"></i>
+                            View Original
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEEDS SECTION -->
+        <div class="section-divider">
+            <div class="section-label">📱 Facebook-Style Feeds</div>
+        </div>
+
+        <div class="layouts-grid">
+            <!-- FEED 1: CLASSIC -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-stream" style="color: #3b82f6;"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Classic Feed
+                        <span class="layout-badge badge-feed">Feed</span>
+                    </div>
+                    <div class="layout-desc">
+                        Traditional 3-column Facebook-style layout with left sidebar, center feed, and right widgets panel.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">3-Column</span>
+                        <span class="feature-tag">Social Feed</span>
+                        <span class="feature-tag">Widgets</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="FEED_VAR_1_CLASSIC.html" class="action-btn btn-secondary">
+                            <i class="fas fa-eye"></i>
+                            View Feed
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEED 2: CARDS -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-th" style="color: #8b5cf6;"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Card Masonry
+                        <span class="layout-badge badge-feed">Feed</span>
+                    </div>
+                    <div class="layout-desc">
+                        Pinterest-inspired masonry grid with activity cards and varying heights for visual interest.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Masonry</span>
+                        <span class="feature-tag">Cards</span>
+                        <span class="feature-tag">Pinterest-Style</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="FEED_VAR_2_CARDS.html" class="action-btn btn-secondary">
+                            <i class="fas fa-eye"></i>
+                            View Feed
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FEED 3: TIMELINE -->
+            <div class="layout-card">
+                <div class="layout-preview">
+                    <i class="fas fa-list-ul" style="color: #10b981;"></i>
+                </div>
+                <div class="layout-info">
+                    <div class="layout-title">
+                        Timeline Stream
+                        <span class="layout-badge badge-feed">Feed</span>
+                    </div>
+                    <div class="layout-desc">
+                        Dark themed timeline with chronological activity stream and timestamp markers.
+                    </div>
+                    <div class="layout-features">
+                        <span class="feature-tag">Dark Theme</span>
+                        <span class="feature-tag">Timeline</span>
+                        <span class="feature-tag">Chronological</span>
+                    </div>
+                    <div class="layout-actions">
+                        <a href="FEED_VAR_3_TIMELINE.html" class="action-btn btn-secondary">
+                            <i class="fas fa-eye"></i>
+                            View Feed
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS BANNER -->
+        <div class="stats-banner">
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-number">17</div>
+                    <div class="stat-label">Total Layouts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Refined Designs</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Feed Variations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Maximum Polish</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

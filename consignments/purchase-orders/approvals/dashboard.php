@@ -28,7 +28,7 @@ use Consignments\Lib\Services\ApprovalService;
 use Consignments\Lib\Services\PurchaseOrderService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }
@@ -38,7 +38,7 @@ $approvalService = new ApprovalService($db);
 $poService = new PurchaseOrderService($db);
 
 // Get current user info
-$currentUserId = $_SESSION['user_id'];
+$currentUserId = $_SESSION['userID'];
 $isAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
 
 // Filters

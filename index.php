@@ -287,7 +287,7 @@ if ($biInstalled) {
                 <p class="mb-2">Run the following command in your terminal:</p>
                 <code style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; display: block; margin-top: 10px;">
                     cd /home/master/applications/jcepnzzkmj/public_html/modules/outlets<br>
-                    mysql -u jcepnzzkmj -p'$(cat ../../.env | grep DB_PASSWORD | cut -d= -f2)' jcepnzzkmj &lt; database/schema.sql
+                    mysql -u jcepnzzkmj -p'wprKh9Jq63' -h 127.0.0.1 jcepnzzkmj &lt; database/schema.sql
                 </code>
             </div>
             <?php endif; ?>
@@ -298,7 +298,7 @@ if ($biInstalled) {
                 <p class="mb-2">Run the following command in your terminal:</p>
                 <code style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; display: block; margin-top: 10px;">
                     cd /home/master/applications/jcepnzzkmj/public_html/modules/business-intelligence<br>
-                    mysql -u jcepnzzkmj -p'$(cat ../../.env | grep DB_PASSWORD | cut -d= -f2)' jcepnzzkmj &lt; database/schema.sql
+                    mysql -u jcepnzzkmj -p'wprKh9Jq63' -h 127.0.0.1 jcepnzzkmj &lt; database/schema.sql
                 </code>
             </div>
             <?php endif; ?>
@@ -386,9 +386,9 @@ if ($biInstalled) {
         function showInstallCommand(module) {
             let command = '';
             if (module === 'outlets') {
-                command = "cd /home/master/applications/jcepnzzkmj/public_html/modules/outlets && mysql -u jcepnzzkmj -p'$(cat ../../.env | grep DB_PASSWORD | cut -d= -f2)' jcepnzzkmj < database/schema.sql";
+                command = "cd /home/master/applications/jcepnzzkmj/public_html/modules/outlets && mysql -u jcepnzzkmj -p'wprKh9Jq63' -h 127.0.0.1 jcepnzzkmj < database/schema.sql";
             } else if (module === 'bi') {
-                command = "cd /home/master/applications/jcepnzzkmj/public_html/modules/business-intelligence && mysql -u jcepnzzkmj -p'$(cat ../../.env | grep DB_PASSWORD | cut -d= -f2)' jcepnzzkmj < database/schema.sql";
+                command = "cd /home/master/applications/jcepnzzkmj/public_html/modules/business-intelligence && mysql -u jcepnzzkmj -p'wprKh9Jq63' -h 127.0.0.1 jcepnzzkmj < database/schema.sql";
             }
 
             alert('Copy and run this command in your terminal:\n\n' + command);

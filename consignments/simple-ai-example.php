@@ -30,7 +30,7 @@ echo "\n🤖 Simple AI Example - Intelligence Hub\n\n";
 // Initialize
 $hub = new IntelligenceHubAdapter([
     'api_key' => $_ENV['INTELLIGENCE_HUB_API_KEY'] ?? '31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35',
-    'mcp_endpoint' => $_ENV['INTELLIGENCE_HUB_MCP_ENDPOINT'] ?? 'https://gpt.ecigdis.co.nz/mcp/server_v3.php',
+    'mcp_endpoint' => $_ENV['INTELLIGENCE_HUB_MCP_ENDPOINT'] ?? 'https://gpt.ecigdis.co.nz/mcp/server_v4.php',
 ]);
 
 // Example 1: Ask a question

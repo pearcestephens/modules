@@ -25,7 +25,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 use CIS\Consignments\Services\AIService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }

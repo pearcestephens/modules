@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS 2.0 - Facebook Style</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            color: #050505;
+        }
+
+        /* FACEBOOK-STYLE TOP NAV */
+        .top-nav {
+            background: #ffffff;
+            height: 56px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .logo-fb {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1877f2;
+            letter-spacing: -1px;
+        }
+
+        .search-box {
+            width: 240px;
+            height: 40px;
+            background: #f0f2f5;
+            border-radius: 50px;
+            padding: 0 16px;
+            border: none;
+            font-size: 15px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            background: #e4e6eb;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .nav-icon {
+            width: 112px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            cursor: pointer;
+            position: relative;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-icon:hover {
+            background: #f0f2f5;
+            border-radius: 10px;
+        }
+
+        .nav-icon.active {
+            color: #1877f2;
+            border-bottom-color: #1877f2;
+        }
+
+        .nav-icon i {
+            font-size: 24px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #050505;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #d8dadf;
+        }
+
+        .icon-btn i {
+            font-size: 18px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #e41e3f;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffffff;
+            padding: 0 4px;
+        }
+
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px 4px 4px;
+            background: #e4e6eb;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-btn:hover {
+            background: #d8dadf;
+        }
+
+        .profile-pic {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1877f2 0%, #0d65d9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .profile-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #050505;
+        }
+
+        /* LEFT SIDEBAR */
+        .left-sidebar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 56px);
+            background: #ffffff;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+            text-decoration: none;
+            color: #050505;
+        }
+
+        .sidebar-item:hover {
+            background: #f0f2f5;
+        }
+
+        .sidebar-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+            color: #050505;
+        }
+
+        .sidebar-item-icon.blue { background: #e7f3ff; color: #1877f2; }
+        .sidebar-item-icon.green { background: #d9f7e8; color: #31a24c; }
+        .sidebar-item-icon.red { background: #ffebe9; color: #e41e3f; }
+        .sidebar-item-icon.purple { background: #f0e7ff; color: #8b46ff; }
+        .sidebar-item-icon.orange { background: #fff3e0; color: #ff6f00; }
+
+        .sidebar-item-text {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: #e4e6eb;
+            margin: 8px 0;
+        }
+
+        .sidebar-section-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #65676b;
+            padding: 8px 8px 4px;
+            text-transform: none;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 280px;
+            margin-top: 56px;
+            padding: 16px;
+            min-height: calc(100vh - 56px);
+        }
+
+        /* STORY-STYLE CARDS */
+        .story-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+
+        .story-card {
+            min-width: 112px;
+            height: 200px;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .story-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .story-card-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+        }
+
+        .story-card-icon {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1877f2 0%, #0d65d9 100%);
+            border: 4px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .story-card-name {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* POST-STYLE CARDS */
+        .post-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .post-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .post-info p {
+            font-size: 13px;
+            color: #65676b;
+            margin: 0;
+        }
+
+        .post-content {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .post-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e4e6eb;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: #65676b;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .post-action-btn {
+            flex: 1;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #65676b;
+            transition: all 0.2s;
+        }
+
+        .post-action-btn:hover {
+            background: #f0f2f5;
+        }
+
+        .post-action-btn i {
+            font-size: 18px;
+        }
+
+        /* METRIC CARDS */
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .metric-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .metric-icon.blue { background: #e7f3ff; color: #1877f2; }
+        .metric-icon.green { background: #d9f7e8; color: #31a24c; }
+        .metric-icon.red { background: #ffebe9; color: #e41e3f; }
+        .metric-icon.orange { background: #fff3e0; color: #ff6f00; }
+
+        .metric-label {
+            font-size: 13px;
+            color: #65676b;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #050505;
+            margin-bottom: 8px;
+        }
+
+        .metric-change {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .metric-change.up { color: #31a24c; }
+        .metric-change.down { color: #e41e3f; }
+
+        /* SCROLLBAR */
+        .left-sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .left-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .left-sidebar::-webkit-scrollbar-thumb {
+            background: #bcc0c4;
+            border-radius: 4px;
+        }
+
+        .left-sidebar::-webkit-scrollbar-thumb:hover {
+            background: #8e9297;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP NAVIGATION -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <div class="logo-fb">CIS</div>
+            <input type="text" class="search-box" placeholder="Search CIS">
+        </div>
+
+        <div class="nav-center">
+            <div class="nav-icon active">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="nav-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="nav-icon">
+                <i class="fas fa-tv"></i>
+            </div>
+            <div class="nav-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="nav-icon">
+                <i class="fas fa-gamepad"></i>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <div class="icon-btn">
+                <i class="fas fa-th"></i>
+            </div>
+            <div class="icon-btn">
+                <i class="fab fa-facebook-messenger"></i>
+                <span class="notif-badge">3</span>
+            </div>
+            <div class="icon-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notif-badge">7</span>
+            </div>
+            <div class="profile-btn">
+                <div class="profile-pic">PS</div>
+                <span class="profile-name">Pearce</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEFT SIDEBAR -->
+    <div class="left-sidebar">
+        <a href="#" class="sidebar-item">
+            <div class="profile-pic" style="margin-right: 12px;">PS</div>
+            <div class="sidebar-item-text">Pearce Stephens</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon blue"><i class="fas fa-chart-line"></i></div>
+            <div class="sidebar-item-text">Dashboard</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon blue"><i class="fas fa-shopping-cart"></i></div>
+            <div class="sidebar-item-text">Purchase Orders</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon purple"><i class="fas fa-boxes"></i></div>
+            <div class="sidebar-item-text">Inventory</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon green"><i class="fas fa-truck"></i></div>
+            <div class="sidebar-item-text">Transfers</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon orange"><i class="fas fa-users"></i></div>
+            <div class="sidebar-item-text">Customers</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="sidebar-item-text">Alerts</div>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section-title">Shortcuts</div>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon blue"><i class="fas fa-file-invoice"></i></div>
+            <div class="sidebar-item-text">Recent Invoices</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon green"><i class="fas fa-chart-bar"></i></div>
+            <div class="sidebar-item-text">Sales Reports</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon purple"><i class="fas fa-calendar-check"></i></div>
+            <div class="sidebar-item-text">Scheduled Tasks</div>
+        </a>
+
+        <a href="#" class="sidebar-item">
+            <div class="sidebar-item-icon orange"><i class="fas fa-cog"></i></div>
+            <div class="sidebar-item-text">Settings</div>
+        </a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- Metrics Row -->
+        <div class="metric-row">
+            <div class="metric-card">
+                <div class="metric-icon blue">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="metric-label">Total Revenue</div>
+                <div class="metric-value">$124,582</div>
+                <div class="metric-change up">↑ 12.5% from last month</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon green">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="metric-label">Orders Today</div>
+                <div class="metric-value">1,845</div>
+                <div class="metric-change up">↑ 8.2% increase</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon orange">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="metric-label">Active Transfers</div>
+                <div class="metric-value">842</div>
+                <div class="metric-change up">↑ 24 completed today</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon red">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="metric-label">Low Stock Items</div>
+                <div class="metric-value">24</div>
+                <div class="metric-change down">↓ Needs attention</div>
+            </div>
+        </div>
+
+        <!-- Story Cards -->
+        <div class="story-row">
+            <div class="story-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="story-card-icon"><i class="fas fa-plus"></i></div>
+                <div class="story-card-gradient"></div>
+                <div class="story-card-name">Create Story</div>
+            </div>
+            <div class="story-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="story-card-icon">AK</div>
+                <div class="story-card-gradient"></div>
+                <div class="story-card-name">Auckland</div>
+            </div>
+            <div class="story-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="story-card-icon">WN</div>
+                <div class="story-card-gradient"></div>
+                <div class="story-card-name">Wellington</div>
+            </div>
+            <div class="story-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="story-card-icon">CH</div>
+                <div class="story-card-gradient"></div>
+                <div class="story-card-name">Christchurch</div>
+            </div>
+            <div class="story-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <div class="story-card-icon">HB</div>
+                <div class="story-card-gradient"></div>
+                <div class="story-card-name">Hamilton</div>
+            </div>
+        </div>
+
+        <!-- Post Cards -->
+        <div class="post-card">
+            <div class="post-header">
+                <div class="profile-pic" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">AK</div>
+                <div class="post-info">
+                    <h4>Auckland Store</h4>
+                    <p>2 hours ago</p>
+                </div>
+            </div>
+            <div class="post-content">
+                🎉 Record-breaking day! Hit $8,500 revenue with 124 transactions. Vaporesso XROS 3 continues as our top seller. Team exceeded daily targets by 18%!
+            </div>
+            <div class="post-stats">
+                <div>👍 28 Likes</div>
+                <div>💬 6 Comments · 📤 Share</div>
+            </div>
+            <div class="post-actions">
+                <div class="post-action-btn">
+                    <i class="far fa-thumbs-up"></i> Like
+                </div>
+                <div class="post-action-btn">
+                    <i class="far fa-comment"></i> Comment
+                </div>
+                <div class="post-action-btn">
+                    <i class="far fa-share-square"></i> Share
+                </div>
+            </div>
+        </div>
+
+        <div class="post-card">
+            <div class="post-header">
+                <div class="profile-pic" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">WN</div>
+                <div class="post-info">
+                    <h4>Wellington Store</h4>
+                    <p>5 hours ago</p>
+                </div>
+            </div>
+            <div class="post-content">
+                ✅ Transfer #TR-1234 received and processed in record time! All 24 items verified and shelved. Perfect condition thanks to Auckland's excellent packing.
+            </div>
+            <div class="post-stats">
+                <div>👍 22 Likes</div>
+                <div>💬 4 Comments · 📤 Share</div>
+            </div>
+            <div class="post-actions">
+                <div class="post-action-btn">
+                    <i class="far fa-thumbs-up"></i> Like
+                </div>
+                <div class="post-action-btn">
+                    <i class="far fa-comment"></i> Comment
+                </div>
+                <div class="post-action-btn">
+                    <i class="far fa-share-square"></i> Share
+                </div>
+            </div>
+        </div>
+
+        <div class="post-card">
+            <div class="post-header">
+                <div class="profile-pic" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">CH</div>
+                <div class="post-info">
+                    <h4>Christchurch Store</h4>
+                    <p>Yesterday at 5:30 PM</p>
+                </div>
+            </div>
+            <div class="post-content">
+                🚀 New product launch success! SMOK RPM 5 flying off the shelves. Already sold 47 units in first day. Customers love the upgraded coil system!
+            </div>
+            <div class="post-stats">
+                <div>👍 35 Likes</div>
+                <div>💬 12 Comments · 📤 Share</div>
+            </div>
+            <div class="post-actions">
+                <div class="post-action-btn">
+                    <i class="far fa-thumbs-up"></i> Like
+                </div>
+                <div class="post-action-btn">
+                    <i class="far fa-comment"></i> Comment
+                </div>
+                <div class="post-action-btn">
+                    <i class="far fa-share-square"></i> Share
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

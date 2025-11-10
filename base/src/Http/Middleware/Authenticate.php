@@ -1,10 +1,9 @@
 <?php
+
 /**
- * Authentication Middleware
+ * Authentication Middleware.
  *
  * Ensures user is authenticated before accessing protected routes
- *
- * @package CIS\Base\Http\Middleware
  */
 
 declare(strict_types=1);
@@ -14,6 +13,8 @@ namespace CIS\Base\Http\Middleware;
 use CIS\Base\Core\Application;
 use CIS\Base\Http\Request;
 use CIS\Base\Http\Response;
+
+use const PHP_SESSION_NONE;
 
 class Authenticate
 {
@@ -25,7 +26,7 @@ class Authenticate
     }
 
     /**
-     * Handle incoming request
+     * Handle incoming request.
      */
     public function handle(Request $request): ?Response
     {
@@ -46,13 +47,13 @@ class Authenticate
             // Not authenticated
             $this->app->logger()->info('Authentication required', [
                 'endpoint' => $request->query('endpoint'),
-                'ip' => $request->ip(),
+                'ip'       => $request->ip(),
             ]);
 
             if ($request->isAjax() || $request->isJson()) {
                 // Return JSON response for AJAX/API requests
                 return Response::unauthorized([
-                    'message' => 'Authentication required',
+                    'message'  => 'Authentication required',
                     'redirect' => '/login',
                 ]);
             }
@@ -62,7 +63,7 @@ class Authenticate
         }
 
         // User is authenticated, add to request context
-        $_SESSION['user_id'] = $userId;
+        $_SESSION['userID'] = $userId;
 
         return null; // Continue to next middleware
     }

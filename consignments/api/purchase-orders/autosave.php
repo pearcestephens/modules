@@ -20,7 +20,7 @@ header('Content-Type: application/json');
 
 try {
     // Authentication check
-    if (!isset($_SESSION['user_id'])) {
+    if (!isset($_SESSION['userID'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -71,7 +71,7 @@ try {
         $po = $poService->get($poId);
 
         // Verify ownership or permissions
-        if ($po['created_by'] !== $_SESSION['user_id'] && !hasPermission('po.edit_all')) {
+        if ($po['created_by'] !== $_SESSION['userID'] && !hasPermission('po.edit_all')) {
             http_response_code(403);
             echo json_encode([
                 'success' => false,
@@ -106,11 +106,11 @@ try {
             'freight_cost' => isset($data['freight_cost']) ? (float)$data['freight_cost'] : null,
         ], fn($v) => $v !== null);
 
-        $poService->update($poId, $updateData, $_SESSION['user_id'], $skipValidation = true);
+        $poService->update($poId, $updateData, $_SESSION['userID'], $skipValidation = true);
 
         // Update line items if provided
         if (isset($data['items']) && is_array($data['items'])) {
-            $poService->updateLineItems($poId, $data['items'], $_SESSION['user_id']);
+            $poService->updateLineItems($poId, $data['items'], $_SESSION['userID']);
         }
 
     } else {
@@ -125,11 +125,11 @@ try {
             'freight_cost' => isset($data['freight_cost']) ? (float)$data['freight_cost'] : null,
         ];
 
-        $poId = $poService->create($createData, $_SESSION['user_id'], $skipValidation = true);
+        $poId = $poService->create($createData, $_SESSION['userID'], $skipValidation = true);
 
         // Add line items if provided
         if (isset($data['items']) && is_array($data['items'])) {
-            $poService->addLineItems($poId, $data['items'], $_SESSION['user_id']);
+            $poService->addLineItems($poId, $data['items'], $_SESSION['userID']);
         }
     }
 

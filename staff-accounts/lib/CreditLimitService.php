@@ -455,7 +455,7 @@ class CreditLimitService
             WHERE id = ?
         ");
         
-        $changedBy = $_SESSION['user_id'] ?? 'system';
+        $changedBy = $_SESSION['userID'] ?? 'system';
         
         $stmt->execute([
             $reconciliationId,

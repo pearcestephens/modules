@@ -1,0 +1,39 @@
+{
+    "name": "base",
+    "title": "CIS Base Module",
+    "version": "2.0.0",
+    "description": "Core infrastructure and services for all CIS modules",
+    "namespace": "CIS\\Base",
+    "status": "active",
+    "type": "core",
+    "author": "CIS Development Team",
+    "license": "proprietary",
+    "dependencies": [],
+    "provides": [
+        "database",
+        "session",
+        "logger",
+        "error_handler",
+        "security",
+        "cache",
+        "auth",
+        "response",
+        "router",
+        "theme_manager",
+        "ai_services"
+    ],
+    "routes": false,
+    "bootstrap": "bootstrap.php",
+    "api_prefix": "/modules/base/api",
+    "assets_path": "assets",
+    "views_path": "views",
+    "config": {
+        "autoload_priority": 1,
+        "requires_auth": false,
+        "admin_only": false
+    },
+    "health_check": {
+        "endpoint": "/modules/base/api/health.php",
+        "enabled": true
+    }
+}

@@ -1,0 +1,55 @@
+<h2>New Purchase Order</h2>
+
+<p>Dear {{supplier_contact_name}},</p>
+
+<p>We have created a new purchase order for your review and fulfillment.</p>
+
+<div class="info-box">
+    <h3>Purchase Order Details</h3>
+    <div class="info-row">
+        <span class="info-label">PO Number:</span>
+        <span class="info-value">{{po_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Order Date:</span>
+        <span class="info-value">{{order_date}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Total Value:</span>
+        <span class="info-value">{{total_value}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Items:</span>
+        <span class="info-value">{{items_count}} line items</span>
+    </div>
+    {{#expected_delivery_date}}
+    <div class="info-row">
+        <span class="info-label">Expected Delivery:</span>
+        <span class="info-value">{{expected_delivery_date}}</span>
+    </div>
+    {{/expected_delivery_date}}
+</div>
+
+<div class="info-box">
+    <h3>Delivery Address</h3>
+    <p>
+        {{delivery_store_name}}<br>
+        {{delivery_address_line1}}<br>
+        {{#delivery_address_line2}}{{delivery_address_line2}}<br>{{/delivery_address_line2}}
+        {{delivery_city}}, {{delivery_postcode}}<br>
+        {{delivery_country}}
+    </p>
+</div>
+
+<div class="button-container">
+    <a href="{{supplier_portal_url}}" class="button">View Purchase Order</a>
+</div>
+
+<p>You can view the complete purchase order details, including line items and delivery instructions, by clicking the button above.</p>
+
+<p>If you have any questions or concerns about this order, please contact us at {{support_email}} or call {{support_phone}}.</p>
+
+<p>Thank you for your continued partnership.</p>
+
+<p>Best regards,<br>
+<strong>{{company_name}} Purchasing Team</strong></p>

@@ -28,7 +28,7 @@ use CIS\Consignments\Services\PurchaseOrderService;
 use CIS\Consignments\Services\ApprovalService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -81,7 +81,7 @@ try {
     // Process approval
     $result = $approvalService->processApproval(
         $poId,
-        $_SESSION['user_id'],
+        $_SESSION['userID'],
         $action,
         $comments
     );
@@ -92,7 +92,7 @@ try {
         $poService->changeState(
             $poId,
             'APPROVED',
-            $_SESSION['user_id'],
+            $_SESSION['userID'],
             'Approved by ' . $result['approver_name']
         );
 
@@ -104,7 +104,7 @@ try {
         $poService->changeState(
             $poId,
             'DRAFT',
-            $_SESSION['user_id'],
+            $_SESSION['userID'],
             'Rejected by ' . $result['approver_name'] . ($comments ? ': ' . $comments : '')
         );
 
@@ -116,7 +116,7 @@ try {
         $poService->changeState(
             $poId,
             'DRAFT',
-            $_SESSION['user_id'],
+            $_SESSION['userID'],
             'Changes requested by ' . $result['approver_name'] . ($comments ? ': ' . $comments : '')
         );
 

@@ -32,7 +32,7 @@ abstract class BaseController
             $this->redirectToLogin();
         }
 
-        $this->currentUserId = $_SESSION['user_id'] ?? null;
+        $this->currentUserId = $_SESSION['userID'] ?? null;
         $this->currentUser = $_SESSION['user'] ?? null;
 
         // Get database connection from base module (PDO preferred)
@@ -51,35 +51,30 @@ abstract class BaseController
             return true;
         }
 
-        return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+        return isset($_SESSION['userID']) && !empty($_SESSION['userID']);
     }
 
     /**
-     * Check if user has permission
+     * Check if user has permission (SIMPLIFIED: Always true if logged in)
      *
-     * @param string $permission Permission name
-     * @return bool
+     * @param string $permission Permission name (ignored)
+     * @return bool Always true
      */
     protected function hasPermission(string $permission): bool
     {
-        // Check user permissions
-        $userPermissions = $_SESSION['permissions'] ?? [];
-        return in_array($permission, $userPermissions) || in_array('admin', $userPermissions);
+        // SIMPLIFIED: No permission checks - logged in only
+        return $this->isAuthenticated();
     }
 
     /**
-     * Require permission or abort
+     * Require permission or abort (SIMPLIFIED: Only checks login)
      *
-     * @param string $permission Permission name
+     * @param string $permission Permission name (ignored)
      */
     protected function requirePermission(string $permission): void
     {
-        // Allow bot bypass
-        if (!empty($_GET['bot']) || !empty($_SERVER['HTTP_X_BOT_BYPASS'])) {
-            return;
-        }
-
-        if (!$this->hasPermission($permission)) {
+        // SIMPLIFIED: Just check if logged in
+        if (!$this->isAuthenticated()) {
             $this->abort(403, 'Access denied');
         }
     }

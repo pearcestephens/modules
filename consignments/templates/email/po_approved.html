@@ -1,0 +1,43 @@
+<h2>Purchase Order Approved</h2>
+
+<p>Hi {{recipient_name}},</p>
+
+<div class="alert success">
+    <p><strong>Great news!</strong> Your purchase order has been approved and will be sent to the supplier.</p>
+</div>
+
+<div class="info-box">
+    <h3>Purchase Order Details</h3>
+    <div class="info-row">
+        <span class="info-label">PO Number:</span>
+        <span class="info-value">{{po_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Supplier:</span>
+        <span class="info-value">{{supplier_name}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Total Value:</span>
+        <span class="info-value">{{total_value}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Approved By:</span>
+        <span class="info-value">{{approved_by}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Approved:</span>
+        <span class="info-value">{{approved_at}}</span>
+    </div>
+    {{#approval_notes}}
+    <div class="info-row">
+        <span class="info-label">Notes:</span>
+        <span class="info-value">{{approval_notes}}</span>
+    </div>
+    {{/approval_notes}}
+</div>
+
+<div class="button-container">
+    <a href="{{po_url}}" class="button">View Purchase Order</a>
+</div>
+
+<p>The supplier will receive this purchase order shortly. You can track its progress in the consignments system.</p>

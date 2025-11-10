@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Transfer Manager - The Vape Shed CIS</title>
+
+    <!-- Bootstrap 5.3.0 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Font Awesome 6.4.0 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* CIS Classic Theme Colors */
+        :root {
+            --cis-primary: #20c997;
+            --cis-dark: #2c3e50;
+            --cis-light: #ecf0f1;
+            --sidebar-width: 250px;
+            --header-height: 56px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        /* Header */
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .app-header .navbar-brand {
+            font-weight: 600;
+            color: var(--cis-dark);
+            text-decoration: none;
+        }
+
+        .app-header .user-info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-bell {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-bell:hover {
+            background: #e9ecef;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #dc3545;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--cis-dark);
+            color: white;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .sidebar-brand {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-brand img {
+            height: 32px;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-title {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .nav-link.active {
+            background: rgba(32, 201, 151, 0.15);
+            color: var(--cis-primary);
+            border-left: 3px solid var(--cis-primary);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .app-body {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        .main {
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .breadcrumb-item {
+            color: #6c757d;
+        }
+
+        .breadcrumb-item.active {
+            color: #495057;
+            font-weight: 500;
+        }
+
+        /* Transfer Manager Styles */
+        .filters-stick {
+            position: sticky;
+            top: calc(var(--header-height) + 1rem);
+            z-index: 100;
+        }
+
+        .btn-elevated {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-elevated:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-ghost:hover {
+            background: #f8f9fa;
+        }
+
+        .small-note {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .compact-header th {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #495057;
+            background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        kbd {
+            background: #2c3e50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.875em;
+        }
+
+        .sync-control-group {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px 16px;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--cis-primary);
+            border-color: var(--cis-primary);
+        }
+
+        /* Footer */
+        .app-footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-footer a {
+            color: #6c757d;
+            text-decoration: none;
+        }
+
+        .app-footer a:hover {
+            color: var(--cis-primary);
+        }
+
+        /* Progress Bar Colors */
+        .progress-bar-draft { background: #94a3b8; }
+        .progress-bar-open { background: #3b82f6; }
+        .progress-bar-packing { background: #f59e0b; }
+        .progress-bar-sent { background: #8b5cf6; }
+        .progress-bar-receiving { background: #06b6d4; }
+        .progress-bar-received { background: #10b981; }
+
+        /* State Badges */
+        .badge-draft { background: #94a3b8; }
+        .badge-open { background: #3b82f6; }
+        .badge-packing { background: #f59e0b; }
+        .badge-packaged { background: #eab308; }
+        .badge-sent { background: #8b5cf6; }
+        .badge-receiving { background: #06b6d4; }
+        .badge-partial { background: #f97316; }
+        .badge-received { background: #10b981; }
+        .badge-cancelled { background: #ef4444; }
+        .badge-closed { background: #6b7280; }
+
+        /* Receiving Modal Cards */
+        .receiving-option-card {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .receiving-option-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        /* Demo Data Styling */
+        .demo-notice {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .demo-notice i {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+
+<body class="app header-fixed sidebar-fixed">
+
+<!-- Sidebar -->
+<aside class="sidebar" role="navigation" aria-label="Main sidebar navigation">
+    <div class="sidebar-brand">
+        <img src="https://staff.vapeshed.co.nz/assets/img/brand/logo.jpg" alt="The Vape Shed Logo">
+    </div>
+    <nav class="sidebar-nav" aria-label="Primary navigation menu">
+        <ul class="nav flex-column">
+            <li class="nav-title">Dashboard</li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-gauge"></i>
+                    <span>View Dashboard</span>
+                </a>
+            </li>
+
+            <li class="nav-title">Consignments</li>
+            <li>
+                <a class="nav-link active" href="#">
+                    <i class="fas fa-arrow-left-right"></i>
+                    <span>Transfer Manager</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-boxes"></i>
+                    <span>Stock Transfers</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-receipt"></i>
+                    <span>Purchase Orders</span>
+                </a>
+            </li>
+
+            <li class="nav-title">Retail</li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-store"></i>
+                    <span>My Store Overview</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Store Banking</span>
+                </a>
+            </li>
+
+            <li class="nav-title">Management</li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Staff Management</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-truck"></i>
+                    <span>Suppliers</span>
+                </a>
+            </li>
+            <li>
+                <a class="nav-link" href="#">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reporting</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</aside>
+
+<!-- Header -->
+<header class="app-header" role="banner" aria-label="Main site header">
+    <a class="navbar-brand" href="#">Transfer Manager</a>
+
+    <nav class="user-info" aria-label="User account navigation">
+        <span class="small-note">Hello, <strong>Demo User</strong></span>
+
+        <div class="notification-bell" role="img" aria-label="Notification bell with 3 unread notifications">
+            <i class="fa fa-bell"></i>
+            <span class="notification-badge">3</span>
+        </div>
+
+        <img src="https://ui-avatars.com/api/?name=Demo+User&background=20c997&color=fff"
+             alt="User avatar"
+             width="36"
+             height="36"
+             style="border-radius: 50%;">
+    </nav>
+</header>
+
+<!-- Main Content -->
+<div class="app-body">
+    <main class="main" role="main" aria-label="Main content area">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Consignments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Transfer Manager</li>
+            </ol>
+        </nav>
+
+        <!-- Demo Notice -->
+        <div class="demo-notice">
+            <i class="fas fa-flask"></i>
+            <strong>DEMO MODE:</strong> This is a visual demonstration of the Transfer Manager using the Semantic CIS Template
+        </div>
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h2 class="mb-0">Transfers Tool <span class="small-note">Ad-hoc</span></h2>
+                <div class="small-note">Manage consignments. Press <kbd>/</kbd> to search.</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="sync-control-group d-flex align-items-center gap-2 me-3">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="syncToggle" checked>
+                        <label class="form-check-label" for="syncToggle">Lightspeed Sync</label>
+                    </div>
+                    <button class="btn btn-sm btn-outline-success" style="font-size: 0.8rem; padding: 4px 12px;" title="Verify all Lightspeed table data">
+                        <i class="bi bi-shield-check me-1"></i> Verify
+                    </button>
+                </div>
+                <button class="btn btn-success btn-elevated"><i class="bi bi-plus-lg me-1"></i> New Transfer</button>
+                <button class="btn btn-primary btn-elevated"><i class="bi bi-arrow-repeat me-1"></i> Refresh</button>
+                <button class="btn btn-secondary btn-elevated" title="Hard refresh"><i class="bi bi-arrow-clockwise me-1"></i> Hard Refresh</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-3 filters-stick">
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Primary Filters -->
+                    <div class="col-lg-5">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-funnel me-1"></i>Type
+                                </label>
+                                <select class="form-select">
+                                    <option value="">All Types</option>
+                                    <option>STOCK</option>
+                                    <option>JUICE</option>
+                                    <option>STAFF</option>
+                                    <option>RETURN</option>
+                                    <option>PURCHASE_ORDER</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-flag me-1"></i>State
+                                </label>
+                                <select class="form-select">
+                                    <option value="">All States</option>
+                                    <option>DRAFT</option>
+                                    <option>OPEN</option>
+                                    <option selected>PACKING</option>
+                                    <option>PACKAGED</option>
+                                    <option>SENT</option>
+                                    <option>RECEIVING</option>
+                                    <option>PARTIAL</option>
+                                    <option>RECEIVED</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outlet Filter -->
+                    <div class="col-lg-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-shop me-1"></i>Outlet
+                        </label>
+                        <select class="form-select">
+                            <option value="">All Outlets</option>
+                            <option>Warehouse</option>
+                            <option>Store 01 - Auckland</option>
+                            <option>Store 02 - Wellington</option>
+                            <option>Store 03 - Christchurch</option>
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="col-lg-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-search me-1"></i>Smart Search
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search text-primary"></i>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Transfer #, Vend #, outlet, supplier...">
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="bi bi-lightbulb text-warning"></i> Pro tip: Press <kbd>/</kbd> to quick search
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="small-note">Showing 5 of 127 transfers</div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="small-note">Rows</div>
+                        <select class="form-select form-select-sm" style="width:auto;">
+                            <option>10</option>
+                            <option selected>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                        <button class="btn btn-ghost btn-sm"><i class="bi bi-chevron-left"></i> Prev</button>
+                        <button class="btn btn-ghost btn-sm">Next <i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-sm">
+                        <thead class="table-light">
+                            <tr class="compact-header">
+                                <th style="width: 180px;"><i class="bi bi-tag me-1"></i>Type</th>
+                                <th style="width: 200px;"><i class="bi bi-building me-1"></i>Supplier</th>
+                                <th style="width: 160px;"><i class="bi bi-geo-alt me-1"></i>Destination</th>
+                                <th style="width: 130px;"><i class="bi bi-activity me-1"></i>Progress</th>
+                                <th style="width: 100px;"><i class="bi bi-flag me-1"></i>State</th>
+                                <th class="text-center" style="width: 80px;"><i class="bi bi-box-seam me-1"></i>Boxes</th>
+                                <th style="width: 150px;"><i class="bi bi-clock me-1"></i>Updated</th>
+                                <th class="text-end" style="width: 140px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Transfer 1 -->
+                            <tr>
+                                <td><span class="badge bg-primary">STOCK</span></td>
+                                <td>Warehouse</td>
+                                <td>Store 01 - Auckland</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-packing" role="progressbar" style="width: 65%"></div>
+                                    </div>
+                                    <small class="text-muted">65%</small>
+                                </td>
+                                <td><span class="badge badge-packing">PACKING</span></td>
+                                <td class="text-center">3</td>
+                                <td><small>2 hours ago</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-success" title="Pack"><i class="bi bi-box-seam"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Transfer 2 -->
+                            <tr>
+                                <td><span class="badge bg-info">JUICE</span></td>
+                                <td>Warehouse</td>
+                                <td>Store 02 - Wellington</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-packaged" role="progressbar" style="width: 100%"></div>
+                                    </div>
+                                    <small class="text-muted">100%</small>
+                                </td>
+                                <td><span class="badge badge-packaged">PACKAGED</span></td>
+                                <td class="text-center">2</td>
+                                <td><small>5 hours ago</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-warning" title="Ship"><i class="bi bi-truck"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Transfer 3 -->
+                            <tr>
+                                <td><span class="badge bg-secondary">STAFF</span></td>
+                                <td>Store 01 - Auckland</td>
+                                <td>Store 03 - Christchurch</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-sent" role="progressbar" style="width: 90%"></div>
+                                    </div>
+                                    <small class="text-muted">90%</small>
+                                </td>
+                                <td><span class="badge badge-sent">SENT</span></td>
+                                <td class="text-center">1</td>
+                                <td><small>1 day ago</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-info" title="Receive"><i class="bi bi-box-arrow-in-down"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Transfer 4 -->
+                            <tr>
+                                <td><span class="badge bg-success">PURCHASE_ORDER</span></td>
+                                <td>VapeMax Suppliers Ltd</td>
+                                <td>Warehouse</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-receiving" role="progressbar" style="width: 45%"></div>
+                                    </div>
+                                    <small class="text-muted">45%</small>
+                                </td>
+                                <td><span class="badge badge-partial">PARTIAL</span></td>
+                                <td class="text-center">5</td>
+                                <td><small>3 hours ago</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-info" title="Continue Receiving"><i class="bi bi-box-arrow-in-down"></i></button>
+                                </td>
+                            </tr>
+                            <!-- Transfer 5 -->
+                            <tr>
+                                <td><span class="badge bg-warning text-dark">RETURN</span></td>
+                                <td>Store 02 - Wellington</td>
+                                <td>Warehouse</td>
+                                <td>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-open" role="progressbar" style="width: 20%"></div>
+                                    </div>
+                                    <small class="text-muted">20%</small>
+                                </td>
+                                <td><span class="badge badge-open">OPEN</span></td>
+                                <td class="text-center">-</td>
+                                <td><small>6 hours ago</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-sm btn-outline-success" title="Pack"><i class="bi bi-box-seam"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card border-primary">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="text-muted">Active Transfers</h6>
+                                <h3 class="mb-0">127</h3>
+                            </div>
+                            <div class="text-primary" style="font-size: 2rem;">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="text-muted">In Packing</h6>
+                                <h3 class="mb-0">23</h3>
+                            </div>
+                            <div class="text-warning" style="font-size: 2rem;">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="text-muted">In Transit</h6>
+                                <h3 class="mb-0">45</h3>
+                            </div>
+                            <div class="text-info" style="font-size: 2rem;">
+                                <i class="bi bi-truck"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="text-muted">Completed Today</h6>
+                                <h3 class="mb-0">18</h3>
+                            </div>
+                            <div class="text-success" style="font-size: 2rem;">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="app-footer" role="contentinfo" aria-label="Site footer">
+    <div>
+        <a href="https://www.vapeshed.co.nz">The Vape Shed</a>
+        <span>&copy; 2025 Ecigdis Ltd</span>
+    </div>
+    <div>
+        <small>
+            Developed by <a href="https://www.pearcestephens.co.nz" target="_blank" rel="noopener noreferrer">Pearce Stephens</a>
+        </small>
+        <a href="#" class="btn btn-sm btn-outline-danger ms-2">
+            🐞 Report a Bug
+        </a>
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Demo functionality
+    console.log('Transfer Manager Demo - Semantic CIS Template');
+    console.log('This is a visual demonstration integrating:');
+    console.log('- Semantic HTML5 structure');
+    console.log('- CIS Classic theme styling');
+    console.log('- Transfer Manager interface');
+    console.log('- Complete accessibility (ARIA labels)');
+
+    // Keyboard shortcut: Press / to focus search
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !e.target.matches('input, textarea')) {
+            e.preventDefault();
+            document.querySelector('.input-group .form-control').focus();
+        }
+    });
+</script>
+
+</body>
+</html>

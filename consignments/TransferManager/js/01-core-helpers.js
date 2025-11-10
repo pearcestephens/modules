@@ -3,34 +3,44 @@
  * Core utility functions and UX helpers
  */
 
-/* ===== UX Helpers ===== */
-const $  = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
+/* ===== UX Helpers (non-conflicting) ===== */
+const $q  = (s) => (typeof s === 'string' ? document.querySelector(s) : (s && s.nodeType ? s : null));
+const $$q = (s) => (typeof s === 'string' ? Array.from(document.querySelectorAll(s)) : []);
 const esc = s => (s ?? '').toString().replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
 /* ===== API Helper ===== */
-function backoffDelay(attempt) { 
-  return Math.min(15000, 500 * Math.pow(2, attempt)); 
+function backoffDelay(attempt) {
+  return Math.min(15000, 500 * Math.pow(2, attempt));
 }
 
 // ✅ CRITICAL FIX: Add max retry limit to prevent infinite loop
 async function api(action, payload = {}) {
   const MAX_ATTEMPTS = 5;  // ✅ Prevent infinite retry loop
-  const body = JSON.stringify(Object.assign({action, csrf: CSRF, sync: $('#syncToggle')?.checked}, payload));
+  const body = JSON.stringify(Object.assign({action, csrf: CSRF, sync: $q('#syncToggle')?.checked}, payload));
   let attempt = 0;
-  
+
   for (;;) {
     if (attempt >= MAX_ATTEMPTS) {
       const errorMsg = `Max retry attempts (${MAX_ATTEMPTS}) exceeded. Please try again later.`;
       toast(errorMsg, 'danger');
       throw new Error(errorMsg);
     }
-    
+
     let resp, data;
     try {
-      resp = await fetch('backend.php?api=1', {method:'POST', headers:{'Content-Type':'application/json'}, body});
+      const apiUrl = (window.APP_CONFIG && window.APP_CONFIG.API_URL) ? window.APP_CONFIG.API_URL : '/modules/consignments/TransferManager/api.php';
+      resp = await fetch(apiUrl + (apiUrl.includes('?') ? '&' : '?') + 'api=1', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin',
+        body
+      });
       data = await resp.json().catch(()=> ({}));
-    } catch(e) { 
+    } catch(e) {
       attempt++;
       if (attempt >= MAX_ATTEMPTS) {
         const errorMsg = 'Network error - unable to connect';
@@ -40,24 +50,61 @@ async function api(action, payload = {}) {
       await new Promise(r=>setTimeout(r, backoffDelay(attempt)));
       continue;
     }
-    
-    if (resp.status === 429) { 
+
+    if (resp.status === 429) {
       attempt++;
-      await new Promise(r=>setTimeout(r, backoffDelay(attempt))); 
-      continue; 
+      await new Promise(r=>setTimeout(r, backoffDelay(attempt)));
+      continue;
     }
-    
-    // ✅ FIX: Handle all CSRF token expiry status codes (403, 419, 422)
-    // Check if error message indicates CSRF issue
-    const isCsrfError = data.error && (
-      data.error.includes('CSRF') || 
-      data.error === 'CSRF_INVALID' ||
-      resp.status === 419
-    );
-    
+
+    // Handle explicit 401 Unauthorized JSON
+    if (resp.status === 401) {
+      console.warn('AUTH_UNAUTHORIZED: 401 from API');
+      if (!sessionStorage.getItem('auth_redirect')) {
+        sessionStorage.setItem('auth_redirect','1');
+        setTimeout(()=>{ window.location.href = '/login.php?redirect=' + encodeURIComponent(location.pathname + location.search); }, 200);
+      }
+      throw new Error('UNAUTHORIZED');
+    }
+
+    // Detect HTML login redirects returned as 200/302 with HTML
+    const ct = resp.headers ? (resp.headers.get('content-type') || '') : '';
+    // If API returned HTML, assume login redirect or error page; silently redirect once
+    if (ct.includes('text/html')) {
+      console.warn('AUTH_REDIRECT_DETECTED: HTML received from API');
+      if (!sessionStorage.getItem('auth_redirect')) {
+        sessionStorage.setItem('auth_redirect','1');
+        setTimeout(()=>{ window.location.href = '/login.php?redirect=' + encodeURIComponent(location.pathname + location.search); }, 200);
+      }
+      throw new Error('UNAUTHORIZED');
+    }
+    if (ct.includes('text/html')) {
+      console.warn('AUTH_REDIRECT_DETECTED: Received HTML from API endpoint, treating as session timeout.');
+      if (!sessionStorage.getItem('auth_redirect')) {
+        sessionStorage.setItem('auth_redirect','1');
+        toast('Session expired. Redirecting to login…','warning');
+        setTimeout(()=>{ window.location.href = '/'; }, 1000);
+      }
+      throw new Error('AUTH_REDIRECT');
+    }
+
+    // ✅ FIX: Handle CSRF/token expiry robustly (object or string errors)
+    const errObj = (data && typeof data === 'object') ? data.error : null;
+    const errMsg = typeof errObj === 'string'
+      ? errObj
+      : (errObj && typeof errObj.message === 'string')
+        ? errObj.message
+        : (typeof data.message === 'string' ? data.message : '');
+    const errCode = (errObj && typeof errObj.code === 'string')
+      ? errObj.code
+      : (typeof data.code === 'string' ? data.code : '');
+    const isCsrfError = resp.status === 419
+      || errCode === 'CSRF_INVALID'
+      || (errMsg && /CSRF/i.test(errMsg));
+
     if ([403, 419, 422].includes(resp.status) && isCsrfError) {
       console.error('❌ CSRF token invalid (status ' + resp.status + '). Forcing page reload...');
-      
+
       // Prevent infinite reload loop - only reload once per session
       if (!sessionStorage.getItem('csrf_reloading')) {
         sessionStorage.setItem('csrf_reloading', '1');
@@ -69,21 +116,24 @@ async function api(action, payload = {}) {
       }
       throw new Error('Session expired. Please wait...');
     }
-    
+
     // Show detailed error modal for non-CSRF errors
-    if (!resp.ok || !data.ok) {
-      const errorMessage = data.error || data.detail || `HTTP ${resp.status}`;
+    if (!resp.ok || !(data.success || data.ok)) {
+      const errorMessage = errMsg
+        || (errCode ? errCode : '')
+        || (typeof data.detail === 'string' ? data.detail : '')
+        || `HTTP ${resp.status}`;
       console.error('❌ API Error:', errorMessage, data);
-      
+
       // Show detailed error modal if we have response data
-      if (data.error || data.request || data.system) {
+      if (data && (data.error || data.request || data.system)) {
         showDetailedError(new Error(errorMessage), data);
       }
-      
+
       throw new Error(errorMessage);
     }
-    
-    return data.data;
+
+    return data.data || data.result || data;
   }
 }
 
@@ -115,10 +165,10 @@ function showDetailedError(error, response) {
     `;
     document.body.appendChild(errorModal);
   }
-  
+
   const content = document.getElementById('errorDetailsContent');
   if (!content) return;
-  
+
   // Build error display with copy buttons
   let html = `
     <!-- Error Information -->
@@ -139,7 +189,7 @@ function showDetailedError(error, response) {
         </div>
       </div>
     </div>
-    
+
     <!-- Request Details -->
     <div class="mb-4">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -154,7 +204,7 @@ function showDetailedError(error, response) {
         </div>
       </div>
     </div>
-    
+
     <!-- System Stats -->
     <div class="mb-0">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -170,9 +220,9 @@ function showDetailedError(error, response) {
       </div>
     </div>
   `;
-  
+
   content.innerHTML = html;
-  
+
   // Show modal
   const modal = new bootstrap.Modal(errorModal);
   modal.show();
@@ -182,9 +232,9 @@ function showDetailedError(error, response) {
 window.copyToClipboard = function(elementId, button) {
   const element = document.getElementById(elementId);
   if (!element) return;
-  
+
   const text = element.textContent;
-  
+
   // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
@@ -220,7 +270,7 @@ function showCopyFeedback(button) {
   button.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
   button.classList.remove('btn-outline-secondary');
   button.classList.add('btn-success');
-  
+
   setTimeout(() => {
     button.innerHTML = originalHTML;
     button.classList.remove('btn-success');

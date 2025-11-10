@@ -23,7 +23,7 @@ require_once __DIR__ . '/../testing-bot-bypass.php';
 require_once '../bootstrap.php';
 
 // Simplified authentication - just check if user is logged in
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit();
 }

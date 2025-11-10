@@ -27,7 +27,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/bootstrap.php';
 use Consignments\Lib\Services\ApprovalService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }

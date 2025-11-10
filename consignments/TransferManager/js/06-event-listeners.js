@@ -15,13 +15,13 @@ function setupEventListeners() {
   }
 
   // Pagination
-  const btnRefresh = $('#btnRefresh');
-  const btnHardRefresh = $('#btnHardRefresh');
-  const prevPage = $('#prevPage');
-  const nextPage = $('#nextPage');
-  
+  const btnRefresh = $q('#btnRefresh');
+  const btnHardRefresh = $q('#btnHardRefresh');
+  const prevPage = $q('#prevPage');
+  const nextPage = $q('#nextPage');
+
   if (btnRefresh) btnRefresh.addEventListener('click', ()=>{ page=1; refresh(); });
-  if (btnHardRefresh) btnHardRefresh.addEventListener('click', ()=>{ 
+  if (btnHardRefresh) btnHardRefresh.addEventListener('click', ()=>{
     // Hard refresh: bypass cache (Ctrl+Shift+R / Cmd+Shift+R)
     window.location.reload(true);
   });
@@ -29,42 +29,42 @@ function setupEventListeners() {
   if (nextPage) nextPage.addEventListener('click', ()=>{ page++; refresh(); });
 
   // Filters
-  const filterType = $('#filterType');
-  const filterState = $('#filterState');
-  const filterOutlet = $('#filterOutlet');
-  const filterQ = $('#filterQ');
-  
+  const filterType = $q('#filterType');
+  const filterState = $q('#filterState');
+  const filterOutlet = $q('#filterOutlet');
+  const filterQ = $q('#filterQ');
+
   if (filterType) filterType.addEventListener('change', ()=>{ page=1; refresh(); });
   if (filterState) filterState.addEventListener('change', ()=>{ page=1; refresh(); });
   if (filterOutlet) filterOutlet.addEventListener('change', ()=>{ page=1; refresh(); });
   if (filterQ) {
-    filterQ.addEventListener('input', ()=>{ 
-      clearTimeout(window.__qDeb); 
-      window.__qDeb = setTimeout(()=>{ page=1; refresh(); }, 350); 
+    filterQ.addEventListener('input', ()=>{
+      clearTimeout(window.__qDeb);
+      window.__qDeb = setTimeout(()=>{ page=1; refresh(); }, 350);
     });
   }
 
   // Keyboard shortcut: / to focus search
-  document.addEventListener('keydown', (e)=>{ 
-    if(e.key==='/' && !e.target.matches('input,textarea')){ 
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='/' && !e.target.matches('input,textarea')){
       e.preventDefault();
-      const searchBox = $('#filterQ');
-      if (searchBox) searchBox.focus(); 
-    } 
+  const searchBox = $q('#filterQ');
+      if (searchBox) searchBox.focus();
+    }
   });
 
   // New transfer button
-  const btnNew = $('#btnNew');
+  const btnNew = $q('#btnNew');
   if (btnNew) {
-    const createModal = new bootstrap.Modal('#modalCreate');
+  const createModal = new bootstrap.Modal('#modalCreate');
     btnNew.addEventListener('click', ()=>{
-      const ctType = $('#ct_type');
-      const ctSupplierWrap = $('#ct_supplier_wrap');
-      const ctSupplierSelect = $('#ct_supplier_select');
-      const ctFromSelect = $('#ct_from_select');
-      const ctToSelect = $('#ct_to_select');
-      const ctAddProducts = $('#ct_add_products');
-      
+  const ctType = $q('#ct_type');
+  const ctSupplierWrap = $q('#ct_supplier_wrap');
+  const ctSupplierSelect = $q('#ct_supplier_select');
+  const ctFromSelect = $q('#ct_from_select');
+  const ctToSelect = $q('#ct_to_select');
+  const ctAddProducts = $q('#ct_add_products');
+
       if (ctType) ctType.value='STOCK';
       if (ctSupplierWrap) ctSupplierWrap.style.display='none';
       if (ctSupplierSelect) ctSupplierSelect.value='';
@@ -76,29 +76,29 @@ function setupEventListeners() {
   }
 
   // Transfer type change (show/hide supplier field)
-  const ctType = $('#ct_type');
-  const ctSupplierWrap = $('#ct_supplier_wrap');
+  const ctType = $q('#ct_type');
+  const ctSupplierWrap = $q('#ct_supplier_wrap');
   if (ctType && ctSupplierWrap) {
-    ctType.addEventListener('change', (e)=>{ 
-      const po = e.target.value==='PURCHASE_ORDER'; 
-      ctSupplierWrap.style.display = po ? '' : 'none'; 
+    ctType.addEventListener('change', (e)=>{
+      const po = e.target.value==='PURCHASE_ORDER';
+      ctSupplierWrap.style.display = po ? '' : 'none';
     });
   }
 
   // Form create handled in 05-detail-modal or other modules
 
   // ✅ CRITICAL FIX: Add null check for #syncToggle
-  const syncToggle = $('#syncToggle');
+  const syncToggle = $q('#syncToggle');
   if (syncToggle) {
     syncToggle.addEventListener('change', async (e)=>{
       const checked = e.target.checked;
-      try { 
-        await api('toggle_sync',{enabled:checked}); 
-        toast(`Lightspeed Sync ${checked?'enabled':'disabled'}`,'success'); 
+      try {
+        await api('toggle_sync',{enabled:checked});
+        toast(`Lightspeed Sync ${checked?'enabled':'disabled'}`,'success');
       }
-      catch(err){ 
-        e.target.checked = !checked; 
-        toast('Failed to toggle','danger'); 
+      catch(err){
+        e.target.checked = !checked;
+        toast('Failed to toggle','danger');
       }
     });
   } else {
@@ -106,14 +106,14 @@ function setupEventListeners() {
   }
 
   // ✅ NEW: Verify Sync Button - Comprehensive Lightspeed table verification
-  const btnVerifySync = $('#btnVerifySync');
+  const btnVerifySync = $q('#btnVerifySync');
   if (btnVerifySync) {
     btnVerifySync.addEventListener('click', async ()=> {
       const btn = btnVerifySync;
       const originalHTML = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Verifying...';
-      
+
       try {
         const result = await api('verify_sync');
         showVerificationModal(result);
@@ -125,15 +125,33 @@ function setupEventListeners() {
       }
     });
   }
-  
+
   // ✅ FIX: Add cleanup on page unload
   window.addEventListener('beforeunload', () => {
     clearTimeout(window.__qDeb);
     delete window.__qDeb;
   });
-  
+
   console.log('✅ Event listeners attached');
 }
+
+// Manager PIN tools (issue/revoke/status)
+window.tmPin = (function(){
+  async function call(action, payload={}){
+    const body = Object.assign({ action, csrf: (window.APP_CONFIG && APP_CONFIG.CSRF) || '' }, payload);
+    const resp = await fetch('/modules/consignments/TransferManager/api.php?api=1', {
+      method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}, credentials:'same-origin', body: JSON.stringify(body)
+    });
+    const data = await resp.json().catch(()=>({}));
+    if (!resp.ok || data.success===false) throw new Error((data.error && data.error.message) || ('HTTP '+resp.status));
+    return data.data || data;
+  }
+  return {
+    async issue(ttlSec){ return call('pin_issue', { ttl: ttlSec||900 }); },
+    async status(){ return call('pin_status'); },
+    async revoke(){ return call('pin_revoke'); }
+  };
+})();
 
 /**
  * Show Vend/Lightspeed Transfer Verification Modal
@@ -154,15 +172,15 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
     </div>
   `;
   showModal(loadingHtml, 'lg');
-  
+
   try {
     // Get transfer details from our database
     const localData = await api('get_transfer_detail', { id: transferId });
-    
+
     // Get live data from Lightspeed (via backend which calls Vend API)
     const vendData = localData.ls || null;
     const totals = localData.totals || null;
-    
+
     // Compare and build verification report
     const verification = {
       transfer_id: transferId,
@@ -184,7 +202,7 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
       },
       sync_status: 'unknown'
     };
-    
+
     // Determine sync status
     if (!verification.vend.connected) {
       verification.sync_status = 'error';
@@ -199,10 +217,10 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
       verification.sync_status = 'ok';
       verification.sync_message = 'All data synchronized';
     }
-    
+
     // Show verification modal
     showVendVerificationResultModal(verification, vendTransferId);
-    
+
   } catch (err) {
     const errorHtml = `
       <div class="modal-header bg-danger">
@@ -227,7 +245,7 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
  */
 function showVendVerificationResultModal(verification, vendTransferId) {
   const v = verification;
-  
+
   // Determine status badge
   let statusBadge = '';
   let statusClass = '';
@@ -241,7 +259,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
     statusBadge = '<span class="badge bg-danger fs-6">❌ Sync Error</span>';
     statusClass = 'danger';
   }
-  
+
   const html = `
     <div class="modal-header bg-gradient" style="background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);">
       <h5 class="modal-title text-white"><i class="bi bi-shield-check me-2"></i>Transfer Sync Verification</h5>
@@ -254,13 +272,13 @@ function showVendVerificationResultModal(verification, vendTransferId) {
           <div class="text-muted small mt-1">Transfer ID: ${esc(v.transfer_id)} | Vend ID: ${esc(v.vend_transfer_id)}</div>
         </div>
       </div>
-      
+
       ${v.sync_message ? `
       <div class="alert alert-${statusClass} mb-4">
         <strong>${v.sync_status === 'ok' ? '✅' : v.sync_status === 'warning' ? '⚠️' : '❌'}</strong> ${esc(v.sync_message)}
       </div>
       ` : ''}
-      
+
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <div class="card">
@@ -293,7 +311,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
             </div>
           </div>
         </div>
-        
+
         <div class="col-md-6">
           <div class="card">
             <div class="card-header bg-light">
@@ -325,7 +343,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
           </div>
         </div>
       </div>
-      
+
       <div class="card bg-light">
         <div class="card-body">
           <h6 class="mb-2">🔍 Verification Summary:</h6>
@@ -344,7 +362,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
       </a>
     </div>
   `;
-  
+
   showModal(html, 'lg');
 }
 
@@ -353,7 +371,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
  */
 function showVerificationModal(data) {
   const { sync_enabled, timestamp, tables, errors, warnings, summary } = data;
-  
+
   // Determine overall badge
   let statusBadge = '';
   if (summary.overall_status === 'ok') {
@@ -372,7 +390,7 @@ function showVerificationModal(data) {
   tablesHTML += '<thead class="sticky-top bg-light"><tr>';
   tablesHTML += '<th>Table Name</th><th>Status</th><th>Rows</th><th>Columns</th><th>Issues</th>';
   tablesHTML += '</tr></thead><tbody>';
-  
+
   tables.forEach(t => {
     let statusIcon = '';
     let rowClass = '';
@@ -388,10 +406,10 @@ function showVerificationModal(data) {
       statusIcon = '<span class="badge bg-dark">🚫 Missing</span>';
       rowClass = 'table-danger';
     }
-    
+
     const criticalBadge = t.critical ? '<span class="badge bg-danger ms-1">CRITICAL</span>' : '';
     const issues = t.missing_columns.length > 0 ? `Missing: ${t.missing_columns.join(', ')}` : '—';
-    
+
     tablesHTML += `<tr class="${rowClass}">`;
     tablesHTML += `<td><code>${esc(t.name)}</code> ${criticalBadge}</td>`;
     tablesHTML += `<td>${statusIcon}</td>`;
@@ -400,7 +418,7 @@ function showVerificationModal(data) {
     tablesHTML += `<td><small>${esc(issues)}</small></td>`;
     tablesHTML += `</tr>`;
   });
-  
+
   tablesHTML += '</tbody></table></div>';
 
   // Build errors/warnings HTML

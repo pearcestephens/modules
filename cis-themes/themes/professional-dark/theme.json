@@ -1,0 +1,37 @@
+{
+  "name": "Professional Dark",
+  "version": "1.0.0",
+  "author": "CIS Design Team",
+  "description": "Sleek dark theme with modern aesthetics and high contrast",
+  "colors": {
+    "primary": "#0ea5e9",
+    "secondary": "#6366f1",
+    "background": "#0f172a",
+    "surface": "#1e293b",
+    "text": "#f1f5f9",
+    "textSecondary": "#94a3b8",
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "danger": "#ef4444",
+    "accent": "#8b5cf6"
+  },
+  "layouts": [
+    "facebook-feed",
+    "card-grid",
+    "store-outlet"
+  ],
+  "styles": [
+    "main.css",
+    "components.css"
+  ],
+  "scripts": [
+    "main.js"
+  ],
+  "features": [
+    "dark-mode",
+    "responsive",
+    "animations",
+    "charts",
+    "real-time-updates"
+  ]
+}

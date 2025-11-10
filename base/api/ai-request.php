@@ -13,7 +13,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 header('Content-Type: application/json');
 
 // Security: Require authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     die(json_encode([
         'success' => false,
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Rate limiting: 20 requests per minute per user
-$cache_key = "ai_rate_limit_" . $_SESSION['user_id'];
+$cache_key = "ai_rate_limit_" . $_SESSION['userID'];
 $rate_limit = 20;
 $time_window = 60; // seconds
 
@@ -95,7 +95,7 @@ $payload = [
     'message' => $message,
     'context' => $context,
     'source' => $source,
-    'user_id' => $_SESSION['user_id'],
+    'user_id' => $_SESSION['userID'],
     'username' => $_SESSION['username'] ?? 'unknown',
     'timestamp' => date('Y-m-d H:i:s'),
     'client' => 'cis_staff_portal'
@@ -108,7 +108,7 @@ $options = [
         'header' => [
             'Content-Type: application/json',
             'User-Agent: CIS-Staff-Portal/1.0',
-            'X-CIS-User: ' . $_SESSION['user_id'],
+            'X-CIS-User: ' . $_SESSION['userID'],
             'X-CIS-Source: ' . $source
         ],
         'content' => json_encode($payload),
@@ -153,7 +153,7 @@ try {
     }
     
     // Log the request (for analytics)
-    logAIRequest($_SESSION['user_id'], $message, $source, $response_data);
+    logAIRequest($_SESSION['userID'], $message, $source, $response_data);
     
     // Return response
     echo $response;

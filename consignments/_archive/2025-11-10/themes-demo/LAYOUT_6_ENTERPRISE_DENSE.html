@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout 6: Enterprise Dense - CIS 2.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            font-size: 13px;
+        }
+
+        /* Two-Layer Header */
+        .header-layer-1 {
+            background: #2c3e50;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1002;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            width: 240px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #3498db;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-nav {
+            flex: 1;
+            display: flex;
+            gap: 5px;
+        }
+
+        .main-nav-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .main-nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .main-nav-link.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+        }
+
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .header-layer-2 {
+            background: white;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #e0e0e0;
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+        }
+
+        .breadcrumb-section {
+            width: 240px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .breadcrumb-section i {
+            color: #3498db;
+            margin-right: 5px;
+        }
+
+        .search-section {
+            flex: 1;
+            max-width: 600px;
+            margin: 0 30px;
+        }
+
+        .search-big {
+            width: 100%;
+            height: 42px;
+            padding: 0 20px 0 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 21px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-big:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .search-section i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #95a5a6;
+        }
+
+        .actions-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .action-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #ecf0f1;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            color: #7f8c8d;
+        }
+
+        .action-icon-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .action-icon-btn .badge-dot {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .action-icon-btn .badge-num {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Left Sidebar */
+        .left-sidebar {
+            position: fixed;
+            left: 0;
+            top: 110px;
+            width: 240px;
+            bottom: 40px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-menu {
+            padding: 10px 0;
+        }
+
+        .menu-section-title {
+            padding: 12px 20px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #95a5a6;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .menu-item:hover {
+            background: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .menu-item.active {
+            background: #e8f4f8;
+            color: #3498db;
+            border-left: 3px solid #3498db;
+        }
+
+        .menu-item i {
+            width: 24px;
+            font-size: 15px;
+            margin-right: 12px;
+        }
+
+        .menu-item .badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 3px 7px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            margin-top: 110px;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        /* Dense Card Grid */
+        .dense-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .dense-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            transition: all 0.2s;
+        }
+
+        .dense-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+            border-color: #3498db;
+        }
+
+        .dense-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .dense-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .dense-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .dense-card-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dense-card-change {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .dense-card-change.up { background: #d5f4e6; color: #27ae60; }
+        .dense-card-change.down { background: #fadbd8; color: #e74c3c; }
+
+        /* Feed Section */
+        .feed-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+        }
+
+        .feed-main {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .feed-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .feed-post {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 15px 0;
+        }
+
+        .feed-post:last-child {
+            border-bottom: none;
+        }
+
+        .feed-post-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .feed-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .feed-author {
+            flex: 1;
+        }
+
+        .feed-author-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        .feed-time {
+            font-size: 11px;
+            color: #95a5a6;
+        }
+
+        .feed-content {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+
+        .feed-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        .feed-action {
+            font-size: 12px;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .feed-action:hover {
+            color: #3498db;
+        }
+
+        .feed-action i {
+            margin-right: 5px;
+        }
+
+        /* Right Sidebar (Activity) */
+        .activity-sidebar {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .activity-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 12px;
+            color: #34495e;
+            margin-bottom: 3px;
+        }
+
+        .activity-time {
+            font-size: 10px;
+            color: #95a5a6;
+        }
+
+        /* Data Table Dense */
+        .table-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .table-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .table-card-header h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .table-dense {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .table-dense thead {
+            background: #f8f9fa;
+        }
+
+        .table-dense th {
+            padding: 10px 12px;
+            font-weight: 600;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .table-dense td {
+            padding: 10px 12px;
+            color: #34495e;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table-dense tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #2c3e50;
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 11px;
+            z-index: 1000;
+        }
+
+        .footer a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        /* Pull-out Right Sidebar */
+        .pullout-sidebar {
+            position: fixed;
+            right: -320px;
+            top: 110px;
+            width: 320px;
+            bottom: 40px;
+            background: white;
+            box-shadow: -4px 0 12px rgba(0,0,0,0.1);
+            transition: right 0.3s;
+            z-index: 999;
+            overflow-y: auto;
+            padding: 20px;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .pullout-sidebar.open {
+            right: 0;
+        }
+
+        .pullout-toggle {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 80px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px 0 0 6px;
+            cursor: pointer;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .pullout-sidebar h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        /* Color Utilities */
+        .bg-blue { background: #3498db; }
+        .bg-green { background: #27ae60; }
+        .bg-orange { background: #e67e22; }
+        .bg-red { background: #e74c3c; }
+        .bg-purple { background: #9b59b6; }
+        .bg-teal { background: #16a085; }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.success { background: #d5f4e6; color: #27ae60; }
+        .status-badge.warning { background: #fef5e7; color: #e67e22; }
+        .status-badge.danger { background: #fadbd8; color: #e74c3c; }
+        .status-badge.info { background: #ebf5fb; color: #3498db; }
+    </style>
+</head>
+<body>
+    <!-- Header Layer 1: Main Nav -->
+    <div class="header-layer-1">
+        <div class="logo-section">
+            <div class="logo-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <span>CIS 2.0</span>
+        </div>
+        <div class="main-nav">
+            <a href="#" class="main-nav-link active">Dashboard</a>
+            <a href="#" class="main-nav-link">Inventory</a>
+            <a href="#" class="main-nav-link">Orders</a>
+            <a href="#" class="main-nav-link">Reports</a>
+            <a href="#" class="main-nav-link">Settings</a>
+        </div>
+        <div class="user-section">
+            <span>Pearce Stephens</span>
+            <div class="user-avatar-small">PS</div>
+        </div>
+    </div>
+
+    <!-- Header Layer 2: Search & Actions -->
+    <div class="header-layer-2">
+        <div class="breadcrumb-section">
+            <i class="fas fa-home"></i> Dashboard / Feed
+        </div>
+        <div class="search-section" style="position: relative;">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-big" placeholder="Search products, orders, transfers, staff...">
+        </div>
+        <div class="actions-section">
+            <button class="action-icon-btn">
+                <i class="fas fa-bell"></i>
+                <span class="badge-num">12</span>
+            </button>
+            <button class="action-icon-btn">
+                <i class="fas fa-envelope"></i>
+                <span class="badge-num">5</span>
+            </button>
+            <button class="action-icon-btn">
+                <i class="fas fa-comment"></i>
+                <span class="badge-dot"></span>
+            </button>
+            <button class="action-icon-btn">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Left Sidebar -->
+    <div class="left-sidebar">
+        <div class="sidebar-menu">
+            <div class="menu-section-title">Main</div>
+            <a href="#" class="menu-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-comments"></i>
+                <span>Feed</span>
+                <span class="badge bg-danger">12</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+
+            <div class="menu-section-title">Inventory</div>
+            <a href="#" class="menu-item">
+                <i class="fas fa-boxes"></i>
+                <span>Stock Transfers</span>
+                <span class="badge bg-primary">8</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Purchase Orders</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-warehouse"></i>
+                <span>Consignments</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cube"></i>
+                <span>Products</span>
+            </a>
+
+            <div class="menu-section-title">Operations</div>
+            <a href="#" class="menu-item">
+                <i class="fas fa-store"></i>
+                <span>Outlets</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-users"></i>
+                <span>Staff</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-truck"></i>
+                <span>Freight</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-calendar"></i>
+                <span>Schedule</span>
+            </a>
+
+            <div class="menu-section-title">System</div>
+            <a href="#" class="menu-item">
+                <i class="fas fa-file-alt"></i>
+                <span>Reports</span>
+            </a>
+            <a href="#" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dense Stats Grid -->
+        <div class="dense-grid">
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-blue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="dense-card-change up">
+                        <i class="fas fa-arrow-up"></i> 12%
+                    </div>
+                </div>
+                <div class="dense-card-value">$124,563</div>
+                <div class="dense-card-label">Revenue Today</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-green">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="dense-card-change up">
+                        <i class="fas fa-arrow-up"></i> 8%
+                    </div>
+                </div>
+                <div class="dense-card-value">1,845</div>
+                <div class="dense-card-label">Orders</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-orange">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="dense-card-change up">
+                        <i class="fas fa-arrow-up"></i> 15%
+                    </div>
+                </div>
+                <div class="dense-card-value">842</div>
+                <div class="dense-card-label">Transfers</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-purple">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="dense-card-change down">
+                        <i class="fas fa-arrow-down"></i> 3%
+                    </div>
+                </div>
+                <div class="dense-card-value">12,458</div>
+                <div class="dense-card-label">Customers</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="dense-card-change down">
+                        <i class="fas fa-arrow-down"></i> 5%
+                    </div>
+                </div>
+                <div class="dense-card-value">24</div>
+                <div class="dense-card-label">Low Stock</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-teal">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="dense-card-change up">
+                        <i class="fas fa-arrow-up"></i> 10%
+                    </div>
+                </div>
+                <div class="dense-card-value">156</div>
+                <div class="dense-card-label">In Transit</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-blue">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="dense-card-change up">
+                        <i class="fas fa-check"></i> 100%
+                    </div>
+                </div>
+                <div class="dense-card-value">17/17</div>
+                <div class="dense-card-label">Stores Online</div>
+            </div>
+
+            <div class="dense-card">
+                <div class="dense-card-header">
+                    <div class="dense-card-icon bg-green">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="dense-card-change up">
+                        <i class="fas fa-arrow-up"></i> 7%
+                    </div>
+                </div>
+                <div class="dense-card-value">$68.50</div>
+                <div class="dense-card-label">Avg Order</div>
+            </div>
+        </div>
+
+        <!-- Feed + Activity -->
+        <div class="feed-container">
+            <div class="feed-main">
+                <div class="feed-header">
+                    <h3><i class="fas fa-rss"></i> Store Feed</h3>
+                </div>
+
+                <div class="feed-post">
+                    <div class="feed-post-header">
+                        <div class="feed-avatar bg-blue">AK</div>
+                        <div class="feed-author">
+                            <div class="feed-author-name">Auckland Store</div>
+                            <div class="feed-time">2 hours ago</div>
+                        </div>
+                        <span class="status-badge success">Online</span>
+                    </div>
+                    <div class="feed-content">
+                        🎉 Great sales day! Hit $8,500 with 124 transactions. Top seller: Vaporesso XROS 3. Team smashed targets!
+                    </div>
+                    <div class="feed-actions">
+                        <div class="feed-action"><i class="far fa-thumbs-up"></i> Like (24)</div>
+                        <div class="feed-action"><i class="far fa-comment"></i> Comment (5)</div>
+                        <div class="feed-action"><i class="fas fa-share"></i> Share</div>
+                    </div>
+                </div>
+
+                <div class="feed-post">
+                    <div class="feed-post-header">
+                        <div class="feed-avatar bg-green">WN</div>
+                        <div class="feed-author">
+                            <div class="feed-author-name">Wellington Store</div>
+                            <div class="feed-time">5 hours ago</div>
+                        </div>
+                        <span class="status-badge success">Online</span>
+                    </div>
+                    <div class="feed-content">
+                        📦 Transfer #1234 received from Auckland. Everything checked and shelved. Quick turnaround - thanks packing team!
+                    </div>
+                    <div class="feed-actions">
+                        <div class="feed-action"><i class="far fa-thumbs-up"></i> Like (18)</div>
+                        <div class="feed-action"><i class="far fa-comment"></i> Comment (3)</div>
+                        <div class="feed-action"><i class="fas fa-share"></i> Share</div>
+                    </div>
+                </div>
+
+                <div class="feed-post">
+                    <div class="feed-post-header">
+                        <div class="feed-avatar bg-orange">CH</div>
+                        <div class="feed-author">
+                            <div class="feed-author-name">Christchurch Store</div>
+                            <div class="feed-time">Yesterday at 4:30 PM</div>
+                        </div>
+                        <span class="status-badge warning">Low Stock</span>
+                    </div>
+                    <div class="feed-content">
+                        ⚠️ Running low on popular items. Need restock ASAP. Already created transfer request #1245.
+                    </div>
+                    <div class="feed-actions">
+                        <div class="feed-action"><i class="far fa-thumbs-up"></i> Like (12)</div>
+                        <div class="feed-action"><i class="far fa-comment"></i> Comment (8)</div>
+                        <div class="feed-action"><i class="fas fa-share"></i> Share</div>
+                    </div>
+                </div>
+
+                <div class="feed-post">
+                    <div class="feed-post-header">
+                        <div class="feed-avatar bg-purple">HQ</div>
+                        <div class="feed-author">
+                            <div class="feed-author-name">Head Office</div>
+                            <div class="feed-time">Yesterday at 10:00 AM</div>
+                        </div>
+                        <span class="status-badge info">Announcement</span>
+                    </div>
+                    <div class="feed-content">
+                        📢 New CIS 2.0 features rolling out next week! Enhanced freight tracking, AI-powered inventory suggestions, and mobile packing app.
+                    </div>
+                    <div class="feed-actions">
+                        <div class="feed-action"><i class="far fa-thumbs-up"></i> Like (45)</div>
+                        <div class="feed-action"><i class="far fa-comment"></i> Comment (12)</div>
+                        <div class="feed-action"><i class="fas fa-share"></i> Share</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-sidebar">
+                <div class="activity-header">
+                    <i class="fas fa-clock"></i> Recent Activity
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon bg-blue">
+                        <i class="fas fa-box" style="color: white;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">Transfer #1234 completed</div>
+                        <div class="activity-time">5 min ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon bg-green">
+                        <i class="fas fa-shopping-cart" style="color: white;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">PO-8473 received</div>
+                        <div class="activity-time">12 min ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon bg-orange">
+                        <i class="fas fa-user" style="color: white;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">New staff: Jane Smith</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon bg-purple">
+                        <i class="fas fa-truck" style="color: white;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">Freight booked: NZ Courier</div>
+                        <div class="activity-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon bg-red">
+                        <i class="fas fa-exclamation" style="color: white;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">Low stock alert: Item #4523</div>
+                        <div class="activity-time">3 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dense Data Table -->
+        <div class="table-card" style="margin-top: 20px;">
+            <div class="table-card-header">
+                <h4><i class="fas fa-table"></i> Recent Transfers</h4>
+                <button class="btn btn-sm btn-primary">View All</button>
+            </div>
+            <table class="table-dense">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Items</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>#TR-1234</strong></td>
+                        <td>Auckland</td>
+                        <td>Wellington</td>
+                        <td>24</td>
+                        <td>$2,450</td>
+                        <td><span class="status-badge success">Completed</span></td>
+                        <td>Nov 9, 2025</td>
+                        <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#TR-1233</strong></td>
+                        <td>Christchurch</td>
+                        <td>Dunedin</td>
+                        <td>18</td>
+                        <td>$1,820</td>
+                        <td><span class="status-badge warning">In Transit</span></td>
+                        <td>Nov 8, 2025</td>
+                        <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#TR-1232</strong></td>
+                        <td>Auckland</td>
+                        <td>Hamilton</td>
+                        <td>32</td>
+                        <td>$3,200</td>
+                        <td><span class="status-badge success">Completed</span></td>
+                        <td>Nov 7, 2025</td>
+                        <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#TR-1231</strong></td>
+                        <td>Wellington</td>
+                        <td>Palmerston North</td>
+                        <td>15</td>
+                        <td>$1,450</td>
+                        <td><span class="status-badge danger">Pending</span></td>
+                        <td>Nov 6, 2025</td>
+                        <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#TR-1230</strong></td>
+                        <td>Hamilton</td>
+                        <td>Tauranga</td>
+                        <td>28</td>
+                        <td>$2,850</td>
+                        <td><span class="status-badge success">Completed</span></td>
+                        <td>Nov 5, 2025</td>
+                        <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pull-out Right Sidebar -->
+    <button class="pullout-toggle" onclick="document.querySelector('.pullout-sidebar').classList.toggle('open')">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <div class="pullout-sidebar">
+        <h4><i class="fas fa-chart-pie"></i> Quick Stats</h4>
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px;">
+                <span>CPU Usage</span>
+                <strong>45%</strong>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-success" style="width: 45%"></div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px;">
+                <span>Memory</span>
+                <strong>68%</strong>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-warning" style="width: 68%"></div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px;">
+                <span>Storage</span>
+                <strong>82%</strong>
+            </div>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar bg-danger" style="width: 82%"></div>
+            </div>
+        </div>
+
+        <h4 style="margin-top: 30px;"><i class="fas fa-users"></i> Online Staff</h4>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                <div class="user-avatar-small bg-blue">JS</div>
+                <div style="flex: 1; font-size: 12px;">
+                    <div style="font-weight: 600;">John Smith</div>
+                    <div style="color: #95a5a6; font-size: 11px;">Auckland Store</div>
+                </div>
+                <div style="width: 8px; height: 8px; background: #27ae60; border-radius: 50%;"></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                <div class="user-avatar-small bg-green">SM</div>
+                <div style="flex: 1; font-size: 12px;">
+                    <div style="font-weight: 600;">Sarah Mitchell</div>
+                    <div style="color: #95a5a6; font-size: 11px;">Wellington Store</div>
+                </div>
+                <div style="width: 8px; height: 8px; background: #27ae60; border-radius: 50%;"></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: #f8f9fa; border-radius: 6px;">
+                <div class="user-avatar-small bg-orange">MB</div>
+                <div style="flex: 1; font-size: 12px;">
+                    <div style="font-weight: 600;">Mike Brown</div>
+                    <div style="color: #95a5a6; font-size: 11px;">Christchurch</div>
+                </div>
+                <div style="width: 8px; height: 8px; background: #27ae60; border-radius: 50%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div>
+            © 2025 The Vape Shed | CIS 2.0 | v2.5.1
+        </div>
+        <div>
+            <a href="#">Support</a> •
+            <a href="#">Documentation</a> •
+            <a href="#">Privacy</a> •
+            <a href="#">Terms</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

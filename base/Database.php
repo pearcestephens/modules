@@ -60,7 +60,14 @@ class Database
         if (self::$pdoInitialized) return;
 
         // Load config from config/database.php
-        $config = require_once $_SERVER['DOCUMENT_ROOT'] . '/config/database.php';
+        $rootPath = $_SERVER['DOCUMENT_ROOT'] ?? dirname(__DIR__, 2);
+        $configPath = $rootPath . '/config/database.php';
+
+        if (!file_exists($configPath)) {
+            throw new \RuntimeException("Database config not found at: {$configPath}");
+        }
+
+        $config = require_once $configPath;
         $dbConfig = $config['cis'] ?? [];
 
         // ONLY initialize PDO by default

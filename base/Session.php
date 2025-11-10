@@ -48,11 +48,11 @@ class Session
         
         // Normalize session variables (create user_id from userID for consistency)
         // Bots prefer user_id, but CIS legacy uses userID - keep both in sync
-        if (isset($_SESSION['userID']) && !isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = $_SESSION['userID'];
+        if (isset($_SESSION['userID']) && !isset($_SESSION['userID'])) {
+            $_SESSION['userID'] = $_SESSION['userID'];
         }
-        if (isset($_SESSION['user_id']) && !isset($_SESSION['userID'])) {
-            $_SESSION['userID'] = $_SESSION['user_id'];
+        if (isset($_SESSION['userID']) && !isset($_SESSION['userID'])) {
+            $_SESSION['userID'] = $_SESSION['userID'];
         }
         
         // Check session timeout (30 minutes of inactivity)

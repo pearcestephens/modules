@@ -1,0 +1,54 @@
+:root {
+  /* Color palette */
+  --cns-bg: #ffffff;
+  --cns-fg: #0f172a; /* slate-900 */
+  --cns-muted: #475569; /* slate-600 */
+  --cns-border: #e2e8f0; /* slate-200 */
+
+  --cns-primary: #2563eb; /* blue-600 */
+  --cns-primary-600: #2563eb;
+  --cns-primary-700: #1d4ed8;
+  --cns-success: #10b981; /* emerald-500 */
+  --cns-warning: #f59e0b; /* amber-500 */
+  --cns-danger:  #ef4444; /* red-500 */
+  --cns-surface: #ffffff;
+  --cns-surface-alt: #f8fafc; /* slate-50 */
+
+  /* Spacing scale */
+  --cns-space-1: 4px;
+  --cns-space-2: 8px;
+  --cns-space-3: 12px;
+  --cns-space-4: 16px;
+  --cns-space-5: 20px;
+  --cns-space-6: 24px;
+
+  /* Radius */
+  --cns-radius-sm: 4px;
+  --cns-radius-md: 8px;
+  --cns-radius-lg: 12px;
+
+  /* Shadows */
+  --cns-shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --cns-shadow-md: 0 4px 10px rgba(0,0,0,0.08);
+  --cns-shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+
+  /* Typography */
+  --cns-font-body: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  --cns-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --cns-font-size: 14px;
+
+  /* Z-index */
+  --cns-z-modal: 1050;
+  --cns-z-overlay: 1040;
+}
+
+/* Dark theme hook (optional override) */
+/*
+.theme-dark {
+  --cns-bg: #0b1220;
+  --cns-fg: #e2e8f0;
+  --cns-surface: #0f172a;
+  --cns-surface-alt: #111827;
+  --cns-border: #1f2937;
+}
+*/

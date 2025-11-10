@@ -1,10 +1,9 @@
 <?php
+
 /**
- * CSRF Token Verification Middleware
+ * CSRF Token Verification Middleware.
  *
  * Validates CSRF tokens on POST/PUT/DELETE requests
- *
- * @package CIS\Base\Http\Middleware
  */
 
 declare(strict_types=1);
@@ -14,6 +13,10 @@ namespace CIS\Base\Http\Middleware;
 use CIS\Base\Core\Application;
 use CIS\Base\Http\Request;
 use CIS\Base\Http\Response;
+
+use function in_array;
+
+use const PHP_SESSION_NONE;
 
 class VerifyCsrfToken
 {
@@ -25,7 +28,7 @@ class VerifyCsrfToken
     }
 
     /**
-     * Handle incoming request
+     * Handle incoming request.
      */
     public function handle(Request $request): ?Response
     {
@@ -35,13 +38,13 @@ class VerifyCsrfToken
         }
 
         // Only verify on state-changing methods
-        if (!in_array($request->method(), ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+        if (!in_array($request->method(), ['POST', 'PUT', 'DELETE', 'PATCH'], true)) {
             return null;
         }
 
         // Check exclusion patterns
         $excludeUris = $this->app->config('security.csrf.exclude_uris', []);
-        $endpoint = $request->query('endpoint', '');
+        $endpoint    = $request->query('endpoint', '');
 
         foreach ($excludeUris as $pattern) {
             if (fnmatch($pattern, $endpoint)) {
@@ -55,12 +58,12 @@ class VerifyCsrfToken
         if (!$token) {
             $this->app->logger()->warning('CSRF token missing', [
                 'endpoint' => $endpoint,
-                'method' => $request->method(),
-                'ip' => $request->ip(),
+                'method'   => $request->method(),
+                'ip'       => $request->ip(),
             ]);
 
             return Response::json([
-                'error' => 'CSRF token mismatch',
+                'error'   => 'CSRF token mismatch',
                 'message' => 'The request could not be verified. Please refresh and try again.',
             ], 419);
         }
@@ -82,12 +85,12 @@ class VerifyCsrfToken
         if (!hash_equals($sessionToken, $token)) {
             $this->app->logger()->warning('CSRF token invalid', [
                 'endpoint' => $endpoint,
-                'method' => $request->method(),
-                'ip' => $request->ip(),
+                'method'   => $request->method(),
+                'ip'       => $request->ip(),
             ]);
 
             return Response::json([
-                'error' => 'CSRF token mismatch',
+                'error'   => 'CSRF token mismatch',
                 'message' => 'The request could not be verified. Please refresh and try again.',
             ], 419);
         }
@@ -96,40 +99,7 @@ class VerifyCsrfToken
     }
 
     /**
-     * Get CSRF token from request
-     */
-    private function getTokenFromRequest(Request $request): ?string
-    {
-        $tokenName = $this->app->config('security.csrf.token_name', '_token');
-        $headerName = $this->app->config('security.csrf.header_name', 'X-CSRF-TOKEN');
-
-        // Check POST data
-        $token = $request->post($tokenName);
-
-        // Check header
-        if (!$token) {
-            $token = $request->header($headerName);
-        }
-
-        // Check JSON body
-        if (!$token && $request->isJson()) {
-            $json = $request->json();
-            $token = $json[$tokenName] ?? null;
-        }
-
-        return $token;
-    }
-
-    /**
-     * Generate CSRF token
-     */
-    private function generateToken(): string
-    {
-        return bin2hex(random_bytes(32));
-    }
-
-    /**
-     * Get current CSRF token (for views)
+     * Get current CSRF token (for views).
      */
     public static function token(Application $app): string
     {
@@ -145,5 +115,38 @@ class VerifyCsrfToken
         }
 
         return $token;
+    }
+
+    /**
+     * Get CSRF token from request.
+     */
+    private function getTokenFromRequest(Request $request): ?string
+    {
+        $tokenName  = $this->app->config('security.csrf.token_name', '_token');
+        $headerName = $this->app->config('security.csrf.header_name', 'X-CSRF-TOKEN');
+
+        // Check POST data
+        $token = $request->post($tokenName);
+
+        // Check header
+        if (!$token) {
+            $token = $request->header($headerName);
+        }
+
+        // Check JSON body
+        if (!$token && $request->isJson()) {
+            $json  = $request->json();
+            $token = $json[$tokenName] ?? null;
+        }
+
+        return $token;
+    }
+
+    /**
+     * Generate CSRF token.
+     */
+    private function generateToken(): string
+    {
+        return bin2hex(random_bytes(32));
     }
 }

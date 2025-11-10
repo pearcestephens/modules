@@ -1,6 +1,7 @@
 <?php
+
 /**
- * AI Business Insights Service
+ * AI Business Insights Service.
  *
  * Generates actionable business intelligence using AI analysis
  * - Sales performance insights
@@ -8,7 +9,6 @@
  * - Operational efficiency analysis
  * - Proactive issue detection
  *
- * @package CIS\Base\Services
  * @version 1.0.0
  */
 
@@ -20,27 +20,33 @@ use CIS\Base\AIService;
 use CIS\Base\Core\Application;
 use CIS\Base\Core\Database;
 use CIS\Base\Core\Logger;
+use Exception;
+
+use function array_slice;
+use function count;
 
 class AIBusinessInsightsService
 {
     private Application $app;
+
     private Database $db;
+
     private Logger $logger;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param Application $app Application instance
      */
     public function __construct(Application $app)
     {
-        $this->app = $app;
-        $this->db = $app->make(Database::class);
+        $this->app    = $app;
+        $this->db     = $app->make(Database::class);
         $this->logger = $app->make(Logger::class);
     }
 
     /**
-     * Generate daily business insights
+     * Generate daily business insights.
      *
      * Analyzes recent data and generates actionable insights
      *
@@ -55,15 +61,15 @@ class AIBusinessInsightsService
         try {
             // Sales performance insights
             $salesInsights = $this->analyzeSalesPerformance();
-            $insights = array_merge($insights, $salesInsights);
+            $insights      = array_merge($insights, $salesInsights);
 
             // Inventory intelligence
             $inventoryInsights = $this->analyzeInventoryIntelligence();
-            $insights = array_merge($insights, $inventoryInsights);
+            $insights          = array_merge($insights, $inventoryInsights);
 
             // Operational efficiency
             $operationalInsights = $this->analyzeOperationalEfficiency();
-            $insights = array_merge($insights, $operationalInsights);
+            $insights            = array_merge($insights, $operationalInsights);
 
             // Store insights in database
             foreach ($insights as $insight) {
@@ -73,15 +79,142 @@ class AIBusinessInsightsService
             $this->logger->info('Generated ' . count($insights) . ' business insights');
 
             return $insights;
-
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error('Failed to generate insights: ' . $e->getMessage());
+
             throw $e;
         }
     }
 
     /**
-     * Analyze sales performance and identify trends
+     * Get critical insights requiring immediate attention.
+     *
+     * @return array Critical insights
+     */
+    public function getCriticalInsights(): array
+    {
+        return $this->db->query("
+            SELECT *
+            FROM ai_business_insights
+            WHERE priority IN ('critical', 'high')
+                AND status = 'new'
+                AND (expires_at IS NULL OR expires_at > NOW())
+            ORDER BY
+                FIELD(priority, 'critical', 'high'),
+                created_at DESC
+            LIMIT 20
+        ")->fetchAll();
+    }
+
+    /**
+     * Get all active insights.
+     *
+     * @param string|null $type     Filter by type
+     * @param string|null $priority Filter by priority
+     *
+     * @return array Insights
+     */
+    public function getInsights(?string $type = null, ?string $priority = null): array
+    {
+        $sql = "
+            SELECT *
+            FROM ai_business_insights
+            WHERE status IN ('new', 'reviewed')
+                AND (expires_at IS NULL OR expires_at > NOW())
+        ";
+
+        $params = [];
+
+        if ($type) {
+            $sql .= ' AND insight_type = ?';
+            $params[] = $type;
+        }
+
+        if ($priority) {
+            $sql .= ' AND priority = ?';
+            $params[] = $priority;
+        }
+
+        $sql .= " ORDER BY
+                    FIELD(priority, 'critical', 'high', 'medium', 'low', 'info'),
+                    created_at DESC";
+
+        return $this->db->query($sql, $params)->fetchAll();
+    }
+
+    /**
+     * Ask AI a business question.
+     *
+     * @param string $question Natural language question
+     * @param array  $context  Additional context
+     *
+     * @return array AI response with insights
+     */
+    public function ask(string $question, array $context = []): array
+    {
+        $this->logger->info('AI business question: ' . $question);
+
+        // Use AIService to search relevant information
+        $results = AIService::search($question, 20);
+
+        // Log the interaction
+        $this->logger->ai(
+            'business_question',
+            'business_intelligence',
+            $question,
+            ['results_count' => count($results)],
+            $context,
+        );
+
+        return [
+            'success'   => true,
+            'question'  => $question,
+            'results'   => $results,
+            'context'   => $context,
+            'timestamp' => date('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * Mark insight as reviewed.
+     *
+     * @param int         $insightId Insight ID
+     * @param int         $userId    User who reviewed
+     * @param string|null $action    Action taken
+     */
+    public function reviewInsight(int $insightId, int $userId, ?string $action = null): void
+    {
+        $this->db->update('ai_business_insights', [
+            'status'       => 'reviewed',
+            'reviewed_by'  => $userId,
+            'reviewed_at'  => date('Y-m-d H:i:s'),
+            'action_taken' => $action,
+        ], ['insight_id' => $insightId]);
+
+        $this->logger->info("Insight #{$insightId} reviewed by user #{$userId}");
+    }
+
+    /**
+     * Dismiss insight as not relevant.
+     *
+     * @param int    $insightId Insight ID
+     * @param int    $userId    User who dismissed
+     * @param string $reason    Reason for dismissal
+     */
+    public function dismissInsight(int $insightId, int $userId, string $reason): void
+    {
+        $this->db->update('ai_business_insights', [
+            'status'       => 'dismissed',
+            'reviewed_by'  => $userId,
+            'reviewed_at'  => date('Y-m-d H:i:s'),
+            'action_taken' => 'Dismissed: ' . $reason,
+        ], ['insight_id' => $insightId]);
+
+        $this->logger->info("Insight #{$insightId} dismissed by user #{$userId}: {$reason}");
+    }
+
+    /**
+     * Analyze sales performance and identify trends.
      *
      * @return array Sales insights
      */
@@ -127,76 +260,77 @@ class AIBusinessInsightsService
             $outletId = $current['outlet_id'];
             $previous = $previousMap[$outletId] ?? null;
 
-            if (!$previous) continue;
+            if (!$previous) {
+                continue;
+            }
 
             // Calculate change percentage
             $salesChange = (($current['total_sales'] - $previous['total_sales']) / $previous['total_sales']) * 100;
 
             // Significant decline detected
             if ($salesChange < -15) {
-
                 // Use AI to analyze potential reasons
                 $aiAnalysis = AIService::ask(
                     "Analyze potential reasons for {$current['outlet_name']} sales declining by " .
-                    round(abs($salesChange), 1) . "% in the last 30 days. Consider: staff changes, " .
-                    "competitor activity, seasonal patterns, inventory issues, local events."
+                    round(abs($salesChange), 1) . '% in the last 30 days. Consider: staff changes, ' .
+                    'competitor activity, seasonal patterns, inventory issues, local events.',
                 );
 
                 $insights[] = [
-                    'type' => 'sales_performance',
-                    'category' => 'store_decline',
-                    'priority' => $salesChange < -25 ? 'critical' : 'high',
-                    'title' => "{$current['outlet_name']} Sales Down " . round(abs($salesChange), 1) . "%",
-                    'description' => "Sales have decreased significantly from \$" .
-                                   number_format($previous['total_sales'], 2) . " to \$" .
-                                   number_format($current['total_sales'], 2) . " over the last 30 days.",
+                    'type'        => 'sales_performance',
+                    'category'    => 'store_decline',
+                    'priority'    => $salesChange < -25 ? 'critical' : 'high',
+                    'title'       => "{$current['outlet_name']} Sales Down " . round(abs($salesChange), 1) . '%',
+                    'description' => 'Sales have decreased significantly from $' .
+                                   number_format($previous['total_sales'], 2) . ' to $' .
+                                   number_format($current['total_sales'], 2) . ' over the last 30 days.',
                     'data' => [
-                        'outlet_id' => $outletId,
-                        'outlet_name' => $current['outlet_name'],
-                        'current_sales' => $current['total_sales'],
-                        'previous_sales' => $previous['total_sales'],
-                        'change_percent' => round($salesChange, 2),
+                        'outlet_id'          => $outletId,
+                        'outlet_name'        => $current['outlet_name'],
+                        'current_sales'      => $current['total_sales'],
+                        'previous_sales'     => $previous['total_sales'],
+                        'change_percent'     => round($salesChange, 2),
                         'current_sale_count' => $current['sale_count'],
-                        'avg_sale_value' => $current['avg_sale_value']
+                        'avg_sale_value'     => $current['avg_sale_value'],
                     ],
-                    'ai_analysis' => $aiAnalysis,
-                    'recommendations' => $this->generateSalesRecoveryRecommendations($salesChange, $current),
+                    'ai_analysis'       => $aiAnalysis,
+                    'recommendations'   => $this->generateSalesRecoveryRecommendations($salesChange, $current),
                     'time_period_start' => date('Y-m-d', strtotime('-30 days')),
-                    'time_period_end' => date('Y-m-d'),
-                    'confidence' => 0.85
+                    'time_period_end'   => date('Y-m-d'),
+                    'confidence'        => 0.85,
                 ];
             }
 
             // Significant improvement detected
             if ($salesChange > 15) {
                 $insights[] = [
-                    'type' => 'sales_performance',
-                    'category' => 'store_success',
-                    'priority' => 'medium',
-                    'title' => "{$current['outlet_name']} Sales Up " . round($salesChange, 1) . "%",
+                    'type'        => 'sales_performance',
+                    'category'    => 'store_success',
+                    'priority'    => 'medium',
+                    'title'       => "{$current['outlet_name']} Sales Up " . round($salesChange, 1) . '%',
                     'description' => "Excellent performance! Analyze what's working here.",
-                    'data' => [
-                        'outlet_id' => $outletId,
-                        'outlet_name' => $current['outlet_name'],
-                        'current_sales' => $current['total_sales'],
+                    'data'        => [
+                        'outlet_id'      => $outletId,
+                        'outlet_name'    => $current['outlet_name'],
+                        'current_sales'  => $current['total_sales'],
                         'previous_sales' => $previous['total_sales'],
-                        'change_percent' => round($salesChange, 2)
+                        'change_percent' => round($salesChange, 2),
                     ],
                     'recommendations' => [
                         [
-                            'action' => 'Identify success factors',
+                            'action'      => 'Identify success factors',
                             'description' => 'Interview store manager to understand what drove improvement',
-                            'impact' => 'Can replicate success across other stores'
+                            'impact'      => 'Can replicate success across other stores',
                         ],
                         [
-                            'action' => 'Document best practices',
+                            'action'      => 'Document best practices',
                             'description' => 'Capture and share successful strategies',
-                            'impact' => 'Company-wide performance improvement'
-                        ]
+                            'impact'      => 'Company-wide performance improvement',
+                        ],
                     ],
                     'time_period_start' => date('Y-m-d', strtotime('-30 days')),
-                    'time_period_end' => date('Y-m-d'),
-                    'confidence' => 0.90
+                    'time_period_end'   => date('Y-m-d'),
+                    'confidence'        => 0.90,
                 ];
             }
         }
@@ -205,7 +339,7 @@ class AIBusinessInsightsService
     }
 
     /**
-     * Analyze inventory intelligence
+     * Analyze inventory intelligence.
      *
      * @return array Inventory insights
      */
@@ -214,7 +348,7 @@ class AIBusinessInsightsService
         $insights = [];
 
         // Find slow-moving products (high stock, low sales)
-        $slowMovers = $this->db->query("
+        $slowMovers = $this->db->query('
             SELECT
                 vp.product_id,
                 vp.name as product_name,
@@ -239,53 +373,52 @@ class AIBusinessInsightsService
             HAVING total_stock > 50 AND sales_last_30_days < 5
             ORDER BY total_stock DESC
             LIMIT 10
-        ")->fetchAll();
+        ')->fetchAll();
 
         if (!empty($slowMovers)) {
-
-            $productList = array_map(function($p) {
+            $productList = array_map(function ($p) {
                 return $p['product_name'] . ($p['variant_name'] ? ' - ' . $p['variant_name'] : '');
             }, $slowMovers);
 
             // Ask AI for recommendations
             $aiRecommendations = AIService::ask(
-                "We have " . count($slowMovers) . " slow-moving products with high stock levels: " .
-                implode(", ", array_slice($productList, 0, 5)) .
-                ". Suggest strategies to move this inventory (promotions, bundling, redistribution, markdown timing)."
+                'We have ' . count($slowMovers) . ' slow-moving products with high stock levels: ' .
+                implode(', ', array_slice($productList, 0, 5)) .
+                '. Suggest strategies to move this inventory (promotions, bundling, redistribution, markdown timing).',
             );
 
             $insights[] = [
-                'type' => 'inventory_intelligence',
-                'category' => 'slow_movers',
-                'priority' => 'high',
-                'title' => count($slowMovers) . ' Products with Excess Slow-Moving Stock',
+                'type'        => 'inventory_intelligence',
+                'category'    => 'slow_movers',
+                'priority'    => 'high',
+                'title'       => count($slowMovers) . ' Products with Excess Slow-Moving Stock',
                 'description' => 'These products have high inventory but very low sales velocity, tying up capital.',
-                'data' => [
-                    'products' => $slowMovers,
-                    'total_units' => array_sum(array_column($slowMovers, 'total_stock')),
-                    'estimated_value_tied' => array_sum(array_map(function($p) {
+                'data'        => [
+                    'products'             => $slowMovers,
+                    'total_units'          => array_sum(array_column($slowMovers, 'total_stock')),
+                    'estimated_value_tied' => array_sum(array_map(function ($p) {
                         return $p['total_stock'] * 25; // Rough estimate
-                    }, $slowMovers))
+                    }, $slowMovers)),
                 ],
-                'ai_analysis' => $aiRecommendations,
+                'ai_analysis'     => $aiRecommendations,
                 'recommendations' => [
                     [
-                        'action' => 'Run targeted promotion',
+                        'action'      => 'Run targeted promotion',
                         'description' => '20% off slow-movers for 2 weeks',
-                        'impact' => 'Estimated 40-60% inventory reduction'
+                        'impact'      => 'Estimated 40-60% inventory reduction',
                     ],
                     [
-                        'action' => 'Redistribute stock',
+                        'action'      => 'Redistribute stock',
                         'description' => 'Move excess inventory to higher-performing stores',
-                        'impact' => 'Better sales velocity, reduced waste'
+                        'impact'      => 'Better sales velocity, reduced waste',
                     ],
                     [
-                        'action' => 'Bundle with fast movers',
+                        'action'      => 'Bundle with fast movers',
                         'description' => 'Create bundle deals pairing slow with popular items',
-                        'impact' => 'Increase perceived value, clear inventory'
-                    ]
+                        'impact'      => 'Increase perceived value, clear inventory',
+                    ],
                 ],
-                'confidence' => 0.88
+                'confidence' => 0.88,
             ];
         }
 
@@ -314,26 +447,26 @@ class AIBusinessInsightsService
         if (!empty($transferDelays)) {
             foreach ($transferDelays as $delay) {
                 $insights[] = [
-                    'type' => 'operational_efficiency',
-                    'category' => 'transfer_delays',
-                    'priority' => 'medium',
-                    'title' => "Transfer Delays: {$delay['from_outlet_name']} → {$delay['to_outlet_name']}",
-                    'description' => "Average transfer time of " . round($delay['avg_hours'], 1) .
-                                   " hours is significantly above target.",
-                    'data' => $delay,
+                    'type'        => 'operational_efficiency',
+                    'category'    => 'transfer_delays',
+                    'priority'    => 'medium',
+                    'title'       => "Transfer Delays: {$delay['from_outlet_name']} → {$delay['to_outlet_name']}",
+                    'description' => 'Average transfer time of ' . round($delay['avg_hours'], 1) .
+                                   ' hours is significantly above target.',
+                    'data'            => $delay,
                     'recommendations' => [
                         [
-                            'action' => 'Investigate root cause',
+                            'action'      => 'Investigate root cause',
                             'description' => 'Check courier reliability, packing efficiency, receiving process',
-                            'impact' => 'Reduce delays by identifying bottleneck'
+                            'impact'      => 'Reduce delays by identifying bottleneck',
                         ],
                         [
-                            'action' => 'Set up alerts',
+                            'action'      => 'Set up alerts',
                             'description' => 'Notify both stores when transfer exceeds 36 hours',
-                            'impact' => 'Proactive issue resolution'
-                        ]
+                            'impact'      => 'Proactive issue resolution',
+                        ],
                     ],
-                    'confidence' => 0.82
+                    'confidence' => 0.82,
                 ];
             }
         }
@@ -342,7 +475,7 @@ class AIBusinessInsightsService
     }
 
     /**
-     * Analyze operational efficiency
+     * Analyze operational efficiency.
      *
      * @return array Operational insights
      */
@@ -369,56 +502,55 @@ class AIBusinessInsightsService
         ")->fetchAll();
 
         if (!empty($consignmentEfficiency)) {
-
             $slowestStore = $consignmentEfficiency[0];
 
             // Use AI to suggest improvements
             $aiSuggestions = AIService::ask(
                 "Our consignment receiving process at {$slowestStore['outlet_name']} takes an average of " .
-                round($slowestStore['avg_minutes']) . " minutes, which is slow. " .
-                "Suggest specific process improvements to reduce this time (automation, workflow changes, training)."
+                round($slowestStore['avg_minutes']) . ' minutes, which is slow. ' .
+                'Suggest specific process improvements to reduce this time (automation, workflow changes, training).',
             );
 
             $insights[] = [
-                'type' => 'operational_efficiency',
-                'category' => 'consignment_processing',
-                'priority' => 'medium',
-                'title' => 'Slow Consignment Processing Detected',
-                'description' => "Several stores taking > 60 minutes average to receive consignments",
-                'data' => [
-                    'slow_stores' => $consignmentEfficiency,
-                    'company_average' => round($slowestStore['avg_minutes'] * 0.65) // Assume best practice is 35% faster
+                'type'        => 'operational_efficiency',
+                'category'    => 'consignment_processing',
+                'priority'    => 'medium',
+                'title'       => 'Slow Consignment Processing Detected',
+                'description' => 'Several stores taking > 60 minutes average to receive consignments',
+                'data'        => [
+                    'slow_stores'     => $consignmentEfficiency,
+                    'company_average' => round($slowestStore['avg_minutes'] * 0.65), // Assume best practice is 35% faster
                 ],
-                'ai_analysis' => $aiSuggestions,
+                'ai_analysis'     => $aiSuggestions,
                 'recommendations' => [
                     [
-                        'action' => 'Implement barcode scanning',
+                        'action'      => 'Implement barcode scanning',
                         'description' => 'Auto-populate product data instead of manual entry',
-                        'impact' => 'Save 15-20 minutes per consignment',
-                        'effort' => 'medium',
-                        'timeframe' => '2 weeks'
+                        'impact'      => 'Save 15-20 minutes per consignment',
+                        'effort'      => 'medium',
+                        'timeframe'   => '2 weeks',
                     ],
                     [
-                        'action' => 'Pre-fill from PO data',
+                        'action'      => 'Pre-fill from PO data',
                         'description' => 'Use purchase order data to speed up receiving',
-                        'impact' => 'Save 10-15 minutes per consignment',
-                        'effort' => 'low',
-                        'timeframe' => '1 week'
+                        'impact'      => 'Save 10-15 minutes per consignment',
+                        'effort'      => 'low',
+                        'timeframe'   => '1 week',
                     ],
                     [
-                        'action' => 'Staff training',
+                        'action'      => 'Staff training',
                         'description' => 'Share best practices from fastest stores',
-                        'impact' => 'Save 5-10 minutes per consignment',
-                        'effort' => 'low',
-                        'timeframe' => '3 days'
-                    ]
+                        'impact'      => 'Save 5-10 minutes per consignment',
+                        'effort'      => 'low',
+                        'timeframe'   => '3 days',
+                    ],
                 ],
                 'expected_impact' => [
                     'time_savings_per_consignment' => 30,
-                    'time_savings_per_week' => 150, // 5 consignments/week avg
-                    'roi_months' => 0.5
+                    'time_savings_per_week'        => 150, // 5 consignments/week avg
+                    'roi_months'                   => 0.5,
                 ],
-                'confidence' => 0.87
+                'confidence' => 0.87,
             ];
         }
 
@@ -426,10 +558,11 @@ class AIBusinessInsightsService
     }
 
     /**
-     * Generate recommendations for sales recovery
+     * Generate recommendations for sales recovery.
      *
      * @param float $changePercent How much sales changed
-     * @param array $storeData Store information
+     * @param array $storeData     Store information
+     *
      * @return array Recommendations
      */
     private function generateSalesRecoveryRecommendations(float $changePercent, array $storeData): array
@@ -439,41 +572,41 @@ class AIBusinessInsightsService
         // Severe decline
         if ($changePercent < -25) {
             $recommendations[] = [
-                'action' => 'Emergency intervention',
+                'action'      => 'Emergency intervention',
                 'description' => 'Schedule immediate manager meeting to diagnose issues',
-                'impact' => 'Prevent further decline',
-                'urgency' => 'immediate'
+                'impact'      => 'Prevent further decline',
+                'urgency'     => 'immediate',
             ];
 
             $recommendations[] = [
-                'action' => 'Deploy backup staff',
+                'action'      => 'Deploy backup staff',
                 'description' => 'Temporarily assign experienced staff from nearby stores',
-                'impact' => 'Stabilize operations, recover 60-70% of lost sales',
-                'urgency' => 'immediate'
+                'impact'      => 'Stabilize operations, recover 60-70% of lost sales',
+                'urgency'     => 'immediate',
             ];
         }
 
         // Moderate decline
         if ($changePercent < -15) {
             $recommendations[] = [
-                'action' => 'Review local competition',
+                'action'      => 'Review local competition',
                 'description' => 'Check if new competitors opened or existing ones have promotions',
-                'impact' => 'Inform counter-strategy',
-                'urgency' => 'high'
+                'impact'      => 'Inform counter-strategy',
+                'urgency'     => 'high',
             ];
 
             $recommendations[] = [
-                'action' => 'Analyze staff changes',
+                'action'      => 'Analyze staff changes',
                 'description' => 'Check for recent turnover, extended leave, or performance issues',
-                'impact' => 'Identify and address staffing gaps',
-                'urgency' => 'high'
+                'impact'      => 'Identify and address staffing gaps',
+                'urgency'     => 'high',
             ];
 
             $recommendations[] = [
-                'action' => 'Run promotional campaign',
+                'action'      => 'Run promotional campaign',
                 'description' => 'Targeted local marketing to drive traffic',
-                'impact' => 'Increase store visibility and traffic',
-                'urgency' => 'medium'
+                'impact'      => 'Increase store visibility and traffic',
+                'urgency'     => 'medium',
             ];
         }
 
@@ -481,155 +614,31 @@ class AIBusinessInsightsService
     }
 
     /**
-     * Save insight to database
+     * Save insight to database.
      *
      * @param array $insight Insight data
+     *
      * @return int Insight ID
      */
     private function saveInsight(array $insight): int
     {
         return $this->db->insert('ai_business_insights', [
-            'insight_type' => $insight['type'],
-            'category' => $insight['category'],
-            'priority' => $insight['priority'],
-            'title' => $insight['title'],
-            'description' => $insight['description'],
-            'insight_data' => json_encode($insight['data']),
-            'model_name' => 'AIService v1.0',
-            'confidence_score' => $insight['confidence'] ?? 0.80,
-            'reasoning' => isset($insight['ai_analysis']) ? json_encode($insight['ai_analysis']) : null,
-            'data_sources' => json_encode(['vend_sales', 'vend_inventory', 'stock_transfers']),
+            'insight_type'      => $insight['type'],
+            'category'          => $insight['category'],
+            'priority'          => $insight['priority'],
+            'title'             => $insight['title'],
+            'description'       => $insight['description'],
+            'insight_data'      => json_encode($insight['data']),
+            'model_name'        => 'AIService v1.0',
+            'confidence_score'  => $insight['confidence'] ?? 0.80,
+            'reasoning'         => isset($insight['ai_analysis']) ? json_encode($insight['ai_analysis']) : null,
+            'data_sources'      => json_encode(['vend_sales', 'vend_inventory', 'stock_transfers']),
             'time_period_start' => $insight['time_period_start'] ?? null,
-            'time_period_end' => $insight['time_period_end'] ?? null,
-            'recommendations' => json_encode($insight['recommendations'] ?? []),
-            'expected_impact' => json_encode($insight['expected_impact'] ?? []),
-            'status' => 'new',
-            'expires_at' => date('Y-m-d H:i:s', strtotime('+7 days'))
+            'time_period_end'   => $insight['time_period_end'] ?? null,
+            'recommendations'   => json_encode($insight['recommendations'] ?? []),
+            'expected_impact'   => json_encode($insight['expected_impact'] ?? []),
+            'status'            => 'new',
+            'expires_at'        => date('Y-m-d H:i:s', strtotime('+7 days')),
         ]);
-    }
-
-    /**
-     * Get critical insights requiring immediate attention
-     *
-     * @return array Critical insights
-     */
-    public function getCriticalInsights(): array
-    {
-        return $this->db->query("
-            SELECT *
-            FROM ai_business_insights
-            WHERE priority IN ('critical', 'high')
-                AND status = 'new'
-                AND (expires_at IS NULL OR expires_at > NOW())
-            ORDER BY
-                FIELD(priority, 'critical', 'high'),
-                created_at DESC
-            LIMIT 20
-        ")->fetchAll();
-    }
-
-    /**
-     * Get all active insights
-     *
-     * @param string|null $type Filter by type
-     * @param string|null $priority Filter by priority
-     * @return array Insights
-     */
-    public function getInsights(?string $type = null, ?string $priority = null): array
-    {
-        $sql = "
-            SELECT *
-            FROM ai_business_insights
-            WHERE status IN ('new', 'reviewed')
-                AND (expires_at IS NULL OR expires_at > NOW())
-        ";
-
-        $params = [];
-
-        if ($type) {
-            $sql .= " AND insight_type = ?";
-            $params[] = $type;
-        }
-
-        if ($priority) {
-            $sql .= " AND priority = ?";
-            $params[] = $priority;
-        }
-
-        $sql .= " ORDER BY
-                    FIELD(priority, 'critical', 'high', 'medium', 'low', 'info'),
-                    created_at DESC";
-
-        return $this->db->query($sql, $params)->fetchAll();
-    }
-
-    /**
-     * Ask AI a business question
-     *
-     * @param string $question Natural language question
-     * @param array $context Additional context
-     * @return array AI response with insights
-     */
-    public function ask(string $question, array $context = []): array
-    {
-        $this->logger->info('AI business question: ' . $question);
-
-        // Use AIService to search relevant information
-        $results = AIService::search($question, 20);
-
-        // Log the interaction
-        $this->logger->ai(
-            'business_question',
-            'business_intelligence',
-            $question,
-            ['results_count' => count($results)],
-            $context
-        );
-
-        return [
-            'success' => true,
-            'question' => $question,
-            'results' => $results,
-            'context' => $context,
-            'timestamp' => date('Y-m-d H:i:s')
-        ];
-    }
-
-    /**
-     * Mark insight as reviewed
-     *
-     * @param int $insightId Insight ID
-     * @param int $userId User who reviewed
-     * @param string|null $action Action taken
-     */
-    public function reviewInsight(int $insightId, int $userId, ?string $action = null): void
-    {
-        $this->db->update('ai_business_insights', [
-            'status' => 'reviewed',
-            'reviewed_by' => $userId,
-            'reviewed_at' => date('Y-m-d H:i:s'),
-            'action_taken' => $action
-        ], ['insight_id' => $insightId]);
-
-        $this->logger->info("Insight #{$insightId} reviewed by user #{$userId}");
-    }
-
-    /**
-     * Dismiss insight as not relevant
-     *
-     * @param int $insightId Insight ID
-     * @param int $userId User who dismissed
-     * @param string $reason Reason for dismissal
-     */
-    public function dismissInsight(int $insightId, int $userId, string $reason): void
-    {
-        $this->db->update('ai_business_insights', [
-            'status' => 'dismissed',
-            'reviewed_by' => $userId,
-            'reviewed_at' => date('Y-m-d H:i:s'),
-            'action_taken' => 'Dismissed: ' . $reason
-        ], ['insight_id' => $insightId]);
-
-        $this->logger->info("Insight #{$insightId} dismissed by user #{$userId}: {$reason}");
     }
 }

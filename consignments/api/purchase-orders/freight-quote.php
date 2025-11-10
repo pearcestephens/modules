@@ -21,7 +21,7 @@ header('Content-Type: application/json');
 
 try {
     // Authentication check
-    if (!isset($_SESSION['user_id'])) {
+    if (!isset($_SESSION['userID'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -96,7 +96,7 @@ try {
 
     // Check permissions
     $canEdit = (
-        $po['created_by'] === $_SESSION['user_id'] ||
+        $po['created_by'] === $_SESSION['userID'] ||
         hasPermission('po.edit_all')
     );
 

@@ -26,7 +26,7 @@ class DashboardTest extends TestCase
         $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         // Set up test session
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['role'] = 'admin';
     }
 
@@ -139,7 +139,7 @@ class DashboardTest extends TestCase
     public function testDashboardRequiresAuthentication(): void
     {
         // Unset session
-        unset($_SESSION['user_id']);
+        unset($_SESSION['userID']);
         unset($_SESSION['role']);
 
         ob_start();

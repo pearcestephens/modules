@@ -1,7 +1,7 @@
 <?php
 /**
  * Consignments Module - Freight Management
- * 
+ *
  * @package CIS\Consignments
  * @version 3.0.0
  */
@@ -80,8 +80,7 @@ if ($freightTableExists) {
     }
 }
 
-// Start output buffering
-ob_start();
+// Render directly within CIS template content
 ?>
 
 <!-- Page Header -->
@@ -209,15 +208,10 @@ ob_start();
 </script>
 
 <?php
-// Get buffered content
-$content = ob_get_clean();
-
-// Include BASE dashboard layout
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard.php';
-
+// Close container started above and render via CIS template
+?>
 </div>
 
 <?php
-// End content capture and render
 $template->endContent();
 $template->render();

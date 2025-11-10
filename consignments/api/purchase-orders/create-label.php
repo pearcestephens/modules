@@ -21,7 +21,7 @@ header('Content-Type: application/json');
 
 try {
     // Authentication check
-    if (!isset($_SESSION['user_id'])) {
+    if (!isset($_SESSION['userID'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -99,7 +99,7 @@ try {
 
     // Check permissions
     $canEdit = (
-        $po['created_by'] === $_SESSION['user_id'] ||
+        $po['created_by'] === $_SESSION['userID'] ||
         hasPermission('po.edit_all')
     );
 
@@ -142,7 +142,7 @@ try {
         'freight_method' => $data['carrier'],
         'freight_cost' => $labelData['freight_cost'],
         'tracking_number' => $labelData['tracking_number']
-    ], $_SESSION['user_id']);
+    ], $_SESSION['userID']);
 
     // Store label in consignment_parcels
     $stmt = $pdo->prepare("
@@ -190,7 +190,7 @@ try {
         'carrier' => $data['carrier'],
         'tracking_number' => $labelData['tracking_number'],
         'freight_cost' => $labelData['freight_cost']
-    ], $_SESSION['user_id']);
+    ], $_SESSION['userID']);
 
     echo json_encode([
         'success' => true,

@@ -178,7 +178,7 @@ class TransferManagerAPI extends BaseAPI {
 
         $this->logInfo('Sync state updated', [
             'enabled' => $enabled,
-            'user_id' => $_SESSION['user_id'] ?? null
+            'user_id' => $_SESSION['userID'] ?? null
         ]);
 
         return $this->success([
@@ -307,7 +307,7 @@ class TransferManagerAPI extends BaseAPI {
             'source_outlet_id' => $this->validateInt($data, 'outlet_from'),
             'destination_outlet_id' => $this->validateInt($data, 'outlet_to'),
             'supplier_id' => isset($data['supplier_id']) ? $this->validateInt($data, 'supplier_id') : null,
-            'cis_user_id' => $_SESSION['user_id'] ?? 1
+            'cis_user_id' => $_SESSION['userID'] ?? 1
         ];
 
         // Use service to create transfer
@@ -456,7 +456,7 @@ class TransferManagerAPI extends BaseAPI {
 
         $id = $this->validateInt($data, 'id');
         $noteText = $this->validateString($data, 'note_text', null, 1, 1000);
-        $userId = $_SESSION['user_id'] ?? 1;
+        $userId = $_SESSION['userID'] ?? 1;
 
         // Use service to add note
         try {

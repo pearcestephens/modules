@@ -15,15 +15,15 @@ echo "=======================================================\n\n";
 
 // Get a recent sale.update webhook with payment data
 $stmt = $pdo->query("
-    SELECT 
+    SELECT
         id,
         event_type,
         payload,
         created_at
-    FROM webhooks_log 
-    WHERE event_type = 'sale.update' 
+    FROM webhooks_log
+    WHERE event_type = 'sale.update'
     AND payload LIKE '%payments%'
-    ORDER BY created_at DESC 
+    ORDER BY created_at DESC
     LIMIT 3
 ");
 
@@ -32,7 +32,7 @@ $webhooks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 if (empty($webhooks)) {
     echo "❌ No sale.update webhooks found with payment data.\n";
     echo "Checking if webhooks_log table exists...\n\n";
-    
+
     $tables = $pdo->query("SHOW TABLES LIKE 'webhooks_log'")->fetchAll();
     if (empty($tables)) {
         echo "❌ webhooks_log table does not exist!\n";
@@ -51,15 +51,15 @@ foreach ($webhooks as $index => $webhook) {
     echo "ID: " . $webhook['id'] . "\n";
     echo "Event: " . $webhook['event_type'] . "\n";
     echo "Date: " . $webhook['created_at'] . "\n\n";
-    
+
     $payload = json_decode($webhook['payload'], true);
-    
+
     if (isset($payload['payload']['payments'])) {
         $payments = $payload['payload']['payments'];
-        
+
         echo "PAYMENTS DATA:\n";
         echo json_encode($payments, JSON_PRETTY_PRINT) . "\n\n";
-        
+
         if (!empty($payments) && is_array($payments)) {
             $firstPayment = reset($payments);
             echo "AVAILABLE FIELDS IN PAYMENT JSON:\n";
@@ -72,7 +72,7 @@ foreach ($webhooks as $index => $webhook) {
     } else {
         echo "⚠️  No payments field in this webhook\n";
     }
-    
+
     echo "\n";
     echo str_repeat("=", 55) . "\n\n";
 }

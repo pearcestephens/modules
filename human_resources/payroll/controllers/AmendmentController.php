@@ -358,8 +358,8 @@ class AmendmentController extends BaseController
             if (isset($_SESSION['userID'])) {
                 return (int)$_SESSION['userID'];
             }
-            if (isset($_SESSION['user_id'])) {
-                return (int)$_SESSION['user_id'];
+            if (isset($_SESSION['userID'])) {
+                return (int)$_SESSION['userID'];
             }
         }
         return null;

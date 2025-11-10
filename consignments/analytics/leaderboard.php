@@ -562,7 +562,7 @@ $theme->addHeaderButton('Export Rankings', 'btn-outline-secondary', 'javascript:
 <script>
 let currentPeriod = 'daily';
 let currentMetric = 'overall';
-let currentUserId = <?php echo $_SESSION['user_id'] ?? 1; ?>;
+let currentUserId = <?php echo $_SESSION['userID'] ?? 1; ?>;
 let currentOutletId = '<?php echo $_SESSION['outlet_id'] ?? 'OUTLET001'; ?>';
 
 // Initialize

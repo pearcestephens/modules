@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed Variation 1: Classic Facebook - CIS 2.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            font-size: 13px;
+        }
+
+        /* Classic FB Top Bar */
+        .fb-topbar {
+            background: #fff;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .fb-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1877f2 0%, #0d6efd 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .fb-search {
+            margin-left: 16px;
+            width: 240px;
+        }
+
+        .fb-search input {
+            width: 100%;
+            height: 40px;
+            padding: 0 16px 0 36px;
+            border: none;
+            border-radius: 20px;
+            background: #f0f2f5;
+            font-size: 14px;
+        }
+
+        .fb-search input:focus {
+            outline: none;
+        }
+
+        .fb-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #65676b;
+        }
+
+        .fb-center-nav {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .fb-nav-btn {
+            width: 112px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #65676b;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: none;
+            border: none;
+        }
+
+        .fb-nav-btn:hover {
+            background: #f0f2f5;
+        }
+
+        .fb-nav-btn.active {
+            color: #1877f2;
+            border-bottom: 3px solid #1877f2;
+        }
+
+        .fb-right-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .fb-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            color: #050505;
+        }
+
+        .fb-icon-btn:hover {
+            background: #d8dadf;
+        }
+
+        .fb-icon-btn .notify {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #e41e3f;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* 3-Column Layout */
+        .fb-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 0;
+            margin-top: 56px;
+            min-height: calc(100vh - 56px);
+        }
+
+        /* Left Sidebar */
+        .fb-left {
+            background: #fff;
+            padding: 20px 0;
+            position: fixed;
+            width: 280px;
+            top: 56px;
+            bottom: 0;
+            overflow-y: auto;
+        }
+
+        .fb-left-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            color: #050505;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 8px 4px;
+            transition: all 0.2s;
+        }
+
+        .fb-left-item:hover {
+            background: #f0f2f5;
+        }
+
+        .fb-left-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .fb-left-text {
+            font-weight: 500;
+            font-size: 15px;
+            color: #050505;
+        }
+
+        .fb-divider {
+            height: 1px;
+            background: #e4e6eb;
+            margin: 12px 16px;
+        }
+
+        /* Center Feed */
+        .fb-center {
+            margin-left: 280px;
+            margin-right: 320px;
+            padding: 16px 0;
+            max-width: 680px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .fb-create-post {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .create-post-top {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .post-input {
+            flex: 1;
+            height: 40px;
+            padding: 0 12px;
+            border: none;
+            border-radius: 20px;
+            background: #f0f2f5;
+            font-size: 15px;
+        }
+
+        .post-input:focus {
+            outline: none;
+        }
+
+        .create-post-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #e4e6eb;
+        }
+
+        .post-action-btn {
+            flex: 1;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 14px;
+            color: #65676b;
+        }
+
+        .post-action-btn:hover {
+            background: #f0f2f5;
+        }
+
+        /* Feed Post Card */
+        .fb-post {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px 16px 4px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .post-header {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .post-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .post-header-info {
+            flex: 1;
+        }
+
+        .post-author {
+            font-weight: 600;
+            font-size: 15px;
+            color: #050505;
+        }
+
+        .post-time {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .post-content {
+            font-size: 15px;
+            line-height: 1.3333;
+            color: #050505;
+            margin-bottom: 12px;
+        }
+
+        .post-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e4e6eb;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .post-actions {
+            display: flex;
+            padding: 4px 0;
+        }
+
+        .post-action {
+            flex: 1;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 14px;
+            color: #65676b;
+        }
+
+        .post-action:hover {
+            background: #f0f2f5;
+        }
+
+        /* Right Sidebar */
+        .fb-right {
+            background: #fff;
+            padding: 16px;
+            position: fixed;
+            width: 320px;
+            top: 56px;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+            border-left: 1px solid #e4e6eb;
+        }
+
+        .fb-section-title {
+            font-weight: 600;
+            font-size: 17px;
+            color: #65676b;
+            margin-bottom: 12px;
+        }
+
+        .store-card {
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .store-card:hover {
+            background: #f0f2f5;
+        }
+
+        .store-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .store-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .store-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #050505;
+        }
+
+        .store-stats {
+            font-size: 12px;
+            color: #65676b;
+            margin-left: 44px;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #31a24c;
+            margin-left: auto;
+        }
+
+        .fb-contacts {
+            margin-top: 20px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .contact-item:hover {
+            background: #f0f2f5;
+        }
+
+        .contact-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 12px;
+            position: relative;
+        }
+
+        .contact-status {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #31a24c;
+            border: 2px solid #fff;
+        }
+
+        .contact-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: #050505;
+        }
+
+        .contact-unread {
+            margin-left: auto;
+            background: #e41e3f;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Color Palette */
+        .bg-blue { background: linear-gradient(135deg, #1877f2 0%, #0d6efd 100%); }
+        .bg-green { background: linear-gradient(135deg, #31a24c 0%, #20c997 100%); }
+        .bg-orange { background: linear-gradient(135deg, #fb8500 0%, #fd7e14 100%); }
+        .bg-red { background: linear-gradient(135deg, #dc2626 0%, #e41e3f 100%); }
+        .bg-purple { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); }
+    </style>
+</head>
+<body>
+    <!-- FB Top Bar -->
+    <div class="fb-topbar">
+        <div class="fb-logo">
+            <i class="fas fa-warehouse"></i>
+        </div>
+        <div class="fb-search" style="position: relative;">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search CIS">
+        </div>
+        <div class="fb-center-nav">
+            <button class="fb-nav-btn active">
+                <i class="fas fa-home" style="font-size: 24px;"></i>
+            </button>
+            <button class="fb-nav-btn">
+                <i class="fas fa-store" style="font-size: 24px;"></i>
+            </button>
+            <button class="fb-nav-btn">
+                <i class="fas fa-users" style="font-size: 24px;"></i>
+            </button>
+            <button class="fb-nav-btn">
+                <i class="fas fa-chart-line" style="font-size: 24px;"></i>
+            </button>
+        </div>
+        <div class="fb-right-actions">
+            <button class="fb-icon-btn">
+                <i class="fas fa-th"></i>
+            </button>
+            <button class="fb-icon-btn">
+                <i class="fab fa-facebook-messenger"></i>
+                <span class="notify">3</span>
+            </button>
+            <button class="fb-icon-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notify">12</span>
+            </button>
+            <button class="fb-icon-btn">
+                <div style="width: 28px; height: 28px; border-radius: 50%; background: #1877f2; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">PS</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- 3-Column Layout -->
+    <div class="fb-layout">
+        <!-- Left Sidebar -->
+        <div class="fb-left">
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #1877f2;">
+                    <i class="fas fa-user" style="color: white;"></i>
+                </div>
+                <span class="fb-left-text">Pearce Stephens</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #00a2ed;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span class="fb-left-text">Teams</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #fb923c;">
+                    <i class="fas fa-store"></i>
+                </div>
+                <span class="fb-left-text">My Stores</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #8b5cf6;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <span class="fb-left-text">Recent</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #31a24c;">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <span class="fb-left-text">Saved</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #e41e3f;">
+                    <i class="fas fa-video"></i>
+                </div>
+                <span class="fb-left-text">Videos</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #14b8a6;">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <span class="fb-left-text">Events</span>
+            </a>
+            <a href="#" class="fb-left-item">
+                <div class="fb-left-icon" style="background: #f59e0b;">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <span class="fb-left-text">Analytics</span>
+            </a>
+        </div>
+
+        <!-- Center Feed -->
+        <div class="fb-center">
+            <!-- Create Post -->
+            <div class="fb-create-post">
+                <div class="create-post-top">
+                    <div class="post-avatar bg-blue">PS</div>
+                    <input type="text" class="post-input" placeholder="What's happening at your store, Pearce?">
+                </div>
+                <div class="create-post-actions">
+                    <div class="post-action-btn">
+                        <i class="fas fa-image" style="color: #45bd62;"></i>
+                        <span>Photo</span>
+                    </div>
+                    <div class="post-action-btn">
+                        <i class="fas fa-video" style="color: #f3425f;"></i>
+                        <span>Video</span>
+                    </div>
+                    <div class="post-action-btn">
+                        <i class="fas fa-clipboard-list" style="color: #f7b928;"></i>
+                        <span>Update</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed Posts -->
+            <div class="fb-post">
+                <div class="post-header">
+                    <div class="post-header-avatar bg-blue" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">AK</div>
+                    <div class="post-header-info">
+                        <div class="post-author">Auckland Store</div>
+                        <div class="post-time">2 hours ago • <i class="fas fa-globe-americas"></i></div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    🎉 Incredible sales day! Hit $8,500 with 124 transactions. Vaporesso XROS 3 continues to be our #1 seller. Team absolutely smashed their targets - exceeded by 18%! Let's keep this momentum going! 🚀
+                </div>
+                <div class="post-stats">
+                    <div><i class="far fa-thumbs-up" style="color: #1877f2;"></i> <i class="far fa-heart" style="color: #f3425f;"></i> 24 reactions</div>
+                    <div>5 comments • 2 shares</div>
+                </div>
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-thumbs-up"></i>
+                        <span>Like</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>Comment</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>Share</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fb-post">
+                <div class="post-header">
+                    <div class="post-header-avatar bg-green" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">WN</div>
+                    <div class="post-header-info">
+                        <div class="post-author">Wellington Store</div>
+                        <div class="post-time">5 hours ago • <i class="fas fa-globe-americas"></i></div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    📦 Transfer #TR-1234 arrived and received! All 24 items checked, logged, and already on shelves. Shout out to Auckland's packing team - everything was perfectly organized. Receiving took less than 30 minutes! 👏
+                </div>
+                <div class="post-stats">
+                    <div><i class="far fa-thumbs-up" style="color: #1877f2;"></i> 18 reactions</div>
+                    <div>3 comments • 1 share</div>
+                </div>
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-thumbs-up"></i>
+                        <span>Like</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>Comment</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>Share</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fb-post">
+                <div class="post-header">
+                    <div class="post-header-avatar bg-orange" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">CH</div>
+                    <div class="post-header-info">
+                        <div class="post-author">Christchurch Store</div>
+                        <div class="post-time">Yesterday at 5:30 PM • <i class="fas fa-globe-americas"></i></div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    ⚠️ Stock alert! Running critically low on several best-sellers. Transfer request #TR-1245 has been submitted with urgent priority. Really need these items by Monday for the weekend rush. Thanks team! 🙏
+                </div>
+                <div class="post-stats">
+                    <div><i class="far fa-thumbs-up" style="color: #1877f2;"></i> <i class="fas fa-heart" style="color: #f3425f;"></i> 12 reactions</div>
+                    <div>8 comments</div>
+                </div>
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-thumbs-up"></i>
+                        <span>Like</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>Comment</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>Share</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fb-post">
+                <div class="post-header">
+                    <div class="post-header-avatar bg-purple" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">HQ</div>
+                    <div class="post-header-info">
+                        <div class="post-author">Head Office</div>
+                        <div class="post-time">Yesterday at 11:00 AM • <i class="fas fa-globe-americas"></i></div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    📢 BIG NEWS! CIS 2.0 major update rolling out next week! 🚀
+
+New features include:
+• Enhanced freight tracking with live updates
+• AI-powered inventory predictions
+• Mobile packing app for iOS & Android
+• Real-time analytics dashboards
+• Improved reporting tools
+
+Training sessions will be scheduled for all stores. Get ready for the future! 💪
+                </div>
+                <div class="post-stats">
+                    <div><i class="far fa-thumbs-up" style="color: #1877f2;"></i> <i class="fas fa-heart" style="color: #f3425f;"></i> <i class="far fa-surprise" style="color: #f7b928;"></i> 45 reactions</div>
+                    <div>12 comments • 5 shares</div>
+                </div>
+                <div class="post-actions">
+                    <div class="post-action">
+                        <i class="far fa-thumbs-up"></i>
+                        <span>Like</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-comment"></i>
+                        <span>Comment</span>
+                    </div>
+                    <div class="post-action">
+                        <i class="far fa-share-square"></i>
+                        <span>Share</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="fb-right">
+            <div class="fb-section-title">Store Status</div>
+
+            <div class="store-card">
+                <div class="store-header">
+                    <div class="store-icon bg-blue">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="store-name">Auckland Store</div>
+                    </div>
+                    <div class="online-dot"></div>
+                </div>
+                <div class="store-stats">$8.5K revenue • 124 orders • 5 staff</div>
+            </div>
+
+            <div class="store-card">
+                <div class="store-header">
+                    <div class="store-icon bg-green">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="store-name">Wellington Store</div>
+                    </div>
+                    <div class="online-dot"></div>
+                </div>
+                <div class="store-stats">$7.2K revenue • 98 orders • 4 staff</div>
+            </div>
+
+            <div class="store-card">
+                <div class="store-header">
+                    <div class="store-icon bg-orange">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="store-name">Christchurch Store</div>
+                    </div>
+                    <div class="online-dot" style="background: #f7b928;"></div>
+                </div>
+                <div class="store-stats">$5.8K revenue • 76 orders • 3 staff</div>
+            </div>
+
+            <div class="fb-contacts">
+                <div class="fb-section-title">Contacts</div>
+
+                <div class="contact-item">
+                    <div class="contact-avatar bg-blue" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">JS
+                        <div class="contact-status"></div>
+                    </div>
+                    <div class="contact-name">John Smith</div>
+                    <div class="contact-unread">2</div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-avatar bg-green" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">SM
+                        <div class="contact-status"></div>
+                    </div>
+                    <div class="contact-name">Sarah Mitchell</div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-avatar bg-orange" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">MB
+                        <div class="contact-status"></div>
+                    </div>
+                    <div class="contact-name">Mike Brown</div>
+                    <div class="contact-unread">5</div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-avatar bg-purple" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">EW
+                        <div class="contact-status"></div>
+                    </div>
+                    <div class="contact-name">Emma Wilson</div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-avatar bg-red" style="display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">LT
+                        <div class="contact-status"></div>
+                    </div>
+                    <div class="contact-name">Lisa Taylor</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

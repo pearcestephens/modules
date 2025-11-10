@@ -1,0 +1,75 @@
+# PHPStan Configuration - Level 9 (Maximum Strictness)
+# Enterprise-grade static analysis for CIS Modules
+#
+# Standards Applied:
+# - ISO 25010: Functional Suitability, Reliability, Maintainability
+# - PHPStan Level 9: Maximum type safety and code quality
+# - Zero tolerance for potential bugs
+#
+# Usage:
+#   vendor/bin/phpstan analyse
+#   make stan
+
+parameters:
+    # Maximum strictness level
+    level: 9
+
+    # Paths to analyze
+    paths:
+        - shared/services/crawler/src
+        - shared/services/product-intelligence/src
+        - app
+        - base/src
+
+    # Paths to exclude
+    excludePaths:
+        - */vendor/*
+        - */tests/*
+        - */node_modules/*
+        - */cache/*
+        - */temp/*
+
+    # Strict rules (maximum safety)
+    checkAlwaysTrueCheckTypeFunctionCall: true
+    checkAlwaysTrueInstanceof: true
+    checkAlwaysTrueStrictComparison: true
+    checkExplicitMixedMissingReturn: true
+    checkFunctionNameCase: true
+    checkInternalClassCaseSensitivity: true
+    checkMissingIterableValueType: false  # Too strict for production
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+    checkUninitializedProperties: true
+    checkDynamicProperties: true
+
+    # Report potentially unnecessary things
+    reportMaybesInMethodSignatures: true
+    reportStaticMethodSignatures: true
+
+    # Type coverage
+    reportUnmatchedIgnoredErrors: true
+    treatPhpDocTypesAsCertain: false
+
+    # Error handling
+    reportWrongPhpDocTypeInVarTag: true
+    reportAnyTypeWideningInVarTag: true
+
+    # Ignore baseline for now (we'll generate it later)
+    # ignoreErrors:
+    #     - '#PHPDoc tag @var#'
+
+    # Bootstrap file for constants/autoloading
+    bootstrapFiles:
+        - vendor/autoload.php
+
+    # Custom rules
+    # reportUnmatchedIgnoredErrors: true
+
+    # Bleeding edge features (optional - enable for strictest checking)
+    # includes:
+    #     - vendor/phpstan/phpstan-strict-rules/rules.neon
+    #     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+
+# Tips
+# - Run: vendor/bin/phpstan analyse --memory-limit=512M
+# - Generate baseline: vendor/bin/phpstan analyse --generate-baseline
+# - CI mode: vendor/bin/phpstan analyse --error-format=github

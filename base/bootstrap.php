@@ -1,85 +1,431 @@
 <?php
 /**
- * CIS Base Module Bootstrap
+ * CIS Base Bootstrap
  *
- * Ultra-minimal bootstrap for all CIS modules.
- * Just loads core services and initializes environment.
+ * Universal initialization for all CIS modules
+ * Load this at the top of every module file:
  *
- * Usage in any module:
- *   require_once $_SERVER['DOCUMENT_ROOT'] . '/base/bootstrap.php';
+ *   require_once __DIR__ . '/../base/bootstrap.php';
  *
- * That's it! Everything else is ready.
- *
- * @package CIS\Base
- * @version 1.0.0
+ * Provides:
+ *   - $config (Services\Config singleton)
+ *   - $db (Services\Database singleton)
+ *   - Sessions (auto-started, secured)
+ *   - Auth functions (isAuthenticated, requireAuth, etc.)
+ *   - Permission functions (hasPermission, requirePermission, etc.)
+ *   - Template functions (render, component, theme)
+ *   - Helper functions (e, redirect, jsonResponse, flash, etc.)
  */
 
-declare(strict_types=1);
+// =============================================================================
+// 0. CLI ENVIRONMENT SETUP
+// =============================================================================
 
-// Prevent multiple initialization
-if (defined('CIS_BASE_INITIALIZED')) {
-    return;
+// Ensure DOCUMENT_ROOT is set (required for CLI mode)
+if (!isset($_SERVER['DOCUMENT_ROOT']) || empty($_SERVER['DOCUMENT_ROOT'])) {
+    $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__, 2);
 }
 
-// 1. DON'T start session here - let Session::init() handle it properly
-// (session_start() was causing "parameters cannot be changed" warning)
+// =============================================================================
+// 1. COMPOSER AUTOLOADER (PSR-4)
+// =============================================================================
 
-// 2. Load advanced CISLogger first (before ErrorHandler needs it)
-require_once $_SERVER['DOCUMENT_ROOT'] . '/assets/services/CISLogger.php';
+// Load Composer autoloader (handles all PSR-4 namespaces)
+$vendorAutoload = __DIR__ . '/../../vendor/autoload.php';
+if (file_exists($vendorAutoload)) {
+    require_once $vendorAutoload;
+}
 
-// 3. Load base services (lightweight wrappers)
-require_once __DIR__ . '/Database.php';
-require_once __DIR__ . '/Session.php';
-require_once __DIR__ . '/ErrorHandler.php';
-require_once __DIR__ . '/Response.php';
-require_once __DIR__ . '/Router.php';
-require_once __DIR__ . '/Validator.php';
-require_once __DIR__ . '/SecurityMiddleware.php';
+// Legacy compatibility: Manual class loader for old code
+function loadClass($className) {
+    $classFile = __DIR__ . '/' . $className . '.php';
+    if (file_exists($classFile)) {
+        require_once $classFile;
+    }
+}
 
-// 4. Auto-initialize core FIRST (before loading services that depend on them!)
-CIS\Base\Database::init();          // Initialize PDO first
-CIS\Base\Session::init();           // Initialize session BEFORE Auth.php loads
-CIS\Base\ErrorHandler::init();      // Set up error/exception handlers
+// =============================================================================
+// 2. LOAD SERVICES\CONFIG (FIRST)
+// =============================================================================
 
-// FORCE DEV MODE - Always show detailed errors (not overridable by modules)
-$_SERVER['ENVIRONMENT'] = 'development';
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
+$servicesPath = realpath(__DIR__ . '/../../assets/services');
+require_once $servicesPath . '/Config.php';
 
-// 3. Load services from assets/services/ (heavier utilities) - NOW they can use Database & Session
-$servicesPath = $_SERVER['DOCUMENT_ROOT'] . '/assets/services/';
-require_once $servicesPath . 'RateLimiter.php';
-require_once $servicesPath . 'Cache.php';
-require_once $servicesPath . 'Auth.php';          // Now Session class is available!
-require_once $servicesPath . 'Encryption.php';
-require_once $servicesPath . 'Sanitizer.php';
-require_once $servicesPath . 'FileUpload.php';
-require_once $servicesPath . 'Notification.php';
+// Initialize Config singleton
+$config = \Services\Config::getInstance();
 
-// CISLogger auto-initializes at bottom of CISLogger.php (already loaded, captures user ID from session)
-CIS\Base\SecurityMiddleware::init(); // Initialize CSRF tokens and security features
+// =============================================================================
+// EARLY ERROR HANDLER (catches bootstrap errors)
+// =============================================================================
 
-// Services auto-initialize themselves (they call ::init() at bottom of file)
+// Load ErrorHandler class early
+require_once __DIR__ . '/lib/ErrorHandler.php';
 
-// 4. Mark as initialized
-define('CIS_BASE_INITIALIZED', true);
+// Initialize with debug mode from config
+\CIS\Base\ErrorHandler::init($config->get('APP_DEBUG', false));
 
-// ✅ DONE! Your module code starts here.
-// Available:
-// - $con (MySQLi from app.php)
-// - CIS\Base\Database::pdo() / mysqli() (Dual database support)
-// - CIS\Base\Session (Session management)
-// - CISLogger (Universal logging - captures user ID, session, trace IDs automatically)
-// - Response (JSON/HTML helpers)
-// - Validator (Input validation)
-// - SecurityMiddleware (CSRF protection)
-// - RateLimiter (Rate limiting / abuse prevention)
-// - Cache (Performance caching)
-// - Auth (Permission checking)
-// - Encryption (Encrypt/decrypt sensitive data)
-// - Sanitizer (Clean user input)
-// - FileUpload (Safe file uploads)
-// - Notification (Multi-channel notifications)
-// - CIS\Base\Database::mysqli() (same as $con)
-// - $_SESSION (properly configured, shared across CIS)
+
+// =============================================================================
+// 3. LOAD SERVICES\DATABASE
+// =============================================================================
+
+require_once $servicesPath . '/Database.php';
+
+// Initialize Database singleton
+$db = \Services\Database::getInstance();
+
+// =============================================================================
+// 4. SESSION MANAGEMENT
+// =============================================================================
+
+if (session_status() === PHP_SESSION_NONE) {
+    // Force CIS standard session name
+    if (session_name() !== 'CIS_SESSION') {
+        @session_name('CIS_SESSION');
+    }
+
+    // Secure session settings
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.cookie_secure', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? '1' : '0');
+    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.cookie_path', '/');
+
+    session_start();
+
+    // Regenerate session ID periodically (every 30 minutes)
+    if (!isset($_SESSION['last_regeneration'])) {
+        $_SESSION['last_regeneration'] = time();
+    } elseif (time() - $_SESSION['last_regeneration'] > 1800) {
+        session_regenerate_id(true);
+        $_SESSION['last_regeneration'] = time();
+    }
+}
+
+// =============================================================================
+// 5. LOAD THEME MANAGER
+// =============================================================================
+
+require_once __DIR__ . '/lib/ThemeManager.php';
+\CIS\Base\ThemeManager::init();
+
+// =============================================================================
+// 6. LOAD OTHER SERVICES
+// =============================================================================
+
+// Legacy services (existing CIS code)
+// Load Database wrapper class FIRST (needed by RateLimiter)
+loadClass('Database');  // CIS\Base\Database wrapper
+
+$legacyServices = [
+    'CISLogger',
+    'ErrorHandler',
+    'RateLimiter',
+    'Cache',
+    'Auth',
+    'Encryption',
+    'Sanitizer'
+];
+
+foreach ($legacyServices as $service) {
+    $serviceFile = $servicesPath . '/' . $service . '.php';
+    if (file_exists($serviceFile)) {
+        require_once $serviceFile;
+    }
+}
+
+// Base module classes
+loadClass('Response');
+loadClass('Router');
+
+// =============================================================================
+// 7. AUTHENTICATION FUNCTIONS
+// =============================================================================
+
+/**
+ * Check if user is authenticated
+ */
+function isAuthenticated(): bool {
+    // Legacy: CIS uses 'userID' (camelCase), not 'user_id'
+    return isset($_SESSION['userID']) && !empty($_SESSION['userID']);
+}
+
+/**
+ * Get current user data
+ */
+function getCurrentUser(): ?array {
+    if (!isAuthenticated()) {
+        return null;
+    }
+
+    global $db;
+
+    // Try from session cache first
+    if (isset($_SESSION['user_data'])) {
+        return $_SESSION['user_data'];
+    }
+
+    // Load from database (use userID not user_id)
+    $stmt = $db->prepare("
+        SELECT id, username, email, role, outlet_id, status
+        FROM staff_accounts
+        WHERE id = ?
+    ");
+    $stmt->execute([$_SESSION['userID']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
+        $_SESSION['user_data'] = $user;
+        return $user;
+    }
+
+    return null;
+}
+
+/**
+ * Require authentication (redirect to login if not authenticated)
+ */
+function requireAuth(): void {
+    if (!isAuthenticated()) {
+        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        header('Location: /login.php');
+        exit;
+    }
+}
+
+/**
+ * Get user ID
+ */
+function getUserId(): ?int {
+    // Legacy: CIS uses 'userID' (camelCase), not 'user_id'
+    return $_SESSION['userID'] ?? null;
+}
+
+/**
+ * Get user role
+ */
+function getUserRole(): ?string {
+    $user = getCurrentUser();
+    return $user['role'] ?? null;
+}
+
+// =============================================================================
+// 8. PERMISSION FUNCTIONS
+// =============================================================================
+
+/**
+ * Check if user has permission
+ */
+function hasPermission(string $permission): bool {
+    if (!isAuthenticated()) {
+        return false;
+    }
+
+    global $db;
+    $userId = getUserId();
+
+    // Admin role has all permissions
+    $role = getUserRole();
+    if ($role === 'admin' || $role === 'super_admin') {
+        return true;
+    }
+
+    // Check permission in database
+    $stmt = $db->prepare("
+        SELECT COUNT(*) FROM staff_permissions
+        WHERE user_id = ? AND permission = ? AND active = 1
+    ");
+    $stmt->execute([$userId, $permission]);
+
+    return $stmt->fetchColumn() > 0;
+}
+
+/**
+ * Require permission (die with error if not granted)
+ */
+function requirePermission(string $permission): void {
+    if (!hasPermission($permission)) {
+        http_response_code(403);
+        die('Access Denied: You do not have permission to access this resource.');
+    }
+}
+
+/**
+ * Check if user has ANY of the given permissions
+ */
+function hasAnyPermission(array $permissions): bool {
+    foreach ($permissions as $permission) {
+        if (hasPermission($permission)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check if user has ALL of the given permissions
+ */
+function hasAllPermissions(array $permissions): bool {
+    foreach ($permissions as $permission) {
+        if (!hasPermission($permission)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// =============================================================================
+// 8.5 DATABASE HELPER FUNCTION
+// =============================================================================
+
+/**
+ * Get database connection (PDO)
+ *
+ * @return PDO
+ */
+function db(): PDO {
+    global $db;
+    return $db->getConnection();
+}
+
+// =============================================================================
+// 9. TEMPLATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Render page with theme layout
+ *
+ * @param string $layout Layout name (dashboard, centered, blank, print)
+ * @param string $content Page content (HTML)
+ * @param array $data Additional data (pageTitle, breadcrumbs, etc.)
+ */
+function render(string $layout, string $content, array $data = []): void {
+    \CIS\Base\ThemeManager::render($layout, $content, $data);
+}
+
+/**
+ * Render a component (header, sidebar, footer, etc.)
+ */
+function component(string $name, array $data = []): void {
+    \CIS\Base\ThemeManager::component($name, $data);
+}
+
+/**
+ * Get theme asset URL
+ */
+function themeAsset(string $path): string {
+    return \CIS\Base\ThemeManager::asset($path);
+}
+
+/**
+ * Get active theme name
+ */
+function theme(): string {
+    return \CIS\Base\ThemeManager::getActive();
+}
+
+// =============================================================================
+// 10. HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Escape output for HTML
+ */
+function e(?string $string): string {
+    return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Get asset URL (CSS, JS, images)
+ */
+function asset(string $path): string {
+    return '/assets/' . ltrim($path, '/');
+}
+
+/**
+ * Get module URL
+ */
+function moduleUrl(string $module, string $page = ''): string {
+    $url = '/modules/' . $module . '/';
+    if ($page) {
+        $url .= ltrim($page, '/');
+    }
+    return $url;
+}
+
+/**
+ * Redirect to URL
+ */
+function redirect(string $url, int $code = 302): void {
+    header("Location: $url", true, $code);
+    exit;
+}
+
+/**
+ * Send JSON response
+ */
+function jsonResponse($data, int $code = 200): void {
+    http_response_code($code);
+    header('Content-Type: application/json');
+    echo json_encode($data, JSON_PRETTY_PRINT);
+    exit;
+}
+
+/**
+ * Set flash message
+ */
+function flash(string $key, string $message, string $type = 'info'): void {
+    $_SESSION['flash'][$key] = [
+        'message' => $message,
+        'type' => $type
+    ];
+}
+
+/**
+ * Get and clear flash message
+ */
+function getFlash(string $key): ?array {
+    if (isset($_SESSION['flash'][$key])) {
+        $flash = $_SESSION['flash'][$key];
+        unset($_SESSION['flash'][$key]);
+        return $flash;
+    }
+    return null;
+}
+
+/**
+ * Get all flash messages and clear
+ */
+function getAllFlashes(): array {
+    $flashes = $_SESSION['flash'] ?? [];
+    $_SESSION['flash'] = [];
+    return $flashes;
+}
+
+/**
+ * Dump and die (for debugging)
+ */
+function dd(...$vars): void {
+    echo '<pre>';
+    foreach ($vars as $var) {
+        var_dump($var);
+    }
+    echo '</pre>';
+    die();
+}
+
+// =============================================================================
+// =============================================================================
+// 12. TIMEZONE & LOCALE
+// =============================================================================
+
+date_default_timezone_set($config->get('APP_TIMEZONE', 'Pacific/Auckland'));
+
+// =============================================================================
+// BOOTSTRAP COMPLETE
+// =============================================================================
+
+// Optional: Log bootstrap completion (only in debug mode)
+if ($config->get('APP_DEBUG', false)) {
+    error_log("[BOOTSTRAP] CIS Base loaded successfully for " . ($_SERVER['REQUEST_URI'] ?? 'CLI'));
+}

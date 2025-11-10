@@ -101,7 +101,7 @@ try {
                         'payment_date' => $transaction['transaction_date'],
                         'payment_type' => 'bank_transfer',
                         'reference' => $transaction['transaction_reference'],
-                        'created_by' => $_SESSION['user_id']
+                        'created_by' => $_SESSION['userID']
                     ]);
 
                     $transactionModel->updateStatus($transaction['id'], 'matched', $bestMatch['id'], $paymentId, $highestConfidence, 'AUTO');

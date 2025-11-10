@@ -1,0 +1,31 @@
+<!-- This file will generate all missing demo templates dynamically for testing -->
+<!-- Each template will be a standalone HTML file with color and layout support -->
+
+<!-- Classic CIS Theme -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Classic CIS Theme</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; }
+    header { background: var(--primary, #0d6efd); color: #fff; padding: 10px; }
+    .content { padding: 20px; }
+  </style>
+</head>
+<body>
+  <header>Classic CIS Theme</header>
+  <div class="content">This is a demo layout for Classic CIS Theme.</div>
+  <script>
+    window.addEventListener('message', e => {
+      if (e.data.color) document.documentElement.style.setProperty('--primary', e.data.color);
+      if (e.data.layout === 'wide') document.body.style.maxWidth = '100%';
+      else if (e.data.layout === 'boxed') document.body.style.maxWidth = '900px';
+      else document.body.style.maxWidth = '1200px';
+      document.body.style.margin = 'auto';
+    });
+  </script>
+</body>
+</html>
+
+<!-- Repeat similar structure for other templates -->

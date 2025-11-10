@@ -1,8 +1,8 @@
 <?php
+
 /**
- * Session Service - Secure Session Management
+ * Session Service - Secure Session Management.
  *
- * @package CIS\Base\Core
  * @version 2.0.0
  */
 
@@ -10,23 +10,27 @@ declare(strict_types=1);
 
 namespace CIS\Base\Core;
 
+use const PHP_SESSION_ACTIVE;
+
 class Session
 {
     private Application $app;
+
     private array $config;
+
     private bool $started = false;
 
     /**
-     * Create session instance
+     * Create session instance.
      */
     public function __construct(Application $app)
     {
-        $this->app = $app;
+        $this->app    = $app;
         $this->config = $app->config('session', []);
     }
 
     /**
-     * Start session
+     * Start session.
      */
     public function start(): void
     {
@@ -36,12 +40,12 @@ class Session
 
         // Configure session
         ini_set('session.cookie_httponly', '1');
-        ini_set('session.cookie_secure', (string)(int)($_SERVER['HTTPS'] ?? false));
+        ini_set('session.cookie_secure', (string) (int) ($_SERVER['HTTPS'] ?? false));
         ini_set('session.use_strict_mode', '1');
         ini_set('session.cookie_samesite', 'Lax');
 
         $lifetime = $this->config['lifetime'] ?? 7200;
-        ini_set('session.gc_maxlifetime', (string)$lifetime);
+        ini_set('session.gc_maxlifetime', (string) $lifetime);
 
         session_name($this->config['name'] ?? 'CIS_SESSION');
         session_start();
@@ -60,16 +64,19 @@ class Session
     }
 
     /**
-     * Get session value
+     * Get session value.
+     *
+     * @param mixed|null $default
      */
     public function get(string $key, $default = null)
     {
         $this->start();
+
         return $_SESSION[$key] ?? $default;
     }
 
     /**
-     * Set session value
+     * Set session value.
      */
     public function set(string $key, $value): void
     {
@@ -78,16 +85,17 @@ class Session
     }
 
     /**
-     * Check if key exists
+     * Check if key exists.
      */
     public function has(string $key): bool
     {
         $this->start();
+
         return isset($_SESSION[$key]);
     }
 
     /**
-     * Remove session value
+     * Remove session value.
      */
     public function remove(string $key): void
     {
@@ -96,7 +104,7 @@ class Session
     }
 
     /**
-     * Flash message for next request
+     * Flash message for next request.
      */
     public function flash(string $type, string $message): void
     {
@@ -110,20 +118,20 @@ class Session
     }
 
     /**
-     * Get and clear flash messages
+     * Get and clear flash messages.
      */
     public function getFlash(): array
     {
         $this->start();
 
-        $messages = $_SESSION['flash_messages'] ?? [];
+        $messages                   = $_SESSION['flash_messages'] ?? [];
         $_SESSION['flash_messages'] = [];
 
         return $messages;
     }
 
     /**
-     * Store old input for next request
+     * Store old input for next request.
      */
     public function flashInput(array $input): void
     {
@@ -132,7 +140,9 @@ class Session
     }
 
     /**
-     * Get old input value
+     * Get old input value.
+     *
+     * @param mixed|null $default
      */
     public function getOldInput(string $key, $default = null)
     {
@@ -148,7 +158,7 @@ class Session
     }
 
     /**
-     * Regenerate session ID
+     * Regenerate session ID.
      */
     public function regenerate(bool $deleteOld = true): void
     {
@@ -157,7 +167,7 @@ class Session
     }
 
     /**
-     * Destroy session
+     * Destroy session.
      */
     public function destroy(): void
     {
@@ -168,34 +178,37 @@ class Session
     }
 
     /**
-     * Get CSRF token
+     * Get CSRF token.
      */
     public function getCsrfToken(): string
     {
         $this->start();
+
         return $_SESSION['csrf_token'] ?? '';
     }
 
     /**
-     * Verify CSRF token
+     * Verify CSRF token.
      */
     public function verifyCsrfToken(string $token): bool
     {
         $this->start();
+
         return hash_equals($_SESSION['csrf_token'] ?? '', $token);
     }
 
     /**
-     * Get all session data
+     * Get all session data.
      */
     public function all(): array
     {
         $this->start();
+
         return $_SESSION;
     }
 
     /**
-     * Clear all session data
+     * Clear all session data.
      */
     public function clear(): void
     {

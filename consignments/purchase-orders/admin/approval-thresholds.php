@@ -29,7 +29,7 @@ use Consignments\Lib\Services\ApprovalService;
 use Consignments\Lib\Services\PurchaseOrderService;
 
 // Check authentication and admin role
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmt = $db->prepare($configSQL);
             $stmt->execute([
                 json_encode($newThresholds),
-                $_SESSION['user_id']
+                $_SESSION['userID']
             ]);
 
             $saveMessage = "Default approval thresholds saved successfully!";
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $stmt->execute([
                 $outletId,
                 json_encode($overrideThresholds),
-                $_SESSION['user_id']
+                $_SESSION['userID']
             ]);
 
             $saveMessage = "Outlet-specific override saved successfully!";

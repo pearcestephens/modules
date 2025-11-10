@@ -291,7 +291,7 @@ class FreightIntegration
                 VALUES (?, ?, ?, ?, NOW())
             ");
             
-            $user_id = $_SESSION['user_id'] ?? null;
+            $user_id = $_SESSION['userID'] ?? null;
             
             $stmt->execute([
                 $transfer_id,

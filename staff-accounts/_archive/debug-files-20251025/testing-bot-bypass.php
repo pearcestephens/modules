@@ -91,7 +91,7 @@ class TestingBotBypass {
         // Critical: Set the logged_in flag that bootstrap checks
         $_SESSION['logged_in'] = true;
         $_SESSION['testing_bypass'] = true;
-        $_SESSION['user_id'] = 999999; // Test user ID (lowercase)
+        $_SESSION['userID'] = 999999; // Test user ID (lowercase)
         $_SESSION['userID'] = 999999;  // CIS uses UPPERCASE userID - CRITICAL FIX!
         $_SESSION['user_role'] = 'admin'; // Admin role for testing
         $_SESSION['user_name'] = 'Test User';

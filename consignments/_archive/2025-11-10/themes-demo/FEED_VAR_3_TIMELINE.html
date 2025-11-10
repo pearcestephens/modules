@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed Variation 3: Timeline Stream - CIS 2.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0e1a;
+            color: #e5e7eb;
+        }
+
+        /* Dark Top Bar */
+        .dark-header {
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: 32px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .brand-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .nav-tabs-custom {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .nav-tab {
+            padding: 8px 20px;
+            border-radius: 8px;
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+        }
+
+        .nav-tab:hover {
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+
+        .nav-tab.active {
+            background: #1f2937;
+            color: white;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 280px;
+            height: 36px;
+            padding: 0 12px 0 36px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+        }
+
+        .search-input::placeholder {
+            color: #6b7280;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .icon-btn-dark {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            color: #9ca3af;
+        }
+
+        .icon-btn-dark:hover {
+            background: #374151;
+            color: white;
+        }
+
+        .notify-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 8px;
+            min-width: 16px;
+        }
+
+        /* Timeline Layout */
+        .timeline-container {
+            margin-top: 76px;
+            padding: 24px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .timeline-wrapper {
+            position: relative;
+            padding-left: 48px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 18px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+        }
+
+        /* Timeline Item */
+        .timeline-item {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -38px;
+            top: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            z-index: 2;
+            border: 3px solid #0a0e1a;
+        }
+
+        .timeline-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .timeline-card:hover {
+            border-color: #374151;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            transform: translateX(4px);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .card-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .author-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .card-category {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cat-success { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+        .cat-warning { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+        .cat-info { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+        .cat-danger { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+        .cat-purple { background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+
+        .card-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .card-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #0a0e1a;
+            border-radius: 8px;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .label {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            background: #1f2937;
+            color: #9ca3af;
+            border: 1px solid #374151;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 8px;
+            padding-top: 16px;
+            border-top: 1px solid #1f2937;
+        }
+
+        .footer-btn {
+            flex: 1;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 8px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+        }
+
+        .footer-btn:hover {
+            background: #374151;
+            color: white;
+            border-color: #4b5563;
+        }
+
+        .footer-btn.active {
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Highlight Cards */
+        .highlight-card {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid #3b82f6;
+            box-shadow: 0 0 24px rgba(59,130,246,0.2);
+        }
+
+        .alert-highlight {
+            border-left: 4px solid #ef4444;
+        }
+
+        .success-highlight {
+            border-left: 4px solid #10b981;
+        }
+
+        /* Color Gradients */
+        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gradient-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .gradient-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .gradient-teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+    </style>
+</head>
+<body>
+    <!-- Dark Header -->
+    <div class="dark-header">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fas fa-stream"></i>
+            </div>
+            <div class="brand-text">CIS Timeline</div>
+        </div>
+        <div class="nav-tabs-custom">
+            <button class="nav-tab active">All Activity</button>
+            <button class="nav-tab">Stores</button>
+            <button class="nav-tab">Transfers</button>
+            <button class="nav-tab">Alerts</button>
+            <button class="nav-tab">Team</button>
+        </div>
+        <div class="header-right">
+            <div style="position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 12px;"></i>
+                <input type="text" class="search-input" placeholder="Search timeline...">
+            </div>
+            <button class="icon-btn-dark">
+                <i class="fas fa-filter"></i>
+            </button>
+            <button class="icon-btn-dark">
+                <i class="fas fa-bell"></i>
+                <span class="notify-badge">9</span>
+            </button>
+            <button class="icon-btn-dark">
+                <i class="fas fa-user-circle"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Timeline Container -->
+    <div class="timeline-container">
+        <div class="timeline-wrapper">
+            <div class="timeline-line"></div>
+
+            <!-- Timeline Item 1 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="timeline-card highlight-card">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-blue">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">Auckland Store</div>
+                                <div class="author-time">2 hours ago • Daily Performance</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-success">RECORD DAY</div>
+                    </div>
+                    <div class="card-message">
+                        🎉 Exceptional performance! Smashed daily target by 24% with 124 transactions totaling $8,500. Vaporesso XROS 3 continues as top seller. Team morale and customer satisfaction both at all-time highs!
+                    </div>
+                    <div class="card-metrics">
+                        <div class="metric">
+                            <span class="metric-value" style="color: #10b981;">$8.5K</span>
+                            <span class="metric-label">Revenue</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #3b82f6;">124</span>
+                            <span class="metric-label">Orders</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #f59e0b;">24%</span>
+                            <span class="metric-label">Growth</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #ec4899;">5★</span>
+                            <span class="metric-label">Rating</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn active">
+                            <i class="fas fa-heart"></i> 24
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-comment"></i> 5
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-chart-bar"></i> View Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Item 2 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-orange">
+                    <i class="fas fa-exclamation"></i>
+                </div>
+                <div class="timeline-card alert-highlight">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-orange">
+                                <i class="fas fa-warehouse"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">Inventory System</div>
+                                <div class="author-time">3 hours ago • Stock Alert</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-warning">LOW STOCK</div>
+                    </div>
+                    <div class="card-message">
+                        ⚠️ Critical stock alert for Christchurch Store. 12 products below reorder point including top sellers. Transfer request #TR-1245 submitted with urgent priority for Monday delivery.
+                    </div>
+                    <div class="card-labels">
+                        <span class="label">#low-stock</span>
+                        <span class="label">#christchurch</span>
+                        <span class="label">#priority-urgent</span>
+                        <span class="label">#transfer-1245</span>
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn">
+                            <i class="fas fa-eye"></i> View Items
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-truck"></i> Track Transfer
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-check"></i> Acknowledge
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Item 3 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-green">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="timeline-card success-highlight">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-green">
+                                <i class="fas fa-truck-loading"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">Wellington Store</div>
+                                <div class="author-time">5 hours ago • Transfer Complete</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-success">RECEIVED</div>
+                    </div>
+                    <div class="card-message">
+                        ✅ Transfer #TR-1234 successfully received! All 24 items verified, condition perfect, and shelved in record time (28 minutes). Big thanks to Auckland's packing team for excellent organization!
+                    </div>
+                    <div class="card-metrics">
+                        <div class="metric">
+                            <span class="metric-value" style="color: #10b981;">24</span>
+                            <span class="metric-label">Items</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #10b981;">100%</span>
+                            <span class="metric-label">Accuracy</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #3b82f6;">28min</span>
+                            <span class="metric-label">Process Time</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn active">
+                            <i class="fas fa-thumbs-up"></i> 18
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-comment"></i> 3
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-download"></i> Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Item 4 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-purple">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="timeline-card">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-purple">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">Head Office</div>
+                                <div class="author-time">Yesterday at 11:00 AM • System Update</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-purple">ANNOUNCEMENT</div>
+                    </div>
+                    <div class="card-message">
+                        🚀 CIS 2.0 Major Update Next Week!<br><br>
+                        Exciting new features rolling out:
+                        • AI-powered inventory predictions<br>
+                        • Mobile packing app (iOS & Android)<br>
+                        • Real-time analytics dashboards<br>
+                        • Enhanced reporting tools<br>
+                        • Live freight tracking<br><br>
+                        Training sessions scheduled for all stores. Get ready! 💪
+                    </div>
+                    <div class="card-labels">
+                        <span class="label">#update</span>
+                        <span class="label">#cis-2.0</span>
+                        <span class="label">#ai</span>
+                        <span class="label">#mobile</span>
+                        <span class="label">#training</span>
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn active">
+                            <i class="fas fa-heart"></i> 45
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-comment"></i> 12
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-bookmark"></i> Save
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Item 5 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-pink">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="timeline-card">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-pink">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">Wellington Team</div>
+                                <div class="author-time">Yesterday at 3:45 PM • Milestone</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-success">ACHIEVEMENT</div>
+                    </div>
+                    <div class="card-message">
+                        🎉 Huge milestone! Wellington team completed their 1000th transfer of the year! Outstanding logistics performance with 98.7% accuracy maintained across all transfers. Leadership excellence!
+                    </div>
+                    <div class="card-metrics">
+                        <div class="metric">
+                            <span class="metric-value" style="color: #ec4899;">1,000</span>
+                            <span class="metric-label">Transfers</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #10b981;">98.7%</span>
+                            <span class="metric-label">Accuracy</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-value" style="color: #3b82f6;">45min</span>
+                            <span class="metric-label">Avg Time</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn active">
+                            <i class="fas fa-heart"></i> 67
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-comment"></i> 15
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-trophy"></i> Celebrate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Item 6 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-teal">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="timeline-card">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-teal">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">Product Analytics</div>
+                                <div class="author-time">Yesterday at 5:20 PM • Weekly Report</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-info">TRENDING</div>
+                    </div>
+                    <div class="card-message">
+                        ⭐ Weekly Best Seller: Vaporesso XROS 3 dominates with 342 units sold across all stores! Stock levels healthy but planning reorder for next week to maintain momentum.
+                    </div>
+                    <div class="card-labels">
+                        <span class="label">#best-seller</span>
+                        <span class="label">#vaporesso</span>
+                        <span class="label">#weekly-report</span>
+                        <span class="label">#trending</span>
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn">
+                            <i class="fas fa-chart-line"></i> View Analytics
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-shopping-cart"></i> Reorder
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Item 7 -->
+            <div class="timeline-item">
+                <div class="timeline-dot gradient-red">
+                    <i class="fas fa-wrench"></i>
+                </div>
+                <div class="timeline-card">
+                    <div class="card-top">
+                        <div class="card-author">
+                            <div class="author-avatar gradient-red">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="author-info">
+                                <div class="author-name">IT Operations</div>
+                                <div class="author-time">Tomorrow at 2:00 AM • Scheduled</div>
+                            </div>
+                        </div>
+                        <div class="card-category cat-danger">MAINTENANCE</div>
+                    </div>
+                    <div class="card-message">
+                        🔧 Scheduled system maintenance: 2:00 AM - 4:00 AM NZST. Expected downtime: 30 minutes. Database optimization and security updates. All features temporarily unavailable.
+                    </div>
+                    <div class="card-footer">
+                        <button class="footer-btn">
+                            <i class="fas fa-calendar-plus"></i> Add to Calendar
+                        </button>
+                        <button class="footer-btn">
+                            <i class="fas fa-bell"></i> Set Reminder
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

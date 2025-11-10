@@ -15,6 +15,9 @@ declare(strict_types=1);
 // Load bootstrap to initialize sessions and database
 require_once __DIR__ . '/bootstrap.php';
 
+// AUTHENTICATION MIDDLEWARE - Require user to be logged in
+requireAuth();
+
 // Determine which view to load based on route parameter
 // Default to 'home' for dashboard landing page (no more dead breadcrumb spots!)
 $route = $_GET['route'] ?? 'home';
@@ -60,6 +63,11 @@ switch ($route) {
 
     case 'ai-insights':
         require_once __DIR__ . '/views/ai-insights.php';
+        break;
+
+    case 'buttons-preview':
+        // Button Design Lab (preview-only, scoped CSS, no global changes)
+        require_once __DIR__ . '/views/buttons-preview.php';
         break;
 
     default:

@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout 4: Store Card Grid - CIS 2.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f0f1e;
+            color: white;
+        }
+
+        /* Header */
+        .grid-header {
+            background: rgba(26, 31, 54, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .grid-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        .grid-logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-nav {
+            display: flex;
+            gap: 30px;
+        }
+
+        .grid-nav-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-nav-link:hover {
+            color: white;
+        }
+
+        .grid-nav-link.active {
+            color: #667eea;
+        }
+
+        .grid-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .grid-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #667eea;
+        }
+
+        .grid-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        /* Hero Section */
+        .grid-hero {
+            padding: 60px 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+
+        .grid-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid-hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .grid-hero p {
+            font-size: 20px;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+
+        .grid-hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 40px;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .hero-stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            padding: 30px 40px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: rgba(26, 31, 54, 0.5);
+        }
+
+        .filter-item {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .filter-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+        }
+
+        .filter-search {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .filter-search input {
+            width: 100%;
+            padding: 12px 45px 12px 45px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .filter-search input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .filter-search i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Card Grid */
+        .card-grid-container {
+            padding: 40px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .store-card {
+            background: rgba(26, 31, 54, 0.8);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .store-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .store-card-image {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .store-card-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.8;
+        }
+
+        .store-card-image-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .store-card-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .store-card-name {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .store-status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #31a24c;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .store-card-body {
+            padding: 25px;
+        }
+
+        .store-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .store-stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+
+        .store-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .store-stat-label {
+            font-size: 11px;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .store-info-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+        }
+
+        .store-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .store-info-row i {
+            width: 30px;
+            color: #667eea;
+        }
+
+        .store-info-label {
+            opacity: 0.6;
+            min-width: 100px;
+        }
+
+        .store-info-value {
+            flex: 1;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .store-card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .store-action-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .store-action-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+
+        .store-action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        /* Gradient Variations */
+        .gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .gradient-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="grid-header">
+        <div class="grid-logo">
+            <div class="grid-logo-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <span>CIS 2.0</span>
+        </div>
+
+        <div class="grid-nav">
+            <a href="#" class="grid-nav-link active">
+                <i class="fas fa-store"></i>
+                Stores
+            </a>
+            <a href="#" class="grid-nav-link">
+                <i class="fas fa-chart-line"></i>
+                Analytics
+            </a>
+            <a href="#" class="grid-nav-link">
+                <i class="fas fa-users"></i>
+                Team
+            </a>
+            <a href="#" class="grid-nav-link">
+                <i class="fas fa-cog"></i>
+                Settings
+            </a>
+        </div>
+
+        <div class="grid-actions">
+            <button class="grid-btn">
+                <i class="fas fa-bell"></i>
+                <span>12</span>
+            </button>
+            <button class="grid-btn primary">
+                <i class="fas fa-plus"></i>
+                New Store
+            </button>
+        </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="grid-hero">
+        <div class="grid-hero-content">
+            <h1>The Vape Shed Network</h1>
+            <p>17 stores across New Zealand • All systems operational</p>
+            <div class="grid-hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">$124.5K</div>
+                    <div class="hero-stat-label">Today's Revenue</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">1,845</div>
+                    <div class="hero-stat-label">Transactions</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">17/17</div>
+                    <div class="hero-stat-label">Stores Online</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-item active">All Stores</div>
+        <div class="filter-item">North Island</div>
+        <div class="filter-item">South Island</div>
+        <div class="filter-item">High Performers</div>
+        <div class="filter-search" style="margin-left: auto;">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search stores...">
+        </div>
+    </div>
+
+    <!-- Card Grid -->
+    <div class="card-grid-container">
+        <div class="cards-grid">
+            <!-- Store Card 1 -->
+            <div class="store-card">
+                <div class="store-card-image">
+                    <div class="store-card-image-content gradient-1">
+                        <div class="store-card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-card-name">Auckland CBD</div>
+                    </div>
+                    <div class="store-status-badge">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="store-card-body">
+                    <div class="store-stats-row">
+                        <div class="store-stat">
+                            <div class="store-stat-value">$8.5K</div>
+                            <div class="store-stat-label">Revenue</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">124</div>
+                            <div class="store-stat-label">Orders</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">5</div>
+                            <div class="store-stat-label">Staff</div>
+                        </div>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="store-info-label">Location</span>
+                        <span class="store-info-value">Queen Street</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-clock"></i>
+                        <span class="store-info-label">Hours</span>
+                        <span class="store-info-value">9am - 9pm</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-phone"></i>
+                        <span class="store-info-label">Contact</span>
+                        <span class="store-info-value">(09) 123-4567</span>
+                    </div>
+                    <div class="store-card-actions">
+                        <button class="store-action-btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            View Details
+                        </button>
+                        <button class="store-action-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Card 2 -->
+            <div class="store-card">
+                <div class="store-card-image">
+                    <div class="store-card-image-content gradient-2">
+                        <div class="store-card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-card-name">Wellington</div>
+                    </div>
+                    <div class="store-status-badge">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="store-card-body">
+                    <div class="store-stats-row">
+                        <div class="store-stat">
+                            <div class="store-stat-value">$7.2K</div>
+                            <div class="store-stat-label">Revenue</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">98</div>
+                            <div class="store-stat-label">Orders</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">4</div>
+                            <div class="store-stat-label">Staff</div>
+                        </div>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="store-info-label">Location</span>
+                        <span class="store-info-value">Lambton Quay</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-clock"></i>
+                        <span class="store-info-label">Hours</span>
+                        <span class="store-info-value">9am - 8pm</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-phone"></i>
+                        <span class="store-info-label">Contact</span>
+                        <span class="store-info-value">(04) 234-5678</span>
+                    </div>
+                    <div class="store-card-actions">
+                        <button class="store-action-btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            View Details
+                        </button>
+                        <button class="store-action-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Card 3 -->
+            <div class="store-card">
+                <div class="store-card-image">
+                    <div class="store-card-image-content gradient-3">
+                        <div class="store-card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-card-name">Christchurch</div>
+                    </div>
+                    <div class="store-status-badge">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="store-card-body">
+                    <div class="store-stats-row">
+                        <div class="store-stat">
+                            <div class="store-stat-value">$6.8K</div>
+                            <div class="store-stat-label">Revenue</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">87</div>
+                            <div class="store-stat-label">Orders</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">4</div>
+                            <div class="store-stat-label">Staff</div>
+                        </div>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="store-info-label">Location</span>
+                        <span class="store-info-value">Riccarton Road</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-clock"></i>
+                        <span class="store-info-label">Hours</span>
+                        <span class="store-info-value">9am - 8pm</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-phone"></i>
+                        <span class="store-info-label">Contact</span>
+                        <span class="store-info-value">(03) 345-6789</span>
+                    </div>
+                    <div class="store-card-actions">
+                        <button class="store-action-btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            View Details
+                        </button>
+                        <button class="store-action-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Card 4 -->
+            <div class="store-card">
+                <div class="store-card-image">
+                    <div class="store-card-image-content gradient-4">
+                        <div class="store-card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-card-name">Hamilton</div>
+                    </div>
+                    <div class="store-status-badge">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="store-card-body">
+                    <div class="store-stats-row">
+                        <div class="store-stat">
+                            <div class="store-stat-value">$5.5K</div>
+                            <div class="store-stat-label">Revenue</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">72</div>
+                            <div class="store-stat-label">Orders</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">3</div>
+                            <div class="store-stat-label">Staff</div>
+                        </div>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="store-info-label">Location</span>
+                        <span class="store-info-value">Victoria Street</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-clock"></i>
+                        <span class="store-info-label">Hours</span>
+                        <span class="store-info-value">9am - 7pm</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-phone"></i>
+                        <span class="store-info-label">Contact</span>
+                        <span class="store-info-value">(07) 456-7890</span>
+                    </div>
+                    <div class="store-card-actions">
+                        <button class="store-action-btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            View Details
+                        </button>
+                        <button class="store-action-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Card 5 -->
+            <div class="store-card">
+                <div class="store-card-image">
+                    <div class="store-card-image-content gradient-5">
+                        <div class="store-card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-card-name">Dunedin</div>
+                    </div>
+                    <div class="store-status-badge">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="store-card-body">
+                    <div class="store-stats-row">
+                        <div class="store-stat">
+                            <div class="store-stat-value">$4.2K</div>
+                            <div class="store-stat-label">Revenue</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">56</div>
+                            <div class="store-stat-label">Orders</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">3</div>
+                            <div class="store-stat-label">Staff</div>
+                        </div>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="store-info-label">Location</span>
+                        <span class="store-info-value">George Street</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-clock"></i>
+                        <span class="store-info-label">Hours</span>
+                        <span class="store-info-value">10am - 7pm</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-phone"></i>
+                        <span class="store-info-label">Contact</span>
+                        <span class="store-info-value">(03) 567-8901</span>
+                    </div>
+                    <div class="store-card-actions">
+                        <button class="store-action-btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            View Details
+                        </button>
+                        <button class="store-action-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Card 6 -->
+            <div class="store-card">
+                <div class="store-card-image">
+                    <div class="store-card-image-content gradient-6">
+                        <div class="store-card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="store-card-name">Tauranga</div>
+                    </div>
+                    <div class="store-status-badge">
+                        <div class="status-dot"></div>
+                        <span>Online</span>
+                    </div>
+                </div>
+                <div class="store-card-body">
+                    <div class="store-stats-row">
+                        <div class="store-stat">
+                            <div class="store-stat-value">$5.1K</div>
+                            <div class="store-stat-label">Revenue</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">67</div>
+                            <div class="store-stat-label">Orders</div>
+                        </div>
+                        <div class="store-stat">
+                            <div class="store-stat-value">3</div>
+                            <div class="store-stat-label">Staff</div>
+                        </div>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="store-info-label">Location</span>
+                        <span class="store-info-value">Cameron Road</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-clock"></i>
+                        <span class="store-info-label">Hours</span>
+                        <span class="store-info-value">9am - 7pm</span>
+                    </div>
+                    <div class="store-info-row">
+                        <i class="fas fa-phone"></i>
+                        <span class="store-info-label">Contact</span>
+                        <span class="store-info-value">(07) 678-9012</span>
+                    </div>
+                    <div class="store-card-actions">
+                        <button class="store-action-btn primary">
+                            <i class="fas fa-chart-line"></i>
+                            View Details
+                        </button>
+                        <button class="store-action-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

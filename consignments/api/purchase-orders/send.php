@@ -23,7 +23,7 @@ use CIS\Consignments\Services\PurchaseOrderService;
 use CIS\Consignments\Services\SupplierService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -77,7 +77,7 @@ try {
     $poService->changeState(
         $poId,
         'SENT',
-        $_SESSION['user_id'],
+        $_SESSION['userID'],
         'Purchase order sent to supplier'
     );
 

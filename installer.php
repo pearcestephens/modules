@@ -32,19 +32,38 @@ if (!isset($pdo)) {
         }
 
         if (file_exists($envFile)) {
-            $env = parse_ini_file($envFile);
+            // Parse .env file manually (parse_ini_file fails on comments with parentheses)
+            $env = [];
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                // Skip comments and empty lines
+                if (empty($line) || $line[0] === '#') continue;
+                // Parse KEY=VALUE or KEY="VALUE"
+                if (strpos($line, '=') !== false) {
+                    list($key, $value) = explode('=', $line, 2);
+                    $key = trim($key);
+                    $value = trim($value);
+                    // Remove quotes if present
+                    if (preg_match('/^["\'](.*)["\']\s*$/', $value, $matches)) {
+                        $value = $matches[1];
+                    }
+                    $env[$key] = $value;
+                }
+            }
+
             $pdo = new PDO(
-                "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4",
+                "mysql:host={$env['DB_HOST']};port=3306;dbname={$env['DB_NAME']};charset=utf8mb4",
                 $env['DB_USER'],
-                $env['DB_PASSWORD'],
+                $env['DB_PASSWORD'] ?? $env['DB_PASS'] ?? '',
                 [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
             );
         } else {
             // Fallback to hardcoded if no .env
             $pdo = new PDO(
-                "mysql:host=localhost;dbname=jcepnzzkmj;charset=utf8mb4",
+                "mysql:host=127.0.0.1;port=3306;dbname=jcepnzzkmj;charset=utf8mb4",
                 "jcepnzzkmj",
-                "",
+                "wprKh9Jq63",
                 [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
             );
         }
@@ -97,7 +116,7 @@ $modules = [
         'icon' => 'bi-file-earmark-text',
         'color' => 'warning',
         'description' => 'AI-powered store inspection reports with GPT-4 Vision analysis',
-        'tables' => ['store_reports', 'store_report_photos', 'store_report_comments', 'store_report_action_items', 'store_report_scores', 'ai_analysis_requests'],
+        'tables' => ['store_reports', 'store_report_items', 'store_report_checklist', 'store_report_images', 'store_report_ai_requests', 'store_report_history', 'store_reports_schema_version'],
         'views' => ['vw_store_reports_summary', 'vw_pending_action_items'],
         'procedures' => [],
         'schema_file' => 'store-reports/database/schema.sql',
@@ -109,7 +128,7 @@ $modules = [
         'icon' => 'bi-people-fill',
         'color' => 'danger',
         'description' => 'Employee reviews, tracking definitions, performance management',
-        'tables' => ['employee_reviews', 'review_questions', 'review_responses', 'employee_tracking_definitions', 'employee_tracking_entries'],
+        'tables' => ['employee_reviews', 'hr_review_questions', 'hr_review_responses', 'hr_tracking_defs', 'hr_tracking_entries'],
         'views' => [],
         'procedures' => [],
         'schema_file' => 'hr-portal/database/schema.sql',
@@ -121,7 +140,7 @@ $modules = [
         'icon' => 'bi-trophy',
         'color' => 'purple',
         'description' => 'Advanced performance tracking with BI engine and KPI dashboards',
-        'tables' => ['staff_performance_metrics', 'staff_kpis', 'staff_goals', 'performance_reviews'],
+        'tables' => ['staff_performance_stats', 'staff_achievements'],
         'views' => [],
         'procedures' => [],
         'schema_file' => 'staff-performance/database/schema.sql',
@@ -133,7 +152,7 @@ $modules = [
         'icon' => 'bi-box-seam',
         'color' => 'secondary',
         'description' => 'Lightspeed consignment management and transfer tracking',
-        'tables' => ['consignments', 'consignment_items', 'transfer_requests'],
+        'tables' => ['vend_consignments', 'vend_consignment_line_items', 'consignment_sync_log'],
         'views' => [],
         'procedures' => [],
         'schema_file' => 'consignments/database/schema.sql',
@@ -145,7 +164,7 @@ $modules = [
         'icon' => 'bi-bank',
         'color' => 'success',
         'description' => 'Bank transaction reconciliation and matching algorithms',
-        'tables' => ['bank_transactions', 'transaction_matches', 'reconciliation_rules'],
+        'tables' => ['bank_transactions', 'bank_matches', 'reconciliation_rules'],
         'views' => [],
         'procedures' => [],
         'schema_file' => 'bank-transactions/database/schema.sql',
@@ -157,24 +176,96 @@ $modules = [
         'icon' => 'bi-flag-fill',
         'color' => 'warning',
         'description' => 'Product quality control and issue tracking',
-        'tables' => ['flagged_products', 'product_flags', 'flag_resolutions'],
+        'tables' => ['flagged_products', 'product_flags', 'flagged_products_resolutions', 'flagged_products_notifications'],
         'views' => [],
         'procedures' => [],
         'schema_file' => 'flagged_products/database/schema.sql',
         'dashboard' => 'flagged_products/dashboard.php',
         'priority' => 9
     ],
-    'ecommerce-ops' => [
-        'name' => 'Ecommerce Operations',
-        'icon' => 'bi-cart-check',
-        'color' => 'primary',
+        'ecommerce-ops' => [
+        'name' => 'E-Commerce Operations',
+        'icon' => 'bi-cart',
+        'color' => 'success',
         'description' => 'E-commerce operations, orders, and inventory management',
-        'tables' => ['ecommerce_orders', 'order_items', 'inventory_sync'],
+        'tables' => ['ecom_orders', 'ecom_order_items', 'ecom_inventory_sync', 'ecom_age_verify', 'ecom_site_sync_log'],
         'views' => [],
         'procedures' => [],
         'schema_file' => 'ecommerce-ops/database/schema.sql',
         'dashboard' => 'ecommerce-ops/dashboard.php',
         'priority' => 10
+    ],
+    'staff-accounts' => [
+        'name' => 'Staff Accounts',
+        'icon' => 'bi-wallet2',
+        'color' => 'info',
+        'description' => 'Staff financial tracking with Vend accounts and Xero payroll integration',
+        'tables' => ['staff_account_reconciliation', 'staff_payment_transactions', 'staff_saved_cards', 'staff_payment_plans', 'staff_payment_plan_installments', 'staff_reminder_log', 'staff_allocations'],
+        'views' => [],
+        'procedures' => [],
+        'schema_file' => 'staff-accounts/database/schema.sql',
+        'dashboard' => 'staff-accounts/index.php',
+        'priority' => 11
+    ],
+    'admin-ui' => [
+        'name' => 'Admin UI',
+        'icon' => 'bi-gear-fill',
+        'color' => 'dark',
+        'description' => 'VS Code themed admin interface with AI agent configuration',
+        'tables' => ['theme_themes', 'theme_settings', 'theme_ai_configs', 'theme_analytics'],
+        'views' => [],
+        'procedures' => [],
+        'schema_file' => 'admin-ui/database/schema.sql',
+        'dashboard' => 'admin-ui/index.php',
+        'priority' => 12
+    ],
+    'control-panel' => [
+        'name' => 'Control Panel',
+        'icon' => 'bi-sliders',
+        'color' => 'secondary',
+        'description' => 'System administration, backups, config management',
+        'tables' => ['cp_backups', 'cp_config', 'cp_logs', 'cp_registry', 'cp_maintenance'],
+        'views' => [],
+        'procedures' => [],
+        'schema_file' => 'control-panel/database/schema.sql',
+        'dashboard' => 'control-panel/index.php',
+        'priority' => 13
+    ],
+    'human_resources' => [
+        'name' => 'Human Resources',
+        'icon' => 'bi-people',
+        'color' => 'danger',
+        'description' => 'Payroll module with Deputy/Xero integration',
+        'tables' => ['payroll_runs', 'payroll_timesheet_amendments', 'payroll_wage_discrepancies', 'payroll_employee_details', 'payroll_vend_payment_requests', 'payroll_audit_log'],
+        'views' => [],
+        'procedures' => [],
+        'schema_file' => 'human_resources/database/schema.sql',
+        'dashboard' => 'human_resources/payroll/index.php',
+        'priority' => 14
+    ],
+    'stock-transfer-engine' => [
+        'name' => 'Stock Transfer Engine',
+        'icon' => 'bi-arrow-left-right',
+        'color' => 'info',
+        'description' => 'AI-powered stock transfer system with dual warehouse support',
+        'tables' => ['stock_transfers', 'stock_transfer_items', 'transfer_boxes', 'transfer_tracking_events', 'excess_stock_alerts', 'stock_velocity_tracking', 'freight_costs', 'product_logistics', 'outlet_freight_zones', 'transfer_routes', 'transfer_rejections', 'consignment_distributions', 'consignment_distribution_items'],
+        'views' => [],
+        'procedures' => [],
+        'schema_file' => 'stock_transfer_engine/database/stock_transfer_engine_schema.sql',
+        'dashboard' => 'stock_transfer_engine/index.php',
+        'priority' => 15
+    ],
+    'crawler-engine' => [
+        'name' => 'Crawler Engine',
+        'icon' => 'bi-robot',
+        'color' => 'dark',
+        'description' => 'Competitive intelligence and price monitoring crawlers',
+        'tables' => ['crawler_sessions', 'crawler_results', 'crawler_schedules', 'crawler_config', 'crawler_performance', 'crawler_analytics', 'crawler_alerts', 'crawler_reports'],
+        'views' => [],
+        'procedures' => [],
+        'schema_file' => 'competitive-intel/database/schema.sql',
+        'dashboard' => 'competitive-intel/admin.php',
+        'priority' => 16
     ]
 ];
 
@@ -273,6 +364,85 @@ $overallProgress = round($totalProgress / $totalModules);
 uasort($modules, function($a, $b) {
     return $a['priority'] - $b['priority'];
 });
+
+// Handle installation request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'install') {
+    header('Content-Type: application/json');
+
+    $moduleKey = $_POST['module'] ?? '';
+    $response = ['success' => false, 'message' => '', 'details' => []];
+
+    if (!isset($modules[$moduleKey])) {
+        $response['message'] = 'Invalid module';
+        echo json_encode($response);
+        exit;
+    }
+
+    $module = $modules[$moduleKey];
+    $schemaPath = __DIR__ . '/' . $module['schema_file'];
+
+    if (!file_exists($schemaPath)) {
+        $response['message'] = 'Schema file not found: ' . $module['schema_file'];
+        echo json_encode($response);
+        exit;
+    }
+
+    try {
+        // Read the schema file
+        $sql = file_get_contents($schemaPath);
+
+        // Split into individual statements
+        $statements = array_filter(
+            array_map('trim', explode(';', $sql)),
+            function($stmt) { return !empty($stmt) && !preg_match('/^--/', $stmt); }
+        );
+
+        $successCount = 0;
+        $errorCount = 0;
+        $errors = [];
+
+        // Execute each statement
+        foreach ($statements as $statement) {
+            if (empty(trim($statement))) continue;
+
+            try {
+                $pdo->exec($statement);
+                $successCount++;
+                $response['details'][] = "✓ Statement executed successfully";
+            } catch (PDOException $e) {
+                $errorCount++;
+                $errorMsg = $e->getMessage();
+
+                // Ignore "table already exists" and "duplicate entry" errors
+                if (strpos($errorMsg, '1050') !== false || strpos($errorMsg, 'already exists') !== false) {
+                    $response['details'][] = "⚠ Table already exists (skipped)";
+                    $successCount++; // Count as success
+                } elseif (strpos($errorMsg, '1062') !== false || strpos($errorMsg, 'Duplicate entry') !== false) {
+                    $response['details'][] = "⚠ Duplicate data (skipped)";
+                    $successCount++; // Count as success
+                } else {
+                    $errors[] = $errorMsg;
+                    $response['details'][] = "✗ Error: " . $errorMsg;
+                }
+            }
+        }
+
+        if (count($errors) > 0) {
+            $response['success'] = false;
+            $response['message'] = "Installation completed with {$errorCount} errors";
+            $response['errors'] = $errors;
+        } else {
+            $response['success'] = true;
+            $response['message'] = "Successfully installed {$module['name']}! Processed {$successCount} statements.";
+        }
+
+    } catch (Exception $e) {
+        $response['message'] = 'Installation failed: ' . $e->getMessage();
+    }
+
+    echo json_encode($response);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -459,21 +629,26 @@ uasort($modules, function($a, $b) {
         <?php if ($installedModules < $totalModules): ?>
         <div class="quick-install-panel">
             <h4 class="mb-3"><i class="bi bi-rocket-takeoff"></i> Quick Install All Pending Modules</h4>
-            <p class="mb-3">Run this command to install all pending modules at once:</p>
+            <p class="mb-3">Click the button below to install all <?php echo $totalModules - $installedModules; ?> pending modules automatically:</p>
+            <button class="btn btn-light btn-lg" onclick="installAllModules()">
+                <i class="bi bi-lightning-fill"></i> Install All Modules Now
+            </button>
+            <hr class="my-3 opacity-50">
+            <p class="mb-2 small">Or use the terminal command:</p>
             <div class="bg-dark text-white p-3 rounded mb-3" style="font-family: monospace; overflow-x: auto;">
                 cd /home/master/applications/jcepnzzkmj/public_html/modules && \<br>
                 <?php
                 $commands = [];
                 foreach ($modules as $key => $module) {
                     if (!$moduleStatuses[$key]['installed'] && file_exists($module['schema_file'])) {
-                        $commands[] = "mysql -u jcepnzzkmj -p'\$(cat ../.env | grep DB_PASSWORD | cut -d= -f2)' jcepnzzkmj < {$module['schema_file']}";
+                        $commands[] = "mysql -u jcepnzzkmj -p'wprKh9Jq63' -h 127.0.0.1 jcepnzzkmj < {$module['schema_file']}";
                     }
                 }
                 echo implode(" && \<br>", $commands);
                 ?>
             </div>
-            <button class="btn btn-light" onclick="copyQuickInstall()">
-                <i class="bi bi-clipboard"></i> Copy Command
+            <button class="btn btn-outline-light btn-sm" onclick="copyQuickInstall()">
+                <i class="bi bi-clipboard"></i> Copy Terminal Command
             </button>
         </div>
         <?php endif; ?>
@@ -543,7 +718,7 @@ uasort($modules, function($a, $b) {
                             <i class="bi bi-exclamation-triangle-fill"></i> <strong>Incomplete Installation</strong>
                         </div>
                         <div class="d-grid gap-2">
-                            <button class="btn btn-warning btn-sm" onclick="installModule('<?php echo $key; ?>')">
+                            <button class="btn btn-warning btn-sm" onclick="installModuleDirect('<?php echo $key; ?>', '<?php echo htmlspecialchars($module['name']); ?>')">
                                 <i class="bi bi-arrow-clockwise"></i> Reinstall
                             </button>
                         </div>
@@ -553,7 +728,7 @@ uasort($modules, function($a, $b) {
                             <i class="bi bi-x-circle-fill"></i> <strong>Not Installed</strong>
                         </div>
                         <div class="d-grid gap-2">
-                            <button class="btn btn-install btn-sm" onclick="installModule('<?php echo $key; ?>')">
+                            <button class="btn btn-install btn-sm" onclick="installModuleDirect('<?php echo $key; ?>', '<?php echo htmlspecialchars($module['name']); ?>')">
                                 <i class="bi bi-download"></i> Install Now
                             </button>
                         </div>
@@ -596,11 +771,53 @@ uasort($modules, function($a, $b) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function installModuleDirect(moduleKey, moduleName) {
+            if (!confirm(`Install ${moduleName}?\n\nThis will create all database tables and insert default data.`)) {
+                return;
+            }
+
+            const button = event.target.closest('button');
+            const originalHTML = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Installing...';
+
+            // Send AJAX request to install
+            fetch('installer.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=install&module=${moduleKey}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    alert(`✅ ${data.message}\n\nRefreshing page...`);
+                    location.reload();
+                } else {
+                    // Show error details
+                    let errorMsg = `❌ ${data.message}\n\n`;
+                    if (data.details && data.details.length > 0) {
+                        errorMsg += 'Details:\n' + data.details.slice(-5).join('\n');
+                    }
+                    alert(errorMsg);
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                }
+            })
+            .catch(error => {
+                alert(`❌ Installation failed: ${error.message}`);
+                button.disabled = false;
+                button.innerHTML = originalHTML;
+            });
+        }
+
         function installModule(moduleKey) {
             const modules = <?php echo json_encode($modules); ?>;
             const module = modules[moduleKey];
 
-            const command = `cd /home/master/applications/jcepnzzkmj/public_html/modules/${moduleKey} && mysql -u jcepnzzkmj -p'$(cat ../../.env | grep DB_PASSWORD | cut -d= -f2)' jcepnzzkmj < database/schema.sql`;
+            const command = `cd /home/master/applications/jcepnzzkmj/public_html/modules/${moduleKey} && mysql -u jcepnzzkmj -p'wprKh9Jq63' -h 127.0.0.1 jcepnzzkmj < database/schema.sql`;
 
             const html = `
                 <div class="alert alert-info">
@@ -632,6 +849,52 @@ uasort($modules, function($a, $b) {
             navigator.clipboard.writeText(text).then(() => {
                 alert('Quick install command copied to clipboard!');
             });
+        }
+
+        // Install all modules function
+        function installAllModules() {
+            if (!confirm('Install ALL pending modules?\n\nThis will install all modules that are not yet installed.')) {
+                return;
+            }
+
+            const modules = <?php echo json_encode(array_keys(array_filter($modules, function($m, $k) use ($moduleStatuses) {
+                return !$moduleStatuses[$k]['installed'];
+            }, ARRAY_FILTER_USE_BOTH))); ?>;
+
+            let current = 0;
+            const total = modules.length;
+
+            function installNext() {
+                if (current >= total) {
+                    alert(`✅ All modules installed!\n\nRefreshing page...`);
+                    location.reload();
+                    return;
+                }
+
+                const moduleKey = modules[current];
+                console.log(`Installing ${current + 1}/${total}: ${moduleKey}`);
+
+                fetch('installer.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=install&module=${moduleKey}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`Result for ${moduleKey}:`, data);
+                    current++;
+                    installNext();
+                })
+                .catch(error => {
+                    console.error(`Failed to install ${moduleKey}:`, error);
+                    current++;
+                    installNext();
+                });
+            }
+
+            installNext();
         }
     </script>
 </body>

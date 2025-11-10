@@ -38,7 +38,7 @@ class ConsignmentsAPI extends BaseAPI {
     public function __construct(array $config = []) {
         // Configure API settings
         $apiConfig = array_merge([
-            'require_auth' => false, // Handled per-action
+            'require_auth' => true, // Enforce staff auth for all endpoints
             'allowed_methods' => ['POST', 'GET'],
             'log_requests' => true,
             'log_responses' => true,
@@ -49,6 +49,52 @@ class ConsignmentsAPI extends BaseAPI {
 
         // Initialize service
         $this->service = ConsignmentService::make();
+    }
+
+    /**
+     * Authentication hook used by BaseAPI when require_auth=true
+     * Ensures session is authenticated; returns JSON 401 on failure (no HTML redirects)
+     */
+    protected function authenticate(): void {
+        // If a global auth helper exists, use it
+        if (function_exists('isLoggedIn')) {
+            if (!isLoggedIn()) {
+                header('Content-Type: application/json; charset=utf-8', true, 401);
+                echo json_encode([
+                    'success' => false,
+                    'error' => [
+                        'code' => 'UNAUTHORIZED',
+                        'message' => 'Authentication required. Please log in.'
+                    ],
+                    'request_id' => $this->getRequestIdForResponse()
+                ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                exit;
+            }
+            return;
+        }
+
+        // Fallback: check PHP session user
+        if (session_status() !== \PHP_SESSION_ACTIVE) @session_start();
+        if (!isset($_SESSION['userID']) || !$_SESSION['userID']) {
+            header('Content-Type: application/json; charset=utf-8', true, 401);
+            echo json_encode([
+                'success' => false,
+                'error' => [
+                    'code' => 'UNAUTHORIZED',
+                    'message' => 'Authentication required.'
+                ],
+                'request_id' => $this->getRequestIdForResponse()
+            ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            exit;
+        }
+    }
+
+    /**
+     * Provide request id to responses from within this class
+     */
+    private function getRequestIdForResponse(): string {
+        // BaseAPI keeps requestId private; mirror generation for consistency
+        return 'req_' . substr(md5(uniqid('', true)), 0, 12);
     }
 
     /**

@@ -8,7 +8,7 @@
  *
  * Design Pattern: Template Method + Strategy
  *
- * @package CIS\Base\Lib
+ * @package CIS\Base
  * @version 6.0.0
  * @author CIS Development Team
  *
@@ -29,7 +29,7 @@
 
 declare(strict_types=1);
 
-namespace CIS\Base\Lib;
+namespace CIS\Base;
 
 abstract class BaseAPI {
 
@@ -230,7 +230,7 @@ abstract class BaseAPI {
      */
     protected function authenticate(): void {
         // Default implementation - override in child class
-        if (empty($_SESSION['user_id'])) {
+        if (empty($_SESSION['userID'])) {
             throw new \Exception('Authentication required', self::HTTP_UNAUTHORIZED);
         }
     }

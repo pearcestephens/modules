@@ -8,6 +8,7 @@ class CISTemplate {
     private $title = 'Consignments';
     private $breadcrumbs = [];
     private $content = '';
+    private $theme = 'cis'; // default legacy theme; can be switched to 'cis-v2'
 
     public function __construct() {
         if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -23,6 +24,13 @@ class CISTemplate {
         $this->breadcrumbs = $breadcrumbs;
     }
 
+    public function setTheme($theme) {
+        $allowed = ['cis', 'cis-v2'];
+        if (in_array($theme, $allowed, true)) {
+            $this->theme = $theme;
+        }
+    }
+
     public function startContent() {
         ob_start();
     }
@@ -33,12 +41,11 @@ class CISTemplate {
 
     public function render() {
         // Include header
+        // Expose breadcrumbs to the theme header so it can render the second-layer inside the header
+        $GLOBALS['CIS_BREADCRUMBS_DATA'] = $this->breadcrumbs;
         $this->renderHeader();
 
-        // Render breadcrumbs if any
-        if (!empty($this->breadcrumbs)) {
-            $this->renderBreadcrumbs();
-        }
+        // Breadcrumbs are rendered inside the header; do not duplicate here.
 
         // Render content
         echo $this->content;
@@ -48,74 +55,73 @@ class CISTemplate {
     }
 
     private function renderHeader() {
-        ?>
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?php echo htmlspecialchars($this->title); ?> — CIS Control Panel</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <link rel="stylesheet" href="https://staff.vapeshed.co.nz/admin-ui/assets/css/admin.css">
-  <link rel="stylesheet" href="https://staff.vapeshed.co.nz/admin-ui/assets/css/dashboard.css">
-  <style>
-    .sidebar { min-width: 250px; max-width: 250px; }
-    .sidebar-brand { border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .brand-logo { filter: brightness(0) invert(1); }
-    .brand-title { font-size: 14px; font-weight: 600; }
-    .brand-subtitle { font-size: 11px; opacity: 0.7; }
-    .nav-link { padding: 0.75rem 1rem; border-left: 3px solid transparent; }
-    .nav-link:hover { background: rgba(255,255,255,0.1); border-left-color: #007bff; }
-    .nav-link.active { background: rgba(255,255,255,0.15); border-left-color: #007bff; }
-  </style>
-</head>
-<body>
-  <div id="admin-app" class="d-flex">
-    <nav id="sidebar" class="sidebar bg-dark text-white">
-      <div class="sidebar-brand d-flex align-items-center p-3">
-        <img src="https://staff.vapeshed.co.nz/assets/img/ecigdis-logo.png" alt="The Vape Shed" height="28" class="mr-2 brand-logo" onerror="this.onerror=null;this.src='https://staff.vapeshed.co.nz/assets/img/ecigdis-white.png';">
-        <div class="brand-text overflow-hidden">
-          <div class="brand-title">CIS Control Panel</div>
-          <div class="brand-subtitle">Consignments Module</div>
-        </div>
-      </div>
-      <ul class="nav flex-column">
-        <li class="nav-item"><a class="nav-link text-white" href="/"><i class="fa fa-home mr-2"></i>Main Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link text-white active" href="/modules/consignments/"><i class="fa fa-boxes mr-2"></i>Consignments Home</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=transfer-manager"><i class="fa fa-exchange-alt mr-2"></i>Transfer Manager</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=purchase-orders"><i class="fa fa-shopping-cart mr-2"></i>Purchase Orders</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=stock-transfers"><i class="fa fa-truck mr-2"></i>Stock Transfers</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=receiving"><i class="fa fa-inbox mr-2"></i>Receiving</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=freight"><i class="fa fa-shipping-fast mr-2"></i>Freight</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=queue-status"><i class="fa fa-tasks mr-2"></i>Queue Status</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=ai-insights"><i class="fa fa-brain mr-2"></i>AI Insights</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/modules/consignments/?route=admin-controls"><i class="fa fa-cog mr-2"></i>Admin Controls</a></li>
-      </ul>
-      <div class="mt-auto p-3 small text-muted border-top border-secondary">
-        <div><i class="fa fa-code mr-1"></i>Version: v3.0.0</div>
-        <div><a href="/modules/installer.php" class="text-info"><i class="fa fa-download mr-1"></i>Module Installer</a></div>
-      </div>
-    </nav>
-    <div class="flex-grow-1 d-flex flex-column min-vh-100">
-      <header class="topbar navbar navbar-light bg-light border-bottom">
-        <span class="navbar-brand mb-0 h6"><i class="fa fa-boxes mr-2"></i><?php echo htmlspecialchars($this->title); ?></span>
-        <div class="ml-auto d-flex align-items-center">
-          <a class="btn btn-sm btn-outline-primary mr-2" href="/modules/outlets/dashboard.php"><i class="fa fa-store mr-1"></i>Outlets</a>
-          <a class="btn btn-sm btn-outline-success mr-2" href="/modules/business-intelligence/dashboard.php"><i class="fa fa-chart-line mr-1"></i>BI</a>
-          <a class="btn btn-sm btn-outline-info mr-3" href="/modules/installer.php"><i class="fa fa-th mr-1"></i>All Modules</a>
-          <span class="mr-3 text-muted small"><i class="fa fa-user-circle mr-1"></i><?php echo htmlspecialchars($_SESSION['username'] ?? 'Guest'); ?></span>
-          <a class="btn btn-sm btn-outline-secondary" href="/logout.php">Logout</a>
-        </div>
-      </header>
-      <main class="flex-grow-1 p-4">
-        <?php
+    // Set page title for base template
+        $pageTitle = htmlspecialchars($this->title);
+
+        // Ensure $pdo is available for templates (from CIS\Base\Database)
+        global $pdo;
+        if (!isset($pdo)) {
+            $pdo = \CIS\Base\Database::pdo();
+        }
+
+        // Load the selected theme root (module-isolated)
+        $baseDir = dirname(__DIR__, 2);
+        $templatePath = $baseDir . '/base/themes/cis';
+        $templateV2 = $baseDir . '/base/templates/themes/cis-v2';
+        $useV2 = ($this->theme === 'cis-v2' && is_dir($templateV2));
+
+        // Inject page-specific <head> assets safely via $extraHead
+        $extraHead = '';
+        if (strpos($this->title, 'Transfer') !== false) {
+            // Bootstrap Icons (required by Transfer Manager markup: .bi classes)
+            $extraHead .= '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">' . "\n";
+            // IMPORTANT: Do NOT link CSS files directly. We inject Transfer Manager CSS as an internal JS doc
+            // to avoid any global leakage into CIS. Load the style injector early in <head>.
+            $extraHead .= '<script src="/modules/consignments/TransferManager/js/00a-style-inject.js?v=20251110" defer></script>' . "\n";
+        }
+
+        // Disable legacy footer JS on pages that inject their own modern stack
+        $GLOBALS['DISABLE_LEGACY_FOOTER_JS'] = (strpos($this->title, 'Transfer') !== false);
+
+        if ($useV2) {
+            // V2 HEAD
+            $head = $templateV2 . '/components/head.php';
+            if (file_exists($head)) require $head; // emits <html><head>...</head>
+            // V2 HEADER
+            $hdr = $templateV2 . '/components/header.php';
+            if (file_exists($hdr)) require $hdr; // emits <body> + header + optional breadcrumbs
+            // V2 SIDEBAR + open containers
+            $sidebar = $templateV2 . '/components/sidebar.php';
+            echo '<div class="cisv2-app d-flex">';
+            if (file_exists($sidebar)) require $sidebar;
+            echo '<main id="cisv2-main" class="flex-fill">';
+        } else {
+            // Legacy CIS
+            if (file_exists($templatePath . '/html-header.php')) {
+                require $templatePath . '/html-header.php';
+            }
+
+            if (file_exists($templatePath . '/header.php')) {
+                require $templatePath . '/header.php';
+            }
+
+            if (file_exists($templatePath . '/sidemenu.php')) {
+                echo '<div class="app-body">';
+                require $templatePath . '/sidemenu.php';
+                // Offset main content to the right of fixed sidebar (CoreUI normally does this via CSS)
+                echo '<main class="main" style="margin-left:256px;">';
+            }
+        }
+
+    // Note: page-specific CSS already injected into <head> via $extraHead above.
+    // Main content container is opened above when sidemenu is included.
     }
 
-    private function renderBreadcrumbs() {
+            private function renderBreadcrumbs() {
         if (empty($this->breadcrumbs)) return;
-        ?>
-        <nav aria-label="breadcrumb" class="mb-3">
+                ?>
+                <div class="app-breadcrumb" style="background:#fff;border-bottom:1px solid #c8ced3;padding:0.5rem 1rem;">
+                    <nav aria-label="breadcrumb" class="mb-0">
           <ol class="breadcrumb">
             <?php foreach ($this->breadcrumbs as $crumb): ?>
               <?php if (isset($crumb['active']) && $crumb['active']): ?>
@@ -130,24 +136,59 @@ class CISTemplate {
               <?php endif; ?>
             <?php endforeach; ?>
           </ol>
-        </nav>
+                    </nav>
+                </div>
         <?php
     }
 
     private function renderFooter() {
         ?>
-      </main>
-      <footer class="border-top bg-white p-2 text-center small text-muted">
-        <span>&copy; <?php echo date('Y'); ?> Ecigdis Ltd — The Vape Shed CIS</span>
-      </footer>
-    </div>
-  </div>
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-</body>
-</html>
+    </main><!-- /.main -->
+</div><!-- /.app-body -->
         <?php
+
+        // Add Transfer Manager JS if this is the transfer manager page
+        if (strpos($this->title, 'Transfer') !== false) {
+            $jsFiles = [
+                // CSS is injected by 00a-style-inject.js loaded in <head> (defer). Keep JS execution order below.
+                '/modules/consignments/TransferManager/js/00-config-init.js',
+                // Bootstrap shim: expose bootstrap.Modal/Toast when only BS4 is present
+                '/modules/consignments/TransferManager/js/00b-bs-adapter.js',
+                // Use CoreUI (BS4-compatible) from footer; do not include separate Bootstrap here.
+                '/modules/consignments/TransferManager/js/01-core-helpers.js',
+                '/modules/consignments/TransferManager/js/02-ui-components.js',
+                '/modules/consignments/TransferManager/js/03-transfer-functions.js',
+                '/modules/consignments/TransferManager/js/04-list-refresh.js',
+                '/modules/consignments/TransferManager/js/05-detail-modal.js',
+                '/modules/consignments/TransferManager/js/06-event-listeners.js',
+                '/modules/consignments/TransferManager/js/07-init.js',
+                '/modules/consignments/TransferManager/js/08-dom-ready.js'
+            ];
+
+            foreach ($jsFiles as $jsFile) {
+                echo '<script src="' . htmlspecialchars($jsFile) . '"></script>' . "\n";
+            }
+        }
+        
+        // Load the selected theme footer assets and close tags
+        $baseDir = dirname(__DIR__, 2);
+        $templatePath = $baseDir . '/base/themes/cis';
+        $templateV2 = $baseDir . '/base/templates/themes/cis-v2';
+        $useV2 = ($this->theme === 'cis-v2' && is_dir($templateV2));
+
+        if ($useV2) {
+            // Close main + app container and include scripts
+            echo '</main></div>';
+            $scripts = $templateV2 . '/components/scripts.php';
+            if (file_exists($scripts)) require $scripts;
+        } else {
+            if (file_exists($templatePath . '/footer.php')) {
+                require $templatePath . '/footer.php';
+            }
+
+            if (file_exists($templatePath . '/html-footer.php')) {
+                require $templatePath . '/html-footer.php';
+            }
+        }
     }
 }

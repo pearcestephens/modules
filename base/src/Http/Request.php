@@ -1,27 +1,38 @@
 <?php
+
 /**
- * HTTP Request Class
+ * HTTP Request Class.
  *
  * Represents an incoming HTTP request
- *
- * @package CIS\Base\Http
  */
 
 declare(strict_types=1);
 
 namespace CIS\Base\Http;
 
+use const PHP_URL_PATH;
+use const UPLOAD_ERR_OK;
+
 class Request
 {
     private string $id;
+
     private string $method;
+
     private string $uri;
+
     private array $query;
+
     private array $post;
+
     private array $files;
+
     private array $server;
+
     private array $headers;
+
     private ?string $body;
+
     private float $startTime;
 
     public function __construct(
@@ -31,22 +42,22 @@ class Request
         array $post = [],
         array $files = [],
         array $server = [],
-        ?string $body = null
+        ?string $body = null,
     ) {
-        $this->id = $this->generateRequestId();
-        $this->method = strtoupper($method);
-        $this->uri = $uri;
-        $this->query = $query;
-        $this->post = $post;
-        $this->files = $files;
-        $this->server = $server;
-        $this->body = $body;
+        $this->id        = $this->generateRequestId();
+        $this->method    = strtoupper($method);
+        $this->uri       = $uri;
+        $this->query     = $query;
+        $this->post      = $post;
+        $this->files     = $files;
+        $this->server    = $server;
+        $this->body      = $body;
         $this->startTime = microtime(true);
-        $this->headers = $this->extractHeaders();
+        $this->headers   = $this->extractHeaders();
     }
 
     /**
-     * Create request from globals
+     * Create request from globals.
      */
     public static function capture(): self
     {
@@ -57,12 +68,12 @@ class Request
             $_POST,
             $_FILES,
             $_SERVER,
-            file_get_contents('php://input') ?: null
+            file_get_contents('php://input') ?: null,
         );
     }
 
     /**
-     * Get unique request ID
+     * Get unique request ID.
      */
     public function id(): string
     {
@@ -70,7 +81,7 @@ class Request
     }
 
     /**
-     * Get request method
+     * Get request method.
      */
     public function method(): string
     {
@@ -78,7 +89,7 @@ class Request
     }
 
     /**
-     * Get request URI
+     * Get request URI.
      */
     public function uri(): string
     {
@@ -86,7 +97,9 @@ class Request
     }
 
     /**
-     * Get query parameter
+     * Get query parameter.
+     *
+     * @param mixed|null $default
      */
     public function query(string $key, $default = null)
     {
@@ -94,7 +107,7 @@ class Request
     }
 
     /**
-     * Get all query parameters
+     * Get all query parameters.
      */
     public function queryAll(): array
     {
@@ -102,7 +115,9 @@ class Request
     }
 
     /**
-     * Get POST parameter
+     * Get POST parameter.
+     *
+     * @param mixed|null $default
      */
     public function post(string $key, $default = null)
     {
@@ -110,7 +125,7 @@ class Request
     }
 
     /**
-     * Get all POST parameters
+     * Get all POST parameters.
      */
     public function postAll(): array
     {
@@ -118,7 +133,9 @@ class Request
     }
 
     /**
-     * Get input (POST or query)
+     * Get input (POST or query).
+     *
+     * @param mixed|null $default
      */
     public function input(string $key, $default = null)
     {
@@ -126,7 +143,7 @@ class Request
     }
 
     /**
-     * Get all input
+     * Get all input.
      */
     public function all(): array
     {
@@ -134,7 +151,7 @@ class Request
     }
 
     /**
-     * Get only specified keys
+     * Get only specified keys.
      */
     public function only(array $keys): array
     {
@@ -142,7 +159,7 @@ class Request
     }
 
     /**
-     * Get all except specified keys
+     * Get all except specified keys.
      */
     public function except(array $keys): array
     {
@@ -150,7 +167,7 @@ class Request
     }
 
     /**
-     * Check if input exists
+     * Check if input exists.
      */
     public function has(string $key): bool
     {
@@ -158,7 +175,7 @@ class Request
     }
 
     /**
-     * Get uploaded file
+     * Get uploaded file.
      */
     public function file(string $key): ?array
     {
@@ -166,7 +183,7 @@ class Request
     }
 
     /**
-     * Check if file exists
+     * Check if file exists.
      */
     public function hasFile(string $key): bool
     {
@@ -174,16 +191,19 @@ class Request
     }
 
     /**
-     * Get header
+     * Get header.
+     *
+     * @param mixed|null $default
      */
     public function header(string $key, $default = null)
     {
         $key = strtolower($key);
+
         return $this->headers[$key] ?? $default;
     }
 
     /**
-     * Get all headers
+     * Get all headers.
      */
     public function headers(): array
     {
@@ -191,7 +211,7 @@ class Request
     }
 
     /**
-     * Check if header exists
+     * Check if header exists.
      */
     public function hasHeader(string $key): bool
     {
@@ -199,7 +219,7 @@ class Request
     }
 
     /**
-     * Get bearer token
+     * Get bearer token.
      */
     public function bearerToken(): ?string
     {
@@ -213,7 +233,7 @@ class Request
     }
 
     /**
-     * Check if request is GET
+     * Check if request is GET.
      */
     public function isGet(): bool
     {
@@ -221,7 +241,7 @@ class Request
     }
 
     /**
-     * Check if request is POST
+     * Check if request is POST.
      */
     public function isPost(): bool
     {
@@ -229,7 +249,7 @@ class Request
     }
 
     /**
-     * Check if request is PUT
+     * Check if request is PUT.
      */
     public function isPut(): bool
     {
@@ -237,7 +257,7 @@ class Request
     }
 
     /**
-     * Check if request is DELETE
+     * Check if request is DELETE.
      */
     public function isDelete(): bool
     {
@@ -245,7 +265,7 @@ class Request
     }
 
     /**
-     * Check if request is AJAX
+     * Check if request is AJAX.
      */
     public function isAjax(): bool
     {
@@ -253,7 +273,7 @@ class Request
     }
 
     /**
-     * Check if request is JSON
+     * Check if request is JSON.
      */
     public function isJson(): bool
     {
@@ -261,7 +281,7 @@ class Request
     }
 
     /**
-     * Get request body as JSON
+     * Get request body as JSON.
      */
     public function json(): ?array
     {
@@ -273,7 +293,7 @@ class Request
     }
 
     /**
-     * Get raw body
+     * Get raw body.
      */
     public function body(): ?string
     {
@@ -281,13 +301,14 @@ class Request
     }
 
     /**
-     * Get client IP address
+     * Get client IP address.
      */
     public function ip(): string
     {
         // Check for proxy headers
         if (!empty($this->server['HTTP_X_FORWARDED_FOR'])) {
             $ips = explode(',', $this->server['HTTP_X_FORWARDED_FOR']);
+
             return trim($ips[0]);
         }
 
@@ -299,7 +320,7 @@ class Request
     }
 
     /**
-     * Get user agent
+     * Get user agent.
      */
     public function userAgent(): string
     {
@@ -307,7 +328,7 @@ class Request
     }
 
     /**
-     * Get referer
+     * Get referer.
      */
     public function referer(): ?string
     {
@@ -315,19 +336,19 @@ class Request
     }
 
     /**
-     * Get request URL
+     * Get request URL.
      */
     public function url(): string
     {
         $scheme = $this->isSecure() ? 'https' : 'http';
-        $host = $this->server['HTTP_HOST'] ?? 'localhost';
-        $uri = parse_url($this->uri, PHP_URL_PATH);
+        $host   = $this->server['HTTP_HOST'] ?? 'localhost';
+        $uri    = parse_url($this->uri, PHP_URL_PATH);
 
         return "{$scheme}://{$host}{$uri}";
     }
 
     /**
-     * Get full URL with query string
+     * Get full URL with query string.
      */
     public function fullUrl(): string
     {
@@ -335,7 +356,7 @@ class Request
     }
 
     /**
-     * Get path only
+     * Get path only.
      */
     public function path(): string
     {
@@ -343,7 +364,7 @@ class Request
     }
 
     /**
-     * Check if request is secure (HTTPS)
+     * Check if request is secure (HTTPS).
      */
     public function isSecure(): bool
     {
@@ -351,7 +372,7 @@ class Request
     }
 
     /**
-     * Get request start time
+     * Get request start time.
      */
     public function startTime(): float
     {
@@ -359,7 +380,7 @@ class Request
     }
 
     /**
-     * Get request duration (milliseconds)
+     * Get request duration (milliseconds).
      */
     public function duration(): float
     {
@@ -367,7 +388,7 @@ class Request
     }
 
     /**
-     * Extract headers from $_SERVER
+     * Extract headers from $_SERVER.
      */
     private function extractHeaders(): array
     {
@@ -375,7 +396,7 @@ class Request
 
         foreach ($this->server as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
-                $headerKey = strtolower(str_replace('_', '-', substr($key, 5)));
+                $headerKey           = strtolower(str_replace('_', '-', substr($key, 5)));
                 $headers[$headerKey] = $value;
             }
         }
@@ -393,7 +414,7 @@ class Request
     }
 
     /**
-     * Generate unique request ID
+     * Generate unique request ID.
      */
     private function generateRequestId(): string
     {

@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS outlet_performance_metrics (
 
     -- Period
     metric_date DATE NOT NULL,
-    metric_period ENUM('daily', 'weekly', monthly', 'quarterly', 'yearly') DEFAULT 'daily',
+    metric_period ENUM('daily', 'weekly', 'monthly', 'quarterly', 'yearly') DEFAULT 'daily',
 
     -- Financial KPIs
     revenue DECIMAL(12,2) DEFAULT 0.00,

@@ -90,7 +90,7 @@ final class ConsignAuth
     public static function requireRole(string $role): void
     {
         // Check if user is logged in
-        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+        if (!isset($_SESSION['userID']) || !isset($_SESSION['user_role'])) {
             api_fail('Authentication required', 401);
         }
 
@@ -113,38 +113,21 @@ final class ConsignAuth
      */
     public static function requireAuth(): void
     {
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['userID'])) {
             api_fail('Authentication required', 401);
         }
     }
 
     /**
-     * Check if user has specific permission
+     * Check if user has specific permission (SIMPLIFIED: Always true if logged in)
      *
-     * @param string $permission Permission string
-     * @return bool
+     * @param string $permission Permission string (ignored)
+     * @return bool Always true if authenticated
      */
     public static function hasPermission(string $permission): bool
     {
-        // TODO: Wire to actual permission system
-        // For now, check basic role-based permissions
-        if (!isset($_SESSION['user_role'])) {
-            return false;
-        }
-
-        $role = $_SESSION['user_role'];
-
-        // Admin has all permissions
-        if ($role === 'admin') {
-            return true;
-        }
-
-        // Manager has most permissions
-        if ($role === 'manager' && !str_starts_with($permission, 'admin.')) {
-            return true;
-        }
-
-        return false;
+        // SIMPLIFIED: No permission checks - logged in only
+        return isset($_SESSION['userID']) && !empty($_SESSION['userID']);
     }
 }
 

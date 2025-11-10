@@ -1,0 +1,43 @@
+:root {
+	/* Brand */
+	--brand-h: 210;
+	--brand-s: 100%;
+	--brand-l: 45%;
+	--brand: hsl(var(--brand-h) var(--brand-s) var(--brand-l));
+	--brand-600: hsl(var(--brand-h) var(--brand-s) calc(var(--brand-l) - 5%));
+	--brand-700: hsl(var(--brand-h) var(--brand-s) calc(var(--brand-l) - 10%));
+
+	/* Neutrals */
+	--bg: #0e1116; /* used in dark mode */
+	--surface: #ffffff;
+	--surface-2: #f6f7f9;
+	--border: #e4e7ec;
+	--muted: #64748b;
+	--text: #0f172a;
+
+	/* States */
+	--success: #16a34a;
+	--warning: #f59e0b;
+	--danger: #dc2626;
+	--info: #0ea5e9;
+
+	/* Elevation */
+	--shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+	--shadow: 0 8px 24px rgba(15, 23, 42, .12);
+	--radius: 12px;
+
+	/* Typography */
+	--font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+	--fs-sm: 0.875rem;
+	--fs-xs: 0.8125rem;
+}
+
+html[data-theme="dark"] {
+	--surface: #0b0f15;
+	--surface-2: #0f1621;
+	--border: #1f2937;
+	--muted: #94a3b8;
+	--text: #e5e7eb;
+}

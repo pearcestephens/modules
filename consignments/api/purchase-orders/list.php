@@ -20,7 +20,7 @@ header('Content-Type: application/json');
 
 try {
     // Authentication check
-    if (!isset($_SESSION['user_id'])) {
+    if (!isset($_SESSION['userID'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,

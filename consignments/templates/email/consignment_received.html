@@ -1,0 +1,55 @@
+<h2>Consignment Received</h2>
+
+<p>Hi {{recipient_name}},</p>
+
+<div class="alert success">
+    <p><strong>Consignment Received:</strong> A consignment has been successfully received and processed.</p>
+</div>
+
+<div class="info-box">
+    <h3>Consignment Details</h3>
+    <div class="info-row">
+        <span class="info-label">Consignment Number:</span>
+        <span class="info-value">{{consignment_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">PO Number:</span>
+        <span class="info-value">{{po_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Supplier:</span>
+        <span class="info-value">{{supplier_name}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Store:</span>
+        <span class="info-value">{{store_name}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Received By:</span>
+        <span class="info-value">{{received_by}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Received:</span>
+        <span class="info-value">{{received_at}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Items Received:</span>
+        <span class="info-value">{{items_count}} items</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Total Value:</span>
+        <span class="info-value">{{total_value}}</span>
+    </div>
+</div>
+
+{{#has_discrepancies}}
+<div class="alert">
+    <p><strong>Note:</strong> This consignment has {{discrepancies_count}} discrepancy(ies) that require review.</p>
+</div>
+{{/has_discrepancies}}
+
+<div class="button-container">
+    <a href="{{consignment_url}}" class="button">View Consignment</a>
+</div>
+
+<p>All items have been added to inventory and are now available for sale.</p>

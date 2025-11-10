@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout 5: Glassmorphism Dark - CIS 2.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0e27;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(240, 147, 251, 0.1) 0%, transparent 50%);
+            animation: gradientMove 20s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sidebar */
+        .sidebar-glass {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            bottom: 20px;
+            width: 280px;
+            z-index: 100;
+        }
+
+        .sidebar-content {
+            height: 100%;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-glass {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon-glass {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .logo-text-glass h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .logo-text-glass p {
+            font-size: 11px;
+            opacity: 0.6;
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .nav-glass {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-section-glass {
+            margin-bottom: 30px;
+        }
+
+        .nav-section-title-glass {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            opacity: 0.4;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .nav-item-glass {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .nav-item-glass:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .nav-item-glass.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-item-glass i {
+            width: 24px;
+            font-size: 18px;
+        }
+
+        .nav-badge-glass {
+            margin-left: auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .user-profile-glass {
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-profile-glass:hover {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .user-avatar-glass {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Main Content */
+        .main-glass {
+            margin-left: 320px;
+            padding: 20px 20px 20px 0;
+        }
+
+        /* Top Bar */
+        .topbar-glass {
+            margin-bottom: 30px;
+            padding: 25px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar-search {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .topbar-search input {
+            width: 100%;
+            padding: 15px 50px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .topbar-search input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.08);
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .topbar-search i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn-glass {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .action-btn-glass:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        .action-btn-glass .notif {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+        }
+
+        /* Page Header */
+        .page-header-glass {
+            margin-bottom: 40px;
+        }
+
+        .page-header-glass h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header-glass p {
+            opacity: 0.6;
+            font-size: 16px;
+        }
+
+        /* Stats Grid */
+        .stats-grid-glass {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card-glass {
+            padding: 30px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card-glass::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card-glass:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card-glass:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(102, 126, 234, 0.2);
+        }
+
+        .stat-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-icon-glass {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .stat-icon-glass.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-icon-glass.pink { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .stat-icon-glass.cyan { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .stat-icon-glass.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+        .stat-value-glass {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label-glass {
+            opacity: 0.6;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-change-glass {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-change-glass.up {
+            background: rgba(67, 233, 123, 0.2);
+            color: #43e97b;
+        }
+
+        .stat-change-glass.down {
+            background: rgba(245, 87, 108, 0.2);
+            color: #f5576c;
+        }
+
+        /* Content Grid */
+        .content-grid-glass {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card-glass {
+            padding: 30px;
+        }
+
+        .card-header-glass {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .card-header-glass h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .btn-glass {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-glass:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Chart Placeholder */
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: rgba(255,255,255,0.1);
+        }
+
+        /* Activity List */
+        .activity-list-glass {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .activity-item-glass {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .activity-item-glass:hover {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .activity-icon-glass {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .activity-icon-glass.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .activity-icon-glass.pink { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .activity-icon-glass.cyan { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .activity-icon-glass.green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+        .activity-content-glass {
+            flex: 1;
+        }
+
+        .activity-title-glass {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .activity-time-glass {
+            font-size: 13px;
+            opacity: 0.5;
+        }
+
+        /* Floating Particles */
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            animation: float 20s infinite;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 40%; animation-delay: 6s; }
+        .particle:nth-child(5) { left: 50%; animation-delay: 8s; }
+        .particle:nth-child(6) { left: 60%; animation-delay: 10s; }
+        .particle:nth-child(7) { left: 70%; animation-delay: 12s; }
+        .particle:nth-child(8) { left: 80%; animation-delay: 14s; }
+        .particle:nth-child(9) { left: 90%; animation-delay: 16s; }
+    </style>
+</head>
+<body>
+    <!-- Floating Particles -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar-glass glass-card">
+            <div class="sidebar-content">
+                <div class="logo-glass">
+                    <div class="logo-icon-glass">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="logo-text-glass">
+                        <h1>CIS 2.0</h1>
+                        <p>Ultra</p>
+                    </div>
+                </div>
+
+                <div class="nav-glass">
+                    <div class="nav-section-glass">
+                        <div class="nav-section-title-glass">Main</div>
+                        <a href="#" class="nav-item-glass active">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytics</span>
+                        </a>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-comments"></i>
+                            <span>Feed</span>
+                            <span class="nav-badge-glass">12</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section-glass">
+                        <div class="nav-section-title-glass">Inventory</div>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-boxes"></i>
+                            <span>Transfers</span>
+                        </a>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Orders</span>
+                        </a>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-warehouse"></i>
+                            <span>Stock</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section-glass">
+                        <div class="nav-section-title-glass">System</div>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-store"></i>
+                            <span>Outlets</span>
+                        </a>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-users"></i>
+                            <span>Team</span>
+                        </a>
+                        <a href="#" class="nav-item-glass">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="user-profile-glass">
+                    <div class="user-avatar-glass">PS</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-size: 14px;">Pearce</div>
+                        <div style="font-size: 12px; opacity: 0.5;">Admin</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-glass">
+            <!-- Top Bar -->
+            <div class="topbar-glass glass-card">
+                <div class="topbar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search anything...">
+                </div>
+                <div class="topbar-actions">
+                    <div class="action-btn-glass">
+                        <i class="fas fa-bell"></i>
+                        <div class="notif">5</div>
+                    </div>
+                    <div class="action-btn-glass">
+                        <i class="fas fa-envelope"></i>
+                        <div class="notif">12</div>
+                    </div>
+                    <div class="action-btn-glass">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Header -->
+            <div class="page-header-glass">
+                <h1>Welcome Back, Pearce</h1>
+                <p>Here's what's happening with your business today</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid-glass">
+                <div class="stat-card-glass glass-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-glass blue">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-value-glass">$124.5K</div>
+                        <div class="stat-label-glass">Revenue</div>
+                        <div class="stat-change-glass up">
+                            <i class="fas fa-arrow-up"></i> 12.5%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card-glass glass-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-glass pink">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-value-glass">1,845</div>
+                        <div class="stat-label-glass">Orders</div>
+                        <div class="stat-change-glass up">
+                            <i class="fas fa-arrow-up"></i> 8.2%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card-glass glass-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-glass cyan">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value-glass">12,458</div>
+                        <div class="stat-label-glass">Customers</div>
+                        <div class="stat-change-glass down">
+                            <i class="fas fa-arrow-down"></i> 3.1%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card-glass glass-card">
+                    <div class="stat-card-content">
+                        <div class="stat-icon-glass green">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-value-glass">842</div>
+                        <div class="stat-label-glass">Products</div>
+                        <div class="stat-change-glass up">
+                            <i class="fas fa-arrow-up"></i> 15.3%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="content-grid-glass">
+                <div class="card-glass glass-card">
+                    <div class="card-header-glass">
+                        <h3>Revenue Overview</h3>
+                        <button class="btn-glass">View Report</button>
+                    </div>
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-area"></i>
+                    </div>
+                </div>
+
+                <div class="card-glass glass-card">
+                    <div class="card-header-glass">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div class="activity-list-glass">
+                        <div class="activity-item-glass">
+                            <div class="activity-icon-glass blue">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="activity-content-glass">
+                                <div class="activity-title-glass">Transfer #1234</div>
+                                <div class="activity-time-glass">5 minutes ago</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-item-glass">
+                            <div class="activity-icon-glass green">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="activity-content-glass">
+                                <div class="activity-title-glass">New Order</div>
+                                <div class="activity-time-glass">12 minutes ago</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-item-glass">
+                            <div class="activity-icon-glass pink">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="activity-content-glass">
+                                <div class="activity-title-glass">Staff Added</div>
+                                <div class="activity-time-glass">1 hour ago</div>
+                            </div>
+                        </div>
+
+                        <div class="activity-item-glass">
+                            <div class="activity-icon-glass cyan">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="activity-content-glass">
+                                <div class="activity-title-glass">Shipment</div>
+                                <div class="activity-time-glass">2 hours ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Cards -->
+            <div class="content-grid-glass">
+                <div class="card-glass glass-card">
+                    <div class="card-header-glass">
+                        <h3>Top Performing Stores</h3>
+                        <button class="btn-glass">View All</button>
+                    </div>
+                    <div class="chart-placeholder" style="height: 250px;">
+                        <i class="fas fa-store"></i>
+                    </div>
+                </div>
+
+                <div class="card-glass glass-card">
+                    <div class="card-header-glass">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <button class="btn-glass" style="width: 100%; padding: 15px;">
+                            <i class="fas fa-plus"></i> New Transfer
+                        </button>
+                        <button class="btn-glass" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow: 0 4px 16px rgba(240, 147, 251, 0.3);">
+                            <i class="fas fa-shopping-cart"></i> Create Order
+                        </button>
+                        <button class="btn-glass" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); box-shadow: 0 4px 16px rgba(67, 233, 123, 0.3);">
+                            <i class="fas fa-file-alt"></i> View Reports
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

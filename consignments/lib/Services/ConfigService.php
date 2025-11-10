@@ -432,7 +432,7 @@ class ConfigService
             @session_start();
         }
 
-        if (empty($_SESSION['user_id'])) {
+        if (empty($_SESSION['userID'])) {
             return null;
         }
 
@@ -447,7 +447,7 @@ class ConfigService
                 LIMIT 1";
 
         $stmt = $this->ro->prepare($sql);
-        $stmt->execute([':id' => $_SESSION['user_id']]);
+        $stmt->execute([':id' => $_SESSION['userID']]);
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

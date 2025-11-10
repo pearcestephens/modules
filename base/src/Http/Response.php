@@ -1,21 +1,26 @@
 <?php
+
 /**
- * HTTP Response Class
+ * HTTP Response Class.
  *
  * Represents an HTTP response
- *
- * @package CIS\Base\Http
  */
 
 declare(strict_types=1);
 
 namespace CIS\Base\Http;
 
+use const JSON_UNESCAPED_SLASHES;
+use const JSON_UNESCAPED_UNICODE;
+
 class Response
 {
     private int $statusCode = 200;
+
     private array $headers = [];
+
     private $content;
+
     private bool $sent = false;
 
     private static array $statusTexts = [
@@ -40,13 +45,13 @@ class Response
 
     public function __construct($content = '', int $statusCode = 200, array $headers = [])
     {
-        $this->content = $content;
+        $this->content    = $content;
         $this->statusCode = $statusCode;
-        $this->headers = $headers;
+        $this->headers    = $headers;
     }
 
     /**
-     * Create JSON response
+     * Create JSON response.
      */
     public static function json(array $data, int $statusCode = 200): self
     {
@@ -58,8 +63,8 @@ class Response
             $response->content = json_encode(array_merge($data, [
                 '_meta' => [
                     'timestamp' => date('c'),
-                    'status' => $statusCode,
-                    'success' => $statusCode < 400,
+                    'status'    => $statusCode,
+                    'success'   => $statusCode < 400,
                 ],
             ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
@@ -68,111 +73,113 @@ class Response
     }
 
     /**
-     * Create HTML response
+     * Create HTML response.
      */
     public static function html(string $content, int $statusCode = 200): self
     {
         $response = new self($content, $statusCode);
         $response->header('Content-Type', 'text/html; charset=UTF-8');
+
         return $response;
     }
 
     /**
-     * Create redirect response
+     * Create redirect response.
      */
     public static function redirect(string $url, int $statusCode = 302): self
     {
         $response = new self('', $statusCode);
         $response->header('Location', $url);
+
         return $response;
     }
 
     /**
-     * Create 404 not found response
+     * Create 404 not found response.
      */
     public static function notFound(array $data = []): self
     {
         return self::json(array_merge([
-            'error' => 'Not Found',
+            'error'   => 'Not Found',
             'message' => 'The requested resource was not found.',
         ], $data), 404);
     }
 
     /**
-     * Create 401 unauthorized response
+     * Create 401 unauthorized response.
      */
     public static function unauthorized(array $data = []): self
     {
         return self::json(array_merge([
-            'error' => 'Unauthorized',
+            'error'   => 'Unauthorized',
             'message' => 'Authentication is required.',
         ], $data), 401);
     }
 
     /**
-     * Create 403 forbidden response
+     * Create 403 forbidden response.
      */
     public static function forbidden(array $data = []): self
     {
         return self::json(array_merge([
-            'error' => 'Forbidden',
+            'error'   => 'Forbidden',
             'message' => 'You do not have permission to access this resource.',
         ], $data), 403);
     }
 
     /**
-     * Create 405 method not allowed response
+     * Create 405 method not allowed response.
      */
     public static function methodNotAllowed(array $data = []): self
     {
         return self::json(array_merge([
-            'error' => 'Method Not Allowed',
+            'error'   => 'Method Not Allowed',
             'message' => 'The request method is not supported for this endpoint.',
         ], $data), 405);
     }
 
     /**
-     * Create 422 validation error response
+     * Create 422 validation error response.
      */
     public static function validationError(array $errors, string $message = 'Validation failed'): self
     {
         return self::json([
-            'error' => 'Validation Error',
+            'error'   => 'Validation Error',
             'message' => $message,
-            'errors' => $errors,
+            'errors'  => $errors,
         ], 422);
     }
 
     /**
-     * Create 429 too many requests response
+     * Create 429 too many requests response.
      */
     public static function tooManyRequests(array $data = []): self
     {
         $response = self::json(array_merge([
-            'error' => 'Too Many Requests',
+            'error'   => 'Too Many Requests',
             'message' => 'Rate limit exceeded.',
         ], $data), 429);
 
         if (isset($data['retry_after'])) {
-            $response->header('Retry-After', (string)$data['retry_after']);
+            $response->header('Retry-After', (string) $data['retry_after']);
         }
 
         return $response;
     }
 
     /**
-     * Create 500 error response
+     * Create 500 error response.
      */
     public static function error(array $data = [], int $statusCode = 500): self
     {
         return self::json(array_merge([
-            'error' => 'Internal Server Error',
+            'error'   => 'Internal Server Error',
             'message' => 'An unexpected error occurred.',
         ], $data), $statusCode);
     }
 
     /**
-     * Create success response
+     * Create success response.
      */
     public static function success(array $data = [], string $message = 'Success'): self
     {
@@ -183,7 +190,7 @@ class Response
     }
 
     /**
-     * Create created response
+     * Create created response.
      */
     public static function created(array $data = [], string $message = 'Resource created'): self
     {
@@ -194,7 +201,7 @@ class Response
     }
 
     /**
-     * Create no content response
+     * Create no content response.
      */
     public static function noContent(): self
     {
@@ -202,16 +209,17 @@ class Response
     }
 
     /**
-     * Set status code
+     * Set status code.
      */
     public function setStatusCode(int $statusCode): self
     {
         $this->statusCode = $statusCode;
+
         return $this;
     }
 
     /**
-     * Get status code
+     * Get status code.
      */
     public function getStatusCode(): int
     {
@@ -219,27 +227,29 @@ class Response
     }
 
     /**
-     * Set header
+     * Set header.
      */
     public function header(string $key, string $value): self
     {
         $this->headers[$key] = $value;
+
         return $this;
     }
 
     /**
-     * Set multiple headers
+     * Set multiple headers.
      */
     public function headers(array $headers): self
     {
         foreach ($headers as $key => $value) {
             $this->header($key, $value);
         }
+
         return $this;
     }
 
     /**
-     * Get header
+     * Get header.
      */
     public function getHeader(string $key): ?string
     {
@@ -247,7 +257,7 @@ class Response
     }
 
     /**
-     * Get all headers
+     * Get all headers.
      */
     public function getHeaders(): array
     {
@@ -255,7 +265,7 @@ class Response
     }
 
     /**
-     * Set cookie
+     * Set cookie.
      */
     public function cookie(
         string $name,
@@ -264,15 +274,15 @@ class Response
         string $path = '/',
         ?string $domain = null,
         bool $secure = true,
-        bool $httpOnly = true
+        bool $httpOnly = true,
     ): self {
         $expires = $minutes > 0 ? time() + ($minutes * 60) : 0;
 
         setcookie($name, $value, [
-            'expires' => $expires,
-            'path' => $path,
-            'domain' => $domain ?? '',
-            'secure' => $secure,
+            'expires'  => $expires,
+            'path'     => $path,
+            'domain'   => $domain ?? '',
+            'secure'   => $secure,
             'httponly' => $httpOnly,
             'samesite' => 'Lax',
         ]);
@@ -281,16 +291,17 @@ class Response
     }
 
     /**
-     * Set content
+     * Set content.
      */
     public function setContent($content): self
     {
         $this->content = $content;
+
         return $this;
     }
 
     /**
-     * Get content
+     * Get content.
      */
     public function getContent()
     {
@@ -298,7 +309,7 @@ class Response
     }
 
     /**
-     * Send response
+     * Send response.
      */
     public function send(): void
     {
@@ -323,7 +334,7 @@ class Response
     }
 
     /**
-     * Get status text
+     * Get status text.
      */
     public static function getStatusText(int $code): string
     {

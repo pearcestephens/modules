@@ -1,14 +1,15 @@
 <?php
 /**
  * Consignments Module - Queue Status
- * 
+ *
  * @package CIS\Consignments
  * @version 3.0.0
  */
 
 declare(strict_types=1);
 
-// Load CIS Template
+// Load Consignments bootstrap (for DB helpers) and CIS Template
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../lib/CISTemplate.php';
 
 // Initialize template
@@ -94,6 +95,10 @@ while ($row = $jobsStmt->fetch(PDO::FETCH_ASSOC)) {
     $recentJobs[] = $row;
 }
 
+// Load recent failures (top 10)
+$failStmt = $pdo->query("SELECT id, consignment_id, action, error_message, updated_at FROM vend_consignment_queue WHERE status='failed' ORDER BY updated_at DESC LIMIT 10");
+$recentFailures = $failStmt ? $failStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
 // Calculate health score
 $healthScore = 100;
 $pendingCount = (int)($queueStats['pending']['count'] ?? 0);
@@ -106,8 +111,7 @@ if ($processingCount > 50) $healthScore -= 10;
 
 $healthColor = $healthScore >= 80 ? 'success' : ($healthScore >= 60 ? 'warning' : 'danger');
 
-// Start output buffering
-ob_start();
+// Render directly within CIS template content
 ?>
 
 <!-- Page Header -->
@@ -234,6 +238,34 @@ ob_start();
     </div>
 </div>
 
+<?php if (!empty($recentFailures)): ?>
+<!-- Recent Failures -->
+<div class="card mt-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Recent Failures</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light"><tr><th>ID</th><th>Consignment</th><th>Action</th><th>Error</th><th>Updated</th><th>Open</th></tr></thead>
+                <tbody>
+                    <?php foreach ($recentFailures as $f): ?>
+                    <tr>
+                        <td><?= (int)$f['id'] ?></td>
+                        <td><?= htmlspecialchars($f['consignment_id']) ?></td>
+                        <td><?= htmlspecialchars($f['action']) ?></td>
+                        <td class="text-danger small" style="max-width:520px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="<?= htmlspecialchars($f['error_message']) ?>"><?= htmlspecialchars($f['error_message']) ?></td>
+                        <td><?= htmlspecialchars($f['updated_at']) ?></td>
+                        <td><a class="btn btn-sm btn-outline-secondary" href="/modules/consignments/stock-transfers/pack.php?id=<?= urlencode((string)$f['consignment_id']) ?>">Open</a></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <script>
     // Initialize DataTable
     $(document).ready(function() {
@@ -251,15 +283,10 @@ ob_start();
 </script>
 
 <?php
-// Get buffered content
-$content = ob_get_clean();
-
-// Include BASE dashboard layout
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard.php';
-
+// Close container started above and render via CIS template
+?>
 </div>
 
 <?php
-// End content capture and render
 $template->endContent();
 $template->render();

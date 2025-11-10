@@ -219,7 +219,7 @@ class BankExportService
             VALUES (?, ?, ?, ?, ?, ?)
         ");
 
-        $exportedBy = $_SESSION['user_id'] ?? null;
+        $exportedBy = $_SESSION['userID'] ?? null;
 
         $stmt->execute([
             $filename,

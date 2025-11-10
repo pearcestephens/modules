@@ -30,8 +30,8 @@ class IntelligenceHubAdapter
     public function __construct(array $config)
     {
         $this->config = $config;
-        $this->chatEndpoint = $config['chat_endpoint'] ?? 'https://gpt.ecigdis.co.nz/api/v1/chat/completions';
-        $this->mcpEndpoint = $config['mcp_endpoint'] ?? 'https://gpt.ecigdis.co.nz/mcp/server_v3.php';
+        $this->chatEndpoint = $config['chat_endpoint'] ?? 'https://gpt.ecigdis.co.nz/ai-agent/api/chat.php';
+        $this->mcpEndpoint = $config['mcp_endpoint'] ?? 'https://gpt.ecigdis.co.nz/mcp/server_v4.php';
         $this->workflowEndpoint = $config['workflow_endpoint'] ?? 'https://gpt.ecigdis.co.nz/ai-agent/api/execute-workflow.php';
     }
 

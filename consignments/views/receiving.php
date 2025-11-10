@@ -1,14 +1,15 @@
 <?php
 /**
  * Consignments Module - Receiving
- * 
+ *
  * @package CIS\Consignments
  * @version 3.0.0
  */
 
 declare(strict_types=1);
 
-// Load CIS Template
+// Load Consignments bootstrap (shared helpers) and CIS Template
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../lib/CISTemplate.php';
 
 // Initialize template
@@ -190,10 +191,40 @@ ob_start();
             <p>Select a transfer to begin receiving</p>
         </div>
 
-        <div class="alert alert-info">
+                <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>
             Please select a transfer from the <a href="/modules/consignments/?route=stock-transfers">Stock Transfers</a> page to begin receiving.
         </div>
+
+                <?php // Quick recent transfers list for fast selection
+                try { $recentTransfers = getRecentTransfersEnrichedDB(8, 'STOCK'); } catch (Throwable $e) { $recentTransfers = []; }
+                if (!empty($recentTransfers)): ?>
+                <div class="card mb-4">
+                    <div class="card-header bg-light"><strong><i class="fas fa-clock mr-2"></i>Recent Stock Transfers</strong></div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="thead-light"><tr><th>Consignment</th><th>From</th><th>To</th><th>Progress</th><th>Contact</th><th>Action</th></tr></thead>
+                            <tbody>
+                                <?php foreach ($recentTransfers as $rt):
+                                    $received = (int)($rt['items_received'] ?? 0);
+                                    $total = (int)($rt['item_count_total'] ?? 0);
+                                    $pct = ($total>0) ? max(0, min(100, (int)round(($received/$total)*100))) : 0;
+                                    $pctClass = $pct >= 90 ? 'success' : ($pct >= 50 ? 'warning' : ($pct > 0 ? 'danger' : 'secondary'));
+                                ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($rt['consignment_number'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($rt['from_outlet_name'] ?? '-') ?></td>
+                                    <td><?= htmlspecialchars($rt['to_outlet_name'] ?? '-') ?></td>
+                                    <td><span class="badge badge-<?= $pctClass ?>"><?= $pct ?>%</span> <small class="text-muted"><?= $received ?>/<?= $total ?></small></td>
+                                    <td><?php if (!empty($rt['to_outlet_phone'])): ?><a href="tel:<?= htmlspecialchars($rt['to_outlet_phone']) ?>" class="text-decoration-none"><i class="fas fa-phone mr-1"></i><?= htmlspecialchars($rt['to_outlet_phone']) ?></a><?php else: ?>—<?php endif; ?></td>
+                                    <td><a class="btn btn-sm btn-primary" href="/modules/consignments/stock-transfers/pack.php?id=<?= urlencode((string)($rt['cis_internal_id'] ?? $rt['id'] ?? '')) ?>">Open</a></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <?php endif; ?>
     <?php else: ?>
         <!-- Transfer loaded -->
         <div class="page-header-modern">
@@ -714,12 +745,10 @@ function completeReceiving() {
 </script>
 
 <?php
-$content = ob_get_clean();
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard-modern.php';
-
+// Close container started above and render via CIS template
+?>
 </div>
 
 <?php
-// End content capture and render
 $template->endContent();
 $template->render();

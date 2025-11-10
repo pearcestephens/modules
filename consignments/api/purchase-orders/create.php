@@ -39,7 +39,7 @@ use CIS\Consignments\Services\PurchaseOrderService;
 use CIS\Consignments\Helpers\ValidationHelper;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -109,7 +109,7 @@ try {
     }
 
     // Create PO
-    $poId = $poService->create($poData, $_SESSION['user_id']);
+    $poId = $poService->create($poData, $_SESSION['userID']);
 
     // Add line items
     $itemCount = 0;
@@ -127,7 +127,7 @@ try {
 
     // Change state if not draft
     if (!($data['is_draft'] ?? true)) {
-        $poService->changeState($poId, 'OPEN', $_SESSION['user_id'], 'Purchase order created');
+        $poService->changeState($poId, 'OPEN', $_SESSION['userID'], 'Purchase order created');
     }
 
     // Fetch created PO

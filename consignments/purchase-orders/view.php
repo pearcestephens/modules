@@ -24,7 +24,7 @@ use CIS\Consignments\Services\PurchaseOrderService;
 use CIS\Consignments\Services\ApprovalService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }
@@ -72,7 +72,7 @@ try {
 }
 
 // Check user permissions for actions
-$userId = $_SESSION['user_id'];
+$userId = $_SESSION['userID'];
 $canEdit = in_array($po->state, ['DRAFT', 'OPEN']);
 $canDelete = ($po->state === 'DRAFT');
 $canSubmit = ($po->state === 'DRAFT' && !empty($lineItems));

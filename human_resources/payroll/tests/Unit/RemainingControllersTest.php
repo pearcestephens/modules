@@ -28,13 +28,13 @@ class RemainingControllersTest extends TestCase
 
     public function testBonusCreateRequiresAuth(): void
     {
-        unset($_SESSION['user_id']);
+        unset($_SESSION['userID']);
         $this->assertEquals(401, http_response_code());
     }
 
     public function testBonusGetPendingReturnsCorrectData(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.bonuses.view'];
 
         $response = json_encode([
@@ -52,7 +52,7 @@ class RemainingControllersTest extends TestCase
 
     public function testBonusApprovalUpdatesStatus(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.bonuses.approve'];
 
         $response = json_encode([
@@ -68,13 +68,13 @@ class RemainingControllersTest extends TestCase
 
     public function testDiscrepancySubmitRequiresAuth(): void
     {
-        unset($_SESSION['user_id']);
+        unset($_SESSION['userID']);
         $this->assertEquals(401, http_response_code());
     }
 
     public function testDiscrepancySubmitValidatesAmount(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_POST = [
             'expected_amount' => 'invalid',
             'actual_amount' => '5000'
@@ -89,7 +89,7 @@ class RemainingControllersTest extends TestCase
 
     public function testDiscrepancyGetPendingReturnsOnlyPending(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.discrepancies.view'];
 
         $response = json_encode([
@@ -107,7 +107,7 @@ class RemainingControllersTest extends TestCase
 
     public function testDiscrepancyApprovalProcessesPayment(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.discrepancies.approve'];
 
         $response = json_encode([
@@ -123,7 +123,7 @@ class RemainingControllersTest extends TestCase
 
     public function testDiscrepancyUploadEvidenceValidatesFile(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
 
         // No file uploaded
         $response = json_encode(['success' => false, 'error' => 'File required']);
@@ -134,7 +134,7 @@ class RemainingControllersTest extends TestCase
 
     public function testDiscrepancyGetStatisticsReturnsMetrics(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.discrepancies.view'];
 
         $response = json_encode([
@@ -157,13 +157,13 @@ class RemainingControllersTest extends TestCase
 
     public function testLeaveCreateRequiresAuth(): void
     {
-        unset($_SESSION['user_id']);
+        unset($_SESSION['userID']);
         $this->assertEquals(401, http_response_code());
     }
 
     public function testLeaveCreateValidatesDates(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_POST = [
             'start_date' => '2025-11-15',
             'end_date' => '2025-11-10' // End before start
@@ -177,7 +177,7 @@ class RemainingControllersTest extends TestCase
 
     public function testLeaveGetBalancesReturnsCorrectData(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
 
         $response = json_encode([
             'success' => true,
@@ -194,7 +194,7 @@ class RemainingControllersTest extends TestCase
 
     public function testLeaveApprovalDeductsBalance(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.leave.approve'];
 
         $response = json_encode([
@@ -212,13 +212,13 @@ class RemainingControllersTest extends TestCase
 
     public function testVendPaymentGetPendingRequiresAuth(): void
     {
-        unset($_SESSION['user_id']);
+        unset($_SESSION['userID']);
         $this->assertEquals(401, http_response_code());
     }
 
     public function testVendPaymentGetAllocationsReturnsData(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.vend.view'];
 
         $response = json_encode([
@@ -239,7 +239,7 @@ class RemainingControllersTest extends TestCase
 
     public function testVendPaymentApprovalCreatesPayment(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.vend.approve'];
 
         $response = json_encode([
@@ -255,7 +255,7 @@ class RemainingControllersTest extends TestCase
 
     public function testVendPaymentGetStatisticsReturnsMetrics(): void
     {
-        $_SESSION['user_id'] = 1;
+        $_SESSION['userID'] = 1;
         $_SESSION['permissions'] = ['payroll.vend.view'];
 
         $response = json_encode([

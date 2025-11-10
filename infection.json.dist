@@ -1,0 +1,45 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "shared/services/crawler/src",
+            "shared/services/product-intelligence/src",
+            "app",
+            "base/src"
+        ],
+        "excludes": [
+            "vendor",
+            "tests",
+            "node_modules"
+        ]
+    },
+    "logs": {
+        "text": "infection.log",
+        "summary": "infection-summary.log",
+        "json": "infection.json",
+        "perMutator": "infection-per-mutator.md",
+        "github": true,
+        "badge": {
+            "branch": "main"
+        }
+    },
+    "mutators": {
+        "@default": true,
+        "@function_signature": false,
+        "global-ignoreSourceCodeByRegex": [
+            ".*Test\\.php$"
+        ]
+    },
+    "minMsi": 85,
+    "minCoveredMsi": 90,
+    "testFramework": "phpunit",
+    "bootstrap": "vendor/autoload.php",
+    "timeout": 30,
+    "phpUnit": {
+        "configDir": ".",
+        "customPath": "vendor/bin/phpunit"
+    },
+    "tmpDir": "build/infection",
+    "ignoreMsiWithNoMutations": false,
+    "threads": 4
+}

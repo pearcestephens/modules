@@ -19,7 +19,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/bootstrap.php';
 use Consignments\Lib\Services\ApprovalService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
@@ -126,7 +126,7 @@ try {
             $stmt = $db->prepare($configSQL);
             $stmt->execute([
                 json_encode($thresholds),
-                $_SESSION['user_id']
+                $_SESSION['userID']
             ]);
 
             http_response_code(200);
@@ -204,8 +204,8 @@ try {
             $stmt->execute([
                 $outletId,
                 json_encode($thresholds),
-                $_SESSION['user_id'],
-                $_SESSION['user_id']
+                $_SESSION['userID'],
+                $_SESSION['userID']
             ]);
 
             http_response_code(200);

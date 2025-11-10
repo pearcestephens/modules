@@ -1,0 +1,9 @@
+// =============================================================================
+// 11. ERROR HANDLER
+// =============================================================================
+
+// Load ErrorHandler class
+require_once __DIR__ . '/lib/ErrorHandler.php';
+
+// Initialize with debug mode from config
+\CIS\Base\ErrorHandler::init($config->get('APP_DEBUG', false));

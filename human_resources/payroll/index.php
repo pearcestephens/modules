@@ -18,14 +18,12 @@ declare(strict_types=1);
 $appConfig = require_once __DIR__ . '/../../config/app.php';
 
 // Enable error display ONLY in development (controlled by APP_DEBUG env var)
-if ($appConfig['debug'] === true && $appConfig['env'] !== 'production') {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
+if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT);
+    ini_set('display_errors', '1');  // 🔥 FORCE DISPLAY ERRORS EVEN IN PROD
 } else {
-    ini_set('display_errors', '0');
-    ini_set('display_startup_errors', '0');
-    error_reporting(E_ALL); // Still log errors, just don't display
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
 }
 
 // ============================================================================

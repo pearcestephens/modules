@@ -618,7 +618,7 @@ $theme->addHeaderButton('Export Report', 'btn-outline-secondary', 'javascript:ex
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 let currentPeriod = 'today';
-let currentUserId = <?php echo $_SESSION['user_id'] ?? 1; ?>;
+let currentUserId = <?php echo $_SESSION['userID'] ?? 1; ?>;
 let performanceChart = null;
 let distributionChart = null;
 

@@ -20,7 +20,7 @@ use Consignments\Lib\Services\ApprovalService;
 use Consignments\Lib\Services\PurchaseOrderService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $db = getDB();
 $approvalService = new ApprovalService($db);
 $poService = new PurchaseOrderService($db);
-$currentUserId = $_SESSION['user_id'];
+$currentUserId = $_SESSION['userID'];
 
 // Parse request
 $input = json_decode(file_get_contents('php://input'), true);

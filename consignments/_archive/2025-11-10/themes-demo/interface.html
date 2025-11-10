@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIS Theme Manager</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .theme-preview { border: 1px solid #dee2e6; border-radius: 6px; height: 500px; width: 100%; }
+    .theme-card { cursor: pointer; transition: transform 0.2s ease; }
+    .theme-card:hover { transform: scale(1.03); }
+    .active-theme { border: 2px solid #0d6efd; }
+  </style>
+</head>
+<body class="p-4">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-3">
+        <h4 class="mb-3">Available Templates</h4>
+        <div id="themeList" class="d-grid gap-3">
+          <!-- Template cards will be injected here -->
+        </div>
+        <hr>
+        <h5>Customize</h5>
+        <div class="mb-3">
+          <label class="form-label">Primary Color</label>
+          <input type="color" id="colorPicker" class="form-control form-control-color" value="#0d6efd">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Layout</label>
+          <select id="layoutSelect" class="form-select">
+            <option value="default">Default</option>
+            <option value="wide">Wide</option>
+            <option value="boxed">Boxed</option>
+          </select>
+        </div>
+        <button id="applyBtn" class="btn btn-primary w-100">Apply Changes</button>
+      </div>
+      <div class="col-md-9">
+        <h4 class="mb-3">Live Preview</h4>
+        <iframe id="previewFrame" class="theme-preview" src=""></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const templates = [
+      { name: "Classic CIS Theme", file: "templates/classic-cis.html" },
+      { name: "CIS Template System", file: "templates/cis-template.html" },
+      { name: "Control Panel", file: "templates/control-panel.html" },
+      { name: "Transfer Manager", file: "templates/transfer-manager.html" },
+      { name: "Stock Transfers", file: "templates/stock-transfers.html" },
+      { name: "Receiving Interface", file: "templates/receiving.html" },
+      { name: "Purchase Orders", file: "templates/purchase-orders.html" },
+      { name: "Freight Management", file: "templates/freight.html" },
+      { name: "Queue Status", file: "templates/queue-status.html" }
+    ];
+
+    const themeList = document.getElementById('themeList');
+    const previewFrame = document.getElementById('previewFrame');
+    const colorPicker = document.getElementById('colorPicker');
+    const layoutSelect = document.getElementById('layoutSelect');
+    const applyBtn = document.getElementById('applyBtn');
+
+    let selectedTemplate = null;
+
+    templates.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'card theme-card p-2';
+      card.innerHTML = \`<div class="card-body text-center"><h6>\${t.name}</h6></div>\`;
+      card.onclick = () => {
+        document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active-theme'));
+        card.classList.add('active-theme');
+        selectedTemplate = t;
+        previewFrame.src = t.file;
+      };
+      themeList.appendChild(card);
+    });
+
+    applyBtn.onclick = () => {
+      if (!selectedTemplate) return alert('Select a template first!');
+      const color = colorPicker.value;
+      const layout = layoutSelect.value;
+      previewFrame.contentWindow.postMessage({ color, layout }, '*');
+    };
+  </script>
+</body>
+</html>

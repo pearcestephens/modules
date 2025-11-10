@@ -13,7 +13,7 @@ I need to continue work on the Transfer Manager frontend conversion in the consi
 
 Please use the MCP server to retrieve context:
 
-MCP Server: https://gpt.ecigdis.co.nz/mcp/server_v3.php
+MCP Server: https://gpt.ecigdis.co.nz/mcp/server_v4.php
 API Key: 31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35
 
 TASKS:
@@ -86,7 +86,7 @@ Summarize the current state and next steps.
 
 ```bash
 # Step 1: Get conversation context
-curl -X POST https://gpt.ecigdis.co.nz/mcp/server_v3.php \
+curl -X POST https://gpt.ecigdis.co.nz/mcp/server_v4.php \
   -H "Content-Type: application/json" \
   -H "X-API-Key: 31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35" \
   -d '{
@@ -102,7 +102,7 @@ curl -X POST https://gpt.ecigdis.co.nz/mcp/server_v3.php \
   }'
 
 # Step 2: Get project context
-curl -X POST https://gpt.ecigdis.co.nz/mcp/server_v3.php \
+curl -X POST https://gpt.ecigdis.co.nz/mcp/server_v4.php \
   -H "Content-Type: application/json" \
   -H "X-API-Key: 31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35" \
   -d '{

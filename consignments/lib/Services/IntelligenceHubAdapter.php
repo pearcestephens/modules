@@ -38,12 +38,17 @@ class IntelligenceHubAdapter
      * Intelligence Hub endpoints
      */
     private const ENDPOINTS = [
-        'chat' => 'https://gpt.ecigdis.co.nz/ai-agent/api/chat.php', // TODO: Verify exact path
-        'mcp' => 'https://gpt.ecigdis.co.nz/mcp/server_v2_complete.php',
+        'chat' => 'https://gpt.ecigdis.co.nz/ai-agent/api/chat.php',
+        'mcp' => 'https://gpt.ecigdis.co.nz/mcp/server_v4.php',
         'workflow' => 'https://gpt.ecigdis.co.nz/ai-agent/api/execute-workflow.php',
-        'approval' => 'https://gpt.ecigdis.co.nz/ai-agent/api/approve-fix.php',
-        'frontend_audit' => 'https://gpt.ecigdis.co.nz/ai-agent/api/frontend-audit.php',
+        'approval' => 'https://gpt.ecigdis.co.nz/assets/services/ai-agent/api/approve-fix.php',
+        'frontend_audit' => 'https://gpt.ecigdis.co.nz/assets/services/ai-agent/api/frontend-audit.php',
     ];
+
+    /**
+     * API Key for authentication
+     */
+    private const API_KEY = '31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35';
 
     /**
      * MCP tools available (13 total)

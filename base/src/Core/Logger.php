@@ -1,8 +1,8 @@
 <?php
+
 /**
- * Logger Service - Application Logging
+ * Logger Service - Application Logging.
  *
- * @package CIS\Base\Core
  * @version 2.0.0
  */
 
@@ -10,32 +10,50 @@ declare(strict_types=1);
 
 namespace CIS\Base\Core;
 
+use Exception;
+use SplFileObject;
+
+use function is_string;
+
+use const FILE_APPEND;
+use const LOCK_EX;
+use const PHP_EOL;
+use const PHP_INT_MAX;
+
 class Logger
 {
-    private Application $app;
-    private array $config;
-
     // Log levels (PSR-3 compatible)
     public const EMERGENCY = 'emergency';
+
     public const ALERT = 'alert';
+
     public const CRITICAL = 'critical';
+
     public const ERROR = 'error';
+
     public const WARNING = 'warning';
+
     public const NOTICE = 'notice';
+
     public const INFO = 'info';
+
     public const DEBUG = 'debug';
 
+    private Application $app;
+
+    private array $config;
+
     /**
-     * Create logger instance
+     * Create logger instance.
      */
     public function __construct(Application $app)
     {
-        $this->app = $app;
+        $this->app    = $app;
         $this->config = $app->config('logging', []);
     }
 
     /**
-     * Log emergency message
+     * Log emergency message.
      */
     public function emergency(string $message, array $context = []): void
     {
@@ -43,7 +61,7 @@ class Logger
     }
 
     /**
-     * Log alert message
+     * Log alert message.
      */
     public function alert(string $message, array $context = []): void
     {
@@ -51,7 +69,7 @@ class Logger
     }
 
     /**
-     * Log critical message
+     * Log critical message.
      */
     public function critical(string $message, array $context = []): void
     {
@@ -59,7 +77,7 @@ class Logger
     }
 
     /**
-     * Log error message
+     * Log error message.
      */
     public function error(string $message, array $context = []): void
     {
@@ -67,7 +85,7 @@ class Logger
     }
 
     /**
-     * Log warning message
+     * Log warning message.
      */
     public function warning(string $message, array $context = []): void
     {
@@ -75,7 +93,7 @@ class Logger
     }
 
     /**
-     * Log notice message
+     * Log notice message.
      */
     public function notice(string $message, array $context = []): void
     {
@@ -83,7 +101,7 @@ class Logger
     }
 
     /**
-     * Log info message
+     * Log info message.
      */
     public function info(string $message, array $context = []): void
     {
@@ -91,7 +109,7 @@ class Logger
     }
 
     /**
-     * Log debug message
+     * Log debug message.
      */
     public function debug(string $message, array $context = []): void
     {
@@ -99,7 +117,7 @@ class Logger
     }
 
     /**
-     * Log message with level
+     * Log message with level.
      */
     public function log(string $level, string $message, array $context = []): void
     {
@@ -110,9 +128,9 @@ class Logger
         }
 
         // Format message
-        $timestamp = date('Y-m-d H:i:s');
+        $timestamp        = date('Y-m-d H:i:s');
         $formattedMessage = $this->interpolate($message, $context);
-        $logLine = "[{$timestamp}] [{$level}] {$formattedMessage}";
+        $logLine          = "[{$timestamp}] [{$level}] {$formattedMessage}";
 
         // Add context if present
         if (!empty($context)) {
@@ -131,18 +149,50 @@ class Logger
     }
 
     /**
-     * Check if should log based on level
+     * Get recent logs from file.
+     */
+    public function recent(int $lines = 100): array
+    {
+        $path     = $this->config['path'] ?? $this->app->storagePath('logs');
+        $filename = 'cis-' . date('Y-m-d') . '.log';
+        $filepath = $path . '/' . $filename;
+
+        if (!file_exists($filepath)) {
+            return [];
+        }
+
+        $file = new SplFileObject($filepath);
+        $file->seek(PHP_INT_MAX);
+        $totalLines = $file->key();
+
+        $startLine = max(0, $totalLines - $lines);
+        $file->seek($startLine);
+
+        $logs = [];
+        while (!$file->eof()) {
+            $line = trim($file->current());
+            if ($line !== '') {
+                $logs[] = $line;
+            }
+            $file->next();
+        }
+
+        return $logs;
+    }
+
+    /**
+     * Check if should log based on level.
      */
     private function shouldLog(string $level, string $minLevel): bool
     {
         $levels = [
-            self::DEBUG => 0,
-            self::INFO => 1,
-            self::NOTICE => 2,
-            self::WARNING => 3,
-            self::ERROR => 4,
-            self::CRITICAL => 5,
-            self::ALERT => 6,
+            self::DEBUG     => 0,
+            self::INFO      => 1,
+            self::NOTICE    => 2,
+            self::WARNING   => 3,
+            self::ERROR     => 4,
+            self::CRITICAL  => 5,
+            self::ALERT     => 6,
             self::EMERGENCY => 7,
         ];
 
@@ -150,7 +200,7 @@ class Logger
     }
 
     /**
-     * Interpolate context values into message
+     * Interpolate context values into message.
      */
     private function interpolate(string $message, array $context): string
     {
@@ -166,12 +216,12 @@ class Logger
     }
 
     /**
-     * Write log to file
+     * Write log to file.
      */
     private function writeToFile(string $level, string $logLine): void
     {
         $channel = $this->config['channel'] ?? 'daily';
-        $path = $this->config['path'] ?? $this->app->storagePath('logs');
+        $path    = $this->config['path'] ?? $this->app->storagePath('logs');
 
         // Create logs directory if not exists
         if (!is_dir($path)) {
@@ -194,7 +244,7 @@ class Logger
     }
 
     /**
-     * Write log to database
+     * Write log to database.
      */
     private function writeToDatabase(string $level, string $message, array $context): void
     {
@@ -202,46 +252,14 @@ class Logger
             $db = $this->app->make(Database::class);
 
             $db->insert('logs', [
-                'level' => $level,
-                'message' => $message,
-                'context' => json_encode($context),
+                'level'      => $level,
+                'message'    => $message,
+                'context'    => json_encode($context),
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fail silently - don't break app if logging fails
-            error_log("Failed to write log to database: " . $e->getMessage());
+            error_log('Failed to write log to database: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Get recent logs from file
-     */
-    public function recent(int $lines = 100): array
-    {
-        $path = $this->config['path'] ?? $this->app->storagePath('logs');
-        $filename = 'cis-' . date('Y-m-d') . '.log';
-        $filepath = $path . '/' . $filename;
-
-        if (!file_exists($filepath)) {
-            return [];
-        }
-
-        $file = new \SplFileObject($filepath);
-        $file->seek(PHP_INT_MAX);
-        $totalLines = $file->key();
-
-        $startLine = max(0, $totalLines - $lines);
-        $file->seek($startLine);
-
-        $logs = [];
-        while (!$file->eof()) {
-            $line = trim($file->current());
-            if ($line !== '') {
-                $logs[] = $line;
-            }
-            $file->next();
-        }
-
-        return $logs;
     }
 }

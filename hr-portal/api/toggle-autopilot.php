@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../../config.php';
 
 // Check authentication
 session_start();
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
@@ -55,7 +55,7 @@ try {
         VALUES ('autopilot_toggle', ?, ?, ?, NOW())
     ");
     $stmt->execute([
-        $_SESSION['user_id'],
+        $_SESSION['userID'],
         $enabled ? 'Auto-pilot enabled' : 'Auto-pilot disabled',
         $_SERVER['REMOTE_ADDR'] ?? 'unknown'
     ]);

@@ -1,0 +1,75 @@
+/* CIS v2 Enterprise Theme */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { font-family: var(--font-sans); color: var(--text); background: var(--surface-2); }
+
+.cisv2-app { min-height: 100vh; background: var(--surface-2); }
+
+/* Header */
+.cisv2-header {
+	position: sticky; top: 0; z-index: 1040; backdrop-filter: saturate(180%) blur(6px);
+	background: color-mix(in oklab, var(--surface), transparent 10%);
+	border-bottom: 1px solid var(--border);
+}
+.cisv2-header .brand { display:flex; align-items:center; gap:.5rem; font-weight:700; color: var(--text); text-decoration:none; }
+.cisv2-header .brand img { height: 28px; }
+
+/* Sidebar */
+.cisv2-sidebar { width: 280px; background: var(--surface); border-right:1px solid var(--border); position: sticky; top: 0; height: 100vh; padding: .75rem; }
+.cisv2-sidebar .section-title { font-size: .75rem; text-transform: uppercase; color: var(--muted); letter-spacing:.08em; margin: .75rem .5rem; }
+.cisv2-sidebar .nav-link { display:flex; align-items:center; gap:.75rem; color: var(--text); text-decoration:none; padding:.5rem .75rem; border-radius: 10px; }
+.cisv2-sidebar .nav-link:hover { background: var(--surface-2); }
+.cisv2-sidebar .nav-link .icon { width: 1.25rem; text-align:center; color: var(--muted); }
+.cisv2-sidebar .submenu { padding-left: 2rem; margin:.25rem 0 .5rem; }
+.cisv2-sidebar .submenu a { display:block; padding:.35rem .5rem; color: var(--muted); border-radius: 8px; text-decoration:none; }
+.cisv2-sidebar .submenu a:hover { color: var(--text); background: var(--surface-2); }
+
+/* Mobile sidebar overlay */
+@media (max-width: 991.98px) {
+	.cisv2-sidebar { position: fixed; left: -300px; top:0; height:100vh; z-index: 1050; transition: left .25s ease; }
+	.cisv2-sidebar.open { left: 0; }
+	.cisv2-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display:none; z-index:1045; }
+	.cisv2-overlay.show { display:block; }
+}
+
+/* Main */
+#cisv2-main { padding: 1rem; }
+.cisv2-content { max-width: 1600px; margin-inline: auto; }
+
+/* Cards */
+.cisv2-card { background: var(--surface); border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.cisv2-card .card-header { padding: .75rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.cisv2-card .card-body { padding: 1rem; }
+
+/* Metrics bar */
+.metrics-grid { display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: .75rem; }
+.metric { background: var(--surface); border:1px solid var(--border); border-radius: 14px; padding: .75rem; display:flex; align-items:center; gap:.75rem; }
+.metric .icon { width: 38px; height: 38px; border-radius: 10px; display:grid; place-items:center; color:#fff; }
+.metric .value { font-size: 1.125rem; font-weight: 700; }
+.metric .delta.up { color: var(--success); }
+.metric .delta.down { color: var(--danger); }
+
+@media (max-width: 1399.98px) { .metrics-grid { grid-template-columns: repeat(4,1fr);} }
+@media (max-width: 991.98px) { .metrics-grid { grid-template-columns: repeat(2,1fr);} }
+@media (max-width: 575.98px) { .metrics-grid { grid-template-columns: 1fr;} }
+
+/* Tables */
+.table.cisv2-table thead th { font-size: var(--fs-xs); color: var(--muted); font-weight:600; text-transform: uppercase; }
+.table.cisv2-table tbody td { vertical-align: middle; }
+.badge-soft { background: var(--surface-2); border:1px solid var(--border); color: var(--text); padding:.35rem .5rem; border-radius: 999px; font-weight:600; }
+.badge-soft.success { border-color: color-mix(in srgb, var(--success), #fff 70%); color: var(--success); }
+.badge-soft.warning { border-color: color-mix(in srgb, var(--warning), #fff 70%); color: var(--warning); }
+
+/* Feed */
+.feed-item { display:grid; grid-template-columns:auto 1fr auto; gap:.75rem; padding:.75rem 0; border-bottom:1px dashed var(--border); }
+.feed-item .avatar { width: 36px; height:36px; border-radius:50%; background: var(--surface-2); display:grid; place-items:center; }
+.feed-item .meta { color: var(--muted); font-size: var(--fs-xs); }
+.feed-item .actions a { color: var(--muted); margin-left: .75rem; text-decoration:none; }
+
+/* Utilities */
+.text-muted-2 { color: var(--muted); }
+.shadow-raise { box-shadow: var(--shadow); }
+
+/* Dark adjustments */
+html[data-theme="dark"] body { background: var(--surface); }
+html[data-theme="dark"] .metric { background: var(--surface-2); }

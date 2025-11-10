@@ -1,8 +1,7 @@
 <?php
+
 /**
  * Minimal structured logger for bootstrap components.
- *
- * @package App\\Support
  */
 
 declare(strict_types=1);
@@ -12,32 +11,33 @@ namespace App\Support;
 use DateTimeImmutable;
 use DateTimeZone;
 
+use const JSON_UNESCAPED_SLASHES;
+use const JSON_UNESCAPED_UNICODE;
+
 final class Logger
 {
     private string $channel;
+
     private DateTimeZone $timezone;
 
     public function __construct(string $channel = 'app', string $timezone = 'Pacific/Auckland')
     {
-        $this->channel = $channel;
+        $this->channel  = $channel;
         $this->timezone = new DateTimeZone($timezone);
     }
 
     /**
      * Log a message with context data.
      *
-     * @param string $level
-     * @param string $message
      * @param array<string,mixed> $context
-     * @return void
      */
     public function log(string $level, string $message, array $context = []): void
     {
         $timestamp = (new DateTimeImmutable('now', $this->timezone))->format('c');
-        $entry = [
-            'ts' => $timestamp,
+        $entry     = [
+            'ts'      => $timestamp,
             'channel' => $this->channel,
-            'level' => strtolower($level),
+            'level'   => strtolower($level),
             'message' => $message,
             'context' => $context,
         ];
@@ -48,9 +48,7 @@ final class Logger
     /**
      * Convenience debug logger.
      *
-     * @param string $message
      * @param array<string,mixed> $context
-     * @return void
      */
     public function debug(string $message, array $context = []): void
     {

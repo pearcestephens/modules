@@ -121,7 +121,8 @@ return [
     |--------------------------------------------------------------------------
     */
     'ai' => [
-        'hub_url' => 'https://gpt.ecigdis.co.nz/mcp/server_v2_complete.php',
+        'hub_url' => 'https://gpt.ecigdis.co.nz/mcp/server_v4.php',
+        'api_key' => '31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35',
         'timeout' => 30,
         'unit_id' => 2, // CIS Unit
         'cache_enabled' => true,

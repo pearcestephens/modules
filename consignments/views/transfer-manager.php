@@ -1,7 +1,7 @@
 <?php
 /**
  * Consignments Module - Transfer Manager
- * 
+ *
  * @package CIS\Consignments
  * @version 3.0.0
  */
@@ -24,51 +24,7 @@ $template->setBreadcrumbs([
 $template->startContent();
 ?>
 
-<div class="container-fluid">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h2 class="mb-0"><i class="fas fa-arrow-left-right mr-2"></i>Transfer Manager</h2>
-        </div>
-    </div>
-
-/**
- * Transfer Manager - Main View
- *
- * High-level management dashboard for consignment transfers.
- * Uses BASE template with full library stack.
- *
- * @package CIS\Consignments
- * @version 3.0.0
- */
-
-declare(strict_types=1);
-
-// Page metadata
-$pageTitle = 'Transfer Manager';
-$breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Transfer Manager', 'url' => '', 'active' => true]
-];
-
-// Custom CSS for Transfer Manager
-$pageCSS = [
-    '/modules/consignments/TransferManager/styles.css'
-];
-
-// Custom JavaScript modules
-$pageJS = [
-    '/modules/consignments/TransferManager/js/00-config-init.js',
-    '/modules/consignments/TransferManager/js/01-core-helpers.js',
-    '/modules/consignments/TransferManager/js/02-ui-components.js',
-    '/modules/consignments/TransferManager/js/03-transfer-functions.js',
-    '/modules/consignments/TransferManager/js/04-list-refresh.js',
-    '/modules/consignments/TransferManager/js/05-detail-modal.js',
-    '/modules/consignments/TransferManager/js/06-event-listeners.js',
-    '/modules/consignments/TransferManager/js/07-init.js',
-    '/modules/consignments/TransferManager/js/08-dom-ready.js'
-];
-
+<?php
 /**
  * Load initialization data for Transfer Manager
  */
@@ -180,45 +136,44 @@ function loadTransferManagerInit(): array
 
 // Load initialization data
 $initData = loadTransferManagerInit();
-$csrf = $initData['csrf_token'] ?? '';
+
+// Extract variables with defaults
+$csrf = $initData['csrf_token'] ?? bin2hex(random_bytes(16));
 $syncEnabled = (bool)($initData['sync_enabled'] ?? true);
 $outletMap = $initData['outlet_map'] ?? [];
 $supplierMap = $initData['supplier_map'] ?? [];
-$lsBase = $initData['ls_consignment_base'] ?? '';
+$lsBase = $initData['ls_consignment_base'] ?? 'https://vapeshed.retail.lightspeed.app/app/2.0/consignments/';
 
-// Start output buffering for content
-ob_start();
+// Ensure arrays are initialized even if empty
+if (!is_array($outletMap)) $outletMap = [];
+if (!is_array($supplierMap)) $supplierMap = [];
 ?>
 
-<!-- Transfer Manager Configuration -->
+<!-- Transfer Manager Configuration (Global APP_CONFIG for JS) -->
 <script>
-    window.TT_CONFIG = {
-        apiUrl: '/modules/consignments/TransferManager/api.php',
-        csrfToken: <?= json_encode($csrf) ?>,
-        lsConsignmentBase: <?= json_encode($lsBase) ?>,
-        outletMap: <?= json_encode($outletMap) ?>,
-        supplierMap: <?= json_encode($supplierMap) ?>,
-        syncEnabled: <?= json_encode($syncEnabled) ?>,
-        syncStatus: <?= json_encode($initData['sync_status'] ?? 'unknown') ?>,
-        lastSyncTime: <?= json_encode($initData['last_sync_time'] ?? null) ?>,
-        syncAgeMinutes: <?= json_encode($initData['sync_age_minutes'] ?? null) ?>,
-        queueStats: <?= json_encode($initData['queue_stats'] ?? []) ?>
+    window.APP_CONFIG = {
+        CSRF: <?= json_encode($csrf) ?>,
+        LS_CONSIGNMENT_BASE: <?= json_encode($lsBase) ?>,
+        OUTLET_MAP: <?= json_encode($outletMap) ?>,
+        SUPPLIER_MAP: <?= json_encode($supplierMap) ?>,
+        SYNC_ENABLED: <?= json_encode($syncEnabled) ?>,
+        API_URL: '/modules/consignments/TransferManager/api.php',
+        SYNC_STATUS: <?= json_encode($initData['sync_status'] ?? 'unknown') ?>,
+        LAST_SYNC_TIME: <?= json_encode($initData['last_sync_time'] ?? null) ?>,
+        SYNC_AGE_MINUTES: <?= json_encode($initData['sync_age_minutes'] ?? null) ?>,
+        QUEUE_STATS: <?= json_encode($initData['queue_stats'] ?? []) ?>
     };
+        // Expose role for client-side admin tools
+        window.USER_ROLE = <?= json_encode(strtolower((string)($_SESSION['user_role'] ?? ''))) ?>;
 </script>
 
 <?php
-// Include the actual Transfer Manager UI content
+// Include the actual Transfer Manager UI content wrapped in a scoped container
+// Variables in scope: $outletMap, $supplierMap, $syncEnabled, $lsBase, $csrf
+echo '<div class="transfer-manager-wrap">';
 require_once dirname(__DIR__) . '/TransferManager/frontend-content.php';
+echo '</div>';
 
-// Get buffered content
-$content = ob_get_clean();
-
-// Include BASE dashboard layout
-require_once dirname(dirname(__DIR__)) . '/base/_templates/layouts/dashboard.php';
-
-</div>
-
-<?php
 // End content capture and render
 $template->endContent();
 $template->render();

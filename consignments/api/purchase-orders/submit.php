@@ -23,7 +23,7 @@ use CIS\Consignments\Services\PurchaseOrderService;
 use CIS\Consignments\Services\ApprovalService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -77,13 +77,13 @@ try {
 
     if ($approvalRequired) {
         // Submit for approval
-        $result = $approvalService->submitForApproval($poId, $_SESSION['user_id']);
+        $result = $approvalService->submitForApproval($poId, $_SESSION['userID']);
 
         // Change state to PENDING_APPROVAL
         $poService->changeState(
             $poId,
             'PENDING_APPROVAL',
-            $_SESSION['user_id'],
+            $_SESSION['userID'],
             'Submitted for approval'
         );
 
@@ -102,7 +102,7 @@ try {
         $poService->changeState(
             $poId,
             'APPROVED',
-            $_SESSION['user_id'],
+            $_SESSION['userID'],
             'Auto-approved (below threshold)'
         );
 

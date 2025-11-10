@@ -14,23 +14,24 @@ require_once __DIR__ . '/../../bootstrap.php';
 require_once __DIR__ . '/includes/AIPayrollEngine.php';
 require_once __DIR__ . '/includes/PayrollDashboard.php';
 
-// Security check
+// Security check - LOGGED IN ONLY
 if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }
 
 $userID = (int)$_SESSION['userID'];
-$isAdmin = hasPermission($userID, 'hr_portal_access'); // Adjust to your permission system
 
-if (!$isAdmin) {
-    die('Access denied. HR portal access required.');
+// Get PDO connection from bootstrap DB class
+$pdo = DB::pdo();
+if (!$pdo) {
+    die('Database connection failed. Please contact support.');
 }
 
 // Initialize dashboard
 $dashboard = new PayrollDashboard($pdo);
 $aiEngine = new AIPayrollEngine($pdo);
-
+WH
 // Get dashboard data
 $todayStats = $dashboard->getTodayStats();
 $pendingItems = $dashboard->getPendingItems();

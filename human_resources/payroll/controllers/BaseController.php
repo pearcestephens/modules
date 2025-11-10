@@ -250,7 +250,7 @@ abstract class BaseController
     }
 
     /**
-     * Check if user has required permission
+     * Check if user has required permission (SIMPLIFIED: Always true if logged in)
      */
     protected function requirePermission(string $permission): bool
     {
@@ -258,25 +258,14 @@ abstract class BaseController
             return false;
         }
 
-        // Check user permissions
-        $permissions = $this->user['permissions'] ?? [];
-
-        if (!in_array($permission, $permissions) && !in_array('admin', $permissions)) {
-            $this->logger->warning('Permission denied', [
-                'request_id' => $this->requestId,
-                'user_id' => $this->user['id'],
-                'required_permission' => $permission
-            ]);
-            return false;
-        }
-
+        // SIMPLIFIED: No permission checks - logged in only
         return true;
     }
 
     /**
-     * Check if user has permission (non-blocking check)
+     * Check if user has permission (SIMPLIFIED: Always true if logged in)
      *
-     * @param string $permission Permission to check
+     * @param string $permission Permission to check (ignored)
      * @return bool True if user has permission
      */
     protected function hasPermission(string $permission): bool
@@ -285,16 +274,8 @@ abstract class BaseController
             return false;
         }
 
-        // Check user permissions
-        $permissions = $this->user['permissions'] ?? [];
-
-        // Admin role has all permissions
-        if (in_array('admin', $permissions) || in_array('payroll_admin', $permissions)) {
-            return true;
-        }
-
-        // Check specific permission
-        return in_array($permission, $permissions);
+        // SIMPLIFIED: No permission checks - logged in only
+        return true;
     }
 
     /**

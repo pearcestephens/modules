@@ -20,7 +20,7 @@ use CIS\Consignments\Services\FreightService;
 use CIS\Consignments\Services\PurchaseOrderService;
 
 // Check authentication
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     header('Location: /login.php');
     exit;
 }

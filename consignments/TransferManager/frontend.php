@@ -33,18 +33,18 @@ function fetch_init(): array
     $user = defined('DB_USERNAME') ? DB_USERNAME : (defined('DB_USER') ? DB_USER : 'jcepnzzkmj');
     $pass = defined('DB_PASSWORD') ? DB_PASSWORD : (defined('DB_PASS') ? DB_PASS : '');
     $name = defined('DB_DATABASE') ? DB_DATABASE : (defined('DB_NAME') ? DB_NAME : 'jcepnzzkmj');
-    
+
     $db = new mysqli($host, $user, $pass, $name);
     if ($db->connect_error) {
       return ['_error' => 'Database connection failed: ' . $db->connect_error];
     }
     $db->set_charset('utf8mb4');
-    
+
     // Generate CSRF token if not exists
     if (!isset($_SESSION['tt_csrf'])) {
       $_SESSION['tt_csrf'] = bin2hex(random_bytes(16));
     }
-    
+
     // Load outlets
     $outletMap = [];
     $q = "SELECT id, COALESCE(NULLIF(name,''), NULLIF(store_code,''), NULLIF(physical_city,''), id) AS label
@@ -57,7 +57,7 @@ function fetch_init(): array
       }
       $r->free();
     }
-    
+
     // Load suppliers
     $supplierMap = [];
     $supplierTableExists = $db->query("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME='vend_suppliers' LIMIT 1");
@@ -70,21 +70,21 @@ function fetch_init(): array
         $s->free();
       }
     }
-    
+
     // Get sync state from file
     $syncFile = __DIR__ . '/.sync_enabled';
     $syncEnabled = true;
     if (file_exists($syncFile)) {
       $syncEnabled = (trim(file_get_contents($syncFile)) === '1');
     }
-    
+
     // Check Lightspeed sync cron job status (using vend_consignment_queue table)
     $lastSyncTime = null;
     $syncAgeMinutes = null;
     $syncStatus = 'unknown';
-    
+
     // Monitor the queue table for last activity (completed_at for successful syncs, updated_at for any activity)
-    $syncQuery = "SELECT 
+    $syncQuery = "SELECT
                     GREATEST(
                       COALESCE(MAX(completed_at), '1970-01-01'),
                       COALESCE(MAX(updated_at), '1970-01-01')
@@ -93,9 +93,9 @@ function fetch_init(): array
                     SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_jobs,
                     SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_jobs,
                     SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) as processing_jobs
-                  FROM vend_consignment_queue 
+                  FROM vend_consignment_queue
                   WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)";
-    
+
     // Store queue stats for reporting
     $queueStats = [
       'total_jobs' => 0,
@@ -103,7 +103,7 @@ function fetch_init(): array
       'failed_jobs' => 0,
       'processing_jobs' => 0
     ];
-    
+
     if ($syncResult = $db->query($syncQuery)) {
       if ($row = $syncResult->fetch_assoc()) {
         $lastSyncTime = $row['last_sync'];
@@ -111,13 +111,13 @@ function fetch_init(): array
         $queueStats['completed_jobs'] = (int)$row['completed_jobs'];
         $queueStats['failed_jobs'] = (int)$row['failed_jobs'];
         $queueStats['processing_jobs'] = (int)$row['processing_jobs'];
-        
+
         // Only calculate sync age if we have valid data (not 1970-01-01)
         if ($lastSyncTime && $lastSyncTime !== '1970-01-01 00:00:00') {
           $syncTimestamp = strtotime($lastSyncTime);
           $nowTimestamp = time();
           $syncAgeMinutes = round(($nowTimestamp - $syncTimestamp) / 60);
-          
+
           if ($syncAgeMinutes <= 15) {
             $syncStatus = 'healthy';
           } elseif ($syncAgeMinutes <= 30) {
@@ -132,9 +132,9 @@ function fetch_init(): array
       }
       $syncResult->free();
     }
-    
+
     $db->close();
-    
+
     return [
       'csrf_token' => $_SESSION['tt_csrf'],
       'ls_consignment_base' => 'https://vapeshed.retail.lightspeed.app/app/2.0/consignments/',
@@ -188,12 +188,12 @@ $raw_response = $d['_raw'] ?? null;
       font-weight: 600;
       white-space: nowrap;
     }
-    
+
     .table-sm td {
       padding: 0.5rem 0.75rem !important;
       vertical-align: middle;
     }
-    
+
     /* Compact Vend Icon Button - SUBTLE LIGHT GREEN */
     .btn-vend-compact {
       width: 40px;
@@ -209,40 +209,40 @@ $raw_response = $d['_raw'] ?? null;
       position: relative;
       cursor: pointer;
     }
-    
+
     /* ACTIVE STATE - Light subtle green */
     .btn-vend-compact.vend-active {
       background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
       border: 2px solid #86efac;
       box-shadow: 0 2px 4px rgba(134, 239, 172, 0.2);
     }
-    
+
     .btn-vend-compact.vend-active:hover {
       transform: scale(1.08);
       background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
       border-color: #4ade80;
       box-shadow: 0 4px 8px rgba(74, 222, 128, 0.3);
     }
-    
+
     .btn-vend-compact.vend-active:active {
       transform: scale(1.02);
     }
-    
+
     /* Bigger tick - make SVG larger and lighter green */
     .btn-vend-compact.vend-active svg {
       width: 28px !important;
       height: 28px !important;
     }
-    
+
     .btn-vend-compact.vend-active svg circle {
       fill: #86efac !important; /* Light green */
     }
-    
+
     .btn-vend-compact.vend-active svg path {
       stroke: #ffffff !important;
       stroke-width: 2.5 !important;
     }
-    
+
     /* DISABLED STATE - Subtle gray */
     .btn-vend-compact.vend-disabled {
       cursor: not-allowed;
@@ -250,21 +250,21 @@ $raw_response = $d['_raw'] ?? null;
       background: #f8fafc;
       border: 2px solid #e2e8f0;
     }
-    
+
     .btn-vend-compact.vend-disabled:hover {
       transform: none;
       box-shadow: none;
     }
-    
+
     .btn-vend-compact.vend-disabled svg {
       width: 28px !important;
       height: 28px !important;
     }
-    
+
     .btn-vend-compact.vend-disabled svg circle {
       fill: #cbd5e1 !important;
     }
-    
+
     .btn-vend-compact.vend-disabled svg path {
       stroke: #ffffff !important;
     }
@@ -273,10 +273,10 @@ $raw_response = $d['_raw'] ?? null;
 
 <body>
   <div class="wrap">
-    
+
     <!-- 🔍 DEBUG INFO - ENABLED -->
     <?php if (true): // Set to false to disable debug display ?>
-    <?php 
+    <?php
     // Determine alert type based on status
     $hasError = $init_error || count($outlet_map) === 0 || !$debug_info;
     $alertType = $hasError ? 'alert-danger' : 'alert-success';
@@ -285,16 +285,16 @@ $raw_response = $d['_raw'] ?? null;
     <div class="alert <?= $alertType ?> alert-dismissible fade show" role="alert" style="position: fixed; top: 10px; right: 10px; z-index: 9999; max-width: 700px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       <h5 class="alert-heading"><?= $alertIcon ?> System Status Check</h5>
-      
+
       <div class="mb-2">
-        <strong>Outlets Loaded:</strong> 
+        <strong>Outlets Loaded:</strong>
         <span class="badge <?= count($outlet_map) > 0 ? 'bg-success' : 'bg-danger' ?>"><?= count($outlet_map) ?></span>
       </div>
       <div class="mb-2">
-        <strong>Suppliers Loaded:</strong> 
+        <strong>Suppliers Loaded:</strong>
         <span class="badge <?= count($supplier_map) > 0 ? 'bg-success' : 'bg-warning' ?>"><?= count($supplier_map) ?></span>
       </div>
-      
+
       <?php if ($init_error): ?>
         <hr>
         <div class="alert alert-danger mb-0" style="padding: 0.75rem;">
@@ -317,13 +317,13 @@ $raw_response = $d['_raw'] ?? null;
           </div>
         </div>
       <?php endif; ?>
-      
+
       <?php if ($debug_info): ?>
         <hr>
         <div style="font-size: 12px;">
           <strong>📊 Backend Debug Info:</strong><br>
           <ul class="mb-0">
-            <li>DB Connected: 
+            <li>DB Connected:
               <span class="badge <?= ($debug_info['db_connected'] ?? false) ? 'bg-success' : 'bg-danger' ?>">
                 <?= ($debug_info['db_connected'] ?? false) ? 'YES' : 'NO' ?>
               </span>
@@ -332,7 +332,7 @@ $raw_response = $d['_raw'] ?? null;
             <li>Outlets Loaded: <?= $debug_info['outlets_loaded'] ?? 'N/A' ?></li>
             <li>Suppliers Loaded: <?= $debug_info['suppliers_loaded'] ?? 'N/A' ?></li>
           </ul>
-          
+
           <?php if (!empty($debug_info['errors'])): ?>
             <div class="alert alert-danger mt-2 mb-0" style="padding: 0.5rem;">
               <strong>⚠️ Backend Errors:</strong><br>
@@ -343,7 +343,7 @@ $raw_response = $d['_raw'] ?? null;
               </ul>
             </div>
           <?php endif; ?>
-          
+
           <?php if (!empty($debug_info['deleted_at_values'])): ?>
           <details class="mt-2">
             <summary class="text-primary" style="cursor: pointer;">📋 View deleted_at values in DB</summary>
@@ -366,7 +366,7 @@ $raw_response = $d['_raw'] ?? null;
       <?php endif; ?>
     </div>
     <?php endif; ?>
-    
+
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-3">
       <div>
@@ -429,7 +429,7 @@ $raw_response = $d['_raw'] ?? null;
               </div>
             </div>
           </div>
-          
+
           <!-- Outlet Filter Column -->
           <div class="col-lg-3">
             <label class="form-label fw-semibold">
@@ -442,7 +442,7 @@ $raw_response = $d['_raw'] ?? null;
               <?php endforeach; ?>
             </select>
           </div>
-          
+
           <!-- Enhanced Search Column -->
           <div class="col-lg-4">
             <label class="form-label fw-semibold">
@@ -452,10 +452,10 @@ $raw_response = $d['_raw'] ?? null;
               <span class="input-group-text bg-white">
                 <i class="bi bi-search text-primary"></i>
               </span>
-              <input 
-                id="filterQ" 
-                type="text" 
-                class="form-control" 
+              <input
+                id="filterQ"
+                type="text"
+                class="form-control"
                 placeholder="Transfer #, Vend #, outlet, supplier..."
                 title="Search across transfers, outlets, and suppliers">
             </div>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS 2.0 - Interactive Slideshow Gallery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            overflow: hidden;
+        }
+
+        .slideshow-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(10px);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+
+        .gallery-title {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .counter {
+            font-size: 18px;
+            font-weight: 700;
+            color: #94a3b8;
+        }
+
+        .counter .current {
+            color: white;
+            font-size: 32px;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .top-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .top-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .top-btn i {
+            margin-right: 8px;
+        }
+
+        /* IFRAME CONTAINER */
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            background: #1e293b;
+        }
+
+        .layout-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+
+        .layout-frame.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* BOTTOM CONTROLS */
+        .bottom-controls {
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 24px;
+            border-top: 2px solid rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+
+        .layout-info {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .layout-name {
+            font-size: 28px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .layout-desc {
+            font-size: 16px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(102,126,234,0.4);
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(102,126,234,0.6);
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 20px rgba(16,185,129,0.4);
+        }
+
+        .play-btn:hover {
+            box-shadow: 0 6px 30px rgba(16,185,129,0.6);
+        }
+
+        /* THUMBNAIL STRIP */
+        .thumbnail-strip {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 16px 24px 0;
+            scroll-behavior: smooth;
+        }
+
+        .thumbnail-strip::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .thumbnail-strip::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+
+        .thumbnail-strip::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+        }
+
+        .thumbnail {
+            min-width: 140px;
+            height: 100px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thumbnail::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .thumbnail:hover::before {
+            transform: translateX(100%);
+        }
+
+        .thumbnail:hover {
+            transform: translateY(-4px);
+            border-color: rgba(102,126,234,0.5);
+        }
+
+        .thumbnail.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(102,126,234,0.5);
+        }
+
+        .thumbnail-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .thumbnail-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            padding: 0 8px;
+        }
+
+        /* KEYBOARD HINT */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 160px;
+            right: 24px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            animation: fadeInUp 0.6s ease;
+            z-index: 101;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .keyboard-hint h4 {
+            font-size: 14px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        .key-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .key {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .key-desc {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        /* LOADING */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <div class="gallery-title">
+                <i class="fas fa-play-circle"></i> Interactive Slideshow
+            </div>
+            <div class="counter">
+                <span class="current" id="currentNumber">1</span>
+                <span>/ <span id="totalNumber">17</span></span>
+            </div>
+            <div class="top-actions">
+                <button class="top-btn" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand"></i> Fullscreen
+                </button>
+                <button class="top-btn" onclick="window.location.href='index.html'">
+                    <i class="fas fa-home"></i> Home
+                </button>
+            </div>
+        </div>
+
+        <!-- IFRAME CONTAINER -->
+        <div class="iframe-container" id="iframeContainer">
+            <i class="fas fa-spinner loading"></i>
+        </div>
+
+        <!-- BOTTOM CONTROLS -->
+        <div class="bottom-controls">
+            <div class="layout-info">
+                <div class="layout-name" id="layoutName">Loading...</div>
+                <div class="layout-desc" id="layoutDesc">Preparing gallery...</div>
+            </div>
+
+            <div class="thumbnail-strip" id="thumbnailStrip">
+                <!-- Thumbnails will be generated by JS -->
+            </div>
+
+            <div class="control-buttons">
+                <button class="nav-btn" onclick="previousLayout()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <button class="nav-btn play-btn" id="playBtn" onclick="toggleAutoplay()">
+                    <i class="fas fa-play"></i>
+                </button>
+
+                <button class="nav-btn" onclick="nextLayout()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KEYBOARD HINT -->
+    <div class="keyboard-hint">
+        <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+        <div class="key-row">
+            <span class="key">←</span>
+            <span class="key-desc">Previous</span>
+        </div>
+        <div class="key-row">
+            <span class="key">→</span>
+            <span class="key-desc">Next</span>
+        </div>
+        <div class="key-row">
+            <span class="key">Space</span>
+            <span class="key-desc">Auto-play</span>
+        </div>
+        <div class="key-row">
+            <span class="key">F</span>
+            <span class="key-desc">Fullscreen</span>
+        </div>
+    </div>
+
+    <script>
+        // LAYOUT DEFINITIONS
+        const layouts = [
+            {
+                file: 'REFINED_1_TEAL_CHAT.html',
+                name: 'Teal Chat',
+                desc: 'Clean teal design with integrated team collaboration and room-based chat system',
+                icon: 'fa-comments',
+                color: '#14b8a6'
+            },
+            {
+                file: 'REFINED_2_NAVY_ELITE.html',
+                name: 'Navy Elite',
+                desc: 'Professional dark navy header with top navigation and enhanced team hub',
+                icon: 'fa-bolt',
+                color: '#1e40af'
+            },
+            {
+                file: 'REFINED_3_PURPLE_INSIGHTS.html',
+                name: 'Purple Insights',
+                desc: 'AI-powered insights panel with real-time alerts, trends, and predictive analytics',
+                icon: 'fa-brain',
+                color: '#7c3aed'
+            },
+            {
+                file: 'REFINED_4_EMERALD_COMMAND.html',
+                name: 'Emerald Command',
+                desc: 'Command-focused design with minimized chat drawer and split header layout',
+                icon: 'fa-rocket',
+                color: '#059669'
+            },
+            {
+                file: 'LAYOUT_6_ENTERPRISE_DENSE.html',
+                name: 'Enterprise Dense',
+                desc: 'The foundation layout with maximum information density and traditional 2-layer header',
+                icon: 'fa-th-large',
+                color: '#64748b'
+            },
+            {
+                file: 'LAYOUT_1_MODERN_SIDEBAR.html',
+                name: 'Modern Sidebar',
+                desc: 'Clean modern design with collapsible sidebar and card-based layout',
+                icon: 'fa-bars',
+                color: '#3b82f6'
+            },
+            {
+                file: 'LAYOUT_2_TOP_NAV.html',
+                name: 'Top Navigation',
+                desc: 'Horizontal top navigation with dropdown menus and breadcrumb trail',
+                icon: 'fa-ellipsis-h',
+                color: '#8b5cf6'
+            },
+            {
+                file: 'LAYOUT_3_FACEBOOK_FEED.html',
+                name: 'Facebook Feed',
+                desc: 'Social media inspired feed with posts, comments, and activity stream',
+                icon: 'fa-stream',
+                color: '#ec4899'
+            },
+            {
+                file: 'LAYOUT_4_STORE_GRID.html',
+                name: 'Store Grid',
+                desc: 'Grid-based store layout with cards and visual hierarchy',
+                icon: 'fa-th',
+                color: '#f59e0b'
+            },
+            {
+                file: 'LAYOUT_5_GLASSMORPHISM.html',
+                name: 'Glassmorphism',
+                desc: 'Modern frosted glass effects with blur and transparency',
+                icon: 'fa-gem',
+                color: '#06b6d4'
+            },
+            {
+                file: 'LAYOUT_7_SILVER_PRO.html',
+                name: 'Silver Professional',
+                desc: 'Professional silver theme with clean lines and elegant typography',
+                icon: 'fa-briefcase',
+                color: '#94a3b8'
+            },
+            {
+                file: 'LAYOUT_8_TEAL_MINIMAL.html',
+                name: 'Teal Minimal',
+                desc: 'Minimalist teal design with focus on content and whitespace',
+                icon: 'fa-circle',
+                color: '#14b8a6'
+            },
+            {
+                file: 'LAYOUT_9_DARK_PURPLE.html',
+                name: 'Dark Purple Pro',
+                desc: 'Dark theme with purple accents and dramatic contrast',
+                icon: 'fa-moon',
+                color: '#7c3aed'
+            },
+            {
+                file: 'LAYOUT_10_SUNSET_ORANGE.html',
+                name: 'Sunset Orange',
+                desc: 'Warm orange gradient theme with vibrant energy',
+                icon: 'fa-sun',
+                color: '#f97316'
+            },
+            {
+                file: 'FEED_VAR_1_CLASSIC.html',
+                name: 'Classic Feed',
+                desc: 'Traditional 3-column Facebook-style layout with sidebar and widgets',
+                icon: 'fa-list',
+                color: '#3b82f6'
+            },
+            {
+                file: 'FEED_VAR_2_CARDS.html',
+                name: 'Card Masonry',
+                desc: 'Pinterest-inspired masonry grid with varying card heights',
+                icon: 'fa-grip-horizontal',
+                color: '#8b5cf6'
+            },
+            {
+                file: 'FEED_VAR_3_TIMELINE.html',
+                name: 'Timeline Stream',
+                desc: 'Dark themed timeline with chronological activity markers',
+                icon: 'fa-clock',
+                color: '#10b981'
+            }
+        ];
+
+        let currentIndex = 0;
+        let autoplayInterval = null;
+        let isAutoPlaying = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            generateThumbnails();
+            loadLayout(0);
+            document.getElementById('totalNumber').textContent = layouts.length;
+        });
+
+        // Generate thumbnails
+        function generateThumbnails() {
+            const strip = document.getElementById('thumbnailStrip');
+            layouts.forEach((layout, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'thumbnail';
+                if (index === 0) thumb.classList.add('active');
+                thumb.onclick = () => loadLayout(index);
+                thumb.innerHTML = `
+                    <i class="fas ${layout.icon} thumbnail-icon" style="color: ${layout.color}"></i>
+                    <div class="thumbnail-label">${layout.name}</div>
+                `;
+                strip.appendChild(thumb);
+            });
+        }
+
+        // Load layout
+        function loadLayout(index) {
+            if (index < 0 || index >= layouts.length) return;
+
+            currentIndex = index;
+            const layout = layouts[index];
+
+            // Update counter
+            document.getElementById('currentNumber').textContent = index + 1;
+
+            // Update info
+            document.getElementById('layoutName').textContent = layout.name;
+            document.getElementById('layoutDesc').textContent = layout.desc;
+
+            // Update thumbnails
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+
+            // Scroll thumbnail into view
+            const activeThumb = document.querySelectorAll('.thumbnail')[index];
+            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+            // Remove old iframes
+            const container = document.getElementById('iframeContainer');
+            const oldFrames = container.querySelectorAll('.layout-frame');
+            oldFrames.forEach(frame => frame.remove());
+
+            // Create new iframe
+            const iframe = document.createElement('iframe');
+            iframe.className = 'layout-frame active';
+            iframe.src = layout.file;
+            container.appendChild(iframe);
+
+            // Remove loading spinner
+            const loading = container.querySelector('.loading');
+            if (loading) loading.remove();
+        }
+
+        // Navigation
+        function previousLayout() {
+            const newIndex = currentIndex - 1;
+            if (newIndex >= 0) {
+                loadLayout(newIndex);
+            }
+        }
+
+        function nextLayout() {
+            const newIndex = currentIndex + 1;
+            if (newIndex < layouts.length) {
+                loadLayout(newIndex);
+            } else if (isAutoPlaying) {
+                loadLayout(0); // Loop back to start
+            }
+        }
+
+        // Auto-play
+        function toggleAutoplay() {
+            const playBtn = document.getElementById('playBtn');
+            const icon = playBtn.querySelector('i');
+
+            if (isAutoPlaying) {
+                clearInterval(autoplayInterval);
+                icon.className = 'fas fa-play';
+                isAutoPlaying = false;
+            } else {
+                autoplayInterval = setInterval(nextLayout, 5000);
+                icon.className = 'fas fa-pause';
+                isAutoPlaying = true;
+            }
+        }
+
+        // Fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    previousLayout();
+                    break;
+                case 'ArrowRight':
+                    nextLayout();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    toggleAutoplay();
+                    break;
+                case 'f':
+                case 'F':
+                    toggleFullscreen();
+                    break;
+            }
+        });
+
+        // Hide keyboard hint after 5 seconds
+        setTimeout(() => {
+            const hint = document.querySelector('.keyboard-hint');
+            if (hint) {
+                hint.style.transition = 'opacity 0.5s ease';
+                hint.style.opacity = '0';
+                setTimeout(() => hint.remove(), 500);
+            }
+        }, 5000);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

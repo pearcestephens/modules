@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS 2.0 - Purple Insights</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafafa;
+            color: #2d3748;
+        }
+
+        /* COMPACT PURPLE HEADER WITH INTEGRATED SEARCH */
+        .top-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            height: 72px;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            box-shadow: 0 4px 16px rgba(124,58,237,0.2);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-right: 32px;
+        }
+
+        .logo-box {
+            width: 42px;
+            height: 42px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-brand {
+            color: white;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.8px;
+        }
+
+        .header-search-wrap {
+            flex: 1;
+            max-width: 700px;
+            position: relative;
+        }
+
+        .header-search {
+            width: 100%;
+            height: 48px;
+            padding: 0 20px 0 52px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            font-size: 15px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .header-search::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .header-search:focus {
+            outline: none;
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
+        }
+
+        .header-search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.8);
+            font-size: 18px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 24px;
+        }
+
+        .header-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .header-btn .badge-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: 2px solid #7c3aed;
+        }
+
+        /* BREADCRUMB BAR */
+        .breadcrumb-bar {
+            background: white;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            position: fixed;
+            top: 72px;
+            left: 270px;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .breadcrumb-path {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .breadcrumb-item {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .breadcrumb-item:hover {
+            color: #7c3aed;
+        }
+
+        .breadcrumb-active {
+            color: #2d3748;
+            font-weight: 800;
+        }
+
+        .breadcrumb-divider {
+            font-size: 11px;
+            color: #d1d5db;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: white;
+            width: 270px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1002;
+            border-right: 2px solid #f0f0f0;
+            overflow-y: auto;
+            padding-top: 72px;
+        }
+
+        .sidebar-group {
+            padding: 20px 18px 14px;
+        }
+
+        .group-label {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #a0aec0;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 11px 14px;
+            border-radius: 10px;
+            color: #718096;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 3px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sidebar-link:hover {
+            background: #f7fafc;
+            color: #7c3aed;
+            transform: translateX(3px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #ede9fe 0%, #f3e8ff 100%);
+            color: #7c3aed;
+            font-weight: 800;
+            box-shadow: 0 2px 10px rgba(124,58,237,0.15);
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .sidebar-link .tag {
+            margin-left: auto;
+            background: #7c3aed;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 8px;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        /* INSIGHTS PANEL (RIGHT SIDE) */
+        .insights-panel {
+            background: white;
+            width: 380px;
+            position: fixed;
+            top: 124px;
+            right: 0;
+            bottom: 0;
+            border-left: 2px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 16px rgba(0,0,0,0.04);
+        }
+
+        .insights-header {
+            padding: 24px;
+            border-bottom: 2px solid #f7fafc;
+        }
+
+        .insights-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #2d3748;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .insights-subtitle {
+            font-size: 13px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+
+        .insights-tabs {
+            display: flex;
+            padding: 18px 24px;
+            gap: 8px;
+            border-bottom: 2px solid #f7fafc;
+        }
+
+        .insights-tab {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7fafc;
+            color: #718096;
+        }
+
+        .insights-tab:hover {
+            background: #edf2f7;
+        }
+
+        .insights-tab.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.25);
+        }
+
+        .insights-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .insight-card {
+            background: #f7fafc;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            border: 2px solid #edf2f7;
+            transition: all 0.3s;
+        }
+
+        .insight-card:hover {
+            background: white;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .insight-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 14px;
+        }
+
+        .insight-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .insight-time {
+            font-size: 12px;
+            color: #a0aec0;
+            font-weight: 600;
+        }
+
+        .insight-body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #4a5568;
+        }
+
+        .insight-metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .metric-up {
+            color: #10b981;
+        }
+
+        .metric-down {
+            color: #ef4444;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 270px;
+            margin-top: 124px;
+            margin-right: 380px;
+            padding: 28px;
+            min-height: calc(100vh - 124px);
+        }
+
+        /* 8-COLUMN STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid #f7fafc;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border-color: #edf2f7;
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            font-size: 21px;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 900;
+            color: #2d3748;
+            margin-bottom: 6px;
+            letter-spacing: -0.8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 700;
+        }
+
+        /* ACTIVITY CARDS */
+        .activity-section {
+            background: white;
+            border-radius: 18px;
+            padding: 28px;
+            border: 2px solid #f7fafc;
+        }
+
+        .section-header {
+            font-size: 20px;
+            font-weight: 900;
+            color: #2d3748;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            padding: 18px;
+            border-radius: 14px;
+            background: #f7fafc;
+            margin-bottom: 14px;
+            border: 2px solid #edf2f7;
+            transition: all 0.3s;
+        }
+
+        .activity-item:hover {
+            background: white;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .activity-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            margin-right: 16px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 800;
+            font-size: 16px;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+
+        .activity-desc {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #4a5568;
+            margin-bottom: 12px;
+        }
+
+        .activity-actions {
+            display: flex;
+            gap: 18px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: #718096;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            color: #7c3aed;
+        }
+
+        /* GRADIENTS */
+        .bg-purple { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }
+        .bg-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+        .bg-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .bg-cyan { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .bg-teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
+        .bg-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .bg-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .bg-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    </style>
+</head>
+<body>
+    <!-- TOP HEADER -->
+    <div class="top-header">
+        <div class="logo-section">
+            <div class="logo-box">
+                <i class="fas fa-gem"></i>
+            </div>
+            <div class="logo-brand">CIS Insights</div>
+        </div>
+        <div class="header-search-wrap">
+            <i class="fas fa-search header-search-icon"></i>
+            <input type="text" class="header-search" placeholder="Search anything... products, transfers, analytics, commands">
+        </div>
+        <div class="header-actions">
+            <button class="header-btn">
+                <i class="fas fa-bell"></i>
+                <span class="badge-dot"></span>
+            </button>
+            <button class="header-btn">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="header-btn">
+                <i class="fas fa-user-circle"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-group">
+            <div class="group-label">Main</div>
+            <a href="#" class="sidebar-link active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-rss"></i>
+                <span>Feed</span>
+            </a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="group-label">Inventory</div>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-box"></i>
+                <span>Products</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-warehouse"></i>
+                <span>Stock Levels</span>
+                <span class="tag">24</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-tags"></i>
+                <span>Categories</span>
+            </a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="group-label">Operations</div>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transfers</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-truck"></i>
+                <span>Freight</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-file-invoice"></i>
+                <span>Purchase Orders</span>
+            </a>
+        </div>
+
+        <div class="sidebar-group">
+            <div class="group-label">Team</div>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-comments"></i>
+                <span>Messages</span>
+                <span class="tag">8</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- BREADCRUMB BAR -->
+    <div class="breadcrumb-bar">
+        <div class="breadcrumb-path">
+            <a href="#" class="breadcrumb-item">Home</a>
+            <i class="fas fa-chevron-right breadcrumb-divider"></i>
+            <span class="breadcrumb-active">Dashboard</span>
+        </div>
+    </div>
+
+    <!-- INSIGHTS PANEL -->
+    <div class="insights-panel">
+        <div class="insights-header">
+            <div class="insights-title">
+                <i class="fas fa-brain" style="color: #7c3aed;"></i>
+                AI Insights
+            </div>
+            <div class="insights-subtitle">Real-time intelligence & predictions</div>
+        </div>
+
+        <div class="insights-tabs">
+            <button class="insights-tab active">Alerts</button>
+            <button class="insights-tab">Trends</button>
+            <button class="insights-tab">Tips</button>
+        </div>
+
+        <div class="insights-content">
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon bg-red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <div class="insight-title">Stock Alert</div>
+                        <div class="insight-time">2 mins ago</div>
+                    </div>
+                </div>
+                <div class="insight-body">
+                    12 high-demand items critically low. Predicted stockout in 48 hours based on current sales velocity.
+                    <div class="insight-metric metric-down">
+                        <i class="fas fa-arrow-down"></i>
+                        -84% stock remaining
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon bg-green">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <div class="insight-title">Revenue Surge</div>
+                        <div class="insight-time">15 mins ago</div>
+                    </div>
+                </div>
+                <div class="insight-body">
+                    Auckland store showing exceptional performance. Revenue up 24% vs last week, driven by Vaporesso XROS 3.
+                    <div class="insight-metric metric-up">
+                        <i class="fas fa-arrow-up"></i>
+                        +24% week over week
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon bg-orange">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <div class="insight-title">Optimization Tip</div>
+                        <div class="insight-time">1 hour ago</div>
+                    </div>
+                </div>
+                <div class="insight-body">
+                    Transfer efficiency can improve 18% by consolidating Wellington & Christchurch orders on Tuesdays.
+                    <div class="insight-metric metric-up">
+                        <i class="fas fa-dollar-sign"></i>
+                        Save $2.4K/month
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon bg-purple">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="insight-title">Product Trend</div>
+                        <div class="insight-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="insight-body">
+                    Lost Mary BM600 showing 156% increase in searches. Consider increasing stock allocation by 40%.
+                    <div class="insight-metric metric-up">
+                        <i class="fas fa-fire"></i>
+                        Trending #1 nationally
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-card">
+                <div class="insight-header">
+                    <div class="insight-icon bg-cyan">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="insight-title">Customer Pattern</div>
+                        <div class="insight-time">3 hours ago</div>
+                    </div>
+                </div>
+                <div class="insight-body">
+                    Peak traffic window: Friday 5-7pm. Average cart value increases 32% during this time. Staff accordingly.
+                    <div class="insight-metric metric-up">
+                        <i class="fas fa-clock"></i>
+                        Optimal staffing window
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- 8-COLUMN STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon bg-purple">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-value">$124K</div>
+                <div class="stat-label">Revenue</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-indigo">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-value">1,845</div>
+                <div class="stat-label">Orders</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-blue">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stat-value">842</div>
+                <div class="stat-label">Transfers</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-cyan">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">12.4K</div>
+                <div class="stat-label">Customers</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-value">24</div>
+                <div class="stat-label">Low Stock</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-orange">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stat-value">156</div>
+                <div class="stat-label">In Transit</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-teal">
+                    <i class="fas fa-store"></i>
+                </div>
+                <div class="stat-value">17/17</div>
+                <div class="stat-label">Stores</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-green">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value">$68.50</div>
+                <div class="stat-label">Avg Order</div>
+            </div>
+        </div>
+
+        <!-- ACTIVITY SECTION -->
+        <div class="activity-section">
+            <div class="section-header">
+                <i class="fas fa-rss" style="color: #7c3aed;"></i>
+                Recent Activity
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar bg-purple">AK</div>
+                <div class="activity-details">
+                    <div class="activity-title">Auckland Store - Record Performance</div>
+                    <div class="activity-desc">
+                        🎉 Exceptional day with $8,500 revenue across 124 transactions! Vaporesso XROS 3 continues dominating sales. Team exceeded daily targets by 18%. Great work everyone!
+                    </div>
+                    <div class="activity-actions">
+                        <div class="action-btn">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>28</span>
+                        </div>
+                        <div class="action-btn">
+                            <i class="far fa-comment"></i>
+                            <span>6</span>
+                        </div>
+                        <div class="action-btn">
+                            <i class="fas fa-share"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar bg-green">WN</div>
+                <div class="activity-details">
+                    <div class="activity-title">Wellington Store - Transfer Received</div>
+                    <div class="activity-desc">
+                        ✅ Transfer #TR-1234 processed in record time! All 24 items verified and shelved. Perfect condition, excellent packing from Auckland team. Ready for weekend sales!
+                    </div>
+                    <div class="activity-actions">
+                        <div class="action-btn">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>22</span>
+                        </div>
+                        <div class="action-btn">
+                            <i class="far fa-comment"></i>
+                            <span>4</span>
+                        </div>
+                        <div class="action-btn">
+                            <i class="fas fa-share"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar bg-orange">CH</div>
+                <div class="activity-details">
+                    <div class="activity-title">Christchurch Store - Urgent Request</div>
+                    <div class="activity-desc">
+                        ⚠️ Low stock on 12 high-demand items. Transfer #TR-1245 submitted with urgent priority. Need delivery by Monday for anticipated weekend rush. ETA confirmation needed!
+                    </div>
+                    <div class="activity-actions">
+                        <div class="action-btn">
+                            <i class="far fa-thumbs-up"></i>
+                            <span>15</span>
+                        </div>
+                        <div class="action-btn">
+                            <i class="far fa-comment"></i>
+                            <span>10</span>
+                        </div>
+                        <div class="action-btn">
+                            <i class="fas fa-share"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

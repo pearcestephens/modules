@@ -119,9 +119,9 @@ class UniversalAIRouter
                 ],
                 'intelligence_hub' => [
                     'enabled' => !empty($_ENV['INTELLIGENCE_HUB_ENABLED']),
-                    'api_key' => $_ENV['INTELLIGENCE_HUB_API_KEY'] ?? null,
+                    'api_key' => $_ENV['INTELLIGENCE_HUB_API_KEY'] ?? '31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35',
                     'chat_endpoint' => $_ENV['INTELLIGENCE_HUB_CHAT_ENDPOINT'] ?? 'https://gpt.ecigdis.co.nz/ai-agent/api/chat.php',
-                    'mcp_endpoint' => 'https://gpt.ecigdis.co.nz/mcp/server_v2_complete.php',
+                    'mcp_endpoint' => 'https://gpt.ecigdis.co.nz/mcp/server_v4.php',
                 ],
                 'claude_bot' => [
                     'enabled' => !empty($_ENV['CLAUDE_BOT_ENABLED']),

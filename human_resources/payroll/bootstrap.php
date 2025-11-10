@@ -22,7 +22,8 @@ date_default_timezone_set('Pacific/Auckland');
 
 // Enable all error reporting but don't display (log only)
 error_reporting(E_ALL);
-ini_set('display_errors', '0');
+ini_set('display_errors', '1');  // 🔥 FORCE DISPLAY ERRORS ON
+ini_set('display_startup_errors', '1');
 ini_set('log_errors', '1');
 
 // Detect if this is an API call (bot or other token-based access)

@@ -1,141 +1,200 @@
+<!-- Header Component -->
 <header class="cis-header">
-    <div class="header-container">
-        <div class="header-left">
-            <button type="button" class="btn btn-link mobile-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="header-logo">
+    <div class="header-left">
+        <!-- Mobile Menu Toggle -->
+        <button type="button" class="btn btn-outline-secondary mobile-menu-toggle" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Logo -->
+        <div class="header-logo">
+            <a href="/index.php">
                 <img src="/assets/images/logo.png" alt="CIS" height="32">
-            </div>
+            </a>
         </div>
-
-        <div class="header-center">
-            <div class="header-search">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-control" placeholder="Search anything..." id="globalSearch">
-            </div>
+    </div>
+    
+    <!-- Search Bar (Universal AI Search) -->
+    <div class="header-search">
+        <?php include __DIR__ . '/search-bar.php'; ?>
+    </div>
+    
+    <!-- Right Side Actions -->
+    <div class="header-right">
+        
+        <!-- Notifications -->
+        <div class="header-item">
+            <button type="button" class="btn btn-outline-secondary" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <?php if (!empty($notificationCount) && $notificationCount > 0): ?>
+                    <span class="badge badge-danger badge-pill"><?= $notificationCount ?></span>
+                <?php endif; ?>
+            </button>
         </div>
-
-        <div class="header-right">
-            <div class="header-actions">
-                <!-- Notifications -->
-                <div class="dropdown">
-                    <button class="btn btn-link" data-bs-toggle="dropdown">
-                        <i class="fas fa-bell"></i>
-                        @if(!empty($notificationCount) && $notificationCount > 0)
-                            <span class="badge bg-danger">{{ $notificationCount }}</span>
-                        @endif
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <h6 class="dropdown-header">Notifications</h6>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">No new notifications</a>
-                    </div>
-                </div>
-
-                <!-- User Menu -->
-                <div class="dropdown">
-                    <button class="btn btn-link" data-bs-toggle="dropdown">
-                        <i class="fas fa-user-circle"></i>
-                        <span>{{ $_SESSION['user_name'] ?? 'User' }}</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end">
-                        <a class="dropdown-item" href="/profile.php">
-                            <i class="fas fa-user"></i> Profile
-                        </a>
-                        <a class="dropdown-item" href="/settings.php">
-                            <i class="fas fa-cog"></i> Settings
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="/logout.php">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
-                    </div>
+        
+        <!-- User Menu -->
+        <div class="header-item">
+            <div class="dropdown">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" id="userMenuBtn">
+                    <i class="fas fa-user"></i>
+                    <span class="user-name"><?= $_SESSION['user_name'] ?? 'User' ?></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right" id="userMenu">
+                    <a class="dropdown-item" href="/my-profile.php">
+                        <i class="fas fa-user-circle"></i> My Profile
+                    </a>
+                    <a class="dropdown-item" href="/settings.php">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="/logout.php">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
                 </div>
             </div>
         </div>
+        
     </div>
 </header>
 
 <style>
     .cis-header {
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: 260px;
-        height: 60px;
-        background: white;
-        border-bottom: 1px solid #E5E7EB;
-        z-index: 1000;
-        transition: left 0.3s;
-    }
-
-    .header-container {
         display: flex;
         align-items: center;
-        height: 100%;
+        justify-content: space-between;
         padding: 0 1.5rem;
-        gap: 1rem;
+        height: 60px;
+        background-color: var(--cis-white);
+        border-bottom: 1px solid var(--cis-border-color);
+        box-shadow: var(--cis-shadow-sm);
+        position: sticky;
+        top: 0;
+        z-index: var(--cis-z-sticky);
     }
-
-    .header-left, .header-right {
+    
+    .header-left,
+    .header-right {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: var(--cis-space-3);
     }
-
-    .header-center {
+    
+    .header-logo img {
+        vertical-align: middle;
+    }
+    
+    .header-search {
         flex: 1;
         max-width: 600px;
+        margin: 0 2rem;
     }
-
-    .header-search {
+    
+    .header-item {
         position: relative;
     }
-
-    .header-search i {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #9CA3AF;
-    }
-
-    .header-search input {
-        padding-left: 40px;
-        border-radius: 20px;
-    }
-
-    .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .header-actions .btn {
-        position: relative;
-        color: #6B7280;
-    }
-
-    .header-actions .badge {
+    
+    .header-item .badge {
         position: absolute;
         top: -5px;
         right: -5px;
-        font-size: 0.65rem;
-        padding: 0.25em 0.5em;
     }
-
-    .mobile-toggle {
+    
+    .mobile-menu-toggle {
         display: none;
     }
-
+    
+    .user-name {
+        margin-left: 0.5rem;
+    }
+    
+    /* Dropdown Menu */
+    .dropdown {
+        position: relative;
+    }
+    
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 0.5rem;
+        min-width: 200px;
+        background-color: var(--cis-white);
+        border: 1px solid var(--cis-border-color);
+        border-radius: var(--cis-border-radius);
+        box-shadow: var(--cis-shadow-lg);
+        z-index: var(--cis-z-dropdown);
+    }
+    
+    .dropdown-menu.show {
+        display: block;
+    }
+    
+    .dropdown-item {
+        display: block;
+        padding: 0.5rem 1rem;
+        color: var(--cis-gray-800);
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .dropdown-item:hover {
+        background-color: var(--cis-gray-100);
+    }
+    
+    .dropdown-item i {
+        margin-right: 0.5rem;
+        width: 16px;
+        text-align: center;
+    }
+    
+    .dropdown-divider {
+        height: 1px;
+        margin: 0.5rem 0;
+        background-color: var(--cis-border-color);
+    }
+    
     @media (max-width: 768px) {
-        .cis-header {
-            left: 0;
+        .mobile-menu-toggle {
+            display: inline-block;
         }
-
-        .mobile-toggle {
-            display: block;
+        
+        .header-search {
+            display: none;
+        }
+        
+        .user-name {
+            display: none;
+        }
+        
+        .cis-header {
+            padding: 0 1rem;
         }
     }
 </style>
+
+<script>
+    $(document).ready(function() {
+        // User menu dropdown toggle
+        $('#userMenuBtn').on('click', function(e) {
+            e.stopPropagation();
+            $('#userMenu').toggleClass('show');
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).on('click', function() {
+            $('#userMenu').removeClass('show');
+        });
+        
+        // Prevent dropdown close when clicking inside
+        $('#userMenu').on('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Notifications (placeholder - will integrate with WebSocket later)
+        $('#notificationsBtn').on('click', function() {
+            // TODO: Show notifications dropdown
+            console.log('Show notifications');
+        });
+    });
+</script>

@@ -12,7 +12,7 @@ require_once __DIR__ . '/../includes/PayrollDashboard.php';
 
 // Check authentication
 session_start();
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['userID'])) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
@@ -37,7 +37,7 @@ try {
     // Approve the item
     $result = $dashboard->approveItem(
         (int)$input['decision_id'],
-        (int)$_SESSION['user_id'],
+        (int)$_SESSION['userID'],
         $input['notes'] ?? ''
     );
 

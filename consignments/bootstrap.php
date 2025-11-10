@@ -19,9 +19,61 @@
 
 declare(strict_types=1);
 
-// Prevent direct access
+// Define ROOT_PATH (works in CLI and web)
 if (!defined('ROOT_PATH')) {
-    define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
+    if (isset($_SERVER['DOCUMENT_ROOT']) && !empty($_SERVER['DOCUMENT_ROOT'])) {
+        define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
+    } else {
+        // CLI mode: calculate from current file location
+        define('ROOT_PATH', dirname(__DIR__, 2));
+    }
+}
+
+// Ensure DOCUMENT_ROOT is set for legacy code
+if (!isset($_SERVER['DOCUMENT_ROOT'])) {
+    $_SERVER['DOCUMENT_ROOT'] = ROOT_PATH;
+}
+
+// ----------------------------------------------------------------------------
+// Load environment shim from public_html if present (env.php / evc.php)
+// ----------------------------------------------------------------------------
+// This allows modules to pick up tokens like LS_API_TOKEN or VEND_ACCESS_TOKEN
+// that may be defined in a simple PHP env file at the web root.
+foreach (['/env.php','/evc.php','/ENV.php','/EVC.php'] as $envFile) {
+    $full = ROOT_PATH . $envFile;
+    if (is_file($full)) {
+        // Include once to populate $_ENV/$_SERVER/constants/vars
+        @include_once $full;
+        // Best-effort: map common keys to process environment for downstream code
+        $keys = [
+            'LIGHTSPEED_API_TOKEN',
+            'LS_API_TOKEN',
+            'VEND_ACCESS_TOKEN',
+            'VEND_API_TOKEN',
+            'LIGHTSPEED_TOKEN',
+            'LS_BASE_URL',
+            'LIGHTSPEED_BASE_URL',
+        ];
+        $vals = [];
+        foreach ($keys as $k) {
+            $val = getenv($k);
+            if (!$val && isset($_ENV[$k])) { $val = (string)$_ENV[$k]; }
+            if (!$val && isset($_SERVER[$k])) { $val = (string)$_SERVER[$k]; }
+            if (!$val && defined($k)) { $val = (string)constant($k); }
+            if ($val) { $vals[$k] = $val; @putenv($k.'='.$val); }
+        }
+        // Normalize aliases → ensure LIGHTSPEED_API_TOKEN is populated
+        if (empty(getenv('LIGHTSPEED_API_TOKEN'))) {
+            foreach (['LS_API_TOKEN','VEND_ACCESS_TOKEN','VEND_API_TOKEN','LIGHTSPEED_TOKEN'] as $alt) {
+                if (!empty($vals[$alt])) { @putenv('LIGHTSPEED_API_TOKEN='.$vals[$alt]); break; }
+            }
+        }
+        // Normalize base URL alias
+        if (empty(getenv('LIGHTSPEED_BASE_URL')) && !empty($vals['LS_BASE_URL'])) {
+            @putenv('LIGHTSPEED_BASE_URL='.$vals['LS_BASE_URL']);
+        }
+        break; // stop after first found
+    }
 }
 
 // ============================================================================
@@ -30,6 +82,16 @@ if (!defined('ROOT_PATH')) {
 
 // Load base/bootstrap.php for core services (Database, Session, Logger, etc.)
 require_once __DIR__ . '/../base/bootstrap.php';
+
+// ============================================================================
+// 1.a OVERRIDE ERROR HANDLER WITH CIS SHARED (Consistent Look & Feel)
+// ============================================================================
+// Replace the purple gradient 500 page with the CIS ErrorHub card layout used
+// elsewhere in the portal for consistency.
+if (file_exists(__DIR__ . '/../shared/lib/ErrorHub.php')) {
+    require_once __DIR__ . '/../shared/lib/ErrorHub.php';
+    \CIS\Shared\ErrorHub::register();
+}
 
 // ============================================================================
 // 2. LOAD CONSIGNMENTS PSR-4 AUTOLOADER
@@ -53,6 +115,21 @@ if (!defined('CONSIGNMENTS_API_PATH')) {
 
 if (!defined('CONSIGNMENTS_SHARED_PATH')) {
     define('CONSIGNMENTS_SHARED_PATH', CONSIGNMENTS_MODULE_PATH . '/shared');
+}
+
+// ============================================================================
+// 3.b LEGACY DB SHIMS (make old helpers work)
+// ============================================================================
+// Some legacy consignment helpers expect a global $pdo and/or a db() function.
+// Provide safe shims that resolve to the new Base Database service.
+if (!function_exists('db')) {
+    function db() {
+        return \CIS\Base\Database::pdo();
+    }
+}
+
+if (!isset($GLOBALS['pdo']) || !($GLOBALS['pdo'] instanceof \PDO)) {
+    $GLOBALS['pdo'] = \CIS\Base\Database::pdo();
 }
 
 // ============================================================================

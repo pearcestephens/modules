@@ -23,7 +23,7 @@ header('Content-Type: application/json');
 
 try {
     // Authentication check
-    if (!isset($_SESSION['user_id'])) {
+    if (!isset($_SESSION['userID'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -141,7 +141,7 @@ try {
 
     // Start receiving session
     $receiptId = $receivingService->startReceivingSession($poId, [
-        'received_by' => $_SESSION['user_id'],
+        'received_by' => $_SESSION['userID'],
         'outlet_id' => $_SESSION['outlet_id'],
         'notes' => $data['notes'] ?? null,
         'parcel_id' => $data['parcel_id'] ?? null
@@ -178,9 +178,9 @@ try {
     $receiptSummary = $receivingService->getReceiptSummary($receiptId);
 
     if ($receiptSummary['fully_received']) {
-        $poService->updateStatus($poId, 'RECEIVED', $_SESSION['user_id']);
+        $poService->updateStatus($poId, 'RECEIVED', $_SESSION['userID']);
     } else {
-        $poService->updateStatus($poId, 'PARTIAL', $_SESSION['user_id']);
+        $poService->updateStatus($poId, 'PARTIAL', $_SESSION['userID']);
     }
 
     // Log action
@@ -188,7 +188,7 @@ try {
         'receipt_id' => $receiptId,
         'items_count' => count($receivedItems),
         'errors_count' => count($errors)
-    ], $_SESSION['user_id']);
+    ], $_SESSION['userID']);
 
     // Trigger transfer/purchase order review (non-blocking)
     try {
@@ -201,7 +201,7 @@ try {
         // Ensure logger initialized and record scheduling attempt
         try {
             PurchaseOrderLogger::init();
-            PurchaseOrderLogger::reviewScheduled($poId, (int)($_SESSION['user_id'] ?? 0));
+            PurchaseOrderLogger::reviewScheduled($poId, (int)($_SESSION['userID'] ?? 0));
         } catch (\Throwable $t) {
             // non-fatal
             error_log('Failed to record review scheduling: ' . $t->getMessage());
@@ -220,7 +220,7 @@ try {
                 PurchaseOrderLogger::init();
                 PurchaseOrderLogger::poReceivingCompleted(
                     $poId,
-                    (int)($_SESSION['user_id'] ?? 0),
+                    (int)($_SESSION['userID'] ?? 0),
                     count($receivedItems),
                     count($receivedItems),
                     (float)($review['metrics']['avg_time_per_item_seconds'] ?? 0.0),

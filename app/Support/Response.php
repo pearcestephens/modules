@@ -1,13 +1,15 @@
 <?php
+
 /**
  * Lightweight response helper utilities.
- *
- * @package App\\Support
  */
 
 declare(strict_types=1);
 
 namespace App\Support;
+
+use const JSON_UNESCAPED_SLASHES;
+use const JSON_UNESCAPED_UNICODE;
 
 final class Response
 {
@@ -19,8 +21,6 @@ final class Response
      * Send a JSON response and terminate execution.
      *
      * @param array<string,mixed> $payload
-     * @param int $statusCode
-     * @return void
      */
     public static function json(array $payload, int $statusCode = 200): void
     {
@@ -34,10 +34,6 @@ final class Response
 
     /**
      * Send a simple HTML response.
-     *
-     * @param string $html
-     * @param int $statusCode
-     * @return void
      */
     public static function html(string $html, int $statusCode = 200): void
     {
@@ -50,16 +46,13 @@ final class Response
     /**
      * Shortcut for error JSON responses.
      *
-     * @param string $message
-     * @param int $statusCode
      * @param array<string,mixed> $context
-     * @return void
      */
     public static function error(string $message, int $statusCode = 500, array $context = []): void
     {
         $payload = array_merge([
             'success' => false,
-            'status' => $statusCode,
+            'status'  => $statusCode,
             'message' => $message,
         ], $context);
 

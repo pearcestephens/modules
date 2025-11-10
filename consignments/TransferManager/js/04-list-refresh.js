@@ -12,49 +12,49 @@ async function refresh() {
     console.log('Refresh already in progress, skipping...');
     return;
   }
-  
+
   isRefreshing = true;
-  const btnRefresh = $('#btnRefresh');
+  const btnRefresh = $q('#btnRefresh');
   if (btnRefresh) {
     btnRefresh.disabled = true;
     const originalHTML = btnRefresh.innerHTML;
     btnRefresh.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
     btnRefresh.dataset.originalHtml = originalHTML;
   }
-  
+
   try {
-    const tblRows = $('#tblRows');
-    const resultCount = $('#resultCount');
-    const prevPage = $('#prevPage');
-    const nextPage = $('#nextPage');
-    
+  const tblRows = $q('#tblRows');
+  const resultCount = $q('#resultCount');
+  const prevPage = $q('#prevPage');
+  const nextPage = $q('#nextPage');
+
     if (!tblRows) {
       console.error('❌ #tblRows element not found');
       return;
     }
-    
+
     tblRows.innerHTML = '<tr><td colspan="8" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Loading…</td></tr>';
-    
+
     const d = await api('list_transfers', {
       page, perPage,
-      type: $('#filterType')?.value || undefined,
-      state: $('#filterState')?.value || undefined,
-      outlet: $('#filterOutlet')?.value || undefined,
-      q: $('#filterQ')?.value || undefined
+      type: $q('#filterType')?.value || undefined,
+      state: $q('#filterState')?.value || undefined,
+      outlet: $q('#filterOutlet')?.value || undefined,
+      q: $q('#filterQ')?.value || undefined
     });
-    
+
     if (!d.rows?.length) {
       tblRows.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No transfers found</td></tr>';
     } else {
       tblRows.innerHTML = d.rows.map(rowHtml).join('');
     }
-    
+
     const total=d.total||0, start=total?((page-1)*perPage)+1:0, end=Math.min(page*perPage,total);
     if (resultCount) resultCount.textContent = `${total} result${total===1?'':'s'}${total>perPage?` (showing ${start}-${end})`:''}`;
     if (prevPage) prevPage.disabled = page<=1;
     if (nextPage) nextPage.disabled = end>=total;
-    
-  } catch(e){ 
+
+  } catch(e){
     console.error('refresh() error:', e);
     const tblRows = $('#tblRows');
     if (tblRows) {
@@ -69,9 +69,9 @@ async function refresh() {
             </button>
           </td>
         </tr>
-      `; 
+      `;
     }
-    toast(e.message || 'Failed to load transfers', 'danger'); 
+    toast(e.message || 'Failed to load transfers', 'danger');
   } finally {
     isRefreshing = false;
     if (btnRefresh) {

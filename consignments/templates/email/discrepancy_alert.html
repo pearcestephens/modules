@@ -1,0 +1,72 @@
+<h2>Consignment Discrepancy Alert</h2>
+
+<p>Hi {{recipient_name}},</p>
+
+<div class="alert danger">
+    <p><strong>Urgent:</strong> A consignment has been received with discrepancies that require immediate attention.</p>
+</div>
+
+<div class="info-box">
+    <h3>Consignment Details</h3>
+    <div class="info-row">
+        <span class="info-label">Consignment Number:</span>
+        <span class="info-value">{{consignment_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">PO Number:</span>
+        <span class="info-value">{{po_number}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Supplier:</span>
+        <span class="info-value">{{supplier_name}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Store:</span>
+        <span class="info-value">{{store_name}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Received By:</span>
+        <span class="info-value">{{received_by}}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Received:</span>
+        <span class="info-value">{{received_at}}</span>
+    </div>
+</div>
+
+<div class="info-box">
+    <h3>Discrepancies Found</h3>
+    {{#discrepancies}}
+    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef;">
+        <p style="margin: 0 0 5px 0;"><strong>{{product_name}}</strong></p>
+        <div class="info-row">
+            <span class="info-label">Type:</span>
+            <span class="info-value">{{type}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Expected:</span>
+            <span class="info-value">{{expected_quantity}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Received:</span>
+            <span class="info-value">{{received_quantity}}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Variance:</span>
+            <span class="info-value">{{variance}}</span>
+        </div>
+        {{#notes}}
+        <div class="info-row">
+            <span class="info-label">Notes:</span>
+            <span class="info-value">{{notes}}</span>
+        </div>
+        {{/notes}}
+    </div>
+    {{/discrepancies}}
+</div>
+
+<div class="button-container">
+    <a href="{{consignment_url}}" class="button">Review Discrepancies</a>
+</div>
+
+<p><strong>Action Required:</strong> Please review these discrepancies and contact the supplier if necessary. The receiving staff member may have added notes with additional context.</p>
