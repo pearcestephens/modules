@@ -116,7 +116,7 @@ echo "      */15 * * * * php {$binDir}/notification-worker.php --retry\n";
 echo "\n";
 echo "   2. Send test email:\n";
 echo "      cd {$moduleDir}\n";
-echo "      php -r 'require \"bootstrap.php\"; use CIS\Consignments\Services\EmailService; \$s = EmailService::make(); echo \$s->sendTemplate(\"po_created_internal\", \"test@example.com\", \"Test\", [\"po_number\"=>\"TEST-123\",\"supplier_name\"=>\"Test Supplier\",\"total_value\"=>\"\$100\",\"created_by\"=>\"Test User\",\"created_at\"=>date(\"Y-m-d H:i:s\"),\"po_url\"=>\"#\"], null, 3, 1);'\n";
+echo "      php -r 'require \"bootstrap.php\"; use CIS\Services\Consignments\Support\EmailService; \$s = EmailService::make(); echo \$s->sendTemplate(\"po_created_internal\", \"test@example.com\", \"Test\", [\"po_number\"=>\"TEST-123\",\"supplier_name\"=>\"Test Supplier\",\"total_value\"=>\"\$100\",\"created_by\"=>\"Test User\",\"created_at\"=>date(\"Y-m-d H:i:s\"),\"po_url\"=>\"#\"], null, 3, 1);'\n";
 echo "\n";
 echo "   3. Process queue:\n";
 echo "      php {$binDir}/notification-worker.php --priority=1 --verbose\n";

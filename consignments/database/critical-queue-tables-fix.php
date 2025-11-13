@@ -556,4 +556,10 @@ try {
 } catch (Exception $e) {
     echo "\n🔴 CRITICAL FIX FAILED: " . $e->getMessage() . "\n";
     exit(1);
+} finally {
+    // ✅ CRITICAL FIX: Always cleanup database connection
+    $conn = get_database_connection();
+    if ($conn instanceof mysqli && !empty($conn->thread_id)) {
+        @$conn->close();
+    }
 }

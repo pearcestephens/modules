@@ -19,9 +19,46 @@ try {
         echo json_encode(['success' => false, 'message' => 'Missing parameters']);
         exit;
     }
-    // TODO: enqueue real job and start pipeline
-    echo json_encode(['success' => true]);
+
+    // Verify transfer exists
+    $db = get_db();
+    $stmt = $db->prepare("SELECT id FROM consignments WHERE id = ? LIMIT 1");
+    $stmt->bind_param('i', $tid);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Transfer not found']);
+        $stmt->close();
+        exit;
+    }
+    $stmt->close();
+
+    // Enqueue real job for transfer processing pipeline
+    $stmt = $db->prepare("
+        INSERT INTO queue_jobs (type, payload, status, priority, created_at)
+        VALUES ('transfer.process', ?, 'pending', 5, NOW())
+    ");
+
+    $payload = json_encode([
+        'transfer_id' => $tid,
+        'session_id' => $sid,
+        'action' => 'process_pack_upload'
+    ]);
+
+    $stmt->bind_param('s', $payload);
+    $stmt->execute();
+    $jobId = $db->insert_id;
+    $stmt->close();
+
+    echo json_encode([
+        'success' => true,
+        'job_id' => $jobId,
+        'transfer_id' => $tid,
+        'session_id' => $sid,
+        'message' => 'Transfer processing queued'
+    ]);
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Server error']);
+    echo json_encode(['success' => false, 'message' => 'Server error', 'error' => $e->getMessage()]);
 }

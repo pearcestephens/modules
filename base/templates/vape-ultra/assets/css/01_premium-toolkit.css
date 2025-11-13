@@ -319,7 +319,7 @@
     width: 40px;
     height: 40px;
     border: 3px solid #e5e7eb;
-    border-top-color: #2563eb;
+    border-top-color: var(--vu-primary);
     border-radius: 50%;
     animation: vu-spin 0.7s linear infinite;
     margin: 0 auto 16px;
@@ -362,21 +362,21 @@
 }
 
 .vu-btn-primary {
-    background: #2563eb;
+    background: var(--vu-primary);
     color: white;
-    border-color: #2563eb;
+    border-color: var(--vu-primary);
 }
 
 .vu-btn-primary:hover:not(:disabled) {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: var(--vu-primary-hover);
+    border-color: var(--vu-primary-hover);
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .vu-btn-secondary {
     background: #ffffff;
     color: #374151;
-    border-color: #d1d5db;
+    border-color: var(--vu-secondary);
 }
 
 .vu-btn-secondary:hover:not(:disabled) {
@@ -385,26 +385,26 @@
 }
 
 .vu-btn-success {
-    background: #059669;
+    background: var(--vu-success);
     color: white;
-    border-color: #059669;
+    border-color: var(--vu-success);
 }
 
 .vu-btn-success:hover:not(:disabled) {
-    background: #047857;
-    border-color: #047857;
+    background: var(--vu-success-hover);
+    border-color: var(--vu-success-hover);
     box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
 }
 
 .vu-btn-danger {
-    background: #dc2626;
+    background: var(--vu-danger);
     color: white;
-    border-color: #dc2626;
+    border-color: var(--vu-danger);
 }
 
 .vu-btn-danger:hover:not(:disabled) {
-    background: #b91c1c;
-    border-color: #b91c1c;
+    background: var(--vu-danger-hover);
+    border-color: var(--vu-danger-hover);
     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 

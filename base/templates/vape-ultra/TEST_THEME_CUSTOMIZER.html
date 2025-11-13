@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VapeUltra Theme Customizer Demo</title>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    
+    <!-- VapeUltra Toolkit CSS -->
+    <link rel="stylesheet" href="assets/css/01_premium-toolkit.css">
+    <link rel="stylesheet" href="assets/css/02_theme-customizer.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .demo-header h1 {
+            margin: 0 0 10px 0;
+            color: #111827;
+        }
+        .demo-header p {
+            color: #6b7280;
+            margin: 0;
+        }
+        .demo-section {
+            margin-bottom: 32px;
+        }
+        .demo-section h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: #374151;
+        }
+        .demo-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .demo-card {
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .demo-card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: #374151;
+        }
+        .instruction-box {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+        .instruction-box h3 {
+            margin: 0 0 8px 0;
+            color: #1e40af;
+            font-size: 16px;
+        }
+        .instruction-box p {
+            margin: 0;
+            color: #1e40af;
+            line-height: 1.6;
+        }
+        .instruction-box strong {
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎨 Theme Customizer Demo</h1>
+            <p>Test your color palette in real-time!</p>
+        </div>
+        
+        <div class="instruction-box">
+            <h3><i class="bi bi-info-circle-fill"></i> How to Use</h3>
+            <p>
+                <strong>Look for the purple button in the bottom-right corner!</strong><br>
+                Click it to open the Theme Customizer panel, then:<br>
+                1️⃣ Try one of the 6 quick presets<br>
+                2️⃣ Or customize individual colors<br>
+                3️⃣ Click buttons below to see toasts with your colors<br>
+                4️⃣ Export your custom CSS when you're happy!
+            </p>
+        </div>
+        
+        <!-- Buttons Demo -->
+        <div class="demo-section">
+            <h2>Button Styles</h2>
+            <div class="demo-buttons">
+                <button class="vu-btn vu-btn-primary" onclick="VapeUltra.Toast.success('Primary button clicked!')">
+                    <i class="bi bi-star-fill"></i> Primary Button
+                </button>
+                <button class="vu-btn vu-btn-success" onclick="VapeUltra.Toast.success('Success!')">
+                    <i class="bi bi-check-circle"></i> Success Button
+                </button>
+                <button class="vu-btn vu-btn-danger" onclick="VapeUltra.Toast.error('Error!')">
+                    <i class="bi bi-x-circle"></i> Danger Button
+                </button>
+                <button class="vu-btn vu-btn-secondary" onclick="VapeUltra.Toast.info('Info message')">
+                    <i class="bi bi-info-circle"></i> Secondary Button
+                </button>
+            </div>
+        </div>
+        
+        <!-- Toast Test Cards -->
+        <div class="demo-section">
+            <h2>Toast Notifications</h2>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Success Toast</h3>
+                    <button class="vu-btn vu-btn-success" onclick="VapeUltra.Toast.success('Operation completed successfully!', {duration: 4000})">
+                        Show Success
+                    </button>
+                </div>
+                <div class="demo-card">
+                    <h3>Error Toast</h3>
+                    <button class="vu-btn vu-btn-danger" onclick="VapeUltra.Toast.error('Something went wrong!', {duration: 4000})">
+                        Show Error
+                    </button>
+                </div>
+                <div class="demo-card">
+                    <h3>Warning Toast</h3>
+                    <button class="vu-btn vu-btn-secondary" onclick="VapeUltra.Toast.warning('Please review this carefully', {duration: 4000})">
+                        Show Warning
+                    </button>
+                </div>
+                <div class="demo-card">
+                    <h3>Info Toast</h3>
+                    <button class="vu-btn vu-btn-primary" onclick="VapeUltra.Toast.info('Here is some information', {duration: 4000})">
+                        Show Info
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal Demo -->
+        <div class="demo-section">
+            <h2>Modal Dialogs</h2>
+            <div class="demo-buttons">
+                <button class="vu-btn vu-btn-primary" onclick="testModal()">
+                    <i class="bi bi-window"></i> Open Modal
+                </button>
+                <button class="vu-btn vu-btn-danger" onclick="testConfirm()">
+                    <i class="bi bi-question-circle"></i> Confirm Dialog
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading Demo -->
+        <div class="demo-section">
+            <h2>Loading States</h2>
+            <div class="demo-buttons">
+                <button class="vu-btn vu-btn-secondary" onclick="testLoading()">
+                    <i class="bi bi-arrow-repeat"></i> Show Loading (3 seconds)
+                </button>
+            </div>
+        </div>
+        
+        <!-- Color Export -->
+        <div class="demo-section">
+            <h2>Export Your Theme</h2>
+            <div class="demo-buttons">
+                <button class="vu-btn vu-btn-primary" onclick="VapeUltra.ThemeCustomizer.exportCSS()">
+                    <i class="bi bi-download"></i> Download Custom CSS
+                </button>
+                <button class="vu-btn vu-btn-secondary" onclick="VapeUltra.ThemeCustomizer.reset()">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset to Default
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Howler.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+    
+    <!-- VapeUltra Toolkit JS -->
+    <script src="assets/js/01_premium-toolkit.js"></script>
+    <script src="assets/js/02_theme-customizer.js"></script>
+    
+    <script>
+        function testModal() {
+            VapeUltra.Modal.alert(
+                'This is a modal dialog! Notice how the header and body backgrounds use your custom colors.',
+                'Modal Demo'
+            );
+        }
+        
+        async function testConfirm() {
+            const result = await VapeUltra.Modal.confirm(
+                'Do you like the theme customizer?',
+                'Confirmation'
+            );
+            
+            if (result) {
+                VapeUltra.Toast.success('Awesome! Keep customizing!');
+            } else {
+                VapeUltra.Toast.info('Try changing some colors and see what you think!');
+            }
+        }
+        
+        function testLoading() {
+            const container = document.querySelector('.demo-container');
+            VapeUltra.Loading.show(container, 'Processing your request...');
+            
+            setTimeout(() => {
+                VapeUltra.Loading.hide(container);
+                VapeUltra.Toast.success('Loading complete!');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

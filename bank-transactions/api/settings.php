@@ -11,6 +11,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../bootstrap.php';
 
+use PDO;
+use CIS\Base\Database;
+use CIS\Base\DatabasePDO;
+
 header('Content-Type: application/json');
 
 try {
@@ -31,40 +35,69 @@ try {
         exit;
     }
 
-    global $con;
+    // Initialize PDO database connection
+    Database::init();
+    $db = DatabasePDO::connection();
+
+    if (!$db) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => [
+                'code' => 'DATABASE_ERROR',
+                'message' => 'Failed to connect to database'
+            ]
+        ]);
+        exit;
+    }
 
     // GET - Retrieve current settings
     if ($method === 'GET') {
-        $stmt = $con->prepare("SELECT setting_key, setting_value FROM module_settings WHERE module = 'bank-transactions'");
-        $stmt->execute();
-        $result = $stmt->get_result();
+        try {
+            $stmt = $db->prepare("SELECT setting_key, setting_value FROM module_settings WHERE module = ?");
+            $stmt->execute(['bank-transactions']);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $settings = [];
-        while ($row = $result->fetch_assoc()) {
-            $key = $row['setting_key'];
-            $value = $row['setting_value'];
+            $settings = [];
+            foreach ($results as $row) {
+                $key = $row['setting_key'];
+                $value = $row['setting_value'];
 
-            // Decode JSON values if applicable
-            if (strpos($value, '{') === 0 || strpos($value, '[') === 0) {
-                $value = json_decode($value, true);
+                // Decode JSON values if applicable
+                if (strpos($value, '{') === 0 || strpos($value, '[') === 0) {
+                    $value = json_decode($value, true);
+                }
+
+                $settings[$key] = $value;
             }
 
-            $settings[$key] = $value;
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'auto_match_enabled' => (bool)($settings['auto_match_enabled'] ?? true),
+                    'auto_match_threshold' => (int)($settings['auto_match_threshold'] ?? 85),
+                    'confidence_scorer_type' => $settings['confidence_scorer_type'] ?? 'fuzzy',
+                    'max_batch_size' => (int)($settings['max_batch_size'] ?? 100),
+                    'enable_audit_logging' => (bool)($settings['enable_audit_logging'] ?? true),
+                    'notification_email' => $settings['notification_email'] ?? '',
+                    'settings' => $settings,
+                ],
+                'timestamp' => date('Y-m-d H:i:s'),
+            ], JSON_PRETTY_PRINT);
+        } catch (Exception $e) {
+            error_log("Settings API GET Error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => [
+                    'code' => 'QUERY_ERROR',
+                    'message' => 'Failed to retrieve settings',
+                    'debug' => ($db instanceof PDO) ? 'PDO initialized' : 'PDO not available'
+                ]
+            ]);
+            exit;
         }
-
-        echo json_encode([
-            'success' => true,
-            'data' => [
-                'auto_match_enabled' => (bool)($settings['auto_match_enabled'] ?? true),
-                'auto_match_threshold' => (int)($settings['auto_match_threshold'] ?? 85),
-                'confidence_scorer_type' => $settings['confidence_scorer_type'] ?? 'fuzzy',
-                'max_batch_size' => (int)($settings['max_batch_size'] ?? 100),
-                'enable_audit_logging' => (bool)($settings['enable_audit_logging'] ?? true),
-                'notification_email' => $settings['notification_email'] ?? '',
-                'settings' => $settings,
-            ],
-            'timestamp' => date('Y-m-d H:i:s'),
-        ], JSON_PRETTY_PRINT);
     }
 
     // POST - Update settings
@@ -90,9 +123,9 @@ try {
         }
 
         // Begin transaction
-        $con->begin_transaction();
-
         try {
+            $db->beginTransaction();
+
             $settings = [
                 'auto_match_enabled' => $autoMatchEnabled,
                 'auto_match_threshold' => $autoMatchThreshold,
@@ -107,22 +140,21 @@ try {
 
                 $settingValue = is_bool($value) ? ($value ? '1' : '0') : (string)$value;
 
-                $stmt = $con->prepare(
+                $stmt = $db->prepare(
                     "INSERT INTO module_settings (module, setting_key, setting_value, updated_at)
-                     VALUES ('bank-transactions', ?, ?, NOW())
+                     VALUES (?, ?, ?, NOW())
                      ON DUPLICATE KEY UPDATE setting_value = ?, updated_at = NOW()"
                 );
 
-                $stmt->bind_param(
-                    'sss',
+                $stmt->execute([
+                    'bank-transactions',
                     $key,
                     $settingValue,
                     $settingValue
-                );
-                $stmt->execute();
+                ]);
             }
 
-            $con->commit();
+            $db->commit();
 
             echo json_encode([
                 'success' => true,
@@ -134,20 +166,21 @@ try {
             ], JSON_PRETTY_PRINT);
 
         } catch (Exception $e) {
-            $con->rollback();
+            $db->rollBack();
+            error_log("Settings API POST Error: " . $e->getMessage());
             throw $e;
         }
     }
 
     // DELETE - Reset settings to defaults
     elseif ($method === 'DELETE') {
-        $con->begin_transaction();
-
         try {
-            $stmt = $con->prepare("DELETE FROM module_settings WHERE module = 'bank-transactions'");
-            $stmt->execute();
+            $db->beginTransaction();
 
-            $con->commit();
+            $stmt = $db->prepare("DELETE FROM module_settings WHERE module = ?");
+            $stmt->execute(['bank-transactions']);
+
+            $db->commit();
 
             echo json_encode([
                 'success' => true,
@@ -158,7 +191,8 @@ try {
             ], JSON_PRETTY_PRINT);
 
         } catch (Exception $e) {
-            $con->rollback();
+            $db->rollBack();
+            error_log("Settings API DELETE Error: " . $e->getMessage());
             throw $e;
         }
     }

@@ -28,6 +28,28 @@ if (isset($app)) {
     $app->registerModule('core', $coreConfig);
 }
 
+// ----------------------------------------------------------------------------
+// Lightweight PSR-4 autoloader for CIS\Core namespace (controllers, models)
+// This complements Composer in case the namespace isn't mapped there.
+// ----------------------------------------------------------------------------
+spl_autoload_register(function(string $class) {
+    $prefix = 'CIS\\Core\\';
+    $len = strlen($prefix);
+    if (strncmp($class, $prefix, $len) !== 0) return;
+    $relative = substr($class, $len); // e.g., Controllers\\DashboardController
+    $relativePath = str_replace('\\', '/', $relative) . '.php';
+    // Try as-is (PSR-4 exact case)
+    $candidates = [ CORE_PATH . '/' . $relativePath ];
+    // Also try lowercase first segment to support existing folder names
+    $parts = explode('/', $relativePath);
+    if (!empty($parts)) {
+        $partsLower = $parts;
+        $partsLower[0] = strtolower($partsLower[0]);
+        $candidates[] = CORE_PATH . '/' . implode('/', $partsLower);
+    }
+    foreach ($candidates as $file) { if (is_file($file)) { require_once $file; return; } }
+});
+
 // ============================================================================
 // CORE-SPECIFIC HELPER FUNCTIONS
 // Note: Use BASE module functions (isAuthenticated, getCurrentUser, etc.)

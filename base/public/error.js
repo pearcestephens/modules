@@ -29,10 +29,13 @@
     return _fetch.apply(this, arguments).then(function(res){
       if(!res.ok){
         showToast('Request Failed', res.status+' '+res.statusText, 'warning');
+        // Emit behavior event for request failure
+        try{ navigator.sendBeacon && navigator.sendBeacon('/modules/base/public/behavior.php', new Blob([JSON.stringify([{type:'request_fail', t:Date.now(), pg:location.pathname+location.search, status:res.status}])], {type:'application/json'})); }catch(_){ }
       }
       return res;
     }).catch(function(err){
       showToast('Network Error', (err && err.message) || 'Fetch failed', 'danger');
+      try{ navigator.sendBeacon && navigator.sendBeacon('/modules/base/public/behavior.php', new Blob([JSON.stringify([{type:'network_error', t:Date.now(), pg:location.pathname+location.search}])], {type:'application/json'})); }catch(_){ }
       throw err;
     });
   };

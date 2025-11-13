@@ -1,281 +1,474 @@
-# 🚀 PURCHASE ORDERS MODULE - AUTONOMOUS BUILD PLAN
-
-**Date:** October 31, 2025
-**Status:** READY TO BUILD
-**Build Mode:** AUTONOMOUS (No user interaction required)
-**Timeline:** Complete system in 7-10 days
+# ⚡ AUTONOMOUS BUILD PLAN - COMPLETE VEND INTEGRATION
+**Date:** 2025-11-13
+**Mission:** Build the ENTIRE Vend ecosystem autonomously
+**Your Involvement:** ZERO (just say GO and walk away)
 
 ---
 
-## 📋 WHAT I UNDERSTAND
+## 🤖 WHAT I CAN DO AUTONOMOUSLY
 
-### ✅ **Your Requirements** (Crystal Clear)
+### **✅ Phase 1: Foundation (30 minutes - FULLY AUTONOMOUS)**
 
-1. **You're EXHAUSTED** - Been working on this for months
-2. **You want it DONE** - No more back and forth
-3. **You want it to WORK** - Actually function in production
-4. **You need 4 transfer methods working:**
-   - Stock Transfers (outlet → outlet)
-   - Purchase Orders (supplier → outlet)
-   - Staff Transfers (staff → staff)
-   - Returns (outlet → supplier)
-5. **Must sync with Vend/Lightspeed** - Both ways (to/from)
-6. **Must use existing consignment tables** - `vend_consignments`, `queue_consignments`, etc.
-7. **Must use base template system** - `/modules/base/_templates/layouts/`
-8. **All requirements from Q1-Q35 MUST be implemented**
+**What I'll build:**
+1. Create `/assets/services/vend/` directory structure
+2. Move VendAPI.php to new location
+3. Enhance VendAPI.php with:
+   - Database config loading
+   - OAuth token refresh
+   - Queue integration hooks
+   - Trace ID support
+4. Create base configuration files
+5. Create base service class template
 
----
+**Tools I'll use:**
+- `mcp_ecigdis-intel_fs-mkdir` - Create directories
+- `mcp_ecigdis-intel_fs-read` - Read existing files
+- `mcp_ecigdis-intel_fs-write` - Write new files
+- `mcp_ecigdis-intel_fs-apply-manifest` - Create entire structure at once
+- `mcp_ecigdis-intel_db-query` - Verify database tables exist
 
-## ✅ **What I Have** (Complete Context)
-
-### **Database Schema** ✅
-- All 48 consignment tables dumped and analyzed
-- `vend_consignments` table supports `PURCHASE_ORDER` category
-- `vend_consignment_line_items` for products
-- `queue_consignments` for Lightspeed sync queue
-- Complete audit, logging, and tracking tables
-
-### **Business Requirements** ✅
-- Q1-Q35 all answered with specifications
-- Q21-Q26 approval workflow defined
-- Q27-Q35 operations/integration requirements
-- Email templates (Q27)
-- Freight integration (Q27-Q35)
-- All validation rules, state machines, workflows documented
-
-### **Technical Architecture** ✅
-- Lightspeed API integration patterns from existing code
-- ConsignmentsService.php pattern for uploads
-- LightspeedClient.php for API calls
-- Auto-save system from stock-transfers
-- Template system (`dashboard.php`, `table.php`, `card.php`, `blank.php`)
-- Asset auto-loading system
-- CSRF protection patterns
-
-### **Existing Good Code** ✅
-- `/consignments/lib/ConsignmentsService.php` - Upload workflow
-- `/consignments/lib/LightspeedClient.php` - API client
-- `/consignments/stock-transfers/pack.php` - Auto-save pattern
-- `/shared/functions/auto-load-assets.php` - Asset loading
-- Error handling, progress tracking, queue system
+**Your involvement:** NONE - I do it all
 
 ---
 
-## 🎯 BUILD STRATEGY
+### **✅ Phase 2: Core Services (2 hours - FULLY AUTONOMOUS)**
 
-### **Phase 1: Foundation** (Day 1) ⏳
-Create core structure for Purchase Orders using existing patterns
+**What I'll build:**
+1. `VendConsignmentService.php` - Complete implementation
+2. `VendInventoryService.php` - Complete implementation
+3. `VendWebhookManager.php` - Complete implementation
+4. `VendQueueService.php` - Complete implementation
 
-**Deliverables:**
-1. Purchase Order service classes
-2. Database migration (extend vend_consignments)
-3. Base API endpoints structure
-4. Permission/validation services
+**Each service includes:**
+- Full class implementation
+- All methods documented
+- Error handling
+- Database integration
+- Queue integration
+- Logging
 
-### **Phase 2: Core CRUD** (Days 2-3) ⏳
-Build main pages and workflows
+**Tools I'll use:**
+- `mcp_ecigdis-intel_ai-generate` - Generate full class code with AI
+- `mcp_ecigdis-intel_fs-write` - Write generated files
+- `mcp_ecigdis-intel_db-schema` - Verify database schema
+- `mcp_ecigdis-intel_semantic_search` - Find similar patterns in codebase
+- `mcp_ecigdis-intel_decision-log` - Log design decisions
 
-**Deliverables:**
-1. List page (table.php layout) - View all POs
-2. Create page (dashboard.php layout) - New PO form
-3. Edit page (dashboard.php layout) - Modify existing PO
-4. View/Detail page (card.php layout) - PO details
-5. Auto-save system (from pack.php pattern)
-6. Product selection modal
-
-### **Phase 3: Approval Workflow** (Days 4-5) ⏳
-Implement Q21-Q26 approval system
-
-**Deliverables:**
-1. Approval matrix configuration (by outlet/amount)
-2. Approval dashboard
-3. Approve/reject/amend actions
-4. Email notifications (internal template from Q27)
-5. Escalation logic
-6. Delegation system
-
-### **Phase 4: Lightspeed Integration** (Days 6-7) ⏳
-Sync with Vend/Lightspeed at appropriate times
-
-**Deliverables:**
-1. Create consignment in Lightspeed when PO approved
-2. Upload products to consignment
-3. Sync status updates (sent/received)
-4. Queue-based processing (queue_consignments)
-5. Error handling and retry logic
-6. Idempotent operations
-
-### **Phase 5: Receiving & Completion** (Day 8) ⏳
-Goods receipt workflow
-
-**Deliverables:**
-1. Receiving page (dashboard.php layout)
-2. Barcode scanning support (optional)
-3. Quantity verification
-4. Damage/variance handling
-5. Inventory update at completion
-6. Receipt confirmation
-
-### **Phase 6: Supplier Integration** (Day 9) ⏳
-External supplier features
-
-**Deliverables:**
-1. Supplier email notifications (Q27 template)
-2. Supplier portal integration (if exists)
-3. Freight integration (GSS, NZ Post, FreightEngine)
-4. Tracking number updates
-5. Delivery date management
-
-### **Phase 7: Polish & Deploy** (Day 10) ⏳
-Final touches and production deployment
-
-**Deliverables:**
-1. All print stylesheets
-2. Mobile responsive testing
-3. Performance optimization
-4. Security audit
-5. Documentation
-6. Deployment checklist
+**Your involvement:** NONE - I generate and write everything
 
 ---
 
-## 🔧 IMPLEMENTATION DETAILS
+### **✅ Phase 3: Extended Services (2 hours - FULLY AUTONOMOUS)**
 
-### **File Structure** (To Be Created)
+**What I'll build:**
+1. `VendSalesService.php`
+2. `VendProductService.php`
+3. `VendCustomerService.php`
+4. `VendEmailService.php`
+5. `VendReportService.php`
 
+**Same pattern:**
+- AI generates complete code
+- Write directly to filesystem
+- Verify with database
+- Log all decisions
+
+**Your involvement:** NONE
+
+---
+
+### **✅ Phase 4: Configuration & Documentation (30 minutes - FULLY AUTONOMOUS)**
+
+**What I'll build:**
+1. `config/vend.php` - Main configuration
+2. `config/webhooks.php` - Webhook routing
+3. `config/queue.php` - Queue settings
+4. `README.md` - Complete usage guide
+5. `EXAMPLES.md` - Code examples
+6. `API_REFERENCE.md` - Full API docs
+
+**Your involvement:** NONE
+
+---
+
+### **⚠️ Phase 5: Testing & Integration (1 hour - NEEDS YOUR INPUT)**
+
+**What I CAN'T do autonomously:**
+- ❌ Run actual API calls to Vend (requires real credentials)
+- ❌ Test with production data
+- ❌ Verify OAuth flow works
+- ❌ Send real emails
+- ❌ Process real webhooks
+
+**What I CAN do autonomously:**
+- ✅ Write unit tests
+- ✅ Create mock tests
+- ✅ Verify file syntax (`php -l`)
+- ✅ Check for errors
+- ✅ Validate against coding standards
+
+**Your involvement:**
+- Provide Vend API credentials (read from `.env`)
+- Run one test command to verify
+- Give me feedback on any errors
+
+---
+
+## ⏱️ TOTAL TIME BREAKDOWN
+
+### **Fully Autonomous (5 hours):**
 ```
-modules/consignments/
-├── purchase-orders/
-│   ├── index.php                 (List view - table.php)
-│   ├── create.php                (Create form - dashboard.php)
-│   ├── edit.php                  (Edit form - dashboard.php)
-│   ├── view.php                  (Detail view - card.php)
-│   ├── receive.php               (Receiving - dashboard.php)
-│   └── approve.php               (Approval - dashboard.php)
-│
-├── api/purchase-orders/
-│   ├── create.php
-│   ├── update.php
-│   ├── delete.php
-│   ├── list.php
-│   ├── get.php
-│   ├── approve.php
-│   ├── reject.php
-│   ├── submit.php
-│   ├── receive.php
-│   └── autosave.php
-│
-├── lib/Services/
-│   ├── PurchaseOrderService.php
-│   ├── ApprovalService.php
-│   ├── ReceivingService.php
-│   └── SupplierService.php
-│
-├── lib/Models/
-│   ├── PurchaseOrder.php
-│   └── PurchaseOrderLineItem.php
-│
-├── js/purchase-orders/
-│   ├── list.js
-│   ├── create.js
-│   ├── edit.js
-│   ├── approve.js
-│   └── receive.js
-│
-├── css/purchase-orders/
-│   ├── list.css
-│   ├── form.css
-│   ├── approve.css
-│   └── print.css
-│
-└── migrations/
-    └── 001_extend_vend_consignments_for_po.sql
+Phase 1: Foundation           30 min   ✅ AUTONOMOUS
+Phase 2: Core Services        2 hours  ✅ AUTONOMOUS
+Phase 3: Extended Services    2 hours  ✅ AUTONOMOUS
+Phase 4: Documentation        30 min   ✅ AUTONOMOUS
+                             --------
+                             5 hours   ✅ ZERO INPUT NEEDED
 ```
 
-### **Database Strategy**
-
-**REUSE existing tables** (don't create new ones):
-- `vend_consignments` (set `transfer_category = 'PURCHASE_ORDER'`)
-- `vend_consignment_line_items` (products)
-- `queue_consignments` (Lightspeed sync)
-- `consignment_audit_log` (audit trail)
-- All other consignment_* tables
-
-**Add new columns** (if needed):
-- Approval workflow columns (if not already present)
-- Supplier-specific fields (if not already present)
-- Freight tracking fields (if not already present)
-
-### **Lightspeed Sync Workflow**
-
+### **Requires Your Input (1 hour):**
 ```
-1. User creates PO in CIS (DRAFT state)
-   ↓
-2. User submits PO for approval (PENDING_APPROVAL state)
-   ↓
-3. Approver reviews and approves (APPROVED state)
-   ↓
-4. Background job creates consignment in Lightspeed
-   - POST /consignments to Lightspeed API
-   - Store vend_transfer_id in vend_consignments
-   - INSERT into queue_consignments
-   ↓
-5. Background job uploads products to consignment
-   - Loop through line items
-   - POST /consignment_products for each item
-   - INSERT into queue_consignment_products
-   ↓
-6. User marks PO as SENT (when shipped to supplier)
-   - UPDATE vend_consignments (state='SENT')
-   - PATCH Lightspeed consignment status
-   ↓
-7. Goods arrive, user starts RECEIVING
-   - Scan barcodes or manual entry
-   - Verify quantities
-   - Note discrepancies
-   ↓
-8. User completes receiving
-   - UPDATE inventory in vend_inventory
-   - UPDATE vend_consignments (state='RECEIVED')
-   - PATCH Lightspeed consignment status
-   - Close PO
+Phase 5: Testing              1 hour   ⚠️ NEEDS CREDENTIALS + VERIFICATION
 ```
 
 ---
 
-## ✅ SUCCESS CRITERIA
+## 🎯 WHAT AUTONOMOUS LOOKS LIKE
 
-The build is complete when:
+### **You say:**
+```
+"GO - Build the whole thing"
+```
 
-1. ✅ All 4 transfer types work (STOCK, PURCHASE_ORDER, STAFF, RETURN)
-2. ✅ Users can create POs with products
-3. ✅ Approval workflow functions (Q21-Q26)
-4. ✅ Lightspeed sync works bidirectionally
-5. ✅ Receiving updates inventory correctly
-6. ✅ All pages use proper base layouts
-7. ✅ Auto-save works on all forms
-8. ✅ Email notifications send (Q27)
-9. ✅ Freight integration works (Q27-Q35)
-10. ✅ All Q1-Q35 requirements implemented
-11. ✅ Security is rock-solid (CSRF, validation, auth)
-12. ✅ Performance is good (P95 < 1s)
-13. ✅ Tests pass
-14. ✅ Documentation is complete
-15. ✅ User can actually USE it in production
+### **I do (no questions asked):**
+
+**Minute 0-30: Foundation**
+```
+✅ Creating /assets/services/vend/ structure...
+✅ Reading existing VendAPI.php...
+✅ Enhancing with database config...
+✅ Adding OAuth refresh...
+✅ Adding queue hooks...
+✅ Writing enhanced VendAPI.php...
+✅ Creating base config files...
+✅ Foundation complete!
+```
+
+**Hour 0.5-2.5: Core Services**
+```
+✅ Generating VendConsignmentService.php...
+   - 15 methods
+   - Full documentation
+   - Error handling
+   - Database integration
+✅ Writing to filesystem...
+
+✅ Generating VendInventoryService.php...
+   - 20 methods
+   - Real-time sync
+   - Reorder alerts
+✅ Writing to filesystem...
+
+✅ Generating VendWebhookManager.php...
+   - Event routing
+   - Retry logic
+   - Performance tracking
+✅ Writing to filesystem...
+
+✅ Generating VendQueueService.php...
+   - Queue V2 integration
+   - Job types
+   - Monitoring
+✅ Writing to filesystem...
+
+✅ Core services complete!
+```
+
+**Hour 2.5-4.5: Extended Services**
+```
+✅ Generating VendSalesService.php...
+✅ Generating VendProductService.php...
+✅ Generating VendCustomerService.php...
+✅ Generating VendEmailService.php...
+✅ Generating VendReportService.php...
+✅ All written to filesystem...
+✅ Extended services complete!
+```
+
+**Hour 4.5-5: Documentation**
+```
+✅ Writing README.md with usage guide...
+✅ Writing EXAMPLES.md with code samples...
+✅ Writing API_REFERENCE.md...
+✅ Writing configuration guide...
+✅ Documentation complete!
+```
+
+**Final Report:**
+```
+🎉 AUTONOMOUS BUILD COMPLETE!
+
+Created:
+- 1 enhanced core API client (VendAPI.php)
+- 9 service classes (Consignment, Inventory, Sales, etc.)
+- 4 configuration files
+- 3 documentation files
+- 1 complete ecosystem
+
+Total files: 17
+Total lines of code: ~5,000
+Time taken: 5 hours
+Your involvement: 0 minutes
+
+Next step: Run test suite to verify everything works
+Command: php test-vend-integration.php
+```
 
 ---
 
-## 🚀 STARTING NOW
+## 🔧 HOW AUTONOMOUS WORKS
 
-**Build Mode:** AUTONOMOUS
-**Timeline:** 7-10 days
-**User Involvement:** NONE (I'll work while you sleep)
-**Communication:** I'll provide daily progress summaries
+### **MCP Tools I Have Access To:**
 
-**Next Action:** Begin Phase 1 - Foundation setup
+**File Operations (COMPLETE CONTROL):**
+```javascript
+✅ fs-mkdir          // Create directories
+✅ fs-read           // Read files
+✅ fs-write          // Write files
+✅ fs-delete         // Delete files
+✅ fs-list           // List directory contents
+✅ fs-apply-manifest // Create entire structures
+✅ fs-write-multi    // Write multiple files at once
+```
 
-Let me start building... 🔧
+**AI Code Generation (FULL POWER):**
+```javascript
+✅ ai-generate       // Generate complete classes
+✅ ai-generate-json  // Generate config files
+✅ semantic_search   // Find patterns in codebase
+✅ gpt-generate-file // Generate with context
+```
+
+**Database (READ/VERIFY):**
+```javascript
+✅ db-query          // Query database
+✅ db-schema         // Get table structure
+✅ db-tables         // List tables
+```
+
+**Knowledge Management:**
+```javascript
+✅ decision-log      // Log all decisions
+✅ context-retrieve  // Remember past conversations
+✅ kb-add-document   // Document solutions
+```
+
+**What I CAN'T Do:**
+```javascript
+❌ Run PHP code in production
+❌ Make actual API calls to Vend
+❌ Access Vend admin panel
+❌ Run cron jobs
+❌ Deploy to production (need your deploy key)
+```
 
 ---
 
-**Note:** All code will be production-ready, following all patterns from your existing codebase. No shortcuts, no placeholders, no "TODO" comments. Everything will WORK.
+## 💡 PRACTICAL AUTONOMOUS APPROACH
+
+### **Option A: FULL AUTONOMOUS (Recommended)**
+
+**You say:** "GO - Build everything, I'll test later"
+
+**I do:**
+1. ✅ Build all 9 services (5 hours autonomous)
+2. ✅ Write complete documentation
+3. ✅ Create test files
+4. ⏸️ PAUSE and report back
+5. ⏳ You run test suite (10 minutes)
+6. ⏳ You report any errors
+7. ✅ I fix errors (autonomous again)
+8. ✅ Done!
+
+**Total time:** 5-6 hours autonomous, 10 minutes you
+
+---
+
+### **Option B: PHASED AUTONOMOUS**
+
+**You say:** "Build Phase 1, show me, then continue"
+
+**I do:**
+1. ✅ Phase 1: Foundation (30 min)
+2. ⏸️ Show you what was built
+3. ⏳ You approve (1 minute)
+4. ✅ Phase 2: Core Services (2 hours)
+5. ⏸️ Show you
+6. ⏳ You approve
+7. ✅ Phase 3-4: Extended + Docs (2.5 hours)
+8. ✅ Done!
+
+**Total time:** 5 hours autonomous, 5 minutes you (just approvals)
+
+---
+
+### **Option C: SPRINT AUTONOMOUS**
+
+**You say:** "Build the most critical stuff TODAY"
+
+**I do (2 hours):**
+1. ✅ Enhanced VendAPI.php with all features
+2. ✅ VendConsignmentService.php (transfers & POs)
+3. ✅ VendWebhookManager.php (webhook routing)
+4. ✅ Basic configuration
+5. ✅ README with examples
+6. ⏸️ DONE - you have working system
+
+**Total time:** 2 hours autonomous, 0 minutes you
+
+---
+
+## 🎯 WHAT YOU GET
+
+### **After 5 Hours Autonomous Build:**
+
+```
+/assets/services/vend/
+├── Core/
+│   └── VendAPI.php                    ✅ 30KB, 57+ methods, enhanced
+│
+├── Services/
+│   ├── VendConsignmentService.php     ✅ 20KB, transfers & POs
+│   ├── VendInventoryService.php       ✅ 15KB, real-time sync
+│   ├── VendSalesService.php           ✅ 15KB, sales sync
+│   ├── VendProductService.php         ✅ 15KB, catalog mgmt
+│   ├── VendCustomerService.php        ✅ 12KB, customer sync
+│   ├── VendWebhookManager.php         ✅ 18KB, webhook routing
+│   ├── VendEmailService.php           ✅ 12KB, email queue
+│   ├── VendQueueService.php           ✅ 10KB, Queue V2
+│   └── VendReportService.php          ✅ 20KB, reporting
+│
+├── Config/
+│   ├── vend.php                       ✅ Configuration
+│   ├── webhooks.php                   ✅ Webhook routing
+│   ├── queue.php                      ✅ Queue settings
+│   └── email.php                      ✅ Email config
+│
+├── Documentation/
+│   ├── README.md                      ✅ Usage guide
+│   ├── EXAMPLES.md                    ✅ Code examples
+│   ├── API_REFERENCE.md               ✅ Full API docs
+│   └── WEBHOOK_GUIDE.md               ✅ Webhook guide
+│
+└── Tests/
+    ├── test-vend-integration.php      ✅ Test suite
+    └── mock-webhook-test.php          ✅ Mock tests
+```
+
+**Everything ready to use.**
+
+---
+
+## 🚀 THE AUTONOMOUS PROCESS
+
+### **I'll use this pattern for EVERY file:**
+
+```javascript
+// 1. ANALYZE (using existing code patterns)
+semantic_search("Find similar service implementations")
+
+// 2. GENERATE (using AI with full context)
+ai_generate({
+  prompt: "Generate complete VendInventoryService.php with...",
+  system: "You are a senior PHP developer. Use PSR-12..."
+})
+
+// 3. VERIFY (check against database & standards)
+db_schema("stock_levels") // Verify table exists
+php -l generated_file.php  // Check syntax
+
+// 4. WRITE (directly to filesystem)
+fs_write({
+  path: "/assets/services/vend/Services/VendInventoryService.php",
+  content: generated_code
+})
+
+// 5. LOG (document decision)
+decision_log({
+  title: "Created VendInventoryService",
+  content: "Implemented real-time inventory sync with...",
+  reasoning: "Based on existing patterns in..."
+})
+
+// 6. REPEAT for next file
+```
+
+**NO human input needed at any step.**
+
+---
+
+## ⚡ READY TO GO AUTONOMOUS?
+
+### **Just pick one:**
+
+**A) FULL BUILD** - "GO - Build everything" (5 hours)
+- I build all 9 services
+- Complete documentation
+- Test files
+- You test at the end
+
+**B) PHASED BUILD** - "Build Phase 1, then show me" (5 hours + 5 min approvals)
+- I build in phases
+- Show you after each phase
+- You just say "continue"
+
+**C) SPRINT BUILD** - "Build critical stuff NOW" (2 hours)
+- Enhanced VendAPI
+- Consignment service
+- Webhook manager
+- Basic docs
+- Working system TODAY
+
+**D) CUSTOM** - "Build [specific services] autonomously"
+- You tell me which services
+- I build just those
+- Done
+
+---
+
+## 💬 YOUR CALL
+
+**Just say:**
+- **"GO A"** = Full autonomous build (walk away for 5 hours)
+- **"GO B"** = Phased build (check in every phase)
+- **"GO C"** = Sprint build (2 hours, working system)
+- **"GO [custom]"** = Tell me what you want
+
+**I'll start immediately and work autonomously until complete!** 🚀
+
+---
+
+## 🎁 BONUS: PROGRESS TRACKING
+
+**I'll update this file every 30 minutes with progress:**
+
+```markdown
+## 🏗️ BUILD PROGRESS
+
+[13:00] ✅ Phase 1 Foundation - COMPLETE (30 min)
+        - Created directory structure
+        - Enhanced VendAPI.php
+        - Wrote config files
+
+[13:30] 🏗️ Phase 2 Core Services - IN PROGRESS
+        - ✅ VendConsignmentService.php complete
+        - 🏗️ VendInventoryService.php in progress...
+
+[14:00] Update...
+[14:30] Update...
+[15:00] Update...
+
+[18:00] ✅ ALL PHASES COMPLETE! Ready for testing.
+```
+
+**You can walk away and check back anytime.** 🎉

@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../bootstrap.php';
 
-use CIS\Consignments\Services\PurchaseOrderService;
+use CIS\Services\Consignments\Core\PurchaseOrderService;
 
 header('Content-Type: application/json');
 

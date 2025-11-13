@@ -59,16 +59,35 @@ class Database
     {
         if (self::$pdoInitialized) return;
 
-        // Load config from config/database.php
-        $rootPath = $_SERVER['DOCUMENT_ROOT'] ?? dirname(__DIR__, 2);
-        $configPath = $rootPath . '/config/database.php';
+        // Determine config search order: prefer modules/config/database.php then document root config/database.php
+        $dbConfig = [];
+        $chosenPath = null;
+        $paths = [];
+        $paths[] = dirname(__DIR__, 2) . '/config/database.php'; // modules/base/config/database.php (if exists higher level)
+        if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+            $paths[] = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/config/database.php';
+        }
+        // Also consider application root (public_html) 3 levels up
+        $paths[] = dirname(__DIR__, 3) . '/config/database.php';
 
-        if (!file_exists($configPath)) {
-            throw new \RuntimeException("Database config not found at: {$configPath}");
+        foreach ($paths as $p) {
+            if (file_exists($p)) {
+                $chosenPath = $p;
+                break;
+            }
         }
 
-        $config = require_once $configPath;
-        $dbConfig = $config['cis'] ?? [];
+        if ($chosenPath) {
+            try {
+                $config = require $chosenPath;
+                $dbConfig = $config['cis'] ?? [];
+                error_log('[Database] Loaded configuration from ' . $chosenPath);
+            } catch (\Throwable $e) {
+                error_log('[Database] Failed loading config at ' . $chosenPath . ' : ' . $e->getMessage());
+            }
+        } else {
+            error_log('[Database] No database.php found in search paths (' . implode(', ', $paths) . ') - using environment variables');
+        }
 
         // ONLY initialize PDO by default
         DatabasePDO::configure([

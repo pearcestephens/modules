@@ -92,6 +92,19 @@ class TransactionModel extends BaseModel
     }
 
     /**
+     * Find a transaction by ID
+     *
+     * @param int $id Transaction ID
+     * @return array|null Transaction data or null if not found
+     */
+    public function findById(int $id): ?array
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+        $result = $this->query($sql, [$id]);
+        return $result[0] ?? null;
+    }
+
+    /**
      * Update transaction status
      *
      * @param int $id Transaction ID

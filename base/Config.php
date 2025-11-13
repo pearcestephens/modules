@@ -22,7 +22,7 @@
  * @created 2025-11-06
  */
 
-namespace Base;
+namespace CIS\Base;
 
 class Config
 {

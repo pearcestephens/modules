@@ -1,0 +1,270 @@
+/**
+ * Professional Dark Theme - Main Styles
+ * CIS Theme System v1.0
+ */
+
+:root {
+    --color-primary: #0ea5e9;
+    --color-secondary: #6366f1;
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-hover: #334155;
+    --color-text: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-accent: #8b5cf6;
+    --color-border: #334155;
+
+    --radius: 8px;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+    --transition: all 0.2s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* ==================== Layout ==================== */
+
+.cis-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.cis-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.cis-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.cis-nav {
+    display: flex;
+    gap: 24px;
+}
+
+.cis-nav-link {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+
+.cis-nav-link:hover,
+.cis-nav-link.active {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+/* ==================== Cards ==================== */
+
+.cis-card {
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.cis-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.cis-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.cis-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.cis-card-body {
+    color: var(--color-text-secondary);
+}
+
+/* ==================== Grid Layouts ==================== */
+
+.cis-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.cis-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.cis-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.cis-grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 1200px) {
+    .cis-grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .cis-grid-2,
+    .cis-grid-3,
+    .cis-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ==================== Buttons ==================== */
+
+.cis-btn {
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.cis-btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.cis-btn-primary:hover {
+    background: #0284c7;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.cis-btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.cis-btn-secondary:hover {
+    background: var(--color-surface-hover);
+}
+
+/* ==================== Stats ==================== */
+
+.cis-stat {
+    text-align: center;
+}
+
+.cis-stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 4px;
+}
+
+.cis-stat-label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cis-stat-change {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.cis-stat-change.positive { color: var(--color-success); }
+.cis-stat-change.negative { color: var(--color-danger); }
+
+/* ==================== Badges ==================== */
+
+.cis-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cis-badge-success { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
+.cis-badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); }
+.cis-badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--color-danger); }
+.cis-badge-primary { background: rgba(14, 165, 233, 0.15); color: var(--color-primary); }
+
+/* ==================== Tables ==================== */
+
+.cis-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cis-table thead {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.cis-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cis-table td {
+    padding: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.cis-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ==================== Utilities ==================== */
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--color-text-secondary); }
+.text-small { font-size: 12px; }
+
+.flex { display: flex; }
+.flex-between { justify-content: space-between; }
+.flex-center { align-items: center; }
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+.gap-3 { gap: 24px; }

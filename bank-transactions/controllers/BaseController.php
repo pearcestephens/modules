@@ -46,36 +46,34 @@ abstract class BaseController
      */
     protected function isAuthenticated(): bool
     {
-        // Allow bot bypass
-        if (!empty($_GET['bot']) || !empty($_SERVER['HTTP_X_BOT_BYPASS'])) {
-            return true;
-        }
-
         return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
     }
 
     /**
-     * Check if user has permission (SIMPLIFIED: Always true if logged in)
+     * Check if user has permission
      *
-     * @param string $permission Permission name (ignored)
-     * @return bool Always true
+     * @param string $permission Permission name
+     * @return bool
      */
     protected function hasPermission(string $permission): bool
     {
-        // SIMPLIFIED: No permission checks - logged in only
-        return $this->isAuthenticated();
+        // Check session permissions
+        if (!isset($_SESSION['permissions'])) {
+            return false;
+        }
+
+        return in_array($permission, $_SESSION['permissions'], true);
     }
 
     /**
-     * Require permission or abort (SIMPLIFIED: Only checks login)
+     * Require permission or abort
      *
-     * @param string $permission Permission name (ignored)
+     * @param string $permission Permission name
      */
     protected function requirePermission(string $permission): void
     {
-        // SIMPLIFIED: Just check if logged in
-        if (!$this->isAuthenticated()) {
-            $this->abort(403, 'Access denied');
+        if (!$this->hasPermission($permission)) {
+            $this->abort(403, 'Access denied - insufficient permissions');
         }
     }
 
@@ -84,11 +82,6 @@ abstract class BaseController
      */
     protected function validateCsrfToken(): void
     {
-        // Allow bot bypass
-        if (!empty($_GET['bot']) || !empty($_SERVER['HTTP_X_BOT_BYPASS'])) {
-            return;
-        }
-
         $token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? '';
         $sessionToken = $_SESSION['csrf_token'] ?? '';
 

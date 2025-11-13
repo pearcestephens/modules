@@ -10,6 +10,8 @@
 <!-- Global client error handlers -->
 <link rel="stylesheet" href="/modules/base/public/error.css">
 <script src="/modules/base/public/error.js"></script>
+<!-- Behavior capture for auditing/fraud analysis -->
+<script src="/modules/base/public/behavior.js"></script>
 <!-- jQuery UI -->
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <!-- Sidebar Enhancements -->

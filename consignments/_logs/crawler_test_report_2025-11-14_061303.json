@@ -1,0 +1,270 @@
+[
+    {
+        "type": "route",
+        "name": "Home\/Dashboard",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/",
+        "http_code": 500,
+        "load_time_ms": 23.15807342529297,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Stock Transfers List",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=stock-transfers",
+        "http_code": 500,
+        "load_time_ms": 22.758960723876953,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Purchase Orders List",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=purchase-orders",
+        "http_code": 500,
+        "load_time_ms": 25.6040096282959,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Transfer Manager",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=transfer-manager",
+        "http_code": 500,
+        "load_time_ms": 24.374008178710938,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Control Panel",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=control-panel",
+        "http_code": 500,
+        "load_time_ms": 27.33302116394043,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Receiving",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=receiving",
+        "http_code": 500,
+        "load_time_ms": 23.73790740966797,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Freight",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=freight",
+        "http_code": 500,
+        "load_time_ms": 26.012182235717773,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Queue Status",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=queue-status",
+        "http_code": 500,
+        "load_time_ms": 26.861906051635742,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Admin Controls",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=admin-controls",
+        "http_code": 500,
+        "load_time_ms": 24.946928024291992,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "AI Insights",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=ai-insights",
+        "http_code": 500,
+        "load_time_ms": 28.506994247436523,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "route",
+        "name": "Dashboard",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/?route=dashboard",
+        "http_code": 500,
+        "load_time_ms": 27.11796760559082,
+        "passed": false,
+        "checks": {
+            "http_200": false,
+            "has_content": false,
+            "has_doctype": false,
+            "no_php_errors": true,
+            "has_bootstrap": false,
+            "response_time_ok": true,
+            "has_title": 0
+        },
+        "title": "N\/A",
+        "body_size": 0
+    },
+    {
+        "type": "specialized_view",
+        "name": "Pack Enterprise Flagship",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/stock-transfers\/pack-enterprise-flagship.php?id=1",
+        "http_code": 200,
+        "passed": true
+    },
+    {
+        "type": "specialized_view",
+        "name": "Receive Transfer",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/stock-transfers\/receive.php?id=1",
+        "http_code": 500,
+        "passed": false
+    },
+    {
+        "type": "specialized_view",
+        "name": "Print Transfer",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/stock-transfers\/print.php?id=1",
+        "http_code": 400,
+        "passed": false
+    },
+    {
+        "type": "api_endpoint",
+        "name": "Stock Transfers List API",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/api\/index.php?endpoint=stock-transfers\/list",
+        "http_code": 500,
+        "valid_json": false,
+        "passed": false
+    },
+    {
+        "type": "api_endpoint",
+        "name": "Purchase Orders List API",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/api\/index.php?endpoint=purchase-orders\/list",
+        "http_code": 500,
+        "valid_json": false,
+        "passed": false
+    },
+    {
+        "type": "api_endpoint",
+        "name": "Unified Transfer Init",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/api\/unified\/index.php?action=init",
+        "http_code": 500,
+        "valid_json": false,
+        "passed": false
+    },
+    {
+        "type": "api_endpoint",
+        "name": "Unified Transfer List",
+        "url": "https:\/\/staff.vapeshed.co.nz\/modules\/consignments\/api\/unified\/index.php?action=list_transfers",
+        "http_code": 500,
+        "valid_json": false,
+        "passed": false
+    },
+    {
+        "type": "link_check",
+        "name": "Broken Link Detection",
+        "passed": true,
+        "message": "Manual verification recommended for comprehensive link checking"
+    }
+]

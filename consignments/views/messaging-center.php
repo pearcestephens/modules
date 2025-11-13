@@ -24,12 +24,11 @@
 
 require_once __DIR__ . '/../bootstrap.php';
 
-// NOTE: ChatService expects MySQLi but modules use PDO
-// For now, this is a UI demo - backend integration comes next
-// TODO: Convert ChatService to use PDO, then uncomment:
-// require_once __DIR__ . '/../../base/services/ChatService.php';
-// use CIS\Base\Services\ChatService;
-// $chatService = new ChatService();
+// ChatService now uses PDO (Database::getInstance) - safe to include
+require_once __DIR__ . '/../../base/services/ChatService.php';
+use CIS\Base\Services\ChatService;
+
+$chatService = new ChatService();
 
 $currentUser = [
     'id' => $_SESSION['user_id'] ?? 0,

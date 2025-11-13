@@ -30,7 +30,44 @@ try {
         exit;
     }
 
-    // TODO: validate permissions, state (OPEN|PACKING), and payload details
+    // Validate permissions, state, and payload details
+    $db = get_db();
+
+    // Check if transfer exists and get current state
+    $stmt = $db->prepare("SELECT id, state, recipient_user_id FROM consignments WHERE id = ? LIMIT 1");
+    $stmt->bind_param('i', $transferId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $transfer = $result->fetch_object();
+    $stmt->close();
+
+    if (!$transfer) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Transfer not found']);
+        exit;
+    }
+
+    // Validate state is OPEN or PACKING
+    if (!in_array($transfer->state, ['OPEN', 'PACKING'])) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Transfer state is not valid for packing. Current state: ' . htmlspecialchars($transfer->state)]);
+        exit;
+    }
+
+    // Check if user has permission to pack this transfer
+    $userId = $_SESSION['user_id'] ?? 0;
+    if ((int)$transfer->recipient_user_id !== $userId && !in_array($_SESSION['role'] ?? '', ['admin', 'manager'])) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Permission denied']);
+        exit;
+    }
+
+    // Validate payload has required fields if provided
+    if (!empty($data['items']) && !is_array($data['items'])) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Items must be an array']);
+        exit;
+    }
 
     $sessionId = bin2hex(random_bytes(12));
     $base = '/modules/consignments/api';

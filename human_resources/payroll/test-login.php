@@ -5,7 +5,7 @@
 
 // Try PHPSESSID (default PHP session name)
 if (session_status() === PHP_SESSION_NONE) {
-    session_name('PHPSESSID');
+    @session_name('CIS_SESSION');
 }
 
 // Session configuration

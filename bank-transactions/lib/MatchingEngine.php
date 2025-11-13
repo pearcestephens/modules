@@ -14,7 +14,7 @@
  * @version 1.0.0
  */
 
-namespace BankTransactions\Lib;
+namespace CIS\BankTransactions\Lib;
 
 use CIS\Base\Database;
 
@@ -39,7 +39,34 @@ class MatchingEngine
 
         // Get VapeShed database connection (CRITICAL: orders table is in dvaxgvsxmz database!)
         global $vapeShedCon;
-        $this->vapeShedCon = $vapeShedCon ?? Database::mysqli(); // Fallback to default if not set
+
+        if (isset($vapeShedCon) && $vapeShedCon instanceof \PDO) {
+            $this->vapeShedCon = $vapeShedCon;
+        } else {
+            // Create VapeShed PDO connection if not available
+            $config = require $_SERVER['DOCUMENT_ROOT'] . '/config/database.php';
+
+            $dsn = sprintf(
+                'mysql:host=%s;dbname=%s;charset=utf8mb4',
+                $config['vapeshed']['host'],
+                $config['vapeshed']['database']
+            );
+
+            try {
+                $this->vapeShedCon = new \PDO(
+                    $dsn,
+                    $config['vapeshed']['username'],
+                    $config['vapeshed']['password'],
+                    [
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_OBJ,
+                        \PDO::ATTR_EMULATE_PREPARES => false
+                    ]
+                );
+            } catch (\PDOException $e) {
+                throw new \RuntimeException("VapeShed database connection failed: " . $e->getMessage());
+            }
+        }
     }
 
     /**
@@ -343,12 +370,11 @@ class MatchingEngine
         // Query VapeShed database for orders (NOT CIS database!)
         foreach ($orderNumbers as $orderNum) {
             $sql = "SELECT * FROM orders WHERE order_id = ? LIMIT 1";
-            $stmt = mysqli_prepare($this->vapeShedCon, $sql);
-            mysqli_stmt_bind_param($stmt, 's', $orderNum);
-            mysqli_stmt_execute($stmt);
-            $result = mysqli_stmt_get_result($stmt);
+            $sql = "SELECT * FROM orders WHERE order_id = :order_id LIMIT 1";
+            $stmt = $this->vapeShedCon->prepare($sql);
+            $stmt->execute(['order_id' => $orderNum]);
 
-            if ($order = mysqli_fetch_object($result)) {
+            if ($order = $stmt->fetchObject()) {
                 $candidates[] = [
                     'type' => 'retail_order',
                     'record_id' => $order->order_id,
@@ -383,8 +409,8 @@ class MatchingEngine
         $pdo = Database::pdo();
 
         $sql = "SELECT * FROM eftpos_reconciliation
-                WHERE settlement_amount BETWEEN ? AND ?
-                AND settlement_date BETWEEN DATE_SUB(?, INTERVAL 2 DAY) AND DATE_ADD(?, INTERVAL 2 DAY)
+                WHERE eftpos_amount BETWEEN ? AND ?
+                AND transaction_date BETWEEN DATE_SUB(?, INTERVAL 2 DAY) AND DATE_ADD(?, INTERVAL 2 DAY)
                 LIMIT 10";
 
         $stmt = $pdo->prepare($sql);
@@ -418,14 +444,15 @@ class MatchingEngine
         }
 
         $sql = "SELECT COUNT(*) as count FROM orders_invoices
-                WHERE order_id = ? AND transaction_reference LIKE ?";
+                WHERE order_id = :order_id AND transaction_reference LIKE :ref";
 
-        $stmt = mysqli_prepare($this->vapeShedCon, $sql);
+        $stmt = $this->vapeShedCon->prepare($sql);
         $searchRef = '%' . substr($transaction->transaction_reference, 0, 20) . '%';
-        mysqli_stmt_bind_param($stmt, 'ss', $match['record_id'], $searchRef);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_object($result);
+        $stmt->execute([
+            'order_id' => $match['record_id'],
+            'ref' => $searchRef
+        ]);
+        $row = $stmt->fetchObject();
 
         return $row->count > 0;
     }

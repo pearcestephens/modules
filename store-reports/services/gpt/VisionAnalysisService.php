@@ -59,6 +59,11 @@ class StoreReportAIVisionService {
             // Parse and extract structured data
             $analysis = $this->parseAIResponse($response);
 
+            // Cost estimation (rough): assume tokens proportional to description length + objects/issues
+            $tokenEstimate = strlen(json_encode($analysis)) / 4; // heuristic
+            $costPer1K = 0.03; // approximate high-detail vision output cost per 1K tokens
+            $estimatedCost = round(($tokenEstimate/1000) * $costPer1K, 4);
+
             // Store analysis results
             $this->storeAnalysisResults($imageId, $analysis, $duration);
 
@@ -332,53 +337,62 @@ class StoreReportAIVisionService {
      * Store analysis results in database
      */
     private function storeAnalysisResults(int $imageId, array $analysis, int $duration): void {
+        $pdo = sr_pdo();
+        if (!$pdo) { throw new Exception('Database unavailable'); }
         $sql = "UPDATE store_report_images SET
             ai_analyzed = TRUE,
             ai_analysis_timestamp = NOW(),
-            ai_analysis_duration_ms = ?,
-            ai_model_version = ?,
-            ai_description = ?,
-            ai_detected_objects = ?,
-            ai_detected_issues = ?,
-            ai_detected_positives = ?,
-            ai_cleanliness_score = ?,
-            ai_organization_score = ?,
-            ai_compliance_score = ?,
-            ai_safety_score = ?,
-            ai_overall_score = ?,
-            ai_confidence = ?,
-            ai_flags = ?,
-            ai_recommendations = ?,
-            ai_follow_up_needed = ?,
-            ai_follow_up_request = ?,
+            ai_analysis_duration_ms = :duration,
+            ai_model_version = :model,
+            ai_description = :description,
+            ai_detected_objects = :objects,
+            ai_detected_issues = :issues,
+            ai_detected_positives = :positives,
+            ai_cleanliness_score = :cleanliness,
+            ai_organization_score = :organization,
+            ai_compliance_score = :compliance,
+            ai_safety_score = :safety,
+            ai_overall_score = :overall,
+            ai_confidence = :confidence,
+            ai_flags = :flags,
+            ai_recommendations = :recs,
+            ai_follow_up_needed = :follow_needed,
+            ai_follow_up_request = :follow_req,
             updated_at = NOW()
-        WHERE id = ?";
-
-        $stmt = $this->db->prepare($sql);
-
-        $stmt->bind_param(
-            'isssssddddddssisi',
-            $duration,
-            $this->model,
-            $analysis['description'],
-            json_encode($analysis['detected_objects'] ?? []),
-            json_encode($analysis['issues'] ?? []),
-            json_encode($analysis['positives'] ?? []),
-            $analysis['scores']['cleanliness'] ?? 0,
-            $analysis['scores']['organization'] ?? 0,
-            $analysis['scores']['compliance'] ?? 0,
-            $analysis['scores']['safety'] ?? 0,
-            $analysis['scores']['overall'] ?? 0,
-            $analysis['scores']['confidence'] ?? 0,
-            json_encode($analysis['flags'] ?? []),
-            json_encode($analysis['recommendations'] ?? []),
-            $analysis['follow_up_needed'] ?? false,
-            $analysis['follow_up_requests'] ? json_encode($analysis['follow_up_requests']) : null,
-            $imageId
-        );
-
-        if (!$stmt->execute()) {
-            throw new Exception("Failed to store analysis results: " . $stmt->error);
+        WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $followReq = !empty($analysis['follow_up_requests']) ? json_encode($analysis['follow_up_requests']) : null;
+        $ok = $stmt->execute([
+            ':duration' => $duration,
+            ':model' => $this->model,
+            ':description' => $analysis['description'],
+            ':objects' => json_encode($analysis['detected_objects'] ?? []),
+            ':issues' => json_encode($analysis['issues'] ?? []),
+            ':positives' => json_encode($analysis['positives'] ?? []),
+            ':cleanliness' => $analysis['scores']['cleanliness'] ?? 0,
+            ':organization' => $analysis['scores']['organization'] ?? 0,
+            ':compliance' => $analysis['scores']['compliance'] ?? 0,
+            ':safety' => $analysis['scores']['safety'] ?? 0,
+            ':overall' => $analysis['scores']['overall'] ?? 0,
+            ':confidence' => $analysis['scores']['confidence'] ?? 0,
+            ':flags' => json_encode($analysis['flags'] ?? []),
+            ':recs' => json_encode($analysis['recommendations'] ?? []),
+            ':follow_needed' => $analysis['follow_up_needed'] ?? 0,
+            ':follow_req' => $followReq,
+            ':id' => $imageId
+        ]);
+        if (!$ok) {
+            $errInfo = $stmt->errorInfo();
+            throw new Exception('Failed to store analysis results: '.$errInfo[2]);
+        }
+        if (function_exists('sr_log_event')) {
+            sr_log_event('ai_analysis_stored', [
+                'image_id'=>$imageId,
+                'duration_ms'=>$duration,
+                'overall_score'=>$analysis['scores']['overall'] ?? 0,
+                'confidence'=>$analysis['scores']['confidence'] ?? 0,
+                'follow_up_requests'=>count($analysis['follow_up_requests'] ?? []),
+            ]);
         }
     }
 
@@ -386,7 +400,9 @@ class StoreReportAIVisionService {
      * Generate overall report summary from all image analyses
      */
     private function generateReportSummary(int $reportId): array {
-        $sql = "SELECT
+        $pdo = sr_pdo();
+        if (!$pdo) { throw new Exception('Database unavailable'); }
+        $stats = sr_query_one("SELECT
             COUNT(*) as total_images,
             AVG(ai_overall_score) as avg_score,
             AVG(ai_cleanliness_score) as avg_cleanliness,
@@ -395,39 +411,26 @@ class StoreReportAIVisionService {
             AVG(ai_compliance_score) as avg_compliance,
             AVG(ai_confidence) as avg_confidence
         FROM store_report_images
-        WHERE report_id = ? AND ai_analyzed = TRUE AND deleted_at IS NULL";
+        WHERE report_id = ? AND ai_analyzed = TRUE AND deleted_at IS NULL", [$reportId]) ?? [];
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $reportId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $stats = $result->fetch_assoc();
-
-        // Collect all issues and recommendations
-        $sql = "SELECT ai_detected_issues, ai_recommendations, ai_flags
+        $rows = sr_query("SELECT ai_detected_issues, ai_recommendations, ai_flags
                 FROM store_report_images
-                WHERE report_id = ? AND ai_analyzed = TRUE AND deleted_at IS NULL";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $reportId);
-        $stmt->execute();
-        $result = $stmt->get_result();
+                WHERE report_id = ? AND ai_analyzed = TRUE AND deleted_at IS NULL", [$reportId]);
 
         $allIssues = [];
         $allRecommendations = [];
         $allFlags = [];
-
-        while ($row = $result->fetch_assoc()) {
-            if ($row['ai_detected_issues']) {
-                $issues = json_decode($row['ai_detected_issues'], true);
+        foreach ($rows as $row) {
+            if (!empty($row['ai_detected_issues'])) {
+                $issues = json_decode((string)$row['ai_detected_issues'], true);
                 $allIssues = array_merge($allIssues, $issues ?: []);
             }
-            if ($row['ai_recommendations']) {
-                $recs = json_decode($row['ai_recommendations'], true);
+            if (!empty($row['ai_recommendations'])) {
+                $recs = json_decode((string)$row['ai_recommendations'], true);
                 $allRecommendations = array_merge($allRecommendations, $recs ?: []);
             }
-            if ($row['ai_flags']) {
-                $flags = json_decode($row['ai_flags'], true);
+            if (!empty($row['ai_flags'])) {
+                $flags = json_decode((string)$row['ai_flags'], true);
                 $allFlags = array_merge($allFlags, $flags ?: []);
             }
         }
@@ -518,11 +521,8 @@ class StoreReportAIVisionService {
 
     private function getImageDetails(int $imageId): ?array {
         $sql = "SELECT * FROM store_report_images WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $imageId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+    $row = sr_query_one($sql, [$imageId]);
+    return $row ?: null;
     }
 
     private function getReportImages(int $reportId, bool $analyzedOnly = false): array {
@@ -534,16 +534,7 @@ class StoreReportAIVisionService {
         }
         $sql .= " ORDER BY upload_timestamp ASC";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $reportId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $images = [];
-        while ($row = $result->fetch_assoc()) {
-            $images[] = $row;
-        }
-        return $images;
+        return sr_query($sql, [$reportId]) ?? [];
     }
 
     private function getReportContext(int $reportId): array {
@@ -551,20 +542,12 @@ class StoreReportAIVisionService {
                 FROM store_reports sr
                 JOIN vend_outlets vo ON sr.outlet_id = vo.id
                 WHERE sr.id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $reportId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+    return sr_query_one($sql, [$reportId]) ?? [];
     }
 
     private function getChecklistItem(int $itemId): array {
         $sql = "SELECT * FROM store_report_checklist WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $itemId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+    return sr_query_one($sql, [$itemId]) ?? [];
     }
 
     private function updateImageStatus(int $imageId, string $status, bool $analyzed = null, string $error = null): void {
@@ -588,25 +571,19 @@ class StoreReportAIVisionService {
         $params[] = $imageId;
         $types .= 'i';
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
+    $pdo = sr_pdo(); if(!$pdo) return; $stmt = $pdo->prepare($sql); $stmt->execute($params);
     }
 
     private function incrementRetryCount(int $imageId): void {
         $sql = "UPDATE store_report_images SET ai_retry_count = ai_retry_count + 1 WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('i', $imageId);
-        $stmt->execute();
+    $pdo = sr_pdo(); if(!$pdo) return; $stmt = $pdo->prepare($sql); $stmt->execute([$imageId]);
     }
 
     private function updateReportAIStatus(int $reportId, string $status): void {
         $field = $status === 'processing' ? 'ai_analysis_started_at' : 'ai_analysis_completed_at';
 
         $sql = "UPDATE store_reports SET ai_analysis_status = ?, {$field} = NOW() WHERE id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param('si', $status, $reportId);
-        $stmt->execute();
+    $pdo = sr_pdo(); if(!$pdo) return; $stmt = $pdo->prepare($sql); $stmt->execute([$status, $reportId]);
     }
 
     private function updateReportAIResults(int $reportId, array $summary): void {
@@ -619,9 +596,7 @@ class StoreReportAIVisionService {
             images_analyzed = ?
         WHERE id = ?";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param(
-            'dsssdii',
+        $pdo = sr_pdo(); if(!$pdo) return; $stmt = $pdo->prepare($sql); $stmt->execute([
             $summary['stats']['avg_score'],
             $summary['summary'],
             json_encode($summary['issues']),
@@ -629,8 +604,8 @@ class StoreReportAIVisionService {
             $summary['stats']['avg_confidence'],
             $summary['stats']['total_images'],
             $reportId
-        );
-        $stmt->execute();
+        ]);
+        if (function_exists('sr_log_event')) { sr_log_event('ai_report_summary', ['report_id'=>$reportId,'avg_score'=>$summary['stats']['avg_score'],'images_analyzed'=>$summary['stats']['total_images']]); }
     }
 
     private function createAIPhotoRequests(int $reportId, int $triggerImageId, array $requests): void {
@@ -639,18 +614,16 @@ class StoreReportAIVisionService {
                     (report_id, trigger_image_id, request_type, priority, request_title, request_description, ai_reasoning)
                     VALUES (?, ?, 'follow_up', ?, ?, ?, ?)";
 
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param(
-                'iissss',
+            $pdo = sr_pdo(); if(!$pdo) return; $stmt = $pdo->prepare($sql); $stmt->execute([
                 $reportId,
                 $triggerImageId,
                 $request['priority'] ?? 'medium',
                 $request['title'],
                 $request['description'],
                 $request['reason'] ?? ''
-            );
-            $stmt->execute();
+            ]);
         }
+        if (function_exists('sr_log_event')) { sr_log_event('ai_followup_requests_created', ['report_id'=>$reportId,'trigger_image_id'=>$triggerImageId,'count'=>count($requests)]); }
     }
 
     private function log(string $message, string $level = 'info'): void {

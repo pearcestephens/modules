@@ -56,6 +56,12 @@ if (file_exists($app_path)) {
 
 // Database connection helper - always define it here for backend.php
 function db(): mysqli {
+  static $conn = null;
+
+  if ($conn !== null) {
+    return $conn;
+  }
+
   // Use CIS database constants from app.php (loaded above)
   $host = defined('DB_HOST') ? DB_HOST : '127.0.0.1';
   $user = defined('DB_USERNAME') ? DB_USERNAME : (defined('DB_USER') ? DB_USER : 'jcepnzzkmj');
@@ -67,6 +73,14 @@ function db(): mysqli {
     throw new RuntimeException('Database connection failed: ' . $conn->connect_error);
   }
   $conn->set_charset('utf8mb4');
+
+  // ✅ CRITICAL FIX: Register shutdown handler to cleanup connection
+  register_shutdown_function(function() use ($conn) {
+    if ($conn instanceof mysqli && !empty($conn->thread_id)) {
+      @$conn->close();
+    }
+  });
+
   return $conn;
 }
 

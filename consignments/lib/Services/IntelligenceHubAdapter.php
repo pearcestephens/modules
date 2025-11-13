@@ -96,23 +96,45 @@ class IntelligenceHubAdapter
     {
         $endpoint = $this->config['chat_endpoint'];
 
-        // TODO: Adjust request format based on your actual Intelligence Hub API
+        // Build request payload for Intelligence Hub API
+        // Format: Standard OpenAI-compatible chat completion request
         $payload = [
-            'message' => $message,
-            'context' => $context,
-            'model' => 'gpt-4o', // Intelligence Hub will route to appropriate model
+            'model' => 'gpt-4o',
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => $message,
+                ],
+            ],
+            'max_tokens' => 2048,
+            'temperature' => 0.7,
         ];
+
+        // Add context as system prompt if provided
+        if (!empty($context)) {
+            array_unshift($payload['messages'], [
+                'role' => 'system',
+                'content' => 'Context: ' . json_encode($context),
+            ]);
+        }
 
         // Add API key if configured
         if (!empty($this->config['api_key'])) {
-            $payload['api_key'] = $this->config['api_key'];
+            // The API key is passed via header in makeRequest()
         }
 
         try {
             $response = $this->makeRequest($endpoint, $payload);
 
-            // TODO: Adjust response parsing based on your actual Intelligence Hub response format
-            return $this->parseResponse($response);
+            // Parse OpenAI-compatible response format
+            // Expected: { "choices": [{ "message": { "content": "..." }, "finish_reason": "stop" }], ... }
+            return [
+                'success' => !empty($response),
+                'message' => $response['choices'][0]['message']['content'] ?? 'No response',
+                'finish_reason' => $response['choices'][0]['finish_reason'] ?? 'unknown',
+                'usage' => $response['usage'] ?? null,
+                'raw_response' => $response,
+            ];
 
         } catch (Exception $e) {
             error_log('[IntelligenceHubAdapter] Chat error: ' . $e->getMessage());
@@ -346,25 +368,39 @@ class IntelligenceHubAdapter
     /**
      * Parse Intelligence Hub response into standardized format
      *
-     * TODO: Adjust based on actual response structure
+     * Handles OpenAI-compatible API response structure from Intelligence Hub
      *
      * @param array $response Raw API response
      * @return array Standardized response
      */
     private function parseResponse(array $response): array
     {
-        // Default parsing - adjust based on your actual response format
+        // OpenAI-compatible response format
+        // Expected: { "choices": [...], "usage": { "total_tokens": ... }, ... }
+
+        if (isset($response['choices']) && !empty($response['choices'])) {
+            // Chat completion response
+            $firstChoice = $response['choices'][0];
+            $content = $firstChoice['message']['content'] ?? '';
+            $finishReason = $firstChoice['finish_reason'] ?? 'unknown';
+        } else {
+            // Fallback for non-standard responses
+            $content = $response['response'] ?? $response['message'] ?? '';
+            $finishReason = 'standard';
+        }
+
         return [
             'success' => true,
-            'message' => $response['response'] ?? $response['message'] ?? '',
-            'confidence' => $response['confidence'] ?? 0.85,
-            'actions' => $response['actions'] ?? [],
-            'reasoning' => $response['reasoning'] ?? '',
+            'message' => $content,
+            'finish_reason' => $finishReason,
+            'confidence' => $finishReason === 'stop' ? 1.0 : 0.85,
             'metadata' => [
                 'provider' => 'intelligence-hub',
                 'model' => $response['model'] ?? 'gpt-4o',
-                'tokens_used' => $response['tokens_used'] ?? $response['usage']['total_tokens'] ?? 0,
-                'processing_time_ms' => $response['processing_time_ms'] ?? 0,
+                'tokens_used' => $response['usage']['total_tokens'] ?? 0,
+                'prompt_tokens' => $response['usage']['prompt_tokens'] ?? 0,
+                'completion_tokens' => $response['usage']['completion_tokens'] ?? 0,
+                'created_at' => $response['created'] ?? time(),
             ],
             'raw_response' => $response, // Keep original for debugging
         ];

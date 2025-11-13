@@ -14,9 +14,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../bootstrap.php';
 
-use CIS\Consignments\Services\PurchaseOrderService;
-use CIS\Consignments\Services\ReceivingService;
-use CIS\Consignments\Services\TransferReviewService;
+use CIS\Services\Consignments\Core\PurchaseOrderService;
+use CIS\Services\Consignments\Core\ReceivingService;
+use CIS\Services\Consignments\Support\TransferReviewService;
 use CIS\Consignments\Lib\PurchaseOrderLogger;
 
 header('Content-Type: application/json');

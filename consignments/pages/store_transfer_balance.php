@@ -2,13 +2,13 @@
 declare(strict_types=1);
 /**
  * Store Transfer Balance Analytics
- * 
+ *
  * Real-time inventory distribution analysis across all outlets
  * - Stock level imbalances
  * - Transfer recommendations
  * - Outlet performance metrics
  * - Integration with Dynamic Pricing & Stock Engine
- * 
+ *
  * @package CIS\Consignments
  * @version 2.0.0
  */
@@ -28,7 +28,7 @@ $db = cis_resolve_pdo();
  */
 function getOutletStockLevels(PDO $db): array {
     $query = "
-        SELECT 
+        SELECT
             vo.id AS outlet_id,
             vo.name AS outlet_name,
             vo.store_code,
@@ -43,7 +43,7 @@ function getOutletStockLevels(PDO $db): array {
         GROUP BY vo.id
         ORDER BY vo.name ASC
     ";
-    
+
     $stmt = $db->query($query);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -54,7 +54,7 @@ function getOutletStockLevels(PDO $db): array {
  */
 function getStockImbalances(PDO $db, int $limit = 50): array {
     $query = "
-        SELECT 
+        SELECT
             vp.id AS product_id,
             vp.sku,
             vp.name AS product_name,
@@ -74,7 +74,7 @@ function getStockImbalances(PDO $db, int $limit = 50): array {
         ORDER BY stock_stddev DESC
         LIMIT ?
     ";
-    
+
     $stmt = $db->prepare($query);
     $stmt->execute([$limit]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -85,7 +85,7 @@ function getStockImbalances(PDO $db, int $limit = 50): array {
  */
 function getRecentTransfers(PDO $db, int $limit = 20): array {
     $query = "
-        SELECT 
+        SELECT
             t.id,
             t.public_id,
             t.consignment_category,
@@ -104,7 +104,7 @@ function getRecentTransfers(PDO $db, int $limit = 20): array {
         ORDER BY t.created_at DESC
         LIMIT ?
     ";
-    
+
     $stmt = $db->prepare($query);
     $stmt->execute([$limit]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -115,7 +115,7 @@ function getRecentTransfers(PDO $db, int $limit = 20): array {
  */
 function getTransferStats(PDO $db): array {
     $query = "
-        SELECT 
+        SELECT
             COUNT(*) AS total_transfers,
             SUM(CASE WHEN state IN ('OPEN', 'SENT') THEN 1 ELSE 0 END) AS pending_transfers,
             SUM(CASE WHEN state = 'RECEIVED' THEN 1 ELSE 0 END) AS completed_transfers,
@@ -126,7 +126,7 @@ function getTransferStats(PDO $db): array {
         WHERE consignment_category != 'PURCHASE_ORDER'
         AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
     ";
-    
+
     $stmt = $db->query($query);
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 }
@@ -160,20 +160,20 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
             --danger: #dc3545;
             --info: #4facfe;
         }
-        
+
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px 0;
         }
-        
+
         .main-container {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 30px;
         }
-        
+
         .stat-card {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
@@ -183,23 +183,23 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             transition: transform 0.3s ease;
         }
-        
+
         .stat-card:hover {
             transform: translateY(-5px);
         }
-        
+
         .stat-card h3 {
             font-size: 2.5rem;
             font-weight: 700;
             margin: 0;
         }
-        
+
         .stat-card p {
             margin: 0;
             opacity: 0.9;
             font-size: 0.95rem;
         }
-        
+
         .table-container {
             background: white;
             border-radius: 15px;
@@ -207,45 +207,45 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
             margin-bottom: 30px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        
+
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
         .table-header h4 {
             margin: 0;
             color: var(--primary);
             font-weight: 600;
         }
-        
+
         .badge-state {
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 500;
         }
-        
+
         .badge-open { background: #ffd700; color: #000; }
         .badge-sent { background: #4facfe; color: #fff; }
         .badge-received { background: #43e97b; color: #fff; }
         .badge-cancelled { background: #dc3545; color: #fff; }
-        
+
         .progress-bar-custom {
             height: 8px;
             border-radius: 10px;
             background: #e9ecef;
             overflow: hidden;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             transition: width 0.3s ease;
         }
-        
+
         .outlet-card {
             border: 2px solid #e9ecef;
             border-radius: 10px;
@@ -253,12 +253,12 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
             margin-bottom: 15px;
             transition: all 0.3s ease;
         }
-        
+
         .outlet-card:hover {
             border-color: var(--primary);
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
         }
-        
+
         .imbalance-indicator {
             width: 12px;
             height: 12px;
@@ -266,11 +266,11 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
             display: inline-block;
             margin-right: 8px;
         }
-        
+
         .imbalance-high { background: var(--danger); }
         .imbalance-medium { background: var(--warning); }
         .imbalance-low { background: var(--success); }
-        
+
         .btn-gradient {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border: none;
@@ -280,7 +280,7 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
             font-weight: 500;
             transition: all 0.3s ease;
         }
-        
+
         .btn-gradient:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
@@ -382,7 +382,7 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($outlets as $outlet): 
+                            <?php foreach ($outlets as $outlet):
                                 $distPct = $totalStockUnits > 0 ? ($outlet['total_stock_units'] / $totalStockUnits) * 100 : 0;
                             ?>
                             <tr>
@@ -425,7 +425,7 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($imbalances as $item): 
+                            <?php foreach ($imbalances as $item):
                                 $severity = $item['stock_variance'] > 50 ? 'high' : ($item['stock_variance'] > 20 ? 'medium' : 'low');
                             ?>
                             <tr>
@@ -509,8 +509,34 @@ $avgStockPerOutlet = count($outlets) > 0 ? $totalStockUnits / count($outlets) : 
     <script>
         function createBalancingTransfer(productId) {
             if (confirm('Create an automatic balancing transfer for this product?')) {
-                // TODO: Integrate with Dynamic Pricing & Stock Engine
-                alert('This feature will be integrated with the Dynamic Pricing & Stock Engine.\n\nIt will automatically:\n1. Analyze demand patterns\n2. Calculate optimal stock distribution\n3. Create transfer recommendations\n4. Apply freight cost optimization');
+                // Integrate with Dynamic Pricing & Stock Engine via API
+                const formData = new FormData();
+                formData.append('product_id', productId);
+                formData.append('action', 'create_balancing_transfer');
+
+                fetch('/modules/consignments/api/dynamic-pricing/optimize.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Balancing transfer created!\n\n' +
+                              'Transfer ID: ' + data.transfer_id + '\n' +
+                              'From: ' + data.from_outlet + '\n' +
+                              'To: ' + data.to_outlet + '\n' +
+                              'Quantity: ' + data.quantity + '\n\n' +
+                              'Routing via Dynamic Pricing & Stock Engine\n' +
+                              'Optimization: ' + data.optimization_notes);
+                        location.reload();
+                    } else {
+                        alert('❌ Failed to create transfer: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Error creating transfer: ' + error.message);
+                });
             }
         }
 

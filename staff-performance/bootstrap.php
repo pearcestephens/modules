@@ -145,5 +145,13 @@ $moduleInfo = [
 // 8. MODULE READY
 // ============================================================================
 
+// ✅ CRITICAL FIX: Register shutdown handler to cleanup PDO connection
+register_shutdown_function(function() {
+    global $db;
+    if (isset($db) && $db instanceof PDO) {
+        $db = null;
+    }
+});
+
 // Module is now ready for use
 define('STAFF_PERFORMANCE_MODULE_LOADED', true);

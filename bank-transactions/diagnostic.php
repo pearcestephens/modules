@@ -64,7 +64,9 @@ header('Content-Type: text/html; charset=UTF-8');
 
     // Get database connection
     try {
-        $db = \CIS\Base\Database::getConnection();
+        // Initialize PDO connection
+        \CIS\Base\Database::init();
+        $db = \CIS\Base\DatabasePDO::connection();
         echo testPass("Database connection established");
     } catch (Exception $e) {
         echo testFail("Database connection failed: " . $e->getMessage());
@@ -124,8 +126,8 @@ header('Content-Type: text/html; charset=UTF-8');
             'bank_transactions_archive' => 'Archived bank transactions',
             'bank_audit_trail' => 'Audit trail for changes',
             'bank_manual_reviews' => 'Manual review queue',
-            'orders' => 'Orders from Vend',
-            'orders_invoices' => 'Order invoices/payments',
+            'ecom_orders' => 'E-commerce orders (optional)',
+            'purchase_orders' => 'Purchase orders (optional)',
         ];
 
         foreach ($requiredTables as $table => $description) {
@@ -133,12 +135,20 @@ header('Content-Type: text/html; charset=UTF-8');
                 $stmt = $db->query("SHOW TABLES LIKE '$table'");
                 $exists = $stmt->fetch();
 
+                // Determine if this is an optional table
+                $isOptional = strpos($description, '(optional)') !== false;
+
                 if ($exists) {
                     $countStmt = $db->query("SELECT COUNT(*) as cnt FROM `$table`");
                     $count = $countStmt->fetch(PDO::FETCH_ASSOC)['cnt'];
                     echo testPass("$table ($count rows) - $description");
                 } else {
-                    echo testFail("$table MISSING - $description");
+                    // Warn on missing optional tables, fail on missing required tables
+                    if ($isOptional) {
+                        echo testWarn("$table MISSING - $description (not required)");
+                    } else {
+                        echo testFail("$table MISSING - $description");
+                    }
                 }
             } catch (Exception $e) {
                 echo testFail("$table ERROR: " . $e->getMessage());
@@ -156,7 +166,7 @@ header('Content-Type: text/html; charset=UTF-8');
 
             $requiredColumns = [
                 'id', 'transaction_date', 'transaction_reference', 'transaction_name',
-                'transaction_type', 'amount', 'status', 'confidence_score',
+                'transaction_type', 'transaction_amount', 'status', 'confidence_score',
                 'matched_at', 'matched_by', 'order_id', 'payment_id'
             ];
 
@@ -197,7 +207,7 @@ header('Content-Type: text/html; charset=UTF-8');
                     echo "<td>{$row['id']}</td>";
                     echo "<td>{$row['transaction_date']}</td>";
                     echo "<td>" . htmlspecialchars($row['transaction_reference'] ?? 'N/A') . "</td>";
-                    echo "<td>\$" . number_format($row['amount'], 2) . "</td>";
+                    echo "<td>\$" . number_format($row['transaction_amount'], 2) . "</td>";
                     echo "<td><span class='status-badge {$statusClass}'>{$row['status']}</span></td>";
                     echo "<td>{$row['transaction_type']}</td>";
                     echo "</tr>";

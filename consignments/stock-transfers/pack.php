@@ -25,6 +25,10 @@ if ($transferId <= 0 && ! $__demo) {
 // Load CIS + shared helpers
 // -----------------------------------------------------------------------------
 require_once __DIR__ . '/../bootstrap.php';
+// Enforce authentication for direct access
+if (function_exists('requireAuth')) {
+  requireAuth();
+}
 require_once __DIR__ . '/../lib/CISTemplate.php';
 
 // -----------------------------------------------------------------------------

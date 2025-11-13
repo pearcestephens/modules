@@ -16,56 +16,35 @@ namespace CIS\BankTransactions\API;
 class APIHelper
 {
     /**
-     * Check if user is authenticated (with bot bypass support)
+     * Check if user is authenticated
      *
-     * @return array ['authenticated' => bool, 'user_id' => int|null, 'bypass' => bool]
+     * @return array ['authenticated' => bool, 'user_id' => int|null]
      */
     public static function checkAuth(): array
     {
-        // Check for bot bypass
-        $botBypass = defined('BOT_BYPASS_AUTH') && BOT_BYPASS_AUTH;
-
-        if ($botBypass) {
-            // Bot bypass enabled - allow with admin user
-            return [
-                'authenticated' => true,
-                'user_id' => 1, // Admin user
-                'bypass' => true
-            ];
-        }
-
         // Normal authentication check
         if (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0) {
             return [
                 'authenticated' => true,
-                'user_id' => (int)$_SESSION['user_id'],
-                'bypass' => false
+                'user_id' => (int)$_SESSION['user_id']
             ];
         }
 
         return [
             'authenticated' => false,
-            'user_id' => null,
-            'bypass' => false
+            'user_id' => null
         ];
     }
 
     /**
-     * Check if user has permission (with bot bypass support)
+     * Check if user has permission
      *
      * @param string $permission Permission to check
      * @return bool
      */
     public static function checkPermission(string $permission): bool
     {
-        // Check for bot bypass
-        $botBypass = defined('BOT_BYPASS_AUTH') && BOT_BYPASS_AUTH;
-
-        if ($botBypass) {
-            return true; // Bot bypass - grant all permissions
-        }
-
-        // Normal permission check
+        // Check session permissions
         if (!isset($_SESSION['permissions'])) {
             return false;
         }

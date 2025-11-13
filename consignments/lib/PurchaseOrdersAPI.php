@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../base/lib/BaseAPI.php';
 require_once __DIR__ . '/../lib/Services/PurchaseOrderService.php';
 
 use CIS\Base\Lib\BaseAPI;
-use CIS\Consignments\Services\PurchaseOrderService;
+use CIS\Services\Consignments\Core\PurchaseOrderService;
 
 class PurchaseOrdersAPI extends BaseAPI {
 

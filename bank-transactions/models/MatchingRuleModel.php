@@ -20,32 +20,26 @@ class MatchingRuleModel {
     }
 
     public function findById(int $id): ?array {
-        $stmt = $this->con->prepare("SELECT * FROM " . $this->table . " WHERE id = ? LIMIT 1");
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+        $stmt = $this->con->prepare("SELECT * FROM " . $this->table . " WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function getAll(int $limit = 100, int $offset = 0): array {
-        $stmt = $this->con->prepare("SELECT * FROM " . $this->table . " LIMIT ? OFFSET ?");
-        $stmt->bind_param('ii', $limit, $offset);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $stmt = $this->con->prepare("SELECT * FROM " . $this->table . " LIMIT :limit OFFSET :offset");
+        $stmt->execute(['limit' => $limit, 'offset' => $offset]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function create(array $data): int {
-        $stmt = $this->con->prepare("INSERT INTO " . $this->table . " (name, description, created_at) VALUES (?, ?, NOW())");
-        $stmt->bind_param('ss', $data['name'], $data['description']);
-        $stmt->execute();
-        return $this->con->insert_id;
+        $stmt = $this->con->prepare("INSERT INTO " . $this->table . " (name, description, created_at) VALUES (:name, :description, NOW())");
+        $stmt->execute(['name' => $data['name'], 'description' => $data['description']]);
+        return (int)$this->con->lastInsertId();
     }
 
     public function update(int $id, array $data): bool {
-        $stmt = $this->con->prepare("UPDATE " . $this->table . " SET name = ?, description = ? WHERE id = ?");
-        $stmt->bind_param('ssi', $data['name'], $data['description'], $id);
-        return $stmt->execute();
+        $stmt = $this->con->prepare("UPDATE " . $this->table . " SET name = :name, description = :description WHERE id = :id");
+        return $stmt->execute(['name' => $data['name'], 'description' => $data['description'], 'id' => $id]);
     }
 }
 ?>

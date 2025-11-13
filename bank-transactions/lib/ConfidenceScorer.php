@@ -17,7 +17,7 @@
  * @version 1.0.0
  */
 
-namespace BankTransactions\Lib;
+namespace CIS\BankTransactions\Lib;
 
 class ConfidenceScorer
 {
@@ -28,7 +28,7 @@ class ConfidenceScorer
      *
      * @param object $transaction Bank transaction
      * @param array $candidate Candidate match with 'type' and 'record'
-     * @return int Confidence score (0-300)
+        $transHour = isset($transaction->transaction_date) ? (int)date('H', strtotime($transaction->transaction_date)) : null;
      */
     public function scoreMatch($transaction, $candidate)
     {
@@ -104,7 +104,7 @@ class ConfidenceScorer
         $this->lastBreakdown['total'] = $score;
         $this->lastBreakdown['percentage'] = round(($score / 300) * 100, 1);
 
-        return min($score, 300); // Cap at 300
+        return (int)min($score, 300); // Cap at 300 and cast to int
     }
 
     /**
@@ -120,7 +120,7 @@ class ConfidenceScorer
      */
     private function scoreAmount($transaction, $record, $type)
     {
-        $transAmount = $transaction->transaction_amount;
+        $transAmount = $transaction->transaction_amount ?? 0;
 
         // Get record amount based on type
         $recordAmount = match($type) {
@@ -151,7 +151,7 @@ class ConfidenceScorer
      */
     private function scoreDate($transaction, $record, $type)
     {
-        $transDate = new \DateTime($transaction->transaction_date);
+        $transDate = isset($transaction->transaction_date) ? new \DateTime($transaction->transaction_date) : null;
 
         // Get record date based on type
         $recordDateStr = match($type) {
@@ -283,10 +283,10 @@ class ConfidenceScorer
         // Check if transaction occurred within expected banking hours/patterns
         // This is a simplified implementation
 
-        $transHour = (int)date('H', strtotime($transaction->transaction_date));
+        $transHour = isset($transaction->transaction_date) ? (int)date('H', strtotime($transaction->transaction_date)) : null;
 
         // Banking hours typically 9am-5pm
-        if ($transHour >= 9 && $transHour <= 17) {
+        if ($transHour !== null && $transHour >= 9 && $transHour <= 17) {
             return 10;
         }
 
@@ -297,7 +297,7 @@ class ConfidenceScorer
 
     private function getAmountDetails($transaction, $record, $type)
     {
-        $transAmount = $transaction->transaction_amount;
+           $transAmount = $transaction->transaction_amount ?? 0;
         $recordAmount = match($type) {
             'store_deposit' => $record->actual_cash_total ?? 0,
             'retail_order', 'wholesale_order' => $record->total_price ?? 0,
@@ -321,7 +321,7 @@ class ConfidenceScorer
 
     private function getDateDetails($transaction, $record, $type)
     {
-        $transDate = new \DateTime($transaction->transaction_date);
+           $transDate = isset($transaction->transaction_date) ? new \DateTime($transaction->transaction_date) : null;
         $recordDateStr = match($type) {
             'store_deposit' => $record->created ?? null,
             'retail_order', 'wholesale_order' => $record->date_ordered ?? null,
@@ -396,7 +396,7 @@ class ConfidenceScorer
 
     private function getTimingDetails($transaction, $record, $type)
     {
-        $transTime = date('H:i', strtotime($transaction->transaction_date));
+        $transTime = isset($transaction->transaction_date) ? date('H:i', strtotime($transaction->transaction_date)) : 'Unknown';
         return "Transaction time: $transTime";
     }
 }

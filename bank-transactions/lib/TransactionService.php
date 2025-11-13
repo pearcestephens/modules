@@ -39,7 +39,7 @@ class TransactionService {
         $imported = [];
         $errors = [];
 
-        $this->con->begin_transaction();
+        $this->con->beginTransaction();
 
         try {
             foreach ($transactions as $idx => $txn) {
@@ -79,7 +79,7 @@ class TransactionService {
             $this->con->commit();
 
         } catch (Exception $e) {
-            $this->con->rollback();
+            $this->con->rollBack();
             throw $e;
         }
 
@@ -98,21 +98,18 @@ class TransactionService {
     private function findDuplicate(array $txn): ?array {
         $stmt = $this->con->prepare(
             "SELECT * FROM bank_transactions
-             WHERE transaction_amount = ?
-             AND transaction_date = DATE(?)
-             AND transaction_reference = ?
+             WHERE transaction_amount = :amount
+             AND transaction_date = DATE(:date)
+             AND transaction_reference = :reference
              LIMIT 1"
         );
 
-        $stmt->bind_param(
-            'dss',
-            $txn['amount'],
-            $txn['date'],
-            $txn['reference']
-        );
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_assoc();
+        $stmt->execute([
+            'amount' => $txn['amount'],
+            'date' => $txn['date'],
+            'reference' => $txn['reference']
+        ]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     /**
@@ -205,7 +202,7 @@ class TransactionService {
      * Get transaction statistics
      */
     public function getStatistics(): array {
-        $result = $this->con->query(
+        $stmt = $this->con->query(
             "SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'matched' THEN 1 ELSE 0 END) as matched,
@@ -216,7 +213,7 @@ class TransactionService {
              FROM bank_transactions"
         );
 
-        return $result->fetch_assoc();
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
     }
 
     /**
@@ -248,12 +245,12 @@ class TransactionService {
         $stmt = $this->con->prepare($query);
 
         if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
+            $stmt->execute($params);
+        } else {
+            $stmt->execute();
         }
 
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

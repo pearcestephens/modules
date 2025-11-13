@@ -20,7 +20,9 @@
             <directory>tests/Unit/ProductIntelligence</directory>
         </testsuite>
         <testsuite name="Integration Tests">
-            <directory>tests/Integration</directory>
+            <directory suffix="Test.php">tests/Integration</directory>
+            <file>tests/Integration/LoginSimulateTest.php</file>
+            <file>tests/Integration/LoginSimulateEndpointTest.php</file>
         </testsuite>
         <testsuite name="Performance Tests">
             <directory>tests/Performance</directory>

@@ -26,6 +26,7 @@ if (!isset($input['decision_id']) || !isset($input['reason'])) {
     exit;
 }
 
+$pdo = null;
 try {
     // Initialize
     $pdo = new PDO("mysql:host=127.0.0.1;dbname=jcepnzzkmj", "jcepnzzkmj", "wprKh9Jq63");
@@ -50,4 +51,7 @@ try {
         'error' => 'Failed to deny item',
         'message' => $e->getMessage()
     ]);
+} finally {
+    // ✅ CRITICAL FIX: Always cleanup PDO connection to prevent connection leaks
+    $pdo = null;
 }

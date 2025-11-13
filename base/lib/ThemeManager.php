@@ -27,10 +27,10 @@ class ThemeManager {
             return;
         }
 
-    // Primary themes dir
-    self::$themePath = __DIR__ . '/../themes';
-    // Legacy templates dir for back-compat
-    self::$legacyTemplatesPath = __DIR__ . '/../templates/themes';
+        // Primary themes dir
+        self::$themePath = __DIR__ . '/../themes';
+        // Legacy templates dir for back-compat
+        self::$legacyTemplatesPath = __DIR__ . '/../templates/themes';
 
         // Check for theme preference (session > config > default)
         if (isset($_SESSION['theme'])) {
@@ -45,7 +45,7 @@ class ThemeManager {
             self::$activeTheme = 'cis';
         }
 
-        // Load theme settings if available
+        // Load theme settings (PHP) if available
         $settingsFile = self::$themePath . '/' . self::$activeTheme . '/theme.php';
         if (file_exists($settingsFile)) {
             $settings = include $settingsFile;
@@ -53,6 +53,44 @@ class ThemeManager {
                 self::$settings = $settings;
             }
         }
+
+        // Attempt JSON adapter merge from cis-themes (external theme repository)
+        // Location pattern: /modules/cis-themes/{theme}/theme.json OR /modules/cis-themes/theme.json (global defaults)
+        $basePath = dirname(__DIR__, 2) . '/cis-themes'; // move up from base/lib to modules root
+        $jsonPaths = [];
+        $jsonPaths[] = $basePath . '/' . self::$activeTheme . '/theme.json';
+        $jsonPaths[] = $basePath . '/theme.json'; // global fallback
+
+        foreach ($jsonPaths as $jp) {
+            if (!is_file($jp)) {
+                continue;
+            }
+            $json = file_get_contents($jp);
+            if ($json === false) {
+                continue;
+            }
+            $data = json_decode($json, true);
+            if (!is_array($data)) {
+                error_log('ThemeManager: invalid JSON in ' . $jp);
+                continue;
+            }
+            // Merge without overwriting existing non-empty values
+            foreach ($data as $k => $v) {
+                if (!array_key_exists($k, self::$settings) || self::$settings[$k] === null || self::$settings[$k] === '') {
+                    self::$settings[$k] = $v;
+                } elseif (is_array(self::$settings[$k]) && is_array($v)) {
+                    // Deep merge arrays (shallow for now)
+                    self::$settings[$k] = array_merge(self::$settings[$k], $v);
+                }
+            }
+        }
+
+        // Provide minimal metadata
+        self::$settings['_meta'] = [
+            'theme' => self::$activeTheme,
+            'source_php' => file_exists($settingsFile),
+            'json_adapter' => array_filter($jsonPaths, 'is_file')
+        ];
 
         self::$initialized = true;
     }

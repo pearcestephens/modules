@@ -137,7 +137,15 @@ class ErrorHandler {
                     $exception->getTrace()
                 );
             } else {
-                echo "<h1>Fatal Error</h1><p>An unexpected error occurred.</p>";
+                // Headers already sent: render a tidy inline JSON-like block
+                self::renderInlineObject(
+                    'Uncaught Exception',
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine(),
+                    get_class($exception),
+                    self::$debugMode ? $exception->getTrace() : []
+                );
             }
         }
         exit;
@@ -225,6 +233,14 @@ class ErrorHandler {
                         $error['line'],
                         $error['type']
                     );
+                } else {
+                    self::renderInlineObject(
+                        'Fatal Error',
+                        $error['message'],
+                        $error['file'],
+                        (int)$error['line'],
+                        $error['type']
+                    );
                 }
             } else {
                 // Show pretty error page for browser
@@ -235,6 +251,14 @@ class ErrorHandler {
                         $error['message'],
                         $error['file'],
                         $error['line'],
+                        $error['type']
+                    );
+                } else {
+                    self::renderInlineObject(
+                        'Fatal Error',
+                        $error['message'],
+                        $error['file'],
+                        (int)$error['line'],
                         $error['type']
                     );
                 }
@@ -496,6 +520,38 @@ class ErrorHandler {
         </body>
         </html>
         <?php
+    }
+
+    /**
+     * Render a tidy inline JSON-like object (safe when headers already sent)
+     */
+    private static function renderInlineObject(string $title, string $message, string $file, int $line, $code = null, array $trace = []): void
+    {
+        $safe = [
+            'success' => false,
+            'error_title' => $title,
+            'error' => self::$debugMode ? $message : 'An unexpected error occurred. Please try again later.',
+            'file' => self::$debugMode ? $file : null,
+            'line' => self::$debugMode ? $line : null,
+            'code' => self::$debugMode ? ($code ?? 'N/A') : null,
+        ];
+        if (self::$debugMode && !empty($trace)) {
+            // Reduce trace to essential info
+            $safe['trace'] = array_map(function ($t) {
+                return [
+                    'file' => $t['file'] ?? 'unknown',
+                    'line' => $t['line'] ?? 0,
+                    'func' => ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? ''),
+                ];
+            }, $trace);
+        }
+
+        $json = json_encode($safe, JSON_PRETTY_PRINT);
+        // Output minimal styled block to keep inline with existing markup
+        echo '<div style="all:initial; font-family:monospace; font-size:13px; line-height:1.5; color:#222; background:#f8f9fa; border:1px solid #dee2e6; padding:12px; margin:12px 0; border-radius:6px;">';
+        echo '<div style="font-weight:bold; margin-bottom:6px;">' . htmlspecialchars($title) . '</div>';
+        echo '<pre style="white-space:pre-wrap; margin:0;">' . htmlspecialchars($json ?? '') . '</pre>';
+        echo '</div>';
     }
 
     /**

@@ -31,25 +31,33 @@ class PaymentModel extends BaseModel
         // Use global VapeShed connection if available
         global $vapeShedCon;
 
-        if (isset($vapeShedCon) && $vapeShedCon instanceof \mysqli) {
-            // Use existing VapeShed connection
+        if (isset($vapeShedCon) && $vapeShedCon instanceof \PDO) {
+            // Use existing VapeShed PDO connection
             $this->connection = $vapeShedCon;
         } else {
-            // Fallback: Create new connection if needed
+            // Fallback: Create new PDO connection if needed
             $config = require $_SERVER['DOCUMENT_ROOT'] . '/config/database.php';
 
-            $this->connection = new \mysqli(
+            $dsn = sprintf(
+                'mysql:host=%s;dbname=%s;charset=utf8mb4',
                 $config['vapeshed']['host'],
-                $config['vapeshed']['username'],
-                $config['vapeshed']['password'],
                 $config['vapeshed']['database']
             );
 
-            if ($this->connection->connect_error) {
-                throw new \Exception("VapeShed database connection failed: " . $this->connection->connect_error);
+            try {
+                $this->connection = new \PDO(
+                    $dsn,
+                    $config['vapeshed']['username'],
+                    $config['vapeshed']['password'],
+                    [
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_OBJ,
+                        \PDO::ATTR_EMULATE_PREPARES => false
+                    ]
+                );
+            } catch (\PDOException $e) {
+                throw new \Exception("VapeShed database connection failed: " . $e->getMessage());
             }
-
-            $this->connection->set_charset('utf8mb4');
         }
     }
 

@@ -125,6 +125,16 @@ class TransferManagerAPI extends BaseAPI {
         $this->db->set_charset('utf8mb4');
     }
 
+    /**
+     * Cleanup database connection on object destruction
+     * ✅ CRITICAL FIX: Prevents connection leaks
+     */
+    public function __destruct() {
+        if ($this->db instanceof mysqli && !empty($this->db->thread_id)) {
+            @$this->db->close();
+        }
+    }
+
     // ========================================================================
     // INITIALIZATION & CONFIGURATION
     // ========================================================================

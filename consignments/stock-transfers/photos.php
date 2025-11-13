@@ -336,8 +336,29 @@
 
         // Load products for dropdown
         async function loadProducts() {
-            // TODO: Load products for this transfer
-            // Populate productId select with options
+            const transferId = new URLSearchParams(window.location.search).get('transfer_id');
+            if (!transferId) return;
+
+            try {
+                const response = await fetch(`/modules/consignments/api/transfers/products.php?transfer_id=${transferId}`);
+                const result = await response.json();
+
+                if (result.success && result.products) {
+                    const select = document.getElementById('productId');
+                    select.innerHTML = '<option value="">-- Select Product --</option>';
+
+                    result.products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.id;
+                        option.textContent = `${product.name} (SKU: ${product.sku})`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    console.error('Failed to load products:', result.error);
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
         }
 
         // Get badge color for issue type

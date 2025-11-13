@@ -1,0 +1,12 @@
+# Force all /modules/* requests through router.php
+RewriteEngine On
+
+# Allow direct access to router and diagnostics
+RewriteRule ^(router\.php|router_diagnostics\.php)$ - [L]
+
+# Only skip existing files (not directories) to force routing through router.php
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Route /modules/<module>/<path> to router.php (force directories through router)
+RewriteRule ^([^/]+)/?(.*)$ router.php?m=$1&path=$2 [QSA,L]

@@ -22,6 +22,7 @@ if (!isset($_SESSION['user_id'])) {
 $input = json_decode(file_get_contents('php://input'), true);
 $minConfidence = $input['min_confidence'] ?? 0.85;
 
+$pdo = null;
 try {
     // Initialize
     $pdo = new PDO("mysql:host=127.0.0.1;dbname=jcepnzzkmj", "jcepnzzkmj", "wprKh9Jq63");
@@ -45,4 +46,7 @@ try {
         'error' => 'Failed to batch approve',
         'message' => $e->getMessage()
     ]);
+} finally {
+    // ✅ CRITICAL FIX: Always cleanup PDO connection to prevent connection leaks
+    $pdo = null;
 }

@@ -28,20 +28,26 @@ $names = [
 
 echo "Looking up user IDs...\n\n";
 
-$db = new PDO("mysql:host=127.0.0.1;dbname=jcepnzzkmj", "jcepnzzkmj", "wprKh9Jq63");
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$db = null;
+try {
+    $db = new PDO("mysql:host=127.0.0.1;dbname=jcepnzzkmj", "jcepnzzkmj", "wprKh9Jq63");
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-foreach ($names as $name => $amounts) {
-    $stmt = $db->prepare("SELECT id, full_name FROM users WHERE full_name LIKE ? ORDER BY id LIMIT 1");
-    $stmt->execute(['%' . $name . '%']);
-    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($names as $name => $amounts) {
+        $stmt = $db->prepare("SELECT id, full_name FROM users WHERE full_name LIKE ? ORDER BY id LIMIT 1");
+        $stmt->execute(['%' . $name . '%']);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if ($result && count($result) > 0) {
-        $userId = $result[0]['id'];
-        $fullName = $result[0]['full_name'];
-        $total = array_sum($amounts);
-        echo "    [$userId, $total, '$fullName - Register deposits'],\n";
-    } else {
-        echo "    // NOT FOUND: $name\n";
+        if ($result && count($result) > 0) {
+            $userId = $result[0]['id'];
+            $fullName = $result[0]['full_name'];
+            $total = array_sum($amounts);
+            echo "    [$userId, $total, '$fullName - Register deposits'],\n";
+        } else {
+            echo "    // NOT FOUND: $name\n";
+        }
     }
+} finally {
+    // ✅ CRITICAL FIX: Always cleanup PDO connection to prevent connection leaks
+    $db = null;
 }

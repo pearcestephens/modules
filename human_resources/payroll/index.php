@@ -27,27 +27,9 @@ if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
 }
 
 // ============================================================================
-// BOOTSTRAP - DEDICATED (NO APP.PHP)
+// BOOTSTRAP – BASE/CORE (single source of truth)
 // ============================================================================
-
-// Use PHPSESSID (default session name - same as main CIS)
-if (session_status() === PHP_SESSION_NONE) {
-    session_name('PHPSESSID');
-}
-
-// Session configuration
-ini_set('session.use_only_cookies', '1');
-ini_set('session.use_strict_mode', '1');
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Lax');
-ini_set('session.cookie_secure', '1');
-ini_set('session.cookie_lifetime', '0');
-ini_set('session.gc_maxlifetime', '79200');
-
-// Start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../../base/bootstrap.php';
 
 // Generate CSRF token if not exists
 if (empty($_SESSION['csrf_token'])) {

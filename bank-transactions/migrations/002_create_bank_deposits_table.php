@@ -14,6 +14,7 @@ $dbname = 'jcepnzzkmj';
 $username = 'jcepnzzkmj';
 $password = 'wprKh9Jq63';
 
+$pdo = null;
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -255,4 +256,7 @@ try {
 } catch (PDOException $e) {
     echo "❌ Migration failed: " . $e->getMessage() . "\n";
     exit(1);
+} finally {
+    // ✅ CRITICAL FIX: Always cleanup PDO connection to prevent connection leaks
+    $pdo = null;
 }

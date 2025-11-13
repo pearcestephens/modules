@@ -146,6 +146,14 @@ echo "  ✅ Success: " . count($results['success']) . "\n";
 echo "  ❌ Failed: " . count($results['failed']) . "\n";
 echo "Duration: {$elapsed}s\n\n";
 
+// ✅ CRITICAL FIX: Cleanup database connections before exit
+if (isset($con) && $con instanceof mysqli && !empty($con->thread_id)) {
+    @mysqli_close($con);
+}
+if (isset($pdo)) {
+    $pdo = null;
+}
+
 if (count($results['success']) === count($payments)) {
     echo "🎉 100% SUCCESS!\n\n";
     exit(0);

@@ -19,8 +19,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 require_once __DIR__ . '/../../lib/Services/PurchaseOrderService.php';
 require_once __DIR__ . '/../../lib/Services/SupplierService.php';
 
-use CIS\Consignments\Services\PurchaseOrderService;
-use CIS\Consignments\Services\SupplierService;
+use CIS\Services\Consignments\Core\PurchaseOrderService;
+use CIS\Services\Consignments\Integration\SupplierService;
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {

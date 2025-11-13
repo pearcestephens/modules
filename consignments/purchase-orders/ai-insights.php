@@ -22,7 +22,7 @@ declare(strict_types=1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 
-use CIS\Consignments\Services\AIService;
+use CIS\Services\Consignments\AI\AIService;
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {

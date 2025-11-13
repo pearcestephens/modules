@@ -13,6 +13,9 @@ declare(strict_types=1);
 namespace CIS\Core\Controllers;
 
 require_once __DIR__ . '/../bootstrap.php';
+use DateTime;
+use Exception;
+use PDO;
 
 class DashboardController
 {
@@ -20,8 +23,8 @@ class DashboardController
 
     public function __construct()
     {
-        global $db;
-        $this->db = $db;
+        // Use BASE helper to retrieve PDO connection
+        $this->db = \db();
     }
 
     /**
@@ -31,8 +34,8 @@ class DashboardController
     {
         require_auth();
 
-        $userId = auth_user_id();
-        $user = auth_user();
+    $userId = \getUserId();
+    $user = \getCurrentUser();
         $flash = get_flash_message();
 
         // Get user statistics

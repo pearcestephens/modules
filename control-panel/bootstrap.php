@@ -164,4 +164,12 @@ $controlPanelConfig = [
 // 7. MODULE READY
 // ============================================================================
 
+// ✅ CRITICAL FIX: Register shutdown handler to cleanup PDO connection
+register_shutdown_function(function() {
+    global $db;
+    if (isset($db) && $db instanceof PDO) {
+        $db = null;
+    }
+});
+
 define('CONTROL_PANEL_MODULE_LOADED', true);

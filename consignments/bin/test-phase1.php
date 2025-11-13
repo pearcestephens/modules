@@ -45,8 +45,8 @@ echo "\n";
 // Bootstrap
 require_once __DIR__ . '/../bootstrap.php';
 
-use CIS\Consignments\Services\EmailService;
-use CIS\Consignments\Services\NotificationService;
+use CIS\Services\Consignments\Support\EmailService;
+use CIS\Services\Consignments\Support\NotificationService;
 
 $testResults = [];
 $startTime = microtime(true);

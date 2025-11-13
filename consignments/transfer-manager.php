@@ -36,6 +36,13 @@ if ($db->connect_error) {
 }
 $db->set_charset('utf8mb4');
 
+// ✅ CRITICAL FIX: Register shutdown handler to cleanup connection
+register_shutdown_function(function() use ($db) {
+    if ($db instanceof mysqli && !empty($db->thread_id)) {
+        @$db->close();
+    }
+});
+
 // Load outlets and suppliers for APP_CONFIG
 $outlets = [];
 $result = $db->query("SELECT outletID, outletName FROM outlets WHERE status = 'active' ORDER BY outletName");

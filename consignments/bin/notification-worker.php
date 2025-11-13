@@ -36,7 +36,7 @@ if (php_sapi_name() !== 'cli') {
 // Bootstrap
 require_once __DIR__ . '/../bootstrap.php';
 
-use CIS\Consignments\Services\NotificationService;
+use CIS\Services\Consignments\Support\NotificationService;
 
 // Parse command line options
 $options = getopt('', [

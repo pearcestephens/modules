@@ -24,6 +24,7 @@ if (!isset($input['enabled'])) {
     exit;
 }
 
+$pdo = null;
 try {
     // Initialize
     $pdo = new PDO("mysql:host=127.0.0.1;dbname=jcepnzzkmj", "jcepnzzkmj", "wprKh9Jq63");
@@ -73,4 +74,7 @@ try {
         'error' => 'Failed to toggle auto-pilot',
         'message' => $e->getMessage()
     ]);
+} finally {
+    // ✅ CRITICAL FIX: Always cleanup PDO connection to prevent connection leaks
+    $pdo = null;
 }

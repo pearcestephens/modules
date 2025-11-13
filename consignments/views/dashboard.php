@@ -1,339 +1,36 @@
 <?php
 /**
- * Consignments Module - Dashboard (Main Landing Page)
- *
- * Central hub for all consignment operations
- *
- * @package CIS\Consignments
- * @version 4.0.0
- * @template Vape Ultra
- * @updated 2025-11-11 - Migrated to Vape Ultra template system
+ * Dashboard View
+ * Uses BASE framework ThemeManager
  */
-
 declare(strict_types=1);
 
-// Page metadata for Vape Ultra template
-$pageTitle = 'Consignments Management';
-$breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'bi-house'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'active' => true]
-];
-
-// Get database connection
-$pdo = CIS\Base\Database::pdo();
-
-// Load statistics
-$stats = [];
-try {
-    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'OPEN'");
-    $stats['active_transfers'] = $stmt->fetchColumn();
-
-    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'RECEIVED' AND DATE(received_at) = CURDATE()");
-    $stats['completed_today'] = $stmt->fetchColumn();
-
-    $stmt = $pdo->query("SELECT COUNT(*) FROM vend_consignments WHERE status = 'SENT'");
-    $stats['pending_receive'] = $stmt->fetchColumn();
-
-    $stmt = $pdo->query("SELECT COUNT(*) FROM purchase_orders WHERE status = 'OPEN'");
-    $stats['active_pos'] = $stmt->fetchColumn();
-} catch (Exception $e) {
-    $stats = ['active_transfers' => 0, 'completed_today' => 0, 'pending_receive' => 0, 'active_pos' => 0];
-}
-
-// Start output buffering for module content
 ob_start();
 ?>
-
-<style>
-.consignments-home { max-width: 1400px; margin: 0 auto; }
-.page-header-box {
-    background: var(--vu-surface-primary, #fff);
-    border: 1px solid var(--vu-border-primary, #dee2e6);
-    border-radius: var(--vu-radius-md, 6px);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--vu-shadow-sm, 0 2px 4px rgba(0,0,0,0.05));
-}
-.page-header-box h1 {
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--vu-text-primary, #333);
-    margin: 0 0 8px 0;
-}
-.page-header-box p {
-    color: var(--vu-text-secondary, #6c757d);
-    margin: 0;
-    font-size: 14px;
-}
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-.stat-card {
-    background: var(--vu-surface-primary, #fff);
-    border: 1px solid var(--vu-border-primary, #dee2e6);
-    border-radius: var(--vu-radius-md, 6px);
-    padding: 18px;
-    border-left: 3px solid var(--vu-color-primary, #007bff);
-    transition: var(--vu-transition-default, all 0.2s ease);
-}
-.stat-card:hover {
-    box-shadow: var(--vu-shadow-md, 0 4px 8px rgba(0,0,0,0.1));
-    transform: translateY(-2px);
-}
-.stat-card.success { border-left-color: var(--vu-color-success, #28a745); }
-.stat-card.warning { border-left-color: var(--vu-color-warning, #ffc107); }
-.stat-card.info { border-left-color: var(--vu-color-info, #17a2b8); }
-.stat-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--vu-text-primary, #333);
-    margin: 8px 0;
-}
-.stat-label {
-    font-size: 12px;
-    color: var(--vu-text-secondary, #6c757d);
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-.quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-.action-card {
-    background: var(--vu-surface-primary, #fff);
-    border: 1px solid var(--vu-border-primary, #dee2e6);
-    border-radius: var(--vu-radius-md, 6px);
-    padding: 20px;
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    transition: var(--vu-transition-default, all 0.2s ease);
-}
-.action-card:hover {
-    border-color: var(--vu-color-primary, #007bff);
-    box-shadow: var(--vu-shadow-md, 0 2px 8px rgba(0,123,255,0.15));
-    text-decoration: none;
-    transform: translateY(-2px);
-}
-.action-card h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--vu-text-primary, #333);
-}
-.action-card p {
-    font-size: 13px;
-    color: var(--vu-text-secondary, #6c757d);
-    margin-bottom: 12px;
-    line-height: 1.5;
-}
-.action-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: var(--vu-radius-sm, 3px);
-    font-size: 11px;
-    font-weight: 600;
-    background: var(--vu-surface-secondary, #e9ecef);
-    color: var(--vu-text-primary, #495057);
-}
-.section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--vu-text-primary, #333);
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--vu-border-primary, #dee2e6);
-}
-.links-section {
-    background: var(--vu-surface-primary, #fff);
-    border: 1px solid var(--vu-border-primary, #dee2e6);
-    border-radius: var(--vu-radius-md, 6px);
-    padding: 20px;
-    margin-bottom: 20px;
-}
-.link-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid var(--vu-border-secondary, #f0f0f0);
-    text-decoration: none;
-    color: inherit;
-    transition: var(--vu-transition-fast, background 0.15s ease);
-}
-.link-item:hover {
-    background: var(--vu-surface-hover, #f8f9fa);
-    text-decoration: none;
-}
-.link-item:last-child { border-bottom: none; }
-.link-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--vu-radius-sm, 4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-    font-size: 16px;
-    background: var(--vu-surface-secondary, #f8f9fa);
-    color: var(--vu-text-secondary, #495057);
-}
-.link-title {
-    font-weight: 600;
-    color: var(--vu-text-primary, #333);
-    font-size: 14px;
-    margin-bottom: 2px;
-}
-.link-desc {
-    font-size: 12px;
-    color: var(--vu-text-secondary, #6c757d);
-}
-</style>
-
-<div class="consignments-home">
-    <div class="page-header-box">
-        <h1><i class="bi bi-boxes me-2"></i>Consignments Management</h1>
-        <p>Central hub for all consignment operations, transfers, and inventory management</p>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label"><i class="bi bi-arrow-left-right me-1"></i>Active Transfers</div>
-            <div class="stat-value"><?= number_format($stats['active_transfers']) ?></div>
-        </div>
-        <div class="stat-card success">
-            <div class="stat-label"><i class="bi bi-check-circle me-1"></i>Completed Today</div>
-            <div class="stat-value"><?= number_format($stats['completed_today']) ?></div>
-        </div>
-        <div class="stat-card warning">
-            <div class="stat-label"><i class="bi bi-clock me-1"></i>Pending Receive</div>
-            <div class="stat-value"><?= number_format($stats['pending_receive']) ?></div>
-        </div>
-        <div class="stat-card info">
-            <div class="stat-label"><i class="bi bi-cart me-1"></i>Active Purchase Orders</div>
-            <div class="stat-value"><?= number_format($stats['active_pos']) ?></div>
-        </div>
-    </div>
-
-    <div class="section-title"><i class="bi bi-lightning me-2"></i>Quick Actions</div>
-
-    <div class="quick-actions-grid">
-        <a href="/modules/consignments/?route=transfer-manager" class="action-card">
-            <h3><i class="bi bi-arrow-left-right me-2"></i>Transfer Manager</h3>
-            <p>Manage stock transfers, create new consignments, and track shipments between outlets.</p>
-            <span class="action-badge">Most Used</span>
-        </a>
-        <a href="/modules/consignments/?route=purchase-orders" class="action-card">
-            <h3><i class="bi bi-cart-plus me-2"></i>Purchase Orders</h3>
-            <p>View and manage purchase orders, supplier shipments, and incoming inventory.</p>
-            <span class="action-badge">Active</span>
-        </a>
-        <a href="/modules/consignments/?route=stock-transfers" class="action-card">
-            <h3><i class="bi bi-box me-2"></i>Stock Transfers</h3>
-            <p>Browse all stock transfer history, search transfers, and view detailed reports.</p>
-            <span class="action-badge">View All</span>
-        </a>
-        <a href="/modules/consignments/analytics/" class="action-card">
-            <h3><i class="bi bi-graph-up me-2"></i>Analytics Dashboard</h3>
-            <p>Performance tracking, leaderboards, achievements, and security monitoring.</p>
-            <span class="action-badge">Analytics</span>
-        </a>
-        <a href="/modules/consignments/?route=freight" class="action-card">
-            <h3><i class="bi bi-truck me-2"></i>Freight Management</h3>
-            <p>Track freight shipments, manage carriers, and view delivery schedules.</p>
-            <span class="action-badge">Logistics</span>
-        </a>
-        <a href="/modules/consignments/?route=control-panel" class="action-card">
-            <h3><i class="bi bi-speedometer me-2"></i>Control Panel</h3>
-            <p>System monitoring, queue status, admin controls, and configuration settings.</p>
-            <span class="action-badge">Admin</span>
-        </a>
-    </div>
-
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-6">
-            <div class="links-section">
-                <div class="section-title"><i class="bi bi-bar-chart me-2"></i>Analytics & Performance</div>
-                <a href="/modules/consignments/analytics/performance-dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="bi bi-speedometer2"></i></div>
-                    <div>
-                        <div class="link-title">Performance Dashboard</div>
-                        <div class="link-desc">Track scanning stats, achievements, and personal bests</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/analytics/leaderboard.php" class="link-item">
-                    <div class="link-icon"><i class="bi bi-trophy"></i></div>
-                    <div>
-                        <div class="link-title">Leaderboard Rankings</div>
-                        <div class="link-desc">See how you rank against colleagues</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/analytics/security-dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="bi bi-shield-check"></i></div>
-                    <div>
-                        <div class="link-title">Security Dashboard</div>
-                        <div class="link-desc">Monitor suspicious scans and fraud alerts</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/analytics/" class="link-item">
-                    <div class="link-icon"><i class="bi bi-tools"></i></div>
-                    <div>
-                        <div class="link-title">Testing Tools</div>
-                        <div class="link-desc">Access system testing and health checks</div>
-                    </div>
-                </a>
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h4 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Dashboard Module
+                </h4>
+                <p class="mb-0">This section is being updated to use the new unified template system.</p>
+                <hr>
+                <p class="mb-0">
+                    <a href="/modules/consignments/" class="alert-link">← Back to Consignments Home</a>
+                </p>
             </div>
         </div>
-
-        <div class="col-md-6">
-            <div class="links-section">
-                <div class="section-title"><i class="bi bi-tools me-2"></i>System Tools</div>
-                <a href="/modules/consignments/?route=queue-status" class="link-item">
-                    <div class="link-icon"><i class="bi bi-list-task"></i></div>
-                    <div>
-                        <div class="link-title">Queue Status</div>
-                        <div class="link-desc">Monitor background jobs and queue workers</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/?route=admin-controls" class="link-item">
-                    <div class="link-icon"><i class="bi bi-gear"></i></div>
-                    <div>
-                        <div class="link-title">Admin Controls</div>
-                        <div class="link-desc">System configuration and settings</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/?route=ai-insights" class="link-item">
-                    <div class="link-icon"><i class="bi bi-robot"></i></div>
-                    <div>
-                        <div class="link-title">AI Insights</div>
-                        <div class="link-desc">AI-powered recommendations and analytics</div>
-                    </div>
-                </a>
-                <a href="/modules/consignments/purchase-orders/approvals/dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="bi bi-check-square"></i></div>
-                    <div>
-                        <div class="link-title">PO Approvals</div>
-                        <div class="link-desc">Review and approve purchase orders</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="text-center mt-4 mb-4" style="color: var(--vu-text-muted, #6c757d); font-size: 13px;">
-        <p class="mb-1"><i class="bi bi-info-circle me-1"></i>Consignments Module v4.0.0 | Vape Ultra Template | Last Updated: November 2025</p>
-        <p class="mb-0">For support, contact IT Department</p>
     </div>
 </div>
-
 <?php
-// Capture module content for Vape Ultra template
-$moduleContent = ob_get_clean();
-
-// Render with Vape Ultra template system
-require_once dirname(dirname(__DIR__)) . '/base/templates/vape-ultra/layouts/main.php';
+$content = ob_get_clean();
+render('base', $content, [
+    'pageTitle' => 'Dashboard',
+    'breadcrumbs' => [
+        ['label' => 'Home', 'url' => '/'],
+        ['label' => 'Consignments', 'url' => '/modules/consignments/'],
+        ['label' => 'Dashboard', 'url' => '']
+    ]
+]);

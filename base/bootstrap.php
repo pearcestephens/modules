@@ -17,6 +17,12 @@
  *   - Helper functions (e, redirect, jsonResponse, flash, etc.)
  */
 
+// Prevent redundant inclusion
+if (defined('BASE_BOOTSTRAP_LOADED')) {
+    return;
+}
+define('BASE_BOOTSTRAP_LOADED', true);
+
 // =============================================================================
 // 0. CLI ENVIRONMENT SETUP
 // =============================================================================
@@ -64,6 +70,33 @@ require_once __DIR__ . '/lib/ErrorHandler.php';
 // Initialize with debug mode from config
 \CIS\Base\ErrorHandler::init($config->get('APP_DEBUG', false));
 
+// =============================================================================
+// CENTRAL LOGS DIRECTORY (captures PHP errors and app activity)
+// =============================================================================
+
+// Ensure writable logs directory for BASE module
+$__baseLogsDir = __DIR__ . '/_logs';
+if (!is_dir($__baseLogsDir)) { @mkdir($__baseLogsDir, 0775, true); }
+// Redirect PHP error_log to BASE logs (in addition to any global handlers)
+@ini_set('error_log', $__baseLogsDir . '/php_errors.log');
+
+if (!function_exists('cis_log')) {
+    /**
+     * Write a JSON line to BASE logs directory
+     * @param string $channel e.g., 'router','app','security'
+     * @param string $level   e.g., 'INFO','ERROR'
+     * @param array  $data    context payload
+     */
+    function cis_log(string $channel, string $level, array $data = []): void {
+        $dir = __DIR__ . '/_logs';
+        if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
+        $data['ts'] = date('c');
+        $data['level'] = strtoupper($level);
+        $line = json_encode($data, JSON_UNESCAPED_SLASHES) . "\n";
+        @file_put_contents($dir . '/' . $channel . '.log', $line, FILE_APPEND | LOCK_EX);
+    }
+}
+
 
 // =============================================================================
 // 3. LOAD SERVICES\DATABASE
@@ -91,7 +124,36 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_samesite', 'Lax');
     ini_set('session.cookie_path', '/');
 
-    session_start();
+    // Prefer environment session handler (DB/Redis) else fallback to file path
+    $saveHandler = getenv('SESSION_SAVE_HANDLER') ?: '';
+    $savePath = getenv('SESSION_SAVE_PATH') ?: '';
+    if ($saveHandler !== '') {
+        @ini_set('session.save_handler', $saveHandler);
+    }
+    if ($savePath !== '') {
+        @ini_set('session.save_path', $savePath);
+    }
+
+    // Compatibility: optionally adopt existing PHPSESSID id if CIS_SESSION cookie not present
+    // This lets us read an existing session when migrating cookie names.
+    if (empty($_COOKIE['CIS_SESSION']) && !empty($_COOKIE['PHPSESSID'])) {
+        // opt-in via env to avoid accidental adoption
+        if (getenv('ADOPT_PHPSESSID') === '1') {
+            @session_id($_COOKIE['PHPSESSID']);
+        }
+    }
+
+    // Compatibility: allow using the original assets/functions DB session handler if requested
+    if (getenv('USE_ORIGINAL_DB_SESSIONS') === '1') {
+        $incPath = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/') . '/assets/functions/sessions/inc.session.php';
+        if ($incPath && file_exists($incPath)) {
+            // The included file registers SysSession via session_set_save_handler
+            // It uses its own mysqli connection and table `Session`
+            @require_once $incPath;
+        }
+    }
+
+    @session_start();
 
     // Regenerate session ID periodically (every 30 minutes)
     if (!isset($_SESSION['last_regeneration'])) {
@@ -190,10 +252,12 @@ loadClass('Router');
  * Check if user is authenticated
  * Supports both new standard (user_id) and legacy (userID) for backwards compatibility
  */
-function isAuthenticated(): bool {
-    // Check new standard (user_id) or legacy (userID)
-    return (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) ||
-           (isset($_SESSION['userID']) && !empty($_SESSION['userID']));
+if (!function_exists('isAuthenticated')) {
+    function isAuthenticated(): bool {
+        // Check new standard (user_id) or legacy (userID)
+        return (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) ||
+               (isset($_SESSION['userID']) && !empty($_SESSION['userID']));
+    }
 }
 
 /**
@@ -305,11 +369,11 @@ function getUserId(): ?int {
 /**
  * Get user role
  */
-function getUserRole(): ?string {
+/* function getUserRole(): ?string {
     $user = getCurrentUser();
     return $user['role'] ?? null;
 }
-
+ */
 // =============================================================================
 // 8. PERMISSION FUNCTIONS
 // =============================================================================
@@ -436,8 +500,10 @@ function theme(): string {
 /**
  * Escape output for HTML
  */
-function e(?string $string): string {
-    return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+if (!function_exists('e')) {
+    function e(?string $string): string {
+        return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+    }
 }
 
 /**

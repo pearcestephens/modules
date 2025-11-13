@@ -35,7 +35,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 require_once __DIR__ . '/../../lib/Services/PurchaseOrderService.php';
 require_once __DIR__ . '/../../lib/Helpers/ValidationHelper.php';
 
-use CIS\Consignments\Services\PurchaseOrderService;
+use CIS\Services\Consignments\Core\PurchaseOrderService;
 use CIS\Consignments\Helpers\ValidationHelper;
 
 // Check authentication

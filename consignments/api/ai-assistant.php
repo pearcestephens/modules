@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/Services/AIConsignmentAssistant.php';
 
-use Consignments\Services\AIConsignmentAssistant;
+use CIS\Services\Consignments\AI\AIConsignmentAssistant;
 
 header('Content-Type: application/json');
 

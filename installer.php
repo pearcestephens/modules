@@ -207,18 +207,6 @@ $modules = [
         'dashboard' => 'staff-accounts/index.php',
         'priority' => 11
     ],
-    'admin-ui' => [
-        'name' => 'Admin UI',
-        'icon' => 'bi-gear-fill',
-        'color' => 'dark',
-        'description' => 'VS Code themed admin interface with AI agent configuration',
-        'tables' => ['theme_themes', 'theme_settings', 'theme_ai_configs', 'theme_analytics'],
-        'views' => [],
-        'procedures' => [],
-        'schema_file' => 'admin-ui/database/schema.sql',
-        'dashboard' => 'admin-ui/index.php',
-        'priority' => 12
-    ],
     'control-panel' => [
         'name' => 'Control Panel',
         'icon' => 'bi-sliders',

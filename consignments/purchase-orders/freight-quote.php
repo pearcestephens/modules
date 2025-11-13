@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 
-use CIS\Consignments\Services\FreightService;
-use CIS\Consignments\Services\PurchaseOrderService;
+use CIS\Services\Consignments\Integration\FreightService;
+use CIS\Services\Consignments\Core\PurchaseOrderService;
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
