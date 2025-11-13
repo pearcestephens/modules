@@ -92,6 +92,7 @@ $(document).ready(function() {
 
     // Hover to show rightbar (no layout shift)
     $hoverRight.on('mouseenter', function() {
+        if ($body.hasClass('compact')) return; // disabled in compact mode
         showRightbar();
     });
 

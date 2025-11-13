@@ -20,6 +20,9 @@ body.sidebar-collapsed .cis-sidebar {
     width: var(--cis-sidebar-collapsed-width);
 }
 
+/* Compact mode: also ensure left hover peek is disabled visually if desired */
+body.compact .cis-sidebar { box-shadow: none; }
+
 .sidebar-brand {
     height: var(--cis-header-height);
     display: flex;
