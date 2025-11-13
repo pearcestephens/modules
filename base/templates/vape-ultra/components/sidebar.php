@@ -39,6 +39,10 @@ if (isset($moduleNavItems) && is_array($moduleNavItems)) {
 ?>
 
 <div class="sidebar-inner">
+    ];
+?>
+
+<div class="sidebar-inner">
     <?php foreach ($navItems as $section): ?>
     <div class="nav-section">
         <div class="nav-title"><?= htmlspecialchars($section['title']) ?></div>

@@ -58,7 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Store reset token in database
             $pdo = db();
-            
+
+            // Use transaction for atomicity
+            $pdo->beginTransaction();
+
             // Create password_resets table if it doesn't exist
             $pdo->exec("
                 CREATE TABLE IF NOT EXISTS password_resets (
@@ -85,8 +88,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ');
             $stmt->execute([$user['id'], $tokenHash, $expiresAt]);
 
+            // Commit token write
+            $pdo->commit();
+
             // Build reset URL
-            $resetUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/modules/core/reset-password.php?token=' . urlencode($token);
+            // Prefer configured APP_URL to avoid Host header injection
+            $baseUrl = rtrim(($config->get('APP_URL', '') ?: 'https://staff.vapeshed.co.nz'), '/');
+            $resetUrl = $baseUrl . '/modules/core/reset-password.php?token=' . urlencode($token);
 
             // Log password reset request
             if (function_exists('log_activity')) {
@@ -113,6 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
 
     } catch (Exception $e) {
+        // Rollback if transaction is open
+        if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $error = $e->getMessage();
         error_log("[FORGOT PASSWORD ERROR] " . $error);
     }
@@ -135,13 +147,13 @@ $rememberedEmail = $_POST['email'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Forgot Password - CIS Staff Portal</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -210,7 +222,7 @@ $rememberedEmail = $_POST['email'] ?? '';
 
     <!-- Body -->
     <div class="forgot-password-body">
-        
+
         <!-- Flash Messages -->
         <?php if (isset($error)): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -249,7 +261,7 @@ $rememberedEmail = $_POST['email'] ?? '';
 
         <!-- Forgot Password Form -->
         <form method="POST" action="" id="forgotPasswordForm">
-            
+
             <!-- CSRF Token -->
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
@@ -258,11 +270,11 @@ $rememberedEmail = $_POST['email'] ?? '';
                 <label for="email" class="form-label">
                     <i class="fas fa-envelope"></i> Email Address
                 </label>
-                <input 
-                    type="email" 
-                    class="form-control" 
-                    id="email" 
-                    name="email" 
+                <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    name="email"
                     placeholder="your.email@ecigdis.co.nz"
                     value="<?= htmlspecialchars($rememberedEmail) ?>"
                     required

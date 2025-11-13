@@ -34,7 +34,7 @@ if (isAuthenticated()) {
 // VALIDATE TOKEN
 // ============================================================================
 
-$token = $_GET['token'] ?? '';
+$token = isset($_GET['token']) ? (string) $_GET['token'] : '';
 $tokenValid = false;
 $user = null;
 
@@ -50,7 +50,7 @@ if (empty($token)) {
         SELECT pr.*, sa.id as user_id, sa.email, sa.username
         FROM password_resets pr
         JOIN staff_accounts sa ON pr.user_id = sa.id
-        WHERE pr.token_hash = ? 
+        WHERE pr.token_hash = ?
         AND pr.expires_at > NOW()
         AND pr.used_at IS NULL
         AND sa.deleted_at IS NULL
@@ -119,10 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tokenValid) {
         // Hash new password
         $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
+        // Use transaction to update password and mark token as used atomically
+        $pdo->beginTransaction();
+
         // Update password
         $stmt = $pdo->prepare('
-            UPDATE staff_accounts 
-            SET password_hash = ?, 
+            UPDATE staff_accounts
+            SET password_hash = ?,
                 password_changed_at = NOW(),
                 updated_at = NOW()
             WHERE id = ?
@@ -132,11 +135,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tokenValid) {
         // Mark token as used
         $tokenHash = hash('sha256', $token);
         $stmt = $pdo->prepare('
-            UPDATE password_resets 
-            SET used_at = NOW() 
+            UPDATE password_resets
+            SET used_at = NOW()
             WHERE token_hash = ?
         ');
         $stmt->execute([$tokenHash]);
+
+        $pdo->commit();
 
         // Log password reset
         if (function_exists('log_activity')) {
@@ -153,6 +158,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $tokenValid) {
         exit;
 
     } catch (Exception $e) {
+        if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $error = $e->getMessage();
         error_log("[RESET PASSWORD ERROR] User: {$user['id']} | Error: " . $error);
     }
@@ -174,13 +182,13 @@ $flashError = getFlash('error');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Reset Password - CIS Staff Portal</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -263,7 +271,7 @@ $flashError = getFlash('error');
 
     <!-- Body -->
     <div class="reset-password-body">
-        
+
         <?php if (!$tokenValid): ?>
             <!-- Invalid Token -->
             <div class="alert alert-danger">
@@ -282,7 +290,7 @@ $flashError = getFlash('error');
             </div>
         <?php else: ?>
             <!-- Valid Token - Show Form -->
-            
+
             <!-- Flash Messages -->
             <?php if (isset($error)): ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -312,7 +320,7 @@ $flashError = getFlash('error');
 
             <!-- Reset Password Form -->
             <form method="POST" action="" id="resetPasswordForm">
-                
+
                 <!-- CSRF Token -->
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
@@ -321,11 +329,11 @@ $flashError = getFlash('error');
                     <label for="new_password" class="form-label">
                         <i class="fas fa-lock"></i> New Password
                     </label>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="new_password" 
-                        name="new_password" 
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="new_password"
+                        name="new_password"
                         required
                         autocomplete="new-password"
                         autofocus
@@ -341,11 +349,11 @@ $flashError = getFlash('error');
                     <label for="confirm_password" class="form-label">
                         <i class="fas fa-check-double"></i> Confirm New Password
                     </label>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="confirm_password" 
-                        name="confirm_password" 
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="confirm_password"
+                        name="confirm_password"
                         required
                         autocomplete="new-password"
                     >

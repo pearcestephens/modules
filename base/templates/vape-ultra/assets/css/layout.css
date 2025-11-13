@@ -257,6 +257,32 @@
     transition: transform 0.3s ease, opacity 0.3s ease;
     transform: translateX(0);
     opacity: 1;
+    position: relative;
+}
+
+/* Right Sidebar Close Button */
+.sidebar-right-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(0,0,0,0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: background 0.2s;
+    color: #6b7280;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-right-close-btn:hover {
+    background: rgba(0,0,0,0.2);
+    color: #1f2937;
 }
 
 /* Right Sidebar Hidden State */
@@ -325,13 +351,108 @@
 /* Responsive */
 @media (max-width: 1200px) {
     .app-grid {
-        grid-template-columns: var(--sidebar-w) 1fr;
+        grid-template-columns: 60px 1fr;
         grid-template-areas:
             "header header"
             "sidebar main"
             "footer footer";
     }
-    .sidebar-right { display: none; }
+
+    /* Hide right sidebar at 1200px */
+    .sidebar-right {
+        display: none;
+    }
+
+    /* Collapse left sidebar to thin strip */
+    .sidebar {
+        width: 60px;
+        position: fixed;
+        left: 0;
+        top: 60px;
+        height: calc(100vh - 60px);
+        z-index: 1000;
+        overflow: visible;
+        transition: width 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Hide sidebar content when collapsed */
+    .sidebar .sidebar-header span,
+    .sidebar .nav-item span:not(.badge),
+    .sidebar .nav-section-title {
+        opacity: 0;
+        display: none;
+    }
+
+    /* Center icons in collapsed state */
+    .sidebar .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+    }
+
+    .sidebar .nav-icon {
+        margin-right: 0;
+    }
+
+    /* Hover reveal - expand sidebar */
+    .sidebar:hover,
+    .sidebar.sidebar-revealed {
+        width: 240px;
+        box-shadow: 4px 0 12px rgba(0,0,0,0.15);
+        background: var(--bg-card);
+    }
+
+    /* Show content when expanded */
+    .sidebar:hover .sidebar-header span,
+    .sidebar:hover .nav-item span:not(.badge),
+    .sidebar:hover .nav-section-title,
+    .sidebar.sidebar-revealed .sidebar-header span,
+    .sidebar.sidebar-revealed .nav-item span:not(.badge),
+    .sidebar.sidebar-revealed .nav-section-title {
+        opacity: 1;
+        display: inline;
+    }
+
+    .sidebar:hover .nav-item,
+    .sidebar.sidebar-revealed .nav-item {
+        justify-content: flex-start;
+        padding: 12px 20px;
+    }
+
+    .sidebar:hover .nav-icon,
+    .sidebar.sidebar-revealed .nav-icon {
+        margin-right: 12px;
+    }
+
+    /* Close button - only show when expanded */
+    .sidebar-close-btn {
+        display: none;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: rgba(0,0,0,0.1);
+        border-radius: 6px;
+        cursor: pointer;
+        z-index: 1001;
+        transition: background 0.2s;
+        color: #6b7280;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sidebar-close-btn:hover {
+        background: rgba(0,0,0,0.2);
+        color: #1f2937;
+    }
+
+    .sidebar:hover .sidebar-close-btn,
+    .sidebar.sidebar-revealed .sidebar-close-btn {
+        display: flex;
+    }
 }
 
 @media (max-width: 768px) {

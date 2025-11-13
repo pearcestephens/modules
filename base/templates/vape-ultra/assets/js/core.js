@@ -267,15 +267,89 @@
         }
     };
 
+    /**
+     * Right Sidebar Close Button Handler
+     */
+    VapeUltra.RightSidebarClose = {
+        closeBtn: null,
+
+        init: function() {
+            this.closeBtn = document.getElementById('sidebar-right-close-btn');
+
+            if (!this.closeBtn) return;
+
+            console.log('✖️ Right Sidebar Close Button initialized');
+
+            this.closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                VapeUltra.SidebarToggle.toggle();
+            });
+        }
+    };
+
+    /**
+     * Hover-Reveal Sidebar for Desktop Breakpoint
+     * Auto-collapse at 1200px, reveal on hover, 3-second delay to close
+     */
+    VapeUltra.HoverSidebar = {
+        sidebar: null,
+        hideTimeout: null,
+
+        init: function() {
+            this.sidebar = document.getElementById('app-sidebar');
+
+            if (!this.sidebar) return;
+
+            console.log('🎯 Hover-Reveal Sidebar initialized');
+
+            // Mouse leave - start 3 second countdown
+            this.sidebar.addEventListener('mouseleave', () => {
+                this.startHideCountdown();
+            });
+
+            // Mouse enter - cancel countdown
+            this.sidebar.addEventListener('mouseenter', () => {
+                this.cancelHideCountdown();
+            });
+        },        startHideCountdown: function() {
+            this.cancelHideCountdown(); // Clear any existing timeout
+
+            this.hideTimeout = setTimeout(() => {
+                this.hideSidebar();
+            }, 3000); // 3 second delay
+
+            console.log('⏱️ Sidebar will hide in 3 seconds...');
+        },
+
+        cancelHideCountdown: function() {
+            if (this.hideTimeout) {
+                clearTimeout(this.hideTimeout);
+                this.hideTimeout = null;
+                console.log('⏹️ Sidebar hide cancelled');
+            }
+        },
+
+        hideSidebar: function() {
+            if (this.sidebar) {
+                this.sidebar.classList.remove('sidebar-revealed');
+                console.log('👋 Sidebar hidden');
+            }
+        }
+    };
+
     // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             VapeUltra.Core.init();
             VapeUltra.SidebarToggle.init();
+            VapeUltra.RightSidebarClose.init();
+            VapeUltra.HoverSidebar.init();
         });
     } else {
         VapeUltra.Core.init();
         VapeUltra.SidebarToggle.init();
+        VapeUltra.RightSidebarClose.init();
+        VapeUltra.HoverSidebar.init();
     }
 
 })();

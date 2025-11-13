@@ -7,6 +7,11 @@
  */
 ?>
 
+<!-- Close button for right sidebar -->
+<button class="sidebar-right-close-btn" id="sidebar-right-close-btn" title="Close sidebar">
+    <i class="bi bi-x-lg"></i>
+</button>
+
 <div class="sidebar-right-inner">
     <!-- Store Rankings Widget -->
     <div class="widget">

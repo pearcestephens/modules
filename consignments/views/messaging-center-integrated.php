@@ -1157,6 +1157,12 @@ const MessagingLayout = {
             this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main main" "footer footer footer"';
         }
 
+        // Messaging center: Show all 3 columns (conversations + chat + details)
+        const messagingContent = document.querySelector('.messaging-content');
+        if (messagingContent) {
+            messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
+        }
+
         // Collapse left sidebar to vertical bar with first letters
         if (this.appSidebar) {
             this.appSidebar.classList.add('sidebar-collapsed');
@@ -1245,6 +1251,12 @@ const MessagingLayout = {
             this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main main" "footer footer footer"';
         }
 
+        // Messaging center: Show all 3 columns (conversations + chat + details)
+        const messagingContent = document.querySelector('.messaging-content');
+        if (messagingContent) {
+            messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
+        }
+
         // Show full left sidebar
         if (this.appSidebar) {
             this.appSidebar.classList.remove('sidebar-collapsed');
@@ -1331,6 +1343,12 @@ const MessagingLayout = {
         if (this.appGrid) {
             this.appGrid.style.gridTemplateColumns = '240px 1fr 280px';
             this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main right" "footer footer footer"';
+        }
+
+        // Messaging center: Show all 3 columns (conversations + chat + details)
+        const messagingContent = document.querySelector('.messaging-content');
+        if (messagingContent) {
+            messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
         }
 
         // Show full left sidebar

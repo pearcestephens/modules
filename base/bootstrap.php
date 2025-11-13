@@ -204,7 +204,8 @@ function getCurrentUser(): ?array {
         return null;
     }
 
-    global $db;
+    // Use PDO connection via db() helper
+    $pdo = db();
 
     // Try from session cache first
     if (isset($_SESSION['user_data'])) {
@@ -218,7 +219,7 @@ function getCurrentUser(): ?array {
         return null;
     }
 
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         SELECT id, username, email, role, outlet_id, status
         FROM staff_accounts
         WHERE id = ?
@@ -289,7 +290,13 @@ function requireAuth(string $redirectUrl = '/login.php'): void {
  */
 function getUserId(): ?int {
     // Prefer new standard, fallback to legacy
-    return $_SESSION['user_id'] ?? $_SESSION['userID'] ?? null;
+    if (isset($_SESSION['user_id'])) {
+        return (int) $_SESSION['user_id'];
+    }
+    if (isset($_SESSION['userID'])) {
+        return (int) $_SESSION['userID'];
+    }
+    return null;
 }
 
 /**
@@ -312,8 +319,12 @@ function hasPermission(string $permission): bool {
         return false;
     }
 
-    global $db;
     $userId = getUserId();
+    if ($userId === null) {
+        return false;
+    }
+
+    $pdo = db();
 
     // Admin role has all permissions
     $role = getUserRole();
@@ -322,7 +333,7 @@ function hasPermission(string $permission): bool {
     }
 
     // Check permission in database
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         SELECT COUNT(*) FROM staff_permissions
         WHERE user_id = ? AND permission = ? AND active = 1
     ");

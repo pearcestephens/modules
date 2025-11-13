@@ -243,12 +243,14 @@ define('CORE_CACHE_BLOCKED_USERS_TTL', 3600);      // 1 hour
 define('CORE_CACHE_CHAT_SETTINGS_TTL', 1800);      // 30 minutes
 define('CORE_CACHE_DM_PRIVACY_TTL', 3600);         // 1 hour
 
-// Profile Settings
-define('CORE_PROFILE_AVATAR_MAX_SIZE', 5242880);  // 5MB
-define('CORE_MAX_BIO_LENGTH', 500);  // 500 characters
-define('CORE_MAX_AVATAR_SIZE', 5);  // 5MB
-define('CORE_PROFILE_AVATAR_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-define('CORE_PROFILE_AVATAR_PATH', '/uploads/avatars/');
+// Profile Settings (moved earlier in file) - remove duplicate definitions
+// Note: These constants are defined above. Avoid redefining to prevent warnings.
+// Keeping this section commented-out to document intended values.
+// define('CORE_PROFILE_AVATAR_MAX_SIZE', 5242880);  // 5MB
+// define('CORE_MAX_BIO_LENGTH', 500);  // 500 characters
+// define('CORE_MAX_AVATAR_SIZE', 5);  // 5MB
+// define('CORE_PROFILE_AVATAR_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+// define('CORE_PROFILE_AVATAR_PATH', '/uploads/avatars/');
 
 // Return array of config
 return [

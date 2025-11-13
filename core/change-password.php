@@ -86,11 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('User not found. Please log in again.');
         }
 
-        // Get user with password hash from database
-        $pdo = db();
-        $stmt = $pdo->prepare('SELECT id, password_hash FROM staff_accounts WHERE id = ? AND deleted_at IS NULL');
-        $stmt->execute([$user['id']]);
-        $userWithPassword = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Get user with password hash from database
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT id, password_hash FROM staff_accounts WHERE id = ? AND deleted_at IS NULL');
+    $stmt->execute([$user['id']]);
+    $userWithPassword = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$userWithPassword) {
             throw new Exception('User not found.');
@@ -112,15 +112,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Hash new password
         $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
+        // Use transaction to update password
+        $pdo->beginTransaction();
+
         // Update password
         $stmt = $pdo->prepare('
-            UPDATE staff_accounts 
-            SET password_hash = ?, 
+            UPDATE staff_accounts
+            SET password_hash = ?,
                 password_changed_at = NOW(),
                 updated_at = NOW()
             WHERE id = ?
         ');
         $stmt->execute([$newPasswordHash, $user['id']]);
+
+        $pdo->commit();
 
         // Log successful password change
         if (function_exists('log_activity')) {
@@ -139,6 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
 
     } catch (Exception $e) {
+        if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $error = $e->getMessage();
         error_log("[CHANGE PASSWORD ERROR] " . $error . " | User: " . (getUserId() ?? 'unknown'));
     }
@@ -161,13 +169,13 @@ $flashError = getFlash('error');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Change Password - CIS Staff Portal</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -245,7 +253,7 @@ $flashError = getFlash('error');
         </div>
 
         <div class="card-body">
-            
+
             <!-- Flash Messages -->
             <?php if (isset($error)): ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -292,7 +300,7 @@ $flashError = getFlash('error');
 
             <!-- Change Password Form -->
             <form method="POST" action="" id="changePasswordForm">
-                
+
                 <!-- CSRF Token -->
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
@@ -301,11 +309,11 @@ $flashError = getFlash('error');
                     <label for="current_password" class="form-label">
                         <i class="fas fa-lock"></i> Current Password
                     </label>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="current_password" 
-                        name="current_password" 
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="current_password"
+                        name="current_password"
                         required
                         autocomplete="current-password"
                     >
@@ -316,11 +324,11 @@ $flashError = getFlash('error');
                     <label for="new_password" class="form-label">
                         <i class="fas fa-key"></i> New Password
                     </label>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="new_password" 
-                        name="new_password" 
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="new_password"
+                        name="new_password"
                         required
                         autocomplete="new-password"
                     >
@@ -335,11 +343,11 @@ $flashError = getFlash('error');
                     <label for="confirm_password" class="form-label">
                         <i class="fas fa-check-double"></i> Confirm New Password
                     </label>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="confirm_password" 
-                        name="confirm_password" 
+                    <input
+                        type="password"
+                        class="form-control"
+                        id="confirm_password"
+                        name="confirm_password"
                         required
                         autocomplete="new-password"
                     >
