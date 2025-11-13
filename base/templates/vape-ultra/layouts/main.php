@@ -39,10 +39,17 @@
         if (isset($rightSidebarContent)) {
             echo $rightSidebarContent;
         } else {
-            include __DIR__ . '/../components/sidebar-right.php';
+            $sidebarPath = __DIR__ . '/../components/sidebar-right.php';
+            if (file_exists($sidebarPath)) {
+                include $sidebarPath;
+            } else {
+                echo '<div class="p-3 text-danger">Right sidebar file not found: ' . htmlspecialchars($sidebarPath) . '</div>';
+            }
         }
         ?>
     </aside>
+    <?php else: ?>
+        <!-- Right sidebar hidden: hideRightSidebar = <?php echo var_export($hideRightSidebar ?? 'not set', true); ?> -->
     <?php endif; ?>
 
     <!-- Footer -->

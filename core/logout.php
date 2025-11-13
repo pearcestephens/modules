@@ -1,22 +1,27 @@
 <?php
 /**
- * CORE Module - Logout Entry Point
+ * CORE Module - Logout Handler
  *
- * Handles user logout
+ * Securely logs out the user and destroys session
  *
  * @package CIS\Core
- * @version 2.0.0
+ * @version 2.0.0 - Production Ready
  */
 
 declare(strict_types=1);
 
+// Load BASE bootstrap (includes middleware and session)
+require_once dirname(__DIR__) . '/base/bootstrap.php';
+
 // Load CORE bootstrap
 require_once __DIR__ . '/bootstrap.php';
 
-use CIS\Core\Controllers\AuthController;
+// Logout user (uses BASE logoutUser() function - includes audit logging)
+logoutUser(true);
 
-// Create controller instance
-$controller = new AuthController();
+// Set success message
+flash('success', 'You have been logged out successfully.');
 
-// Process logout
-$controller->processLogout();
+// Redirect to login page
+header('Location: /modules/core/login.php');
+exit;

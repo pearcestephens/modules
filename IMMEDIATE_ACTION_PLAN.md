@@ -1,8 +1,8 @@
 # 🔧 IMMEDIATE ACTION PLAN - BASE & CORE FIXES
 ## Critical Security Hotfixes (Deploy Today)
 
-**Status:** 🔴 URGENT - 3 CRITICAL vulnerabilities found  
-**Est. Time:** 6-8 hours  
+**Status:** 🔴 URGENT - 3 CRITICAL vulnerabilities found
+**Est. Time:** 6-8 hours
 **Priority:** Deploy ASAP
 
 ---
@@ -11,7 +11,7 @@
 
 ### Fix #1: Remove BOT BYPASS (30 minutes) ⚠️⚠️⚠️
 
-**File:** `modules/base/bootstrap.php`  
+**File:** `modules/base/bootstrap.php`
 **Line:** 213
 
 **Current (DANGEROUS):**
@@ -33,16 +33,16 @@ if (isset($_GET['botbypass']) && $_GET['botbypass'] === 'test123') {
 **Fix Option B: Secure Development Mode (If needed)**
 ```php
 // Development-only bypass with strong token
-if (getenv('APP_ENV') === 'development' && 
+if (getenv('APP_ENV') === 'development' &&
     getenv('DEV_BYPASS_ENABLED') === 'true') {
     $devToken = getenv('DEV_BYPASS_TOKEN'); // Min 64 chars
-    
-    if (!empty($devToken) && 
-        isset($_GET['_dev_bypass']) && 
+
+    if (!empty($devToken) &&
+        isset($_GET['_dev_bypass']) &&
         hash_equals($devToken, $_GET['_dev_bypass'])) {
-        
+
         error_log("[SECURITY] DEV BYPASS USED - IP: {$_SERVER['REMOTE_ADDR']}");
-        
+
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
             $_SESSION['username'] = 'DevTestUser';
@@ -85,12 +85,12 @@ git push origin payroll-hardening-20251101
 
 ### Fix #2: Implement Middleware Pipeline (4 hours) ⚠️⚠️⚠️
 
-**Problem:** 7 middleware files exist but NONE are used  
+**Problem:** 7 middleware files exist but NONE are used
 **Impact:** No CSRF protection, no rate limiting, no request logging
 
 **Step 1: Add Middleware Execution to BASE Bootstrap (30 min)**
 
-**File:** `modules/base/bootstrap.php`  
+**File:** `modules/base/bootstrap.php`
 **Location:** After session initialization (around line 103)
 
 **Add:**
@@ -107,22 +107,22 @@ use App\Middleware\RateLimitMiddleware;
 
 try {
     $pipeline = new MiddlewarePipeline();
-    
+
     // Register global middleware (runs on all requests)
     $pipeline
         ->add(new LoggingMiddleware())
         ->add(new CsrfMiddleware())
         ->add(new RateLimitMiddleware());
-    
+
     // Execute middleware pipeline
     $pipeline->handle($_REQUEST, function() {
         // Continue to application
     });
-    
+
 } catch (Exception $e) {
     // Log middleware errors
     error_log("[MIDDLEWARE ERROR] " . $e->getMessage());
-    
+
     // Don't expose middleware errors to users
     if ($e->getCode() === 429) {
         http_response_code(429);
@@ -143,28 +143,28 @@ try {
 public function handle($request, $next)
 {
     // CSRF only applies to state-changing methods
-    if ($_SERVER['REQUEST_METHOD'] === 'GET' || 
-        $_SERVER['REQUEST_METHOD'] === 'HEAD' || 
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' ||
+        $_SERVER['REQUEST_METHOD'] === 'HEAD' ||
         $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         return $next($request);
     }
-    
+
     // Exempt specific routes (API endpoints with token auth)
     $exemptPaths = ['/api/webhook/', '/api/public/'];
     $currentPath = $_SERVER['REQUEST_URI'] ?? '';
-    
+
     foreach ($exemptPaths as $path) {
         if (strpos($currentPath, $path) === 0) {
             return $next($request);
         }
     }
-    
+
     // Validate CSRF token
     $token = $request['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    
+
     if (empty($token) || !$this->validateToken($token)) {
         http_response_code(403);
-        
+
         if ($this->isAjaxRequest()) {
             echo json_encode([
                 'success' => false,
@@ -173,41 +173,41 @@ public function handle($request, $next)
         } else {
             echo 'CSRF token validation failed. Please refresh and try again.';
         }
-        
+
         exit;
     }
-    
+
     return $next($request);
 }
 
 private function validateToken(string $token): bool
 {
-    return isset($_SESSION['csrf_token']) && 
+    return isset($_SESSION['csrf_token']) &&
            hash_equals($_SESSION['csrf_token'], $token);
 }
 
 private function isAjaxRequest(): bool
 {
-    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 }
 ```
 
 **Step 3: Add Rate Limiting to Login Controller (30 min)**
 
-**File:** `modules/core/controllers/AuthController.php`  
+**File:** `modules/core/controllers/AuthController.php`
 **Line:** Add at start of login() method
 
 ```php
 public function login(): void
 {
     require_guest();
-    
+
     // CRITICAL: Add rate limiting to prevent brute force
     $identifier = 'login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
     $rateLimiter = new \App\Middleware\RateLimitMiddleware();
     $rateLimiter->setLimits(5, 300); // 5 attempts per 5 minutes
-    
+
     try {
         $rateLimiter->checkLimit($identifier);
     } catch (\Exception $e) {
@@ -215,7 +215,7 @@ public function login(): void
             'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
             'attempts' => 5
         ]);
-        
+
         redirect_with_message(
             '/modules/core/public/login.php',
             'Too many login attempts. Please try again in 5 minutes.',
@@ -223,13 +223,13 @@ public function login(): void
         );
         return;
     }
-    
+
     // Existing login logic continues...
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         redirect_with_message('/modules/core/public/login.php', 'Invalid request method', 'error');
         return;
     }
-    
+
     // ... rest of login method
 }
 ```
@@ -245,7 +245,7 @@ class RateLimitMiddleware
     private $maxRequests = 60;
     private $windowSeconds = 60;
     private $storageBackend = 'file'; // 'file' or 'redis'
-    
+
     /**
      * Set custom limits
      */
@@ -254,7 +254,7 @@ class RateLimitMiddleware
         $this->maxRequests = $maxRequests;
         $this->windowSeconds = $windowSeconds;
     }
-    
+
     /**
      * Check rate limit for identifier (throws exception if exceeded)
      */
@@ -262,15 +262,15 @@ class RateLimitMiddleware
     {
         $key = "ratelimit:{$identifier}";
         $data = $this->getData($key);
-        
+
         if ($data['count'] >= $this->maxRequests) {
             $exception = new \Exception('Rate limit exceeded', 429);
             throw $exception;
         }
-        
+
         $this->increment($key, $data);
     }
-    
+
     /**
      * Get rate limit data
      */
@@ -282,7 +282,7 @@ class RateLimitMiddleware
             return $this->getDataFromFile($key);
         }
     }
-    
+
     /**
      * File-based storage (fallback when Redis unavailable)
      */
@@ -292,12 +292,12 @@ class RateLimitMiddleware
         if (!is_dir($cacheDir)) {
             mkdir($cacheDir, 0755, true);
         }
-        
+
         $cacheFile = $cacheDir . '/' . md5($key) . '.json';
-        
+
         if (file_exists($cacheFile)) {
             $data = json_decode(file_get_contents($cacheFile), true);
-            
+
             // Check if window expired
             if ($data['reset_at'] <= time()) {
                 return [
@@ -305,30 +305,30 @@ class RateLimitMiddleware
                     'reset_at' => time() + $this->windowSeconds
                 ];
             }
-            
+
             return $data;
         }
-        
+
         return [
             'count' => 0,
             'reset_at' => time() + $this->windowSeconds
         ];
     }
-    
+
     /**
      * Increment counter
      */
     private function increment(string $key, array $data): void
     {
         $data['count']++;
-        
+
         if ($this->storageBackend === 'redis') {
             $this->saveDataToRedis($key, $data);
         } else {
             $this->saveDataToFile($key, $data);
         }
     }
-    
+
     /**
      * Save to file
      */
@@ -338,7 +338,7 @@ class RateLimitMiddleware
         $cacheFile = $cacheDir . '/' . md5($key) . '.json';
         file_put_contents($cacheFile, json_encode($data));
     }
-    
+
     // Existing handle() method for middleware pipeline...
 }
 ```
@@ -370,7 +370,7 @@ for i in {1..10}; do
     -X POST http://localhost/modules/core/login.php \
     -d "email=test@test.com&password=wrong&csrf_token=test"
 done
-# Expected: 
+# Expected:
 # Attempts 1-5: 200 or 302
 # Attempts 6-10: 429
 ```
@@ -399,7 +399,7 @@ git push origin payroll-hardening-20251101
 
 ### Fix #3: Fix Concurrent Login Race Condition (2 hours) ⚠️⚠️
 
-**File:** `modules/base/bootstrap.php`  
+**File:** `modules/base/bootstrap.php`
 **Function:** loginUser() (lines 460-540)
 
 **Add locking mechanism:**
@@ -411,11 +411,11 @@ function loginUser(array $user): void
     if (empty($user['id'])) {
         throw new \InvalidArgumentException('User ID is required for login');
     }
-    
+
     // CRITICAL: Prevent concurrent login race condition
     $lockKey = "login_lock_user_{$user['id']}";
     $lockFile = sys_get_temp_dir() . "/{$lockKey}.lock";
-    
+
     // Try to acquire lock (non-blocking)
     $lockHandle = fopen($lockFile, 'c');
     if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
@@ -423,7 +423,7 @@ function loginUser(array $user): void
         fclose($lockHandle);
         throw new \RuntimeException('Login already in progress. Please wait.');
     }
-    
+
     try {
         // Check if already logged in (prevent duplicate session creation)
         if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === (int)$user['id']) {
@@ -434,18 +434,18 @@ function loginUser(array $user): void
             }
             return;
         }
-        
+
         // Security: Regenerate session ID to prevent session fixation
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_regenerate_id(true);
         }
-        
+
         // Modern PHP standard: user_id (snake_case)
         $_SESSION['user_id'] = (int) $user['id'];
-        
+
         // Legacy compatibility: Also set userID (camelCase)
         $_SESSION['userID'] = (int) $user['id'];
-        
+
         // Store complete user data with safe defaults
         $_SESSION['user'] = [
             'id' => (int) $user['id'],
@@ -462,12 +462,12 @@ function loginUser(array $user): void
             'logged_in_at' => time(),
             'last_activity' => time()
         ];
-        
+
         // Security: Mark session as authenticated
         $_SESSION['authenticated'] = true;
         $_SESSION['auth_time'] = time();
         $_SESSION['_login_nonce'] = bin2hex(random_bytes(16)); // Prevent replay
-        
+
         // Production: Log successful login (audit trail)
         if (function_exists('log_activity')) {
             log_activity('user_login_session_created', [
@@ -478,12 +478,12 @@ function loginUser(array $user): void
                 'session_id' => session_id()
             ]);
         }
-        
+
     } finally {
         // Always release lock
         flock($lockHandle, LOCK_UN);
         fclose($lockHandle);
-        
+
         // Cleanup old lock files (older than 1 hour)
         $oldLocks = glob(sys_get_temp_dir() . "/login_lock_user_*.lock");
         foreach ($oldLocks as $oldLock) {
@@ -526,15 +526,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
             const submitBtn = this.querySelector('button[type="submit"]');
-            
+
             if (submitBtn.disabled) {
                 e.preventDefault();
                 return false;
             }
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Logging in...';
-            
+
             // Re-enable after 5 seconds (timeout protection)
             setTimeout(() => {
                 submitBtn.disabled = false;
@@ -730,14 +730,14 @@ curl -I https://staff.vapeshed.co.nz/
 
 ---
 
-**CURRENT STATUS:** ✅ Phase 1 plan complete - ready for implementation  
-**NEXT ACTION:** Review this plan, then execute Fix #1 (BOT BYPASS removal)  
-**ESTIMATED COMPLETION:** 6-8 hours  
+**CURRENT STATUS:** ✅ Phase 1 plan complete - ready for implementation
+**NEXT ACTION:** Review this plan, then execute Fix #1 (BOT BYPASS removal)
+**ESTIMATED COMPLETION:** 6-8 hours
 **RISK LEVEL:** Low (fixes are well-isolated, tested, with rollback plan)
 
 ---
 
-**Document Generated:** November 13, 2025  
-**For:** Ecigdis Limited CIS System  
-**Branch:** payroll-hardening-20251101  
+**Document Generated:** November 13, 2025
+**For:** Ecigdis Limited CIS System
+**Branch:** payroll-hardening-20251101
 **Ready for:** Immediate implementation

@@ -32,7 +32,7 @@ switch ($page) {
             [
                 'layout' => ($layoutMode === 'fullwidth') ? 'messaging' : 'main',
                 'title' => 'Messaging Center',
-                'hide_right_sidebar' => ($layoutMode !== 'compact'),
+                'hide_right_sidebar' => false, // Always render sidebar, JavaScript will control visibility
                 'class' => 'messaging-page layout-' . $layoutMode
             ]
         );

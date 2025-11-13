@@ -454,35 +454,27 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
 .messaging-content {
     flex: 1;
     display: grid;
+    grid-template-columns: 320px 1fr 280px;
+    gap: 0;
     min-height: 0;
     height: 100%;
+    background: #f8f9fa;
     transition: grid-template-columns 0.3s ease;
 }
 
-/* Layout Modes - Messaging content is always full 3-column */
+/* Layout Modes - Messaging content always shows all 3 columns */
+/* The grid columns are set above and apply to all layouts */
+/* Responsive behavior handled by media queries below */
 
-/* Full: Messaging always shows all 3 columns (conversations + chat + details) */
-.messaging-content.layout-fullwidth {
-    grid-template-columns: 320px 1fr 280px;
-}
-
-/* Standard: Messaging always shows all 3 columns (conversations + chat + details) */
-.messaging-content.layout-standard {
-    grid-template-columns: 320px 1fr 280px;
-}
-
-/* Compact: Messaging always shows all 3 columns (conversations + chat + details) */
-.messaging-content.layout-compact {
-    grid-template-columns: 320px 1fr 280px;
-}
-
-/* Conversations */
+/* Conversations - Left Column */
 .msg-conversations {
+    grid-column: 1;
     border-right: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
     background: #f9fafb;
     min-height: 0;
+    max-height: 100%;
     overflow: hidden;
 }
 
@@ -574,11 +566,14 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
 }
 
 /* Chat Window */
+/* Chat Window - Center Column */
 .msg-chat {
+    grid-column: 2;
     display: flex;
     flex-direction: column;
     background: white;
     min-height: 0;
+    max-height: 100%;
     overflow: hidden;
 }
 
@@ -635,9 +630,8 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
     justify-content: flex-end;
 }
 
-.message.sent .message-content {
-    background: #667eea;
-    color: white;
+.message.sent .message-avatar {
+    display: none; /* Hide avatar for sent messages */
 }
 
 .message-avatar img {
@@ -655,6 +649,18 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
     background: white;
     border-radius: 12px;
     font-size: 14px;
+}
+
+/* Sent messages - Purple bubble on right */
+.message.sent .message-text {
+    background: #667eea;
+    color: white;
+}
+
+/* Received messages - White bubble on left */
+.message.received .message-text {
+    background: white;
+    color: #1f2937;
 }
 
 .message-time {
@@ -676,13 +682,15 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
     flex: 1;
 }
 
-/* Details Sidebar */
+/* Details Sidebar - Right Column */
 .msg-details {
+    grid-column: 3;
     border-left: 1px solid #e5e7eb;
     padding: 24px;
     overflow-y: auto;
     background: #f9fafb;
     min-height: 0;
+    max-height: 100%;
 }
 
 .details-header {
@@ -857,7 +865,7 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
     .messaging-content {
         grid-template-columns: 320px 1fr !important;
     }
-    
+
     .msg-details {
         display: none;
     }
@@ -870,37 +878,37 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
         gap: 12px;
         padding: 12px;
     }
-    
+
     .header-right {
         width: 100%;
         justify-content: space-between;
     }
-    
+
     .messaging-tabs {
         overflow-x: auto;
         padding: 8px;
     }
-    
+
     .msg-tab {
         flex-shrink: 0;
         padding: 8px 12px;
         font-size: 13px;
     }
-    
+
     /* Show only active conversation or chat */
     .messaging-content {
         grid-template-columns: 1fr !important;
     }
-    
+
     .msg-conversations {
         display: none; /* Hidden by default on mobile */
     }
-    
+
     /* Show conversations when no active chat */
     .messaging-content.show-conversations .msg-conversations {
         display: flex;
     }
-    
+
     .messaging-content.show-conversations .msg-chat {
         display: none;
     }
@@ -912,20 +920,20 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
         flex-direction: column;
         width: 100%;
     }
-    
+
     .layout-btn {
         width: 100%;
         justify-content: center;
     }
-    
+
     .messaging-title {
         font-size: 18px;
     }
-    
+
     .chat-header {
         padding: 12px;
     }
-    
+
     .chat-messages {
         padding: 12px;
     }
@@ -1007,6 +1015,15 @@ const MessagingLayout = {
             layoutButtons: this.layoutButtons.length,
             layoutStatusAnnouncer: !!this.layoutStatusAnnouncer
         });
+
+        // Debug right sidebar
+        if (this.appSidebarRight) {
+            console.log('Right sidebar found:', {
+                display: this.appSidebarRight.style.display,
+                innerHTML: this.appSidebarRight.innerHTML.length + ' chars',
+                computedDisplay: window.getComputedStyle(this.appSidebarRight).display
+            });
+        }
     },
 
     /**
@@ -1384,13 +1401,18 @@ const MessagingLayout = {
             });
         }
 
-        // Show right sidebar - but let CSS media queries handle responsive hiding
+        // Show right sidebar - explicitly set to block, CSS media queries will handle responsive hiding
         if (this.appSidebarRight) {
-            // Remove inline display style to allow CSS media queries to work
-            this.appSidebarRight.style.display = '';
+            this.appSidebarRight.style.display = 'block';
+            console.log('Right sidebar set to display:block', {
+                hasContent: this.appSidebarRight.innerHTML.length > 0,
+                contentLength: this.appSidebarRight.innerHTML.length
+            });
+        } else {
+            console.error('appSidebarRight not found! Cannot show right sidebar.');
         }
 
-        console.log('COMPACT layout applied - right sidebar responsive behavior enabled');
+        console.log('COMPACT layout applied - right sidebar shown');
     }
 };
 
@@ -1424,27 +1446,27 @@ if (document.readyState === 'loading') {
  */
 function initConversationHandlers() {
     console.log('Initializing conversation handlers...');
-    
+
     const conversationItems = document.querySelectorAll('.conversation-item');
     console.log('Found', conversationItems.length, 'conversations');
-    
+
     conversationItems.forEach((item, index) => {
         item.addEventListener('click', function(e) {
             console.log('Conversation clicked:', index);
-            
+
             // Remove active class from all
             conversationItems.forEach(conv => conv.classList.remove('active'));
-            
+
             // Add active class to clicked item
             this.classList.add('active');
-            
+
             // Update chat header with conversation info
             const userName = this.querySelector('.conv-name')?.textContent || 'User';
             const chatUserName = document.querySelector('.chat-user-name');
             if (chatUserName) {
                 chatUserName.textContent = userName;
             }
-            
+
             console.log('Activated conversation:', userName);
         });
     });
