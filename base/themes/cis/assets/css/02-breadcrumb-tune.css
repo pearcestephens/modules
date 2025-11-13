@@ -1,0 +1,7 @@
+/* 02-breadcrumb-tune.css - Breadcrumb + quick search alignment */
+.cis-breadcrumb-wrapper{margin-bottom:.5rem}
+.cis-breadcrumb-wrapper .breadcrumb{padding:.375rem .75rem;line-height:1.25;align-items:center;background:#fff;border-color:#e9ecef}
+.cis-breadcrumb-wrapper .breadcrumb .breadcrumb-item+.breadcrumb-item::before{padding-right:.5rem}
+
+/* Ensure row aligns controls */
+.cis-breadcrumb-wrapper + .col-md-auto .quick-product-search .form-control{height:calc(1.5em + .75rem + 2px)}

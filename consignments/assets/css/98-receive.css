@@ -1,0 +1,5 @@
+/* Receive Purchase Order Page Styles */
+#po-receive-form label { font-weight: 500; }
+#po-items-table td, #po-items-table th { vertical-align: middle; }
+#po-items-table tbody tr.pending-new { background: #fffdf3; }
+#po-status { min-height: 18px; }

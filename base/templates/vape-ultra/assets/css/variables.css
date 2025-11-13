@@ -1,0 +1,108 @@
+/**
+ * CSS Variables - Design Tokens
+ *
+ * Central place for all design variables
+ * Modules can override these for custom theming
+ */
+
+:root {
+    /* Silver Metallic Color Palette */
+    --bg-base: #f5f6f8;
+    --bg-card: #ffffff;
+    --bg-hover: #fafbfc;
+    --bg-active: #e8eaed;
+
+    /* Text Hierarchy */
+    --text-1: #0a0a0a;
+    --text-2: #1a1a1a;
+    --text-3: #4a4a4a;
+    --text-4: #8a8a8a;
+
+    /* Brand Colors */
+    --accent: #2c3e50;
+    --primary: #6366f1;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+
+    /* Layout Dimensions */
+    --sidebar-w: 240px;
+    --sidebar-right-w: 300px;
+    --header-h: 56px;
+    --footer-h: 32px;
+
+    /* Spacing Scale */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xs: 11px;
+    --font-size-sm: 12px;
+    --font-size-base: 13px;
+    --font-size-md: 14px;
+    --font-size-lg: 16px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 32px;
+
+    /* Effects */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --shadow-xl: 0 12px 32px rgba(0,0,0,0.15);
+
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius: 8px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    /* Transitions */
+    --transition-fast: 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Z-Index Scale */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+    --bg-base: #0a0a0a;
+    --bg-card: #1a1a1a;
+    --bg-hover: #2a2a2a;
+    --bg-active: #3a3a3a;
+
+    --text-1: #ffffff;
+    --text-2: #e0e0e0;
+    --text-3: #a0a0a0;
+    --text-4: #6a6a6a;
+}
+
+/* Compact Mode */
+[data-density="compact"] {
+    --space-xs: 0.125rem;
+    --space-sm: 0.25rem;
+    --space-md: 0.5rem;
+    --space-lg: 0.75rem;
+    --space-xl: 1rem;
+
+    --font-size-base: 12px;
+    --font-size-md: 13px;
+    --font-size-lg: 14px;
+}

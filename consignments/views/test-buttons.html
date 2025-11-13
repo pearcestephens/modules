@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f5f6f8;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .test-box {
+            background: #e0e7ff;
+            padding: 40px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .test-box.layout-fullwidth {
+            background: #fef3c7;
+            padding: 80px;
+        }
+
+        .test-box.layout-standard {
+            background: #dbeafe;
+            padding: 40px;
+        }
+
+        .test-box.layout-compact {
+            background: #fce7f3;
+            padding: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #f0f4ff;
+        }
+
+        button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Button Functionality Test</h1>
+        <p>Click the buttons below to test if they work:</p>
+
+        <div class="button-group">
+            <button data-layout="fullwidth">Full Width</button>
+            <button data-layout="standard" class="active">Standard</button>
+            <button data-layout="compact">Compact</button>
+        </div>
+
+        <div class="test-box layout-standard" id="testBox">
+            <h2>Test Box</h2>
+            <p>This box should change appearance when you click the buttons above.</p>
+        </div>
+
+        <div class="status" id="status">
+            Status: Ready. Click a button to test.
+        </div>
+
+        <div class="status" id="log">
+            Click Log:<br>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script starting...');
+
+        const buttons = document.querySelectorAll('button[data-layout]');
+        const testBox = document.getElementById('testBox');
+        const status = document.getElementById('status');
+        const log = document.getElementById('log');
+        let clickCount = 0;
+
+        console.log('Found buttons:', buttons.length);
+        console.log('Found testBox:', testBox);
+
+        function addLog(message) {
+            clickCount++;
+            log.innerHTML += `${clickCount}. ${message}<br>`;
+            console.log(message);
+        }
+
+        addLog('Page loaded successfully');
+        addLog(`Found ${buttons.length} buttons`);
+
+        buttons.forEach((btn, index) => {
+            const layout = btn.getAttribute('data-layout');
+            addLog(`Setting up button ${index + 1}: ${layout}`);
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                addLog(`Button clicked: ${layout}`);
+                status.textContent = `Status: Clicked ${layout} button`;
+
+                // Remove all layout classes
+                testBox.classList.remove('layout-fullwidth', 'layout-standard', 'layout-compact');
+
+                // Add new layout class
+                testBox.classList.add(`layout-${layout}`);
+
+                // Update button states
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                addLog(`Applied layout: layout-${layout}`);
+                addLog(`TestBox classes: ${testBox.className}`);
+            });
+        });
+
+        addLog('All event listeners attached');
+    </script>
+</body>
+</html>

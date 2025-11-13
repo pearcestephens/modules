@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Theme Builder PRO - Ultimate AI-Powered Design System</title>
+
+    <!-- Monaco Editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* Main Layout */
+        .theme-builder {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 60px 1fr 40px;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--surface);
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-section {
+            border-bottom: 1px solid var(--border);
+            padding: 16px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .component-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .component-item {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: move;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .component-item:hover {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(4px);
+        }
+
+        .component-icon {
+            font-size: 18px;
+        }
+
+        .component-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Main Content Area */
+        .content {
+            display: grid;
+            grid-template-rows: 1fr 300px;
+            gap: 8px;
+            padding: 8px;
+            background: #0a0f1e;
+            overflow: hidden;
+        }
+
+        /* Preview Area */
+        .preview-container {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .preview-toolbar {
+            background: var(--dark);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .device-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .device-btn {
+            padding: 6px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .device-btn:hover,
+        .device-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .preview-frame {
+            flex: 1;
+            background: white;
+            margin: 16px;
+            border-radius: 4px;
+            overflow: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        #previewIframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Editor Area */
+        .editor-container {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-tabs {
+            background: var(--dark);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+        }
+
+        .editor-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .editor-tab:hover {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .editor-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        #codeEditor {
+            flex: 1;
+            min-height: 200px;
+        }
+
+        /* AI Bot Panel */
+        .ai-bot-panel {
+            position: fixed;
+            right: 16px;
+            bottom: 56px;
+            width: 400px;
+            max-height: 600px;
+            background: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1001;
+        }
+
+        .ai-bot-panel.active {
+            display: flex;
+        }
+
+        .ai-bot-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-bot-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-bot-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .ai-bot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ai-message {
+            padding: 12px;
+            border-radius: 8px;
+            max-width: 85%;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .ai-message.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .ai-message.bot {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+        }
+
+        .ai-message code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .ai-bot-input {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-bot-input input {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .ai-bot-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .ai-bot-send {
+            padding: 10px 16px;
+            background: var(--primary);
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* AI Bot Toggle Button */
+        .ai-bot-toggle {
+            position: fixed;
+            right: 24px;
+            bottom: 56px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .ai-bot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Component Categories */
+        .category-list {
+            display: grid;
+            gap: 4px;
+        }
+
+        .category-item {
+            padding: 8px 12px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .category-item:hover {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-builder">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                🎨 Theme Builder PRO
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="ThemeBuilder.newTheme()">
+                    ➕ New
+                </button>
+                <button class="btn btn-secondary" onclick="ThemeBuilder.openTheme()">
+                    📂 Open
+                </button>
+                <button class="btn btn-primary" onclick="ThemeBuilder.saveTheme()">
+                    💾 Save
+                </button>
+                <button class="btn btn-secondary" onclick="ThemeBuilder.exportTheme()">
+                    📦 Export
+                </button>
+                <button class="btn btn-secondary" onclick="ThemeBuilder.showSettings()">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Components Section -->
+            <div class="sidebar-section">
+                <div class="section-title">
+                    🧩 COMPONENTS (1000+)
+                </div>
+                <div class="category-list">
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('layout')">
+                        📐 Layout (50+)
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('navigation')">
+                        🧭 Navigation (30+)
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('content')">
+                        📝 Content (100+)
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('media')">
+                        🖼️ Media (40+)
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('forms')">
+                        📋 Forms (50+)
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('data')">
+                        📊 Data Viz (60+)
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showCategory('interactive')">
+                        ⚡ Interactive (70+)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Styles Section -->
+            <div class="sidebar-section">
+                <div class="section-title">
+                    🎨 STYLES
+                </div>
+                <div class="category-list">
+                    <div class="category-item" onclick="ThemeBuilder.showStyleEditor('colors')">
+                        🌈 Colors
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showStyleEditor('typography')">
+                        📝 Typography
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showStyleEditor('spacing')">
+                        📏 Spacing
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.showStyleEditor('effects')">
+                        ✨ Effects
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Tools Section -->
+            <div class="sidebar-section">
+                <div class="section-title">
+                    🤖 AI TOOLS
+                </div>
+                <div class="category-list">
+                    <div class="category-item" onclick="ThemeBuilder.toggleAIBot()">
+                        💬 CSS Specialist Bot
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.generateLayout()">
+                        🏗️ Generate Layout
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.analyzeTheme()">
+                        🔍 Analyze Theme
+                    </div>
+                    <div class="category-item" onclick="ThemeBuilder.importPage()">
+                        📥 Import Page
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Preview Area -->
+            <div class="preview-container">
+                <div class="preview-toolbar">
+                    <div class="device-selector">
+                        <button class="device-btn active" onclick="ThemeBuilder.setDevice('desktop')">
+                            🖥️ Desktop
+                        </button>
+                        <button class="device-btn" onclick="ThemeBuilder.setDevice('tablet')">
+                            📱 Tablet
+                        </button>
+                        <button class="device-btn" onclick="ThemeBuilder.setDevice('mobile')">
+                            📱 Mobile
+                        </button>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="ThemeBuilder.refreshPreview()">
+                            🔄 Refresh
+                        </button>
+                        <button class="btn btn-secondary" onclick="ThemeBuilder.takeScreenshot()">
+                            📸 Screenshot
+                        </button>
+                    </div>
+                </div>
+                <div class="preview-frame">
+                    <iframe id="previewIframe" sandbox="allow-scripts"></iframe>
+                </div>
+            </div>
+
+            <!-- Code Editor -->
+            <div class="editor-container">
+                <div class="editor-tabs">
+                    <button class="editor-tab active" onclick="ThemeBuilder.switchTab('html')">
+                        HTML
+                    </button>
+                    <button class="editor-tab" onclick="ThemeBuilder.switchTab('css')">
+                        CSS
+                    </button>
+                    <button class="editor-tab" onclick="ThemeBuilder.switchTab('js')">
+                        JavaScript
+                    </button>
+                    <button class="editor-tab" onclick="ThemeBuilder.switchTab('settings')">
+                        ⚙️ Settings
+                    </button>
+                </div>
+                <div id="codeEditor"></div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Connected to MCP Server</span>
+            </div>
+            <div>
+                Theme Builder PRO v1.0.0 | AI-Powered | MCP Integrated
+            </div>
+        </footer>
+    </div>
+
+    <!-- AI Bot Panel -->
+    <div class="ai-bot-panel" id="aiBotPanel">
+        <div class="ai-bot-header">
+            <div class="ai-bot-title">
+                🤖 CSS Specialist Bot
+            </div>
+            <button class="ai-bot-close" onclick="ThemeBuilder.toggleAIBot()">
+                ×
+            </button>
+        </div>
+        <div class="ai-bot-messages" id="aiBotMessages">
+            <div class="ai-message bot">
+                👋 Hi! I'm your CSS Specialist Bot. I can help you:
+                <br><br>
+                • Generate CSS from descriptions
+                <br>• Fix styling issues
+                <br>• Create animations
+                <br>• Build color schemes
+                <br>• Optimize code
+                <br><br>
+                What would you like me to help with?
+            </div>
+        </div>
+        <div class="ai-bot-input">
+            <input type="text" id="aiBotInput" placeholder="Ask me anything about CSS..."
+                   onkeypress="if(event.key==='Enter') ThemeBuilder.sendAIMessage()">
+            <button class="ai-bot-send" onclick="ThemeBuilder.sendAIMessage()">
+                Send
+            </button>
+        </div>
+    </div>
+
+    <!-- AI Bot Toggle Button -->
+    <button class="ai-bot-toggle" onclick="ThemeBuilder.toggleAIBot()">
+        🤖
+    </button>
+
+    <!-- Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+    <script>
+        // XSS Protection Helper
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Initialize Theme Builder
+        window.ThemeBuilder = {
+            editor: null,
+            currentTab: 'html',
+            currentDevice: 'desktop',
+            theme: {
+                html: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style id="themeStyles"></style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Welcome to Theme Builder PRO!</h1>
+        <p>Start building your amazing theme...</p>
+        <button class="btn btn-primary">Get Started</button>
+    </div>
+</body>
+</html>`,
+                css: `body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+h1 {
+    color: #1e293b;
+    margin-bottom: 16px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+}`,
+                js: `console.log('🎨 Theme Builder PRO initialized!');
+
+// Your JavaScript code here`
+            },
+
+            init() {
+                this.initMonaco();
+                this.updatePreview();
+            },
+
+            initMonaco() {
+                require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+                require(['vs/editor/editor.main'], () => {
+                    this.editor = monaco.editor.create(document.getElementById('codeEditor'), {
+                        value: this.theme.html,
+                        language: 'html',
+                        theme: 'vs-dark',
+                        automaticLayout: true,
+                        minimap: { enabled: true },
+                        fontSize: 14,
+                        lineNumbers: 'on',
+                        renderWhitespace: 'selection',
+                        scrollBeyondLastLine: false
+                    });
+
+                    // Auto-update preview on change
+                    this.editor.onDidChangeModelContent(() => {
+                        this.theme[this.currentTab] = this.editor.getValue();
+                        this.updatePreview();
+                    });
+                });
+            },
+
+            switchTab(tab) {
+                this.currentTab = tab;
+                const tabs = document.querySelectorAll('.editor-tab');
+                tabs.forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+
+                const languages = { html: 'html', css: 'css', js: 'javascript', settings: 'json' };
+                if (this.editor) {
+                    monaco.editor.setModelLanguage(this.editor.getModel(), languages[tab]);
+                    this.editor.setValue(this.theme[tab] || '');
+                }
+            },
+
+            updatePreview() {
+                const iframe = document.getElementById('previewIframe');
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+                let html = this.theme.html;
+                html = html.replace('<style id="themeStyles"></style>',
+                    `<style id="themeStyles">${this.theme.css}</style>`);
+                html = html.replace('</body>',
+                    `<script>${this.theme.js}<\/script></body>`);
+
+                doc.open();
+                doc.write(html);
+                doc.close();
+            },
+
+            setDevice(device) {
+                this.currentDevice = device;
+                const buttons = document.querySelectorAll('.device-btn');
+                buttons.forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+
+                const iframe = document.getElementById('previewIframe');
+                const widths = { desktop: '100%', tablet: '768px', mobile: '375px' };
+                iframe.style.width = widths[device];
+                iframe.style.margin = device === 'desktop' ? '16px' : '16px auto';
+            },
+
+            toggleAIBot() {
+                const panel = document.getElementById('aiBotPanel');
+                panel.classList.toggle('active');
+            },
+
+            async sendAIMessage() {
+                const input = document.getElementById('aiBotInput');
+                const message = input.value.trim();
+                if (!message) return;
+
+                // Add user message
+                this.addAIMessage(message, 'user');
+                input.value = '';
+
+                // Show typing indicator
+                const typingMsg = this.addAIMessage('Thinking...', 'bot');
+
+                try {
+                    // Call MCP AI Agent
+                    const response = await fetch('/mcp/server_v4.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': '31ce0106609a6c5bc4f7ece0deb2f764df90a06167bda83468883516302a6a35'
+                        },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'tools/call',
+                            params: {
+                                name: 'ai-agent-query',
+                                arguments: {
+                                    query: `As a CSS specialist: ${message}`,
+                                    agent_id: 1
+                                }
+                            },
+                            id: Date.now()
+                        })
+                    });
+
+                    const data = await response.json();
+                    typingMsg.remove();
+
+                    if (data.result && data.result.content) {
+                        const botReply = data.result.content[0].text;
+                        this.addAIMessage(botReply, 'bot');
+
+                        // If bot generated CSS code, offer to apply it
+                        if (botReply.includes('{') && botReply.includes('}')) {
+                            this.addAIMessage(
+                                '💡 Would you like me to apply this CSS to your theme? (Auto-applying...)',
+                                'bot'
+                            );
+                            // Extract and apply CSS
+                            const cssMatch = botReply.match(/```css\n([\s\S]*?)\n```/);
+                            if (cssMatch) {
+                                this.theme.css += '\n\n' + cssMatch[1];
+                                this.updatePreview();
+                            }
+                        }
+                    }
+                } catch (error) {
+                    typingMsg.remove();
+                    this.addAIMessage('❌ Sorry, I encountered an error. Please try again.', 'bot');
+                    console.error('AI Bot Error:', error);
+                }
+            },
+
+            addAIMessage(text, type) {
+                const messagesDiv = document.getElementById('aiBotMessages');
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `ai-message ${type}`;
+                // XSS Protection: Use textContent for plain text or escapeHTML for formatted text
+                if (text.includes('<br>') || text.includes('<strong>')) {
+                    // If text contains allowed HTML tags, escape user data portions
+                    msgDiv.innerHTML = text; // Note: text should be pre-sanitized by caller
+                } else {
+                    msgDiv.textContent = text; // Plain text - safe
+                }
+                messagesDiv.appendChild(msgDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                return msgDiv;
+            },
+
+            saveTheme() {
+                const themeData = JSON.stringify(this.theme, null, 2);
+                const blob = new Blob([themeData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my-theme.json';
+                a.click();
+                alert('✅ Theme saved successfully!');
+            },
+
+            exportTheme() {
+                alert('📦 Export feature coming soon! Will include:\n\n• Minified CSS/JS\n• Optimized assets\n• Production-ready files\n• Deployment instructions');
+            },
+
+            newTheme() {
+                if (confirm('Create a new theme? Current work will be lost.')) {
+                    location.reload();
+                }
+            },
+
+            openTheme() {
+                alert('📂 Theme import coming soon!');
+            },
+
+            showSettings() {
+                alert('⚙️ Settings panel coming soon!');
+            },
+
+            refreshPreview() {
+                this.updatePreview();
+            },
+
+            takeScreenshot() {
+                alert('📸 Screenshot feature coming soon!');
+            },
+
+            showCategory(category) {
+                alert(`🧩 ${category} components coming soon!\n\nWill include 50+ drag-and-drop components.`);
+            },
+
+            showStyleEditor(editor) {
+                alert(`🎨 ${editor} editor coming soon!\n\nWill include visual controls and live preview.`);
+            },
+
+            generateLayout() {
+                alert('🏗️ AI Layout Generator coming soon!\n\nDescribe your desired layout and AI will build it!');
+            },
+
+            analyzeTheme() {
+                alert('🔍 Theme Analyzer coming soon!\n\nWill provide insights, suggestions, and optimization tips.');
+            },
+
+            importPage() {
+                alert('📥 Page Import coming soon!\n\nEnter a URL and AI will reconstruct the page for you to edit.');
+            }
+        };
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            ThemeBuilder.init();
+        });
+    </script>
+
+    <!-- 🔥 COMPONENT LIBRARY -->
+    <script src="components-library.js"></script>
+
+    <!-- 🎯 COMPONENT GENERATOR -->
+    <script src="component-generator.js"></script>
+
+    <!-- 🤖 MCP INTEGRATION -->
+    <script src="mcp-integration.js"></script>
+
+    <!-- 🌱 DATA SEEDS -->
+    <script src="data-seeds.js"></script>
+
+    <!-- 💡 INSPIRATION GENERATOR -->
+    <script src="inspiration-generator.js"></script>
+
+    <!-- 🎨 DRAG & DROP ENGINE -->
+    <script>
+        // Initialize drag-drop system after all modules loaded
+        window.addEventListener('load', () => {
+            if (window.ComponentLibrary && window.MCPIntegration && window.ComponentGenerator && window.DataSeeds && window.InspirationGenerator) {
+                console.log('🚀 All systems loaded!');
+                console.log(`📦 ${window.ComponentLibrary.getComponentCount()} components available`);
+                console.log('🤖 MCP Integration ready');
+                console.log('🎯 Component Generator ready');
+                console.log('🌱 Data Seeds loaded:', window.DataSeeds.getStats());
+                console.log('💡 Inspiration Generator ready');
+
+                // Wire up MCP to ThemeBuilder
+                ThemeBuilder.mcp = new MCPIntegration();
+                ThemeBuilder.generator = new ComponentGenerator(ThemeBuilder.mcp);
+                ThemeBuilder.inspiration = new InspirationGenerator(window.DataSeeds, ThemeBuilder.generator);
+
+                // Populate component sidebar
+                ThemeBuilder.loadComponents();
+
+                // Add generator UI
+                ThemeBuilder.addGeneratorUI();
+
+                // Add inspiration UI
+                ThemeBuilder.addInspirationUI();
+            }
+        });        // Extend ThemeBuilder with component functionality
+        ThemeBuilder.loadComponents = function() {
+            const sidebar = document.querySelector('.sidebar-content');
+            if (!sidebar) return;
+
+            const components = ComponentLibrary.getAllComponents();
+            const grouped = {};
+
+            // Group by category
+            components.forEach(comp => {
+                if (!grouped[comp.category]) {
+                    grouped[comp.category] = [];
+                }
+                grouped[comp.category].push(comp);
+            });
+
+            // Build component UI
+            let html = '<div class="components-list">';
+
+            Object.keys(grouped).forEach(category => {
+                html += `
+                    <div class="component-category">
+                        <h3 class="category-title">${escapeHTML(category.toUpperCase())}</h3>
+                        <div class="category-components">
+                `;
+
+                grouped[category].forEach(comp => {
+                    html += `
+                        <div class="component-item" draggable="true"
+                             data-category="${escapeHTML(comp.category)}"
+                             data-subcategory="${escapeHTML(comp.subcategory)}"
+                             data-key="${escapeHTML(comp.key)}">
+                            <div class="component-icon">🧩</div>
+                            <div class="component-name">${escapeHTML(comp.name)}</div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            // Add styles for components
+            html += `
+                <style>
+                    .components-list {
+                        padding: 20px;
+                    }
+                    .component-category {
+                        margin-bottom: 24px;
+                    }
+                    .category-title {
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        color: var(--primary);
+                        margin-bottom: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                    }
+                    .category-components {
+                        display: grid;
+                        gap: 8px;
+                    }
+                    .component-item {
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 12px;
+                        background: var(--surface);
+                        border: 2px solid var(--border);
+                        border-radius: 8px;
+                        cursor: grab;
+                        transition: all 0.2s;
+                    }
+                    .component-item:hover {
+                        border-color: var(--primary);
+                        background: rgba(102, 126, 234, 0.1);
+                        transform: translateX(4px);
+                    }
+                    .component-item:active {
+                        cursor: grabbing;
+                    }
+                    .component-icon {
+                        font-size: 1.5rem;
+                    }
+                    .component-name {
+                        font-size: 0.875rem;
+                        font-weight: 500;
+                    }
+                </style>
+            `;
+
+            sidebar.innerHTML = html;
+
+            // Setup drag events
+            document.querySelectorAll('.component-item').forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    const category = e.target.dataset.category;
+                    const subcategory = e.target.dataset.subcategory;
+                    const key = e.target.dataset.key;
+
+                    const component = ComponentLibrary[category][subcategory][key];
+                    e.dataTransfer.setData('text/html', component.html);
+                    e.dataTransfer.setData('text/css', component.css);
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+
+                item.addEventListener('click', () => {
+                    const category = item.dataset.category;
+                    const subcategory = item.dataset.subcategory;
+                    const key = item.dataset.key;
+
+                    const component = ComponentLibrary[category][subcategory][key];
+                    ThemeBuilder.insertComponent(component);
+                });
+            });
+        };
+
+        // Insert component into editor
+        ThemeBuilder.insertComponent = function(component) {
+            if (!this.editors.html) return;
+
+            const currentHtml = this.editors.html.getValue();
+            const currentCss = this.editors.css.getValue();
+
+            // Insert HTML
+            const insertPos = this.editors.html.getPosition();
+            this.editors.html.executeEdits('insert-component', [{
+                range: new monaco.Range(insertPos.lineNumber, insertPos.column, insertPos.lineNumber, insertPos.column),
+                text: '\n' + component.html + '\n'
+            }]);
+
+            // Insert CSS
+            this.editors.css.setValue(currentCss + '\n\n/* ' + component.name + ' */\n' + component.css);
+
+            // Update preview
+            this.updatePreview();
+
+            // Show notification
+            this.showNotification(`✅ ${component.name} added!`, 'success');
+        };
+
+        // Notification system
+        ThemeBuilder.showNotification = function(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                padding: 16px 24px;
+                background: ${type === 'success' ? 'var(--success)' : 'var(--primary)'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        };
+
+        // Add component generator UI
+        ThemeBuilder.addGeneratorUI = function() {
+            const sidebar = document.querySelector('.sidebar-content');
+            if (!sidebar) return;
+
+            // Add generator section at top
+            const generatorSection = document.createElement('div');
+            generatorSection.className = 'generator-section';
+            generatorSection.innerHTML = `
+                <div style="padding: 20px; background: var(--surface); border-bottom: 2px solid var(--border);">
+                    <h3 style="margin-bottom: 16px; color: var(--primary);">🎯 AI Component Generator</h3>
+
+                    <input type="text" id="genDescription" placeholder="Describe component..."
+                           style="width: 100%; padding: 12px; margin-bottom: 12px; background: var(--dark);
+                                  border: 2px solid var(--border); border-radius: 8px; color: var(--text);">
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                        <select id="genType" style="padding: 10px; background: var(--dark); border: 2px solid var(--border);
+                                                     border-radius: 6px; color: var(--text);">
+                            <option value="hero">Hero Section</option>
+                            <option value="card">Card</option>
+                            <option value="navbar">Navbar</option>
+                            <option value="footer">Footer</option>
+                            <option value="form">Form</option>
+                            <option value="gallery">Gallery</option>
+                        </select>
+
+                        <select id="genColorScheme" style="padding: 10px; background: var(--dark); border: 2px solid var(--border);
+                                                            border-radius: 6px; color: var(--text);">
+                            <option value="electric">⚡ Electric</option>
+                            <option value="ocean">🌊 Ocean</option>
+                            <option value="sunset">🌅 Sunset</option>
+                            <option value="forest">🌲 Forest</option>
+                            <option value="midnight">🌙 Midnight</option>
+                        </select>
+                    </div>
+
+                    <button onclick="ThemeBuilder.generateComponent()"
+                            style="width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary));
+                                   border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;
+                                   transition: all 0.3s;">
+                        ✨ Generate Component
+                    </button>
+                </div>
+            `;
+
+            sidebar.insertBefore(generatorSection, sidebar.firstChild);
+        };
+
+        // Generate component from AI
+        ThemeBuilder.generateComponent = async function() {
+            const description = document.getElementById('genDescription').value;
+            const type = document.getElementById('genType').value;
+            const colorScheme = document.getElementById('genColorScheme').value;
+
+            if (!description && type === 'hero') {
+                this.showNotification('⚠️ Please describe what you want to create!', 'warning');
+                return;
+            }
+
+            this.showNotification('🤖 Generating component...', 'info');
+
+            try {
+                let component;
+
+                if (description) {
+                    // AI-powered generation
+                    component = await this.generator.generateByDescription(description, {
+                        colorScheme,
+                        responsive: true,
+                        animated: true
+                    });
+                } else {
+                    // Template-based generation
+                    const templates = {
+                        hero: { layout: 'centered', elements: ['title', 'subtitle', 'cta-buttons'] },
+                        card: { layout: 'hover-lift', elements: ['image', 'title', 'description', 'cta', 'badge'] },
+                        navbar: { layout: 'sticky', elements: ['logo', 'menu', 'cta'] },
+                        footer: { layout: 'multi-column', elements: ['logo', 'links', 'social', 'copyright'] },
+                        form: { layout: 'stacked', elements: ['text', 'email', 'select', 'submit'] },
+                        gallery: { layout: 'grid', elements: ['image', 'caption'] }
+                    };
+
+                    const config = templates[type];
+                    component = this.generator.generateFromTemplate(
+                        type,
+                        config.layout,
+                        config.elements,
+                        { colorScheme }
+                    );
+                }
+
+                // Insert into editor
+                this.insertComponent(component);
+                this.showNotification('✅ Component generated and inserted!', 'success');
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                this.showNotification('❌ Generation failed: ' + error.message, 'danger');
+            }
+        };
+
+        // Add inspiration UI
+        ThemeBuilder.addInspirationUI = function() {
+            const toolbar = document.querySelector('.toolbar');
+            if (!toolbar) return;
+
+            // Add inspiration button to toolbar
+            const inspirationBtn = document.createElement('button');
+            inspirationBtn.className = 'toolbar-btn';
+            inspirationBtn.innerHTML = '💡 Get Inspired';
+            inspirationBtn.onclick = () => this.showInspirationPanel();
+            toolbar.appendChild(inspirationBtn);
+        };
+
+        // Show inspiration panel
+        ThemeBuilder.showInspirationPanel = function() {
+            // Create modal overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'inspirationModal';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.8);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease-out;
+            `;
+
+            const panel = document.createElement('div');
+            panel.style.cssText = `
+                background: var(--surface);
+                border-radius: 16px;
+                padding: 40px;
+                max-width: 900px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            `;
+
+            panel.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2 style="color: var(--primary); font-size: 2rem;">💡 Design Inspiration</h2>
+                    <button onclick="document.getElementById('inspirationModal').remove()"
+                            style="background: none; border: none; color: var(--text); font-size: 2rem; cursor: pointer;">×</button>
+                </div>
+
+                <div style="display: grid; gap: 24px;">
+                    <!-- Random Inspiration -->
+                    <div style="background: var(--dark); padding: 24px; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px;">🎲 Random Idea</h3>
+                        <button onclick="ThemeBuilder.generateRandomIdea()"
+                                style="width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary));
+                                       border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                            Generate Random Design Idea
+                        </button>
+                        <div id="randomIdeaOutput" style="margin-top: 16px; padding: 16px; background: rgba(102,126,234,0.1);
+                                                          border-radius: 8px; min-height: 100px;"></div>
+                    </div>
+
+                    <!-- Industry Templates -->
+                    <div style="background: var(--dark); padding: 24px; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px;">🏢 Industry Templates</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                            ${Object.keys(window.DataSeeds.industryTemplates).map(industry => `
+                                <button onclick="ThemeBuilder.applyIndustryTemplate('${escapeHTML(industry)}')"
+                                        style="padding: 16px; background: var(--surface); border: 2px solid var(--border);
+                                               border-radius: 8px; color: var(--text); font-weight: 600; cursor: pointer;
+                                               transition: all 0.2s;">
+                                    ${escapeHTML(industry.toUpperCase())}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Color Schemes -->
+                    <div style="background: var(--dark); padding: 24px; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px;">🎨 Color Schemes</h3>
+                        <div style="display: grid; gap: 12px;">
+                            ${window.DataSeeds.designPatterns.colorCombinations.slice(0, 10).map(scheme => `
+                                <div onclick="ThemeBuilder.applyColorScheme('${escapeHTML(scheme.name)}')"
+                                     style="padding: 16px; background: var(--surface); border: 2px solid var(--border);
+                                            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+                                            display: flex; align-items: center; gap: 16px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <div style="width: 40px; height: 40px; border-radius: 8px; background: ${escapeHTML(scheme.primary)};"></div>
+                                        <div style="width: 40px; height: 40px; border-radius: 8px; background: ${escapeHTML(scheme.secondary)};"></div>
+                                        <div style="width: 40px; height: 40px; border-radius: 8px; background: ${escapeHTML(scheme.accent)};"></div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text);">${escapeHTML(scheme.name)}</div>
+                                        <div style="font-size: 0.875rem; color: var(--text-muted);">${escapeHTML(scheme.mood)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Complete Page Generator -->
+                    <div style="background: var(--dark); padding: 24px; border-radius: 12px;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px;">🏗️ Generate Complete Page</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <select id="pageType" style="padding: 12px; background: var(--surface); border: 2px solid var(--border);
+                                                         border-radius: 8px; color: var(--text);">
+                                <option value="landing">Landing Page</option>
+                                <option value="portfolio">Portfolio</option>
+                                <option value="ecommerce">E-commerce</option>
+                                <option value="blog">Blog</option>
+                                <option value="app">App Landing</option>
+                            </select>
+                            <select id="pageIndustry" style="padding: 12px; background: var(--surface); border: 2px solid var(--border);
+                                                             border-radius: 8px; color: var(--text);">
+                                <option value="">Any Industry</option>
+                                ${Object.keys(window.DataSeeds.industryTemplates).map(industry => `
+                                    <option value="${industry}">${industry.toUpperCase()}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <button onclick="ThemeBuilder.generateCompletePage()"
+                                style="width: 100%; padding: 16px; background: linear-gradient(135deg, #10b981, #059669);
+                                       border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                            🚀 Generate Complete Page
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            overlay.appendChild(panel);
+            document.body.appendChild(overlay);
+        };
+
+        // Generate random idea
+        ThemeBuilder.generateRandomIdea = function() {
+            const idea = this.inspiration.generateRandomInspiration();
+            const output = document.getElementById('randomIdeaOutput');
+
+            if (!output) return;
+
+            let html = `<div style="color: var(--text);">`;
+
+            if (idea.category === 'color-scheme') {
+                html += `
+                    <h4 style="color: var(--primary); margin-bottom: 12px;">🎨 ${idea.idea.name}</h4>
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <div style="width: 60px; height: 60px; border-radius: 8px; background: ${idea.idea.primary};"></div>
+                        <div style="width: 60px; height: 60px; border-radius: 8px; background: ${idea.idea.secondary};"></div>
+                        <div style="width: 60px; height: 60px; border-radius: 8px; background: ${idea.idea.accent};"></div>
+                    </div>
+                    <p style="color: var(--text-muted);">Mood: ${idea.idea.mood}</p>
+                    <button onclick="ThemeBuilder.applyColorScheme('${idea.idea.name}')"
+                            style="margin-top: 12px; padding: 8px 16px; background: var(--primary); border: none;
+                                   border-radius: 6px; color: white; cursor: pointer;">
+                        Apply This Scheme
+                    </button>
+                `;
+            } else if (idea.category === 'layout') {
+                html += `
+                    <h4 style="color: var(--primary); margin-bottom: 12px;">🏗️ ${idea.idea.name}</h4>
+                    <p style="margin-bottom: 8px;">Structure: ${idea.idea.structure.join(' → ')}</p>
+                    <p style="color: var(--text-muted);">Style: ${idea.idea.style}</p>
+                    <p style="color: var(--text-muted);">Industries: ${idea.idea.industries.join(', ')}</p>
+                `;
+            } else {
+                html += `
+                    <h4 style="color: var(--primary); margin-bottom: 12px;">Category: ${idea.category}</h4>
+                    <pre style="background: var(--surface); padding: 12px; border-radius: 8px; overflow-x: auto;">
+${JSON.stringify(idea.idea, null, 2)}
+                    </pre>
+                `;
+            }
+
+            html += `</div>`;
+            output.innerHTML = html;
+        };
+
+        // Apply industry template
+        ThemeBuilder.applyIndustryTemplate = async function(industry) {
+            this.showNotification(`🏢 Applying ${industry} template...`, 'info');
+
+            const template = window.DataSeeds.industryTemplates[industry];
+            const colorScheme = window.DataSeeds.designPatterns.colorCombinations.find(
+                c => template.colors.includes(c.name)
+            );
+
+            // Generate first component
+            const heroConfig = { layout: 'centered', elements: ['title', 'subtitle', 'cta-buttons'] };
+            const component = this.generator.generateFromTemplate('hero', heroConfig.layout, heroConfig.elements, { colorScheme: 'electric' });
+
+            this.insertComponent(component);
+            this.showNotification(`✅ ${industry.toUpperCase()} template applied!`, 'success');
+
+            document.getElementById('inspirationModal')?.remove();
+        };
+
+        // Apply color scheme
+        ThemeBuilder.applyColorScheme = function(schemeName) {
+            this.showNotification(`🎨 Applying ${schemeName} color scheme...`, 'info');
+
+            const scheme = window.DataSeeds.designPatterns.colorCombinations.find(c => c.name === schemeName);
+            if (!scheme) return;
+
+            // Add CSS variables for the color scheme
+            const css = `
+/* ${schemeName} Color Scheme */
+:root {
+    --primary: ${scheme.primary};
+    --secondary: ${scheme.secondary};
+    --accent: ${scheme.accent};
+}
+`;
+
+            const currentCss = this.editors.css.getValue();
+            this.editors.css.setValue(css + '\n' + currentCss);
+            this.updatePreview();
+
+            this.showNotification(`✅ ${schemeName} applied!`, 'success');
+            document.getElementById('inspirationModal')?.remove();
+        };
+
+        // Generate complete page
+        ThemeBuilder.generateCompletePage = async function() {
+            const type = document.getElementById('pageType')?.value || 'landing';
+            const industry = document.getElementById('pageIndustry')?.value || null;
+
+            this.showNotification(`🚀 Generating complete ${type} page...`, 'info');
+
+            try {
+                const page = await this.inspiration.generateCompletePage(type, industry);
+
+                // Insert into editors
+                this.editors.html.setValue(page.html);
+                this.editors.css.setValue(page.css);
+                this.updatePreview();
+
+                this.showNotification(`✅ Complete ${type} page generated!`, 'success');
+                document.getElementById('inspirationModal')?.remove();
+
+            } catch (error) {
+                console.error('Page generation error:', error);
+                this.showNotification(`❌ Generation failed: ${error.message}`, 'danger');
+            }
+        };
+
+        // AI Bot integration
+        ThemeBuilder.sendAIMessage = async function() {
+            const input = document.getElementById('aiInput');
+            const chat = document.getElementById('aiChat');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message (XSS protected)
+            chat.innerHTML += `
+                <div style="background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                    <strong>You:</strong> ${escapeHTML(message)}
+                </div>
+            `;
+
+            input.value = '';
+
+            // Show thinking
+            const thinkingId = 'thinking-' + Date.now();
+            chat.innerHTML += `
+                <div id="${thinkingId}" style="background: rgba(102,126,234,0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                    <strong>AI Bot:</strong> <em>Thinking...</em> ⚡
+                </div>
+            `;
+
+            chat.scrollTop = chat.scrollHeight;
+
+            try {
+                // Use MCP integration
+                const response = await this.mcp.generateCSS(message);
+
+                document.getElementById(thinkingId).innerHTML = `
+                    <strong>AI Bot:</strong> ${escapeHTML(response.substring(0, 500))}...
+                `;
+
+                // If CSS code detected, offer to insert
+                if (response.includes('{') && response.includes('}')) {
+                    const insertBtn = document.createElement('button');
+                    insertBtn.textContent = '✨ Insert This Code';
+                    insertBtn.style.cssText = `
+                        margin-top: 8px;
+                        padding: 8px 16px;
+                        background: var(--primary);
+                        border: none;
+                        border-radius: 6px;
+                        color: white;
+                        cursor: pointer;
+                    `;
+                    insertBtn.onclick = () => {
+                        const currentCss = this.editors.css.getValue();
+                        this.editors.css.setValue(currentCss + '\n\n' + response);
+                        this.updatePreview();
+                        this.showNotification('✅ Code inserted!', 'success');
+                    };
+                    document.getElementById(thinkingId).appendChild(insertBtn);
+                }
+
+            } catch (error) {
+                document.getElementById(thinkingId).innerHTML = `
+                    <strong>AI Bot:</strong> ❌ Error: ${escapeHTML(error.message)}
+                `;
+            }
+
+            chat.scrollTop = chat.scrollHeight;
+        };
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

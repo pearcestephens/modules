@@ -1,0 +1,107 @@
+<?php
+/**
+ * Stock Transfers - Modern List View
+ *
+ * Enterprise-grade transfer management with live data, modals, and AJAX operations.
+ * Uses CISClassicTheme for consistent UI/UX across the platform.
+ *
+ * @package CIS\Consignments\StockTransfers
+ * @version 4.0.0
+ * @created 2025-11-10
+ */
+
+declare(strict_types=1);
+
+// Load CIS Classic Theme (same as pack-enterprise-flagship.php)
+require_once __DIR__ . '/../../base/templates/themes/cis-classic/theme.php';
+require_once __DIR__ . '/../bootstrap.php';
+
+// Get filter parameters
+$state = isset($_GET['state']) ? (string)$_GET['state'] : '';
+$scope = isset($_GET['scope']) ? (string)$_GET['scope'] : '';
+$uid = $_SESSION['userID'] ?? null;
+
+// Initialize theme
+$theme = new CISClassicTheme();
+$theme->setTitle('Stock Transfers');
+$theme->setPageSubtitle('Manage inter-outlet inventory transfers');
+$theme->addBreadcrumb('Consignments', '/modules/consignments/');
+$theme->addBreadcrumb('Stock Transfers', null);
+
+// Add header action button
+$theme->addHeaderButton(
+    'New Transfer',
+    '/modules/consignments/?route=transfer-manager',
+    'btn-success',
+    'fa-plus'
+);
+
+// Render HTML head with custom assets
+$theme->render('html-head');
+?>
+<!-- Stock Transfers Custom Assets -->
+<link rel="stylesheet" href="/modules/consignments/assets/css/tokens.css?v=<?= time() ?>">
+<link rel="stylesheet" href="/modules/consignments/stock-transfers/css/stock-transfers.css?v=<?= time() ?>">
+<?php
+$theme->render('header');
+$theme->render('sidebar');
+$theme->render('main-start');
+?>
+
+<!-- Hidden data for JS -->
+<div id="pageData" data-state="<?= htmlspecialchars($state) ?>" data-scope="<?= htmlspecialchars($scope) ?>" data-user-id="<?= $uid ?>" style="display:none;"></div>
+
+<div class="st-wrapper">
+
+<!-- Hidden data for JS -->
+<div id="pageData" data-state="<?= htmlspecialchars($state) ?>" data-scope="<?= htmlspecialchars($scope) ?>" data-user-id="<?= $uid ?>" style="display:none;"></div>
+
+<div class="st-wrapper">
+    <!-- Filters -->
+    <div class="st-filters" id="stFilters">
+        <div class="filter-pills" id="filterPills">
+            <!-- JS will populate -->
+        </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="st-table-card">
+        <table class="st-table" id="transfersTable">
+            <thead>
+                <tr>
+                    <th>Consignment</th>
+                    <th>From → To</th>
+                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Progress</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="transfersBody">
+                <!-- JS will populate -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Transfer Detail Modal -->
+<div class="modal fade" id="transferModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Transfer Details</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-3x"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/modules/consignments/stock-transfers/js/stock-transfers.js?v=<?= time() ?>"></script>
+
+<?php
+$theme->render('main-end');
+$theme->render('footer');

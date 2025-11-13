@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messaging Center - Layout Modes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 48px;
+            max-width: 800px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 12px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+        .mode-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .mode-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        .mode-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+        }
+        .mode-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .mode-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        .mode-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .mode-features {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .feature-tag {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Messaging Center - Layout Modes</h1>
+        <p class="subtitle">Choose your preferred layout mode</p>
+
+        <div class="mode-grid">
+            <!-- Full Width Mode -->
+            <a href="messaging-center.php?view=inbox&layout=fullwidth" class="mode-card">
+                <div class="mode-title">
+                    <div class="mode-icon">🖥️</div>
+                    Full Width Mode
+                </div>
+                <div class="mode-description">
+                    Special layout with no sidebars - messaging app takes full screen width.
+                    Best for focus and maximum chat space.
+                </div>
+                <div class="mode-features">
+                    <span class="feature-tag">No Sidebars</span>
+                    <span class="feature-tag">Maximum Space</span>
+                    <span class="feature-tag">Immersive</span>
+                </div>
+            </a>
+
+            <!-- Standard Mode -->
+            <a href="messaging-center.php?view=inbox&layout=standard" class="mode-card">
+                <div class="mode-title">
+                    <div class="mode-icon">📱</div>
+                    Standard Mode (Default)
+                </div>
+                <div class="mode-description">
+                    Uses main layout container with left sidebar visible and right sidebar hidden.
+                    Balanced view with navigation access.
+                </div>
+                <div class="mode-features">
+                    <span class="feature-tag">Left Sidebar</span>
+                    <span class="feature-tag">Navigation</span>
+                    <span class="feature-tag">Balanced</span>
+                </div>
+            </a>
+
+            <!-- Compact Mode -->
+            <a href="messaging-center.php?view=inbox&layout=compact" class="mode-card">
+                <div class="mode-title">
+                    <div class="mode-icon">📊</div>
+                    Compact Mode
+                </div>
+                <div class="mode-description">
+                    Full layout with both sidebars visible. Left sidebar for navigation,
+                    right sidebar for widgets and quick info.
+                </div>
+                <div class="mode-features">
+                    <span class="feature-tag">Both Sidebars</span>
+                    <span class="feature-tag">Widgets</span>
+                    <span class="feature-tag">Info Panel</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="footer">
+            You can switch between modes anytime using the layout switcher in the messaging header
+        </div>
+    </div>
+</body>
+</html>

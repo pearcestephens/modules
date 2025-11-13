@@ -103,14 +103,58 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // =============================================================================
-// 5. LOAD THEME MANAGER
+// 5. MIDDLEWARE PIPELINE (Activate security, logging, rate limiting)
+// =============================================================================
+
+// Only run middleware for HTTP requests (not CLI)
+if (PHP_SAPI !== 'cli') {
+    try {
+        // Load middleware classes
+        require_once __DIR__ . '/middleware/MiddlewarePipeline.php';
+        require_once __DIR__ . '/middleware/LoggingMiddleware.php';
+        require_once __DIR__ . '/middleware/RateLimitMiddleware.php';
+        require_once __DIR__ . '/middleware/CsrfMiddleware.php';
+        
+        // Create middleware pipeline
+        $middlewarePipeline = new \App\Middleware\MiddlewarePipeline();
+        
+        // Add middleware in execution order
+        $middlewarePipeline
+            ->add(new \App\Middleware\LoggingMiddleware())      // Log all requests
+            ->add(new \App\Middleware\RateLimitMiddleware())    // Prevent abuse
+            ->add(new \App\Middleware\CsrfMiddleware());        // CSRF protection
+        
+        // Execute middleware pipeline
+        $middlewarePipeline->handle($_REQUEST, function() {
+            // Continue to application
+            return null;
+        });
+        
+    } catch (Exception $e) {
+        // Log middleware errors but don't break application
+        error_log("[MIDDLEWARE ERROR] " . $e->getMessage());
+        
+        // Handle specific middleware failures
+        if ($e->getCode() === 429) {
+            http_response_code(429);
+            header('Retry-After: 60');
+            die(json_encode(['error' => 'Too many requests. Please try again later.']));
+        } elseif ($e->getCode() === 403) {
+            http_response_code(403);
+            die(json_encode(['error' => 'Forbidden. CSRF validation failed.']));
+        }
+    }
+}
+
+// =============================================================================
+// 6. LOAD THEME MANAGER
 // =============================================================================
 
 require_once __DIR__ . '/lib/ThemeManager.php';
 \CIS\Base\ThemeManager::init();
 
 // =============================================================================
-// 6. LOAD OTHER SERVICES
+// 7. LOAD OTHER SERVICES
 // =============================================================================
 
 // Legacy services (existing CIS code)
@@ -193,23 +237,48 @@ function getCurrentUser(): ?array {
 /**
  * Require authentication (redirect to login if not authenticated)
  *
- * BOT BYPASS: Use ?botbypass=test123 to skip auth for testing
+ * BOT BYPASS: Add HTTP header "X-Bot-Bypass: your_token_here"
+ * Token is stored in .env as BOT_BYPASS_TOKEN
+ * 
+ * Example usage:
+ * curl -H "X-Bot-Bypass: your_token_from_env" https://example.com/admin
+ * 
+ * @param string $redirectUrl Where to redirect if not authenticated
  */
-function requireAuth(): void {
-    // BOT BYPASS for testing/development
-    if (isset($_GET['botbypass']) && $_GET['botbypass'] === 'test123') {
-        // Mock a logged-in user session for testing
+function requireAuth(string $redirectUrl = '/login.php'): void {
+    global $config;
+    
+    // BOT BYPASS via HTTP header (simple, secure, works every time)
+    $botBypassToken = $config->get('BOT_BYPASS_TOKEN', '');
+    
+    if (!empty($botBypassToken) && 
+        isset($_SERVER['HTTP_X_BOT_BYPASS']) && 
+        hash_equals($botBypassToken, $_SERVER['HTTP_X_BOT_BYPASS'])) {
+        
+        // Log bot bypass usage for monitoring
+        error_log(sprintf(
+            "[BOT BYPASS] IP: %s | URI: %s | Time: %s",
+            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            $_SERVER['REQUEST_URI'] ?? 'unknown',
+            date('Y-m-d H:i:s')
+        ));
+        
+        // Create bot test session if not already logged in
         if (!isset($_SESSION['user_id'])) {
-            $_SESSION['user_id'] = 1; // Default test user
-            $_SESSION['username'] = 'TestUser';
+            $_SESSION['user_id'] = 1;
+            $_SESSION['userID'] = 1; // Legacy compatibility
+            $_SESSION['username'] = 'BotTestUser';
             $_SESSION['userRole'] = 'admin';
+            $_SESSION['authenticated'] = true;
+            $_SESSION['_bot_bypass'] = true;
+            $_SESSION['_bot_bypass_time'] = time();
         }
         return; // Skip authentication check
     }
 
     if (!isAuthenticated()) {
         $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-        header('Location: /login.php');
+        header("Location: {$redirectUrl}");
         exit;
     }
 }
@@ -451,11 +520,13 @@ date_default_timezone_set($config->get('APP_TIMEZONE', 'Pacific/Auckland'));
  * Login user and create secure session
  *
  * PRODUCTION GRADE: Handles session regeneration, standardized user data,
- * security best practices, and backwards compatibility.
+ * security best practices, backwards compatibility, and prevents concurrent
+ * login race conditions with file locking.
  *
  * @param array $user User data from database (must include 'id')
  * @return void
  * @throws InvalidArgumentException If user ID is missing
+ * @throws RuntimeException If concurrent login detected
  */
 function loginUser(array $user): void
 {
@@ -464,46 +535,91 @@ function loginUser(array $user): void
         throw new \InvalidArgumentException('User ID is required for login');
     }
 
-    // Security: Regenerate session ID to prevent session fixation
-    if (session_status() === PHP_SESSION_ACTIVE) {
-        session_regenerate_id(true);
+    // CRITICAL: Prevent concurrent login race condition with file locking
+    $lockKey = "login_lock_user_{$user['id']}";
+    $lockFile = sys_get_temp_dir() . "/{$lockKey}.lock";
+    
+    // Try to acquire exclusive lock (non-blocking)
+    $lockHandle = @fopen($lockFile, 'c');
+    if ($lockHandle === false || !flock($lockHandle, LOCK_EX | LOCK_NB)) {
+        // Another login attempt in progress
+        if ($lockHandle) {
+            fclose($lockHandle);
+        }
+        throw new \RuntimeException('Login already in progress. Please wait a moment and try again.');
     }
+    
+    try {
+        // Check if already logged in (prevent duplicate session creation)
+        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === (int)$user['id']) {
+            // Already logged in - update activity timestamp and return
+            $_SESSION['last_activity'] = time();
+            if (isset($_SESSION['user']['last_activity'])) {
+                $_SESSION['user']['last_activity'] = time();
+            }
+            return;
+        }
 
-    // Modern PHP standard: user_id (snake_case)
-    $_SESSION['user_id'] = (int) $user['id'];
+        // Security: Regenerate session ID to prevent session fixation
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
 
-    // Legacy compatibility: Also set userID (camelCase)
-    $_SESSION['userID'] = (int) $user['id'];
+        // Modern PHP standard: user_id (snake_case)
+        $_SESSION['user_id'] = (int) $user['id'];
 
-    // Store complete user data with safe defaults
-    $_SESSION['user'] = [
-        'id' => (int) $user['id'],
-        'username' => $user['username'] ?? '',
-        'email' => $user['email'] ?? '',
-        'first_name' => $user['first_name'] ?? '',
-        'last_name' => $user['last_name'] ?? '',
-        'display_name' => $user['display_name'] ??
-            trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?:
-            ($user['username'] ?? 'User'),
-        'avatar_url' => $user['avatar_url'] ?? '/images/default-avatar.png',
-        'role' => $user['role'] ?? 'user',
-        'availability_status' => $user['availability_status'] ?? 'online',
-        'logged_in_at' => time(),
-        'last_activity' => time()
-    ];
+        // Legacy compatibility: Also set userID (camelCase)
+        $_SESSION['userID'] = (int) $user['id'];
 
-    // Security: Mark session as authenticated
-    $_SESSION['authenticated'] = true;
-    $_SESSION['auth_time'] = time();
-
-    // Production: Log successful login (audit trail)
-    if (function_exists('log_activity')) {
-        log_activity('user_login_session_created', [
-            'user_id' => $user['id'],
+        // Store complete user data with safe defaults
+        $_SESSION['user'] = [
+            'id' => (int) $user['id'],
+            'username' => $user['username'] ?? '',
             'email' => $user['email'] ?? '',
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
-        ]);
+            'first_name' => $user['first_name'] ?? '',
+            'last_name' => $user['last_name'] ?? '',
+            'display_name' => $user['display_name'] ??
+                trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?:
+                ($user['username'] ?? 'User'),
+            'avatar_url' => $user['avatar_url'] ?? '/images/default-avatar.png',
+            'role' => $user['role'] ?? 'user',
+            'availability_status' => $user['availability_status'] ?? 'online',
+            'logged_in_at' => time(),
+            'last_activity' => time()
+        ];
+
+        // Security: Mark session as authenticated
+        $_SESSION['authenticated'] = true;
+        $_SESSION['auth_time'] = time();
+        $_SESSION['_login_nonce'] = bin2hex(random_bytes(16)); // Prevent replay attacks
+
+        // Production: Log successful login (audit trail)
+        if (function_exists('log_activity')) {
+            log_activity('user_login_session_created', [
+                'user_id' => $user['id'],
+                'email' => $user['email'] ?? '',
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+                'session_id' => session_id()
+            ]);
+        }
+        
+    } finally {
+        // Always release lock
+        if ($lockHandle) {
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+        }
+        
+        // Cleanup old lock files (older than 1 hour)
+        $oldLocks = @glob(sys_get_temp_dir() . "/login_lock_user_*.lock");
+        if ($oldLocks) {
+            foreach ($oldLocks as $oldLock) {
+                if (@filemtime($oldLock) < time() - 3600) {
+                    @unlink($oldLock);
+                }
+            }
+        }
     }
 }
 

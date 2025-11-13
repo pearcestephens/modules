@@ -1,0 +1,452 @@
+/**
+ * NETFLIX DARK MODE THEME
+ * Premium Entertainment Platform Aesthetic
+ * 
+ * Color Palette:
+ * - Background: #141414 (Almost Black)
+ * - Text: #ffffff (White)
+ * - Active/Accent: #e50914 (Netflix Red)
+ * - Hover: #831010 (Dark Red)
+ * - Secondary: #564d4d (Warm Gray)
+ * 
+ * @version 1.0.0
+ * @author VapeUltra AI Agent
+ */
+
+/* ============================================
+   🎬 GLOBAL THEME OVERRIDES
+   ============================================ */
+
+body.theme-netflix {
+    background: #141414;
+    color: #e5e5e5;
+}
+
+/* ============================================
+   📱 LEFT SIDEBAR - Netflix Dark
+   ============================================ */
+
+.theme-netflix .sidebar {
+    background: #141414;
+    border-right: 1px solid #2d2d2d;
+}
+
+.theme-netflix .sidebar-header {
+    background: linear-gradient(135deg, #141414 0%, #1a1a1a 100%);
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.theme-netflix .sidebar-logo {
+    color: #e50914;
+    font-weight: 700;
+    text-shadow: 0 2px 8px rgba(229, 9, 20, 0.3);
+}
+
+/* Navigation Items */
+.theme-netflix .nav-section-title {
+    color: #808080;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 1rem 1.25rem 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.theme-netflix .nav-item {
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+    margin: 2px 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-netflix .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: #e50914;
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+}
+
+.theme-netflix .nav-item:hover {
+    background: rgba(229, 9, 20, 0.1);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+.theme-netflix .nav-item:hover::before {
+    transform: scaleY(1);
+}
+
+.theme-netflix .nav-item.active {
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.15) 0%, rgba(229, 9, 20, 0.05) 100%);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.theme-netflix .nav-item.active::before {
+    transform: scaleY(1);
+}
+
+.theme-netflix .nav-item .nav-icon {
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.2s ease;
+}
+
+.theme-netflix .nav-item:hover .nav-icon,
+.theme-netflix .nav-item.active .nav-icon {
+    color: #e50914;
+    transform: scale(1.1);
+}
+
+/* Badges */
+.theme-netflix .nav-badge {
+    background: #e50914;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(229, 9, 20, 0.4);
+}
+
+/* ============================================
+   📊 RIGHT SIDEBAR - Netflix Dark
+   ============================================ */
+
+.theme-netflix .right-sidebar {
+    background: #141414;
+    border-left: 1px solid #2d2d2d;
+}
+
+.theme-netflix .widget {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+    border-radius: 8px;
+}
+
+.theme-netflix .widget-title {
+    color: #ffffff;
+    font-weight: 700;
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.theme-netflix .quick-stat {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.theme-netflix .quick-stat:last-child {
+    border-bottom: none;
+}
+
+.theme-netflix .quick-stat-label {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.theme-netflix .quick-stat-value {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* ============================================
+   🎯 MAIN CONTENT AREA
+   ============================================ */
+
+.theme-netflix .premium-dashboard-header {
+    background: linear-gradient(135deg, #141414 0%, #1a1a1a 100%);
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.theme-netflix .premium-dashboard-title {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.theme-netflix .premium-dashboard-welcome {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.theme-netflix .premium-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.theme-netflix .premium-action-btn:hover {
+    background: #e50914;
+    border-color: #e50914;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   📚 WIKI CARD - Netflix Style
+   ============================================ */
+
+.theme-netflix .wiki-premium-card {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+}
+
+.theme-netflix .wiki-premium-header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%);
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.theme-netflix .wiki-premium-title {
+    color: #ffffff;
+}
+
+.theme-netflix .wiki-source-badge {
+    background: rgba(229, 9, 20, 0.15);
+    color: #e50914;
+    border: 1px solid rgba(229, 9, 20, 0.3);
+}
+
+.theme-netflix .wiki-preview {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.theme-netflix .wiki-toggle-btn {
+    color: #e50914;
+    background: rgba(229, 9, 20, 0.05);
+    border: 1px solid rgba(229, 9, 20, 0.2);
+}
+
+.theme-netflix .wiki-toggle-btn:hover {
+    background: rgba(229, 9, 20, 0.1);
+    border-color: rgba(229, 9, 20, 0.4);
+    color: #e50914;
+}
+
+.theme-netflix .wiki-external-btn {
+    background: #e50914;
+    color: #ffffff;
+}
+
+.theme-netflix .wiki-external-btn:hover {
+    background: #831010;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+}
+
+/* ============================================
+   🏪 STORE CARDS - Netflix Dark
+   ============================================ */
+
+.theme-netflix .store-card {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-netflix .store-card:hover {
+    border-color: #e50914;
+    box-shadow: 0 8px 24px rgba(229, 9, 20, 0.2);
+    transform: translateY(-4px);
+}
+
+.theme-netflix .store-card-header {
+    background: linear-gradient(135deg, #1a1a1a 0%, #242424 100%);
+    border-bottom: 1px solid #2d2d2d;
+}
+
+.theme-netflix .store-card-title {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.theme-netflix .store-card-body {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.theme-netflix .store-card-stat-label {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.theme-netflix .store-card-stat-value {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+/* ============================================
+   ⚠️ ALERTS & NOTIFICATIONS
+   ============================================ */
+
+.theme-netflix .alert {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.theme-netflix .alert-warning {
+    background: linear-gradient(135deg, #2d1f00 0%, #1a1a1a 100%);
+    border-left: 3px solid #e5a00d;
+}
+
+.theme-netflix .alert-info {
+    background: linear-gradient(135deg, #001a2d 0%, #1a1a1a 100%);
+    border-left: 3px solid #0d8ce5;
+}
+
+.theme-netflix .alert-danger {
+    background: linear-gradient(135deg, #2d0000 0%, #1a1a1a 100%);
+    border-left: 3px solid #e50914;
+}
+
+/* ============================================
+   🔘 BUTTONS & FORMS
+   ============================================ */
+
+.theme-netflix .btn-primary {
+    background: #e50914;
+    border-color: #e50914;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.theme-netflix .btn-primary:hover {
+    background: #831010;
+    border-color: #831010;
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+}
+
+.theme-netflix .form-control {
+    background: #1a1a1a;
+    border: 1px solid #2d2d2d;
+    color: #ffffff;
+}
+
+.theme-netflix .form-control:focus {
+    background: #1a1a1a;
+    border-color: #e50914;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.1);
+}
+
+.theme-netflix .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================
+   📋 TABLES
+   ============================================ */
+
+.theme-netflix .table {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.theme-netflix .table thead th {
+    background: #1a1a1a;
+    border-color: #2d2d2d;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 700;
+}
+
+.theme-netflix .table tbody tr {
+    border-color: #2d2d2d;
+}
+
+.theme-netflix .table tbody tr:hover {
+    background: rgba(229, 9, 20, 0.05);
+}
+
+/* ============================================
+   🎨 SCROLLBARS
+   ============================================ */
+
+.theme-netflix ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.theme-netflix ::-webkit-scrollbar-track {
+    background: #141414;
+}
+
+.theme-netflix ::-webkit-scrollbar-thumb {
+    background: #2d2d2d;
+    border-radius: 6px;
+    border: 2px solid #141414;
+}
+
+.theme-netflix ::-webkit-scrollbar-thumb:hover {
+    background: #e50914;
+}
+
+/* ============================================
+   ✨ TEXT UTILITIES
+   ============================================ */
+
+.theme-netflix .text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.theme-netflix .text-primary {
+    color: #e50914 !important;
+}
+
+.theme-netflix .text-success {
+    color: #46d369 !important;
+}
+
+.theme-netflix .text-warning {
+    color: #e5a00d !important;
+}
+
+.theme-netflix .text-danger {
+    color: #e50914 !important;
+}
+
+/* ============================================
+   🌟 PREMIUM GLOW EFFECTS
+   ============================================ */
+
+.theme-netflix .glow-accent {
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
+}
+
+.theme-netflix .nav-item.active .nav-icon {
+    filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.6));
+}
+
+/* ============================================
+   📱 MOBILE RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .theme-netflix .sidebar {
+        background: #141414;
+        border-right: none;
+    }
+    
+    .theme-netflix .sidebar-backdrop {
+        background: rgba(0, 0, 0, 0.8);
+    }
+}
+
+/* ============================================
+   🎬 LOADING STATES
+   ============================================ */
+
+.theme-netflix .loading-spinner {
+    border-color: rgba(229, 9, 20, 0.2);
+    border-top-color: #e50914;
+}
+
+/* ============================================
+   🎯 FOCUS STATES (Accessibility)
+   ============================================ */
+
+.theme-netflix *:focus-visible {
+    outline: 2px solid #e50914;
+    outline-offset: 2px;
+}
+
+.theme-netflix .nav-item:focus-visible {
+    box-shadow: inset 0 0 0 2px #e50914;
+}

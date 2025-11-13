@@ -1,0 +1,41 @@
+{
+  "name": "ecigdis-chat-websocket-server",
+  "version": "1.0.0",
+  "description": "Standalone WebSocket server for Ecigdis chat system - can run on separate machine",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "prod": "NODE_ENV=production node server.js",
+    "test": "node test-connection.js",
+    "health": "node health-check.js"
+  },
+  "keywords": [
+    "websocket",
+    "chat",
+    "socket.io",
+    "ecigdis",
+    "messaging"
+  ],
+  "author": "Ecigdis Limited",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.3.1",
+    "redis": "^4.6.12",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "socket.io-client": "^4.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

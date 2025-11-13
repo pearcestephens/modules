@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS Website Crawl Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1a202c;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            background: #f7fafc;
+        }
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .stat-card.success .number { color: #10b981; }
+        .stat-card.failed .number { color: #ef4444; }
+        .stat-card.total .number { color: #3b82f6; }
+        .stat-card.modules .number { color: #8b5cf6; }
+        .stat-card .label {
+            font-size: 0.9em;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .content {
+            padding: 40px;
+        }
+        .section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 2em;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .module-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .module-item {
+            background: #f8fafc;
+            padding: 15px 20px;
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        .url-card {
+            background: #f8fafc;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+        .url-card.failed {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .url-card h4 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .url-card .meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .badge.success { background: #d1fae5; color: #065f46; }
+        .badge.error { background: #fee2e2; color: #991b1b; }
+        code {
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #1e40af;
+        }
+        .footer {
+            background: #1e293b;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕷️ CIS Website Comprehensive Crawl Report</h1>
+            <p><strong>Base URL:</strong> https://staff.vapeshed.co.nz</p>
+            <p><strong>Crawl Date:</strong> $(date)</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="number">27</div>
+                <div class="label">URLs Tested</div>
+            </div>
+            <div class="stat-card success">
+                <div class="number">0</div>
+                <div class="label">Successful</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="number">27</div>
+                <div class="label">Failed</div>
+            </div>
+            <div class="stat-card modules">
+                <div class="number">0</div>
+                <div class="label">Modules Found</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">📦 Discovered Modules</h2>
+                <div class="module-list" id="moduleList"></div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">✅ Successful Pages</h2>
+                <div id="successList"></div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">❌ Failed Pages</h2>
+                <div id="failedList"></div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Report Generated:</strong> $(date)</p>
+            <p style="opacity: 0.7; margin-top: 10px;">Automated Website Crawler v1.0</p>
+        </div>
+    </div>
+</body>
+</html>

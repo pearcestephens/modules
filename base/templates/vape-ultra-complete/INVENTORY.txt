@@ -1,0 +1,49 @@
+# VAPE ULTRA COMPLETE - FILE INVENTORY
+Generated: Wed Nov 12 22:36:08 UTC 2025
+
+## DIRECTORY STRUCTURE
+./INVENTORY.txt
+./README.md
+./Renderer.php
+./components/footer.php
+./components/header-minimal.php
+./components/header.php
+./components/sidebar-right.php
+./components/sidebar.php
+./config/config.php
+./css/animations.css
+./css/award-winning-refinements.css
+./css/base.css
+./css/components.css
+./css/layout.css
+./css/premium-dashboard-header.css
+./css/sidebar-award-winning.css
+./css/silver-chrome-theme.css
+./css/store-cards-award-winning.css
+./css/theme-netflix-dark.css
+./css/theme-oceanic-gradient.css
+./css/utilities.css
+./css/variables.css
+./docs/INTEGRATION_GUIDE.md
+./js/api.js
+./js/charts.js
+./js/components.js
+./js/core.js
+./js/notifications.js
+./js/utils.js
+./layouts/base.php
+./layouts/main.php
+./layouts/minimal.php
+./views/_feed-activity.php
+./views/dashboard-feed.php
+
+## FILE COUNTS
+CSS Files: 13
+JS Files: 6
+PHP Layouts: 3
+PHP Components: 5
+PHP Views: 2
+Config Files: 1
+Docs: 1
+
+TOTAL FILES: 34

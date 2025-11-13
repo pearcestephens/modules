@@ -1,0 +1,7 @@
+/* Basic Card Layout overrides (scoped to layout preview card) */
+#layout-preview-card > .card-body {
+    padding-top: 10px;
+    padding-bottom: 12px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
