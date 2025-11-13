@@ -10,6 +10,7 @@
     --cis-text-dark: #2c3e50;
     --cis-text-light: #6c757d;
     --cis-bg-light: #f8f9fa;
+    --cis-rightbar-width: 320px;
 }
 
 * {

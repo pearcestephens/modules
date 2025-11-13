@@ -68,4 +68,55 @@ $(document).ready(function() {
         positionClass: 'toast-top-right',
         timeOut: 3000
     };
+
+    // Right hover sidebar behavior (compact)
+    const $rightbar = $('#cisRightbar');
+    const $hoverRight = $('#hoverZoneRight');
+    const $hoverLeft = $('#hoverZoneLeft');
+    const $body = $('body');
+
+    let rightbarVisible = false;
+    let rightbarHideTimer = null;
+
+    function showRightbar() {
+        if (!$rightbar.length) return;
+        $rightbar.addClass('active').attr('aria-hidden', 'false');
+        rightbarVisible = true;
+    }
+
+    function hideRightbar() {
+        if (!$rightbar.length) return;
+        $rightbar.removeClass('active').attr('aria-hidden', 'true');
+        rightbarVisible = false;
+    }
+
+    // Hover to show rightbar (no layout shift)
+    $hoverRight.on('mouseenter', function() {
+        showRightbar();
+    });
+
+    // Keep visible while mouse inside rightbar
+    $rightbar.on('mouseenter', function() {
+        if (rightbarHideTimer) { clearTimeout(rightbarHideTimer); rightbarHideTimer = null; }
+    });
+
+    // Hide when leaving rightbar towards center
+    $rightbar.on('mouseleave', function(e) {
+        // If moving towards the right edge again, keep it (user circling)
+        rightbarHideTimer = setTimeout(hideRightbar, 200);
+    });
+
+    // Close button
+    $('#rightbarClose').on('click', function() { hideRightbar(); });
+
+    // Left main hover when minimized vertically (interpretation: when collapsed)
+    $hoverLeft.on('mouseenter', function() {
+        // Temporary peek the left sidebar only if collapsed
+        if ($body.hasClass('sidebar-collapsed')) {
+            $body.addClass('sidebar-peek');
+        }
+    });
+    $hoverLeft.on('mouseleave', function() {
+        $body.removeClass('sidebar-peek');
+    });
 });

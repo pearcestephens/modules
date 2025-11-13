@@ -1157,10 +1157,14 @@ const MessagingLayout = {
             this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main main" "footer footer footer"';
         }
 
-        // Messaging center: Show all 3 columns (conversations + chat + details)
+        // Messaging center: Only 2 columns in Full mode (hide details panel)
         const messagingContent = document.querySelector('.messaging-content');
+        const msgDetails = document.querySelector('.msg-details');
         if (messagingContent) {
-            messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
+            messagingContent.style.gridTemplateColumns = '320px 1fr';
+        }
+        if (msgDetails) {
+            msgDetails.style.display = 'none';
         }
 
         // Collapse left sidebar to vertical bar with first letters
@@ -1251,10 +1255,14 @@ const MessagingLayout = {
             this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main main" "footer footer footer"';
         }
 
-        // Messaging center: Show all 3 columns (conversations + chat + details)
+        // Messaging center: Only 2 columns in Standard mode (hide details panel)
         const messagingContent = document.querySelector('.messaging-content');
+        const msgDetails = document.querySelector('.msg-details');
         if (messagingContent) {
-            messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
+            messagingContent.style.gridTemplateColumns = '320px 1fr';
+        }
+        if (msgDetails) {
+            msgDetails.style.display = 'none';
         }
 
         // Show full left sidebar
@@ -1345,10 +1353,14 @@ const MessagingLayout = {
             this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main right" "footer footer footer"';
         }
 
-        // Messaging center: Show all 3 columns (conversations + chat + details)
+        // Messaging center: Show ALL 3 columns in Compact mode (conversations + chat + details)
         const messagingContent = document.querySelector('.messaging-content');
+        const msgDetails = document.querySelector('.msg-details');
         if (messagingContent) {
             messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
+        }
+        if (msgDetails) {
+            msgDetails.style.display = 'block'; // Show details panel in Compact mode
         }
 
         // Show full left sidebar
