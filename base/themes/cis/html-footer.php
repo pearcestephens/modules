@@ -10,6 +10,7 @@
 <!-- jQuery UI -->
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <!-- Sidebar Enhancements -->
+<script src="/modules/base/themes/cis/assets/js/00-theme-core.js"></script>
 <script src="/assets/js/sidebar-mobile-enhance.js?v=20250904c"></script>
 <!-- Notifications support: ensure dropdown works if included -->
 <script>

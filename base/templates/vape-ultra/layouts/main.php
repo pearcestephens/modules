@@ -49,7 +49,7 @@
         ?>
     </aside>
     <?php else: ?>
-        <!-- Right sidebar hidden: hideRightSidebar = <?php echo var_export($hideRightSidebar ?? 'not set', true); ?> -->
+        <!-- Right sidebar hidden by module -->
     <?php endif; ?>
 
     <!-- Footer -->

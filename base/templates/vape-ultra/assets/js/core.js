@@ -277,40 +277,40 @@
         closeBtn: null,
         showTimeout: null,
         hideTimeout: null,
-        
+
         init: function() {
             // Only activate on messaging page
             if (!document.body.classList.contains('messaging-page')) {
                 return;
             }
-            
+
             this.trigger = document.getElementById('sidebar-right-trigger');
             this.sidebar = document.getElementById('app-sidebar-right');
             this.closeBtn = document.getElementById('sidebar-right-close-btn');
-            
+
             if (!this.trigger || !this.sidebar) return;
-            
+
             console.log('👉 Right Sidebar Hover-Reveal initialized (messaging page only)');
-            
+
             // Hover right edge - start 1 second countdown to show
             this.trigger.addEventListener('mouseenter', () => {
                 this.startShowCountdown();
             });
-            
+
             this.trigger.addEventListener('mouseleave', () => {
                 this.cancelShowCountdown();
             });
-            
+
             // Sidebar mouse enter - keep it open, cancel hide countdown
             this.sidebar.addEventListener('mouseenter', () => {
                 this.cancelHideCountdown();
             });
-            
+
             // Sidebar mouse leave - start 3 second countdown to hide
             this.sidebar.addEventListener('mouseleave', () => {
                 this.startHideCountdown();
             });
-            
+
             // Close button click - immediate hide
             if (this.closeBtn) {
                 this.closeBtn.addEventListener('click', (e) => {
@@ -319,48 +319,48 @@
                 });
             }
         },
-        
+
         startShowCountdown: function() {
             this.cancelShowCountdown();
-            
+
             this.showTimeout = setTimeout(() => {
                 this.showSidebar();
-            }, 1000); // 1 second hover required
-            
-            console.log('⏱️ Right sidebar will show in 1 second...');
+            }, 500); // 0.5 second hover required
+
+            console.log('⏱️ Right sidebar will show in 0.5 seconds...');
         },
-        
+
         cancelShowCountdown: function() {
             if (this.showTimeout) {
                 clearTimeout(this.showTimeout);
                 this.showTimeout = null;
             }
         },
-        
+
         startHideCountdown: function() {
             this.cancelHideCountdown();
-            
+
             this.hideTimeout = setTimeout(() => {
                 this.hideSidebar();
-            }, 3000); // 3 second delay
-            
-            console.log('⏱️ Right sidebar will hide in 3 seconds...');
+            }, 2000); // 2 second delay
+
+            console.log('⏱️ Right sidebar will hide in 2 seconds...');
         },
-        
+
         cancelHideCountdown: function() {
             if (this.hideTimeout) {
                 clearTimeout(this.hideTimeout);
                 this.hideTimeout = null;
             }
         },
-        
+
         showSidebar: function() {
             if (this.sidebar) {
                 this.sidebar.classList.add('sidebar-revealed');
                 console.log('👋 Right sidebar shown');
             }
         },
-        
+
         hideSidebar: function() {
             if (this.sidebar) {
                 this.sidebar.classList.remove('sidebar-revealed');

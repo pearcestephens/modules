@@ -278,9 +278,12 @@ function requireAuth(string $redirectUrl = '/login.php'): void {
     }
 
     if (!isAuthenticated()) {
-        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-        header("Location: {$redirectUrl}");
-        exit;
+        // Remember original location including query string
+        if (!empty($_SERVER['REQUEST_URI'])) {
+            $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        }
+        // Centralized redirect (testable in CLI when CIS_TEST_MODE=1)
+        redirect($redirectUrl);
     }
 }
 
@@ -459,6 +462,10 @@ function moduleUrl(string $module, string $page = ''): string {
  * Redirect to URL
  */
 function redirect(string $url, int $code = 302): void {
+    // Test mode: in CLI with CIS_TEST_MODE=1, throw instead of exiting
+    if (PHP_SAPI === 'cli' && getenv('CIS_TEST_MODE') === '1') {
+        throw new \RuntimeException('REDIRECT:' . $url, $code);
+    }
     header("Location: $url", true, $code);
     exit;
 }

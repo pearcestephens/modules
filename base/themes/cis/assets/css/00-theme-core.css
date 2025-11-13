@@ -1,0 +1,12 @@
+/* 00-theme-core.css - Base theme toggles */
+:root {
+  --cis-sidebar-width: 256px;
+}
+
+/* Collapsed sidebar state */
+.cis-sidebar-collapsed #sidebar { width: 56px !important; overflow: hidden; }
+.cis-sidebar-collapsed .sidebar .nav-title { display:none; }
+.cis-sidebar-collapsed .sidebar .nav-link { white-space: nowrap; }
+
+/* Hover expand when collapsed */
+.cis-sidebar-collapsed #sidebar:hover { width: var(--cis-sidebar-width) !important; overflow: visible; }

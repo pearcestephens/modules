@@ -468,7 +468,6 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
 
 /* Conversations - Left Column */
 .msg-conversations {
-    grid-column: 1;
     border-right: 1px solid #e5e7eb;
     display: flex;
     flex-direction: column;
@@ -568,7 +567,6 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
 /* Chat Window */
 /* Chat Window - Center Column */
 .msg-chat {
-    grid-column: 2;
     display: flex;
     flex-direction: column;
     background: white;
@@ -684,7 +682,6 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
 
 /* Details Sidebar - Right Column */
 .msg-details {
-    grid-column: 3;
     border-left: 1px solid #e5e7eb;
     padding: 24px;
     overflow-y: auto;
@@ -886,7 +883,7 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
     position: fixed;
     right: 0;
     top: 60px;
-    width: 10px;
+    width: 15px;
     height: calc(100vh - 60px);
     z-index: 998;
     cursor: e-resize;
@@ -1200,7 +1197,7 @@ const MessagingLayout = {
         const messagingContent = document.querySelector('.messaging-content');
         const msgConversations = document.querySelector('.msg-conversations');
         const msgDetails = document.querySelector('.msg-details');
-        
+
         if (messagingContent) {
             messagingContent.style.gridTemplateColumns = '1fr';
         }
@@ -1304,7 +1301,7 @@ const MessagingLayout = {
         const messagingContent = document.querySelector('.messaging-content');
         const msgConversations = document.querySelector('.msg-conversations');
         const msgDetails = document.querySelector('.msg-details');
-        
+
         if (messagingContent) {
             messagingContent.style.gridTemplateColumns = '320px 1fr';
         }
@@ -1407,7 +1404,7 @@ const MessagingLayout = {
         const messagingContent = document.querySelector('.messaging-content');
         const msgConversations = document.querySelector('.msg-conversations');
         const msgDetails = document.querySelector('.msg-details');
-        
+
         if (messagingContent) {
             messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
         }

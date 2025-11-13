@@ -13,9 +13,11 @@
 namespace CIS\Base;
 
 class ThemeManager {
-    private static $activeTheme = 'cis-classic';  // Default theme
-    private static $themePath = null;
+    private static $activeTheme = 'cis';  // Default theme updated to cis
+    private static $themePath = null;     // Primary theme path (base/themes)
+    private static $legacyTemplatesPath = null; // Back-compat (templates/themes)
     private static $initialized = false;
+    private static $settings = [];
     
     /**
      * Initialize theme system
@@ -25,7 +27,10 @@ class ThemeManager {
             return;
         }
         
-        self::$themePath = __DIR__ . '/../templates/themes';
+    // Primary themes dir
+    self::$themePath = __DIR__ . '/../themes';
+    // Legacy templates dir for back-compat
+    self::$legacyTemplatesPath = __DIR__ . '/../templates/themes';
         
         // Check for theme preference (session > config > default)
         if (isset($_SESSION['theme'])) {
@@ -36,8 +41,17 @@ class ThemeManager {
         
         // Validate theme exists
         if (!self::themeExists(self::$activeTheme)) {
-            error_log("Theme '" . self::$activeTheme . "' not found, falling back to cis-classic");
-            self::$activeTheme = 'cis-classic';
+            error_log("Theme '" . self::$activeTheme . "' not found, falling back to cis");
+            self::$activeTheme = 'cis';
+        }
+
+        // Load theme settings if available
+        $settingsFile = self::$themePath . '/' . self::$activeTheme . '/theme.php';
+        if (file_exists($settingsFile)) {
+            $settings = include $settingsFile;
+            if (is_array($settings)) {
+                self::$settings = $settings;
+            }
         }
         
         self::$initialized = true;
@@ -67,8 +81,8 @@ class ThemeManager {
      * Check if theme exists
      */
     public static function themeExists(string $theme): bool {
-        $path = self::$themePath . '/' . basename($theme);
-        return is_dir($path);
+        $name = basename($theme);
+        return is_dir(self::$themePath . '/' . $name) || is_dir(self::$legacyTemplatesPath . '/' . $name);
     }
     
     /**
@@ -76,11 +90,13 @@ class ThemeManager {
      */
     public static function getAvailable(): array {
         $themes = [];
-        $dirs = glob(self::$themePath . '/*', GLOB_ONLYDIR);
+        $dirs = glob(self::$themePath . '/*', GLOB_ONLYDIR) ?: [];
+        $legacyDirs = glob(self::$legacyTemplatesPath . '/*', GLOB_ONLYDIR) ?: [];
+        $allDirs = array_unique(array_merge($dirs, $legacyDirs));
         
-        foreach ($dirs as $dir) {
+        foreach ($allDirs as $dir) {
             $themeName = basename($dir);
-            $themeFile = $dir . '/theme.php';
+            $themeFile = (is_file($dir . '/theme.php') ? $dir . '/theme.php' : '');
             
             $themes[$themeName] = [
                 'name' => $themeName,
@@ -128,23 +144,33 @@ class ThemeManager {
     private static function findLayout(string $layout): ?string {
         $layoutName = basename($layout) . '.php';
         
-        // 1. Try theme-specific layout
+        // 1. Try theme-specific layout in base/themes
         $themePath = self::$themePath . '/' . self::$activeTheme . '/layouts/' . $layoutName;
         if (file_exists($themePath)) {
             return $themePath;
         }
         
-        // 2. Try global layouts folder
+        // 1b. Try legacy templates/themes
+        $legacyThemePath = self::$legacyTemplatesPath . '/' . self::$activeTheme . '/layouts/' . $layoutName;
+        if (file_exists($legacyThemePath)) {
+            return $legacyThemePath;
+        }
+
+        // 2. Try global layouts folder (templates)
         $globalPath = __DIR__ . '/../templates/layouts/' . $layoutName;
         if (file_exists($globalPath)) {
             return $globalPath;
         }
         
-        // 3. Try fallback theme (cis-classic)
-        if (self::$activeTheme !== 'cis-classic') {
-            $fallbackPath = self::$themePath . '/cis-classic/layouts/' . $layoutName;
+        // 3. Try fallback theme (cis)
+        if (self::$activeTheme !== 'cis') {
+            $fallbackPath = self::$themePath . '/cis/layouts/' . $layoutName;
             if (file_exists($fallbackPath)) {
                 return $fallbackPath;
+            }
+            $legacyFallback = self::$legacyTemplatesPath . '/cis/layouts/' . $layoutName;
+            if (file_exists($legacyFallback)) {
+                return $legacyFallback;
             }
         }
         
@@ -179,6 +205,12 @@ class ThemeManager {
             return $themePath;
         }
         
+        // 1b. Try legacy templates/themes
+        $legacyThemePath = self::$legacyTemplatesPath . '/' . self::$activeTheme . '/components/' . $componentName;
+        if (file_exists($legacyThemePath)) {
+            return $legacyThemePath;
+        }
+
         // 2. Try global components folder
         $globalPath = __DIR__ . '/../templates/components/' . $componentName;
         if (file_exists($globalPath)) {
@@ -186,10 +218,14 @@ class ThemeManager {
         }
         
         // 3. Try fallback theme
-        if (self::$activeTheme !== 'cis-classic') {
-            $fallbackPath = self::$themePath . '/cis-classic/components/' . $componentName;
+        if (self::$activeTheme !== 'cis') {
+            $fallbackPath = self::$themePath . '/cis/components/' . $componentName;
             if (file_exists($fallbackPath)) {
                 return $fallbackPath;
+            }
+            $legacyFallback = self::$legacyTemplatesPath . '/cis/components/' . $componentName;
+            if (file_exists($legacyFallback)) {
+                return $legacyFallback;
             }
         }
         
@@ -200,7 +236,14 @@ class ThemeManager {
      * Get theme asset URL (CSS, JS, images)
      */
     public static function asset(string $path): string {
-        return '/modules/base/templates/themes/' . self::$activeTheme . '/' . ltrim($path, '/');
+        return '/modules/base/themes/' . self::$activeTheme . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * Get merged theme settings
+     */
+    public static function getSettings(): array {
+        return self::$settings;
     }
 }
 

@@ -9,6 +9,8 @@
     <?php
       $___defaultTitle = 'CIS Module';
       $___pageTitle = isset($pageTitle) && is_string($pageTitle) && $pageTitle !== '' ? $pageTitle : $___defaultTitle;
+      $___themeSettings = class_exists('Theme') ? \Theme::getSettings() : [];
+      $___themeJson = json_encode($___themeSettings, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
     ?>
     <title><?php echo htmlspecialchars($___pageTitle, ENT_QUOTES, 'UTF-8'); ?></title>
   <base href="/">
@@ -25,6 +27,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.min.css" rel="stylesheet">
 
     <!-- CIS Overrides -->
+  <link href="/modules/base/themes/cis/assets/css/00-theme-core.css" rel="stylesheet">
     <link href="/assets/css/bootstrap-compatibility.css?v=20250902" rel="stylesheet">
     <link href="/assets/css/custom.css?updated=222" rel="stylesheet">
     <link href="/assets/css/sidebar-styling-restore.css?v=20251030_tight_spacing" rel="stylesheet">
@@ -33,6 +36,18 @@
     <!-- jQuery + Moment (safe globally) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+    <script>
+      // Expose minimal, vetted theme settings to JS
+      window.CIS_THEME = <?php echo $___themeJson ?: '{}'; ?>;
+      // Apply sidebar collapsed state early to avoid FOUC
+      (function(){
+        try{
+          var collapsed = !!(window.CIS_THEME && window.CIS_THEME.sidebar && window.CIS_THEME.sidebar.collapsed);
+          if(collapsed){ document.documentElement.classList.add('cis-sidebar-collapsed'); }
+        }catch(e){}
+      })();
+    </script>
 
     <?php
       if (isset($extraHead) && is_string($extraHead)) {
