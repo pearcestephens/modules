@@ -139,6 +139,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // (User will need to log in again on other devices)
         session_regenerate_id(true);
 
+        // Queue password changed notification email (best-effort)
+        try {
+            $baseUrl = rtrim(($config->get('APP_URL', '') ?: 'https://staff.vapeshed.co.nz'), '/');
+            $accountUrl = $baseUrl . '/modules/core/change-password.php';
+            $fromEmail = (string)($config->get('MAIL_FROM_ADDRESS', 'noreply@vapeshed.co.nz'));
+
+            $subject = 'Your CIS Staff Portal password was changed';
+            $safeAccount = htmlspecialchars($accountUrl, ENT_QUOTES, 'UTF-8');
+            $htmlBody = '<p>Hello,</p>' .
+                '<p>Your CIS Staff Portal password was just changed. If you made this change, no further action is required.</p>' .
+                '<p>If you did not change your password, please <a href="' . $safeAccount . '">reset it</a> immediately, and contact support.</p>' .
+                '<p>— The Vape Shed</p>';
+            $textBody = "Hello,\n\nYour CIS Staff Portal password was just changed. If you did not make this change, reset it immediately and contact support.\n\n— The Vape Shed";
+
+            $queueStmt = $pdo->prepare('
+                INSERT INTO email_queue (email_from, email_to, subject, html_body, text_body, attachments, priority, status)
+                VALUES (?, ?, ?, ?, ?, NULL, ?, "pending")
+            ');
+            $queueStmt->execute([
+                $fromEmail,
+                $currentUser['email'] ?? ($currentUser['username'] ?? ''),
+                $subject,
+                $htmlBody,
+                $textBody,
+                1
+            ]);
+        } catch (Exception $qe) {
+            error_log('[PASSWORD CHANGED EMAIL QUEUE ERROR] ' . $qe->getMessage());
+        }
+
         flash('success', 'Password changed successfully! Your account is now more secure.');
         header('Location: /modules/core/index.php');
         exit;

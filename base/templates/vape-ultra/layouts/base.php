@@ -75,6 +75,9 @@ $moduleStyles = $moduleStyles ?? [];
         </div>
     </div>
 
+    <!-- Right Sidebar Hover Trigger -->
+    <div class="sidebar-right-trigger" id="sidebar-right-trigger"></div>
+
     <!-- Main Application Container -->
     <div id="app" class="app-container">
         <?php

@@ -247,7 +247,7 @@
     padding: var(--space-lg);
 }
 
-/* Right Sidebar */
+/* Right Sidebar - Default behavior */
 .sidebar-right {
     grid-area: right;
     background: var(--bg-card);

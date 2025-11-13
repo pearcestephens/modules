@@ -20,9 +20,6 @@ body.sidebar-collapsed .cis-sidebar {
     width: var(--cis-sidebar-collapsed-width);
 }
 
-/* Compact mode: also ensure left hover peek is disabled visually if desired */
-body.compact .cis-sidebar { box-shadow: none; }
-
 .sidebar-brand {
     height: var(--cis-header-height);
     display: flex;
@@ -58,18 +55,6 @@ body.compact .cis-sidebar { box-shadow: none; }
 
 body.sidebar-collapsed .sidebar-brand-text {
     opacity: 0;
-}
-
-/* Peek state on hover-left: reveal content without changing layout */
-body.sidebar-collapsed.sidebar-peek .cis-sidebar {
-    box-shadow: 8px 0 16px rgba(0,0,0,0.12);
-}
-body.sidebar-collapsed.sidebar-peek .nav-section-title,
-body.sidebar-collapsed.sidebar-peek .nav-link-text,
-body.sidebar-collapsed.sidebar-peek .nav-link-arrow,
-body.sidebar-collapsed.sidebar-peek .sidebar-footer-text,
-body.sidebar-collapsed.sidebar-peek .sidebar-brand-text {
-    opacity: 1;
 }
 
 .sidebar-nav {

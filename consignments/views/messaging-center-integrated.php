@@ -857,6 +857,48 @@ $hideRightSidebar = ($layoutMode !== 'compact'); // Only show in compact mode
 }
 
 /* ===================================
+   MESSAGING PAGE: RIGHT SIDEBAR HOVER-REVEAL
+   =================================== */
+
+/* Only on messaging page - right sidebar hidden by default, hover to reveal */
+.messaging-page .sidebar-right {
+    position: fixed;
+    right: 0;
+    top: 60px;
+    width: 280px;
+    height: calc(100vh - 60px);
+    z-index: 999;
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+}
+
+.messaging-page .sidebar-right.sidebar-revealed {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+}
+
+/* Hover trigger zone for right sidebar - only on messaging page */
+.messaging-page .sidebar-right-trigger {
+    position: fixed;
+    right: 0;
+    top: 60px;
+    width: 10px;
+    height: calc(100vh - 60px);
+    z-index: 998;
+    cursor: e-resize;
+    display: block;
+}
+
+/* Hide trigger on other pages */
+body:not(.messaging-page) .sidebar-right-trigger {
+    display: none;
+}
+
+/* ===================================
    RESPONSIVE BREAKPOINTS
    =================================== */
 
@@ -1151,22 +1193,28 @@ const MessagingLayout = {
     applyFullLayout() {
         console.log('Applying FULL layout...');
 
-        // Grid: 60px (collapsed sidebar) | 1fr (main content) | 0 (no right sidebar)
-        if (this.appGrid) {
-            this.appGrid.style.gridTemplateColumns = '60px 1fr 0';
-            this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main main" "footer footer footer"';
-        }
+        // Template grid: Don't change - let CSS handle responsive behavior
+        // Layout buttons DON'T control template sidebars
 
-        // Messaging center: Only 2 columns in Full mode (hide details panel)
+        // Messaging center: Only 1 column in Full mode (chat only - hide conversations and details)
         const messagingContent = document.querySelector('.messaging-content');
+        const msgConversations = document.querySelector('.msg-conversations');
         const msgDetails = document.querySelector('.msg-details');
+        
         if (messagingContent) {
-            messagingContent.style.gridTemplateColumns = '320px 1fr';
+            messagingContent.style.gridTemplateColumns = '1fr';
+        }
+        if (msgConversations) {
+            msgConversations.style.display = 'none';
         }
         if (msgDetails) {
             msgDetails.style.display = 'none';
         }
 
+        console.log('FULL layout applied - chat only');
+        return; // Skip template sidebar manipulation
+
+        // OLD CODE BELOW - KEEPING FOR REFERENCE BUT NOT EXECUTING
         // Collapse left sidebar to vertical bar with first letters
         if (this.appSidebar) {
             this.appSidebar.classList.add('sidebar-collapsed');
@@ -1249,22 +1297,28 @@ const MessagingLayout = {
     applyStandardLayout() {
         console.log('Applying STANDARD layout...');
 
-        // Grid: 240px (full sidebar) | 1fr (main content) | 0 (no right sidebar)
-        if (this.appGrid) {
-            this.appGrid.style.gridTemplateColumns = '240px 1fr 0';
-            this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main main" "footer footer footer"';
-        }
+        // Template grid: Don't change - let CSS handle responsive behavior
+        // Layout buttons DON'T control template sidebars
 
-        // Messaging center: Only 2 columns in Standard mode (hide details panel)
+        // Messaging center: 2 columns in Standard mode (conversations + chat, hide details)
         const messagingContent = document.querySelector('.messaging-content');
+        const msgConversations = document.querySelector('.msg-conversations');
         const msgDetails = document.querySelector('.msg-details');
+        
         if (messagingContent) {
             messagingContent.style.gridTemplateColumns = '320px 1fr';
         }
+        if (msgConversations) {
+            msgConversations.style.display = 'flex'; // Show conversations
+        }
         if (msgDetails) {
-            msgDetails.style.display = 'none';
+            msgDetails.style.display = 'none'; // Hide details
         }
 
+        console.log('STANDARD layout applied - conversations + chat');
+        return; // Skip template sidebar manipulation
+
+        // OLD CODE BELOW - KEEPING FOR REFERENCE BUT NOT EXECUTING
         // Show full left sidebar
         if (this.appSidebar) {
             this.appSidebar.classList.remove('sidebar-collapsed');
@@ -1346,23 +1400,28 @@ const MessagingLayout = {
     applyCompactLayout() {
         console.log('Applying COMPACT layout...');
 
-        // Grid: 240px (full sidebar) | 1fr (main content) | 280px (right sidebar)
-        // Note: Right sidebar will auto-hide at 1200px via CSS media queries
-        if (this.appGrid) {
-            this.appGrid.style.gridTemplateColumns = '240px 1fr 280px';
-            this.appGrid.style.gridTemplateAreas = '"header header header" "sidebar main right" "footer footer footer"';
-        }
+        // Template grid: Don't change - let CSS handle responsive behavior
+        // Layout buttons DON'T control template sidebars
 
         // Messaging center: Show ALL 3 columns in Compact mode (conversations + chat + details)
         const messagingContent = document.querySelector('.messaging-content');
+        const msgConversations = document.querySelector('.msg-conversations');
         const msgDetails = document.querySelector('.msg-details');
+        
         if (messagingContent) {
             messagingContent.style.gridTemplateColumns = '320px 1fr 280px';
+        }
+        if (msgConversations) {
+            msgConversations.style.display = 'flex'; // Show conversations
         }
         if (msgDetails) {
             msgDetails.style.display = 'block'; // Show details panel in Compact mode
         }
 
+        console.log('COMPACT layout applied - all 3 columns');
+        return; // Skip template sidebar manipulation
+
+        // OLD CODE BELOW - KEEPING FOR REFERENCE BUT NOT EXECUTING
         // Show full left sidebar
         if (this.appSidebar) {
             this.appSidebar.classList.remove('sidebar-collapsed');

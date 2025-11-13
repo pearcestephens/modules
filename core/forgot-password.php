@@ -88,13 +88,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ');
             $stmt->execute([$user['id'], $tokenHash, $expiresAt]);
 
-            // Commit token write
-            $pdo->commit();
-
-            // Build reset URL
+            // Build reset URL (before commit OK; independent of queue insert)
             // Prefer configured APP_URL to avoid Host header injection
             $baseUrl = rtrim(($config->get('APP_URL', '') ?: 'https://staff.vapeshed.co.nz'), '/');
             $resetUrl = $baseUrl . '/modules/core/reset-password.php?token=' . urlencode($token);
+
+            // Queue password reset email (best-effort; do not block UX on failure)
+            try {
+                $fromEmail = (string)($config->get('MAIL_FROM_ADDRESS', 'noreply@vapeshed.co.nz'));
+                $subject = 'Reset your CIS Staff Portal password';
+
+                $safeUrl = htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8');
+                $htmlBody = '<p>Hello,</p>' .
+                    '<p>We received a request to reset your CIS Staff Portal password.</p>' .
+                    '<p><a href="' . $safeUrl . '" style="display:inline-block;padding:10px 16px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px">Reset Password</a></p>' .
+                    '<p>If the button does not work, copy and paste this link into your browser:</p>' .
+                    '<p><a href="' . $safeUrl . '">' . $safeUrl . '</a></p>' .
+                    '<p>This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.</p>' .
+                    '<p>— The Vape Shed</p>';
+
+                $textBody = "Hello,\n\n" .
+                    "We received a request to reset your CIS Staff Portal password.\n" .
+                    "Open this link to reset your password (expires in 1 hour):\n" .
+                    $resetUrl . "\n\n" .
+                    "If you did not request this, you can ignore this email.\n\n— The Vape Shed";
+
+                // Insert into email_queue (schema expected by queue processor)
+                $queueStmt = $pdo->prepare('
+                    INSERT INTO email_queue (email_from, email_to, subject, html_body, text_body, attachments, priority, status)
+                    VALUES (?, ?, ?, ?, ?, NULL, ?, "pending")
+                ');
+                $queueStmt->execute([
+                    $fromEmail,
+                    $email,
+                    $subject,
+                    $htmlBody,
+                    $textBody,
+                    1 // priority: immediate
+                ]);
+            } catch (Exception $qe) {
+                // Log but do not expose to user
+                error_log('[PASSWORD RESET EMAIL QUEUE ERROR] ' . $qe->getMessage());
+            }
+
+            // Commit token write
+            $pdo->commit();
 
             // Log password reset request
             if (function_exists('log_activity')) {
@@ -105,9 +143,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
             }
 
-            // TODO: Send email with reset link
-            // For now, just log it (implement email service in Phase 2)
-            error_log("[PASSWORD RESET] User: {$user['id']} | Email: {$email} | Reset URL: {$resetUrl}");
+            // Log reset URL in debug only
+            if ($config->get('APP_DEBUG', false)) {
+                error_log("[PASSWORD RESET DEBUG] User: {$user['id']} | Email: {$email} | Reset URL: {$resetUrl}");
+            }
 
             // In development, show the link (remove in production)
             if ($config->get('APP_DEBUG', false)) {

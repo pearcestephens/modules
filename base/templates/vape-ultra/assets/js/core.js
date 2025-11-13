@@ -268,26 +268,108 @@
     };
 
     /**
-     * Right Sidebar Close Button Handler
+     * Right Sidebar Hover-Reveal
+     * Hover right edge for 1 second to reveal, 3 second delay to hide
      */
-    VapeUltra.RightSidebarClose = {
+    VapeUltra.RightSidebarHover = {
+        trigger: null,
+        sidebar: null,
         closeBtn: null,
-
+        showTimeout: null,
+        hideTimeout: null,
+        
         init: function() {
+            // Only activate on messaging page
+            if (!document.body.classList.contains('messaging-page')) {
+                return;
+            }
+            
+            this.trigger = document.getElementById('sidebar-right-trigger');
+            this.sidebar = document.getElementById('app-sidebar-right');
             this.closeBtn = document.getElementById('sidebar-right-close-btn');
-
-            if (!this.closeBtn) return;
-
-            console.log('✖️ Right Sidebar Close Button initialized');
-
-            this.closeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                VapeUltra.SidebarToggle.toggle();
+            
+            if (!this.trigger || !this.sidebar) return;
+            
+            console.log('👉 Right Sidebar Hover-Reveal initialized (messaging page only)');
+            
+            // Hover right edge - start 1 second countdown to show
+            this.trigger.addEventListener('mouseenter', () => {
+                this.startShowCountdown();
             });
+            
+            this.trigger.addEventListener('mouseleave', () => {
+                this.cancelShowCountdown();
+            });
+            
+            // Sidebar mouse enter - keep it open, cancel hide countdown
+            this.sidebar.addEventListener('mouseenter', () => {
+                this.cancelHideCountdown();
+            });
+            
+            // Sidebar mouse leave - start 3 second countdown to hide
+            this.sidebar.addEventListener('mouseleave', () => {
+                this.startHideCountdown();
+            });
+            
+            // Close button click - immediate hide
+            if (this.closeBtn) {
+                this.closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.hideSidebar();
+                });
+            }
+        },
+        
+        startShowCountdown: function() {
+            this.cancelShowCountdown();
+            
+            this.showTimeout = setTimeout(() => {
+                this.showSidebar();
+            }, 1000); // 1 second hover required
+            
+            console.log('⏱️ Right sidebar will show in 1 second...');
+        },
+        
+        cancelShowCountdown: function() {
+            if (this.showTimeout) {
+                clearTimeout(this.showTimeout);
+                this.showTimeout = null;
+            }
+        },
+        
+        startHideCountdown: function() {
+            this.cancelHideCountdown();
+            
+            this.hideTimeout = setTimeout(() => {
+                this.hideSidebar();
+            }, 3000); // 3 second delay
+            
+            console.log('⏱️ Right sidebar will hide in 3 seconds...');
+        },
+        
+        cancelHideCountdown: function() {
+            if (this.hideTimeout) {
+                clearTimeout(this.hideTimeout);
+                this.hideTimeout = null;
+            }
+        },
+        
+        showSidebar: function() {
+            if (this.sidebar) {
+                this.sidebar.classList.add('sidebar-revealed');
+                console.log('👋 Right sidebar shown');
+            }
+        },
+        
+        hideSidebar: function() {
+            if (this.sidebar) {
+                this.sidebar.classList.remove('sidebar-revealed');
+                this.cancelShowCountdown();
+                this.cancelHideCountdown();
+                console.log('👋 Right sidebar hidden');
+            }
         }
-    };
-
-    /**
+    };    /**
      * Hover-Reveal Sidebar for Desktop Breakpoint
      * Auto-collapse at 1200px, reveal on hover, 3-second delay to close
      */
@@ -342,13 +424,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             VapeUltra.Core.init();
             VapeUltra.SidebarToggle.init();
-            VapeUltra.RightSidebarClose.init();
+            VapeUltra.RightSidebarHover.init();
             VapeUltra.HoverSidebar.init();
         });
     } else {
         VapeUltra.Core.init();
         VapeUltra.SidebarToggle.init();
-        VapeUltra.RightSidebarClose.init();
+        VapeUltra.RightSidebarHover.init();
         VapeUltra.HoverSidebar.init();
     }
 
