@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VapeUltra Premium Toolkit Test</title>
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+    
+    <!-- Toolkit CSS -->
+    <link href="assets/css/01_premium-toolkit.css" rel="stylesheet">
+    
+    <style>
+        body {
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .test-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .test-card h2 {
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        .btn-test {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="text-white display-4 animate__animated animate__fadeInDown">
+                🎨 VapeUltra Premium Toolkit
+            </h1>
+            <p class="text-white animate__animated animate__fadeInUp">
+                Test all the awesome features below!
+            </p>
+        </div>
+
+        <!-- Toast Tests -->
+        <div class="test-card animate__animated animate__fadeIn">
+            <h2><i class="bi bi-bell"></i> Toast Notifications</h2>
+            <button class="vu-btn vu-btn-success btn-test" onclick="VapeUltra.Toast.success('Operation successful!')">
+                Success Toast
+            </button>
+            <button class="vu-btn vu-btn-danger btn-test" onclick="VapeUltra.Toast.error('Something went wrong!')">
+                Error Toast
+            </button>
+            <button class="vu-btn vu-btn-warning btn-test" onclick="VapeUltra.Toast.warning('Warning message')">
+                Warning Toast
+            </button>
+            <button class="vu-btn vu-btn-primary btn-test" onclick="VapeUltra.Toast.info('Information message')">
+                Info Toast
+            </button>
+            <button class="vu-btn vu-btn-primary btn-test" onclick="testActionToast()">
+                Toast with Action
+            </button>
+        </div>
+
+        <!-- Modal Tests -->
+        <div class="test-card animate__animated animate__fadeIn" style="animation-delay: 0.1s">
+            <h2><i class="bi bi-window"></i> Modal Dialogs</h2>
+            <button class="vu-btn vu-btn-primary btn-test" onclick="testSimpleModal()">
+                Simple Modal
+            </button>
+            <button class="vu-btn vu-btn-success btn-test" onclick="testConfirm()">
+                Confirmation Dialog
+            </button>
+            <button class="vu-btn vu-btn-secondary btn-test" onclick="testAlert()">
+                Alert Dialog
+            </button>
+            <button class="vu-btn vu-btn-primary btn-test" onclick="testLargeModal()">
+                Large Modal
+            </button>
+        </div>
+
+        <!-- Loading Tests -->
+        <div class="test-card animate__animated animate__fadeIn" style="animation-delay: 0.2s">
+            <h2><i class="bi bi-hourglass-split"></i> Loading States</h2>
+            <div id="loading-test" style="min-height: 200px; background: #f9fafb; border-radius: 8px; padding: 20px;">
+                <p>This content will show loading overlay</p>
+                <button class="vu-btn vu-btn-primary" onclick="testLoading()">
+                    Show Loading (3 seconds)
+                </button>
+            </div>
+        </div>
+
+        <!-- Sound Tests -->
+        <div class="test-card animate__animated animate__fadeIn" style="animation-delay: 0.3s">
+            <h2><i class="bi bi-volume-up"></i> Sound System</h2>
+            <button class="vu-btn vu-btn-success btn-test" onclick="VapeUltra.Sound.play('success')">
+                Success Sound
+            </button>
+            <button class="vu-btn vu-btn-danger btn-test" onclick="VapeUltra.Sound.play('error')">
+                Error Sound
+            </button>
+            <button class="vu-btn vu-btn-primary btn-test" onclick="VapeUltra.Sound.play('click')">
+                Click Sound
+            </button>
+            <button class="vu-btn vu-btn-secondary btn-test" onclick="VapeUltra.Sound.toggle(); this.textContent = VapeUltra.Sound.enabled ? 'Disable Sounds' : 'Enable Sounds'">
+                Toggle Sounds
+            </button>
+        </div>
+
+        <!-- Integration Test -->
+        <div class="test-card animate__animated animate__fadeIn" style="animation-delay: 0.4s">
+            <h2><i class="bi bi-rocket"></i> Integration Test</h2>
+            <button class="vu-btn vu-btn-primary btn-test" onclick="testIntegration()">
+                Run Full Integration Test
+            </button>
+            <p class="text-muted mt-3">
+                Tests: Loading → Modal → Toast sequence
+            </p>
+        </div>
+    </div>
+
+    <!-- jQuery, Howler, Toolkit -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+    <script src="assets/js/01_premium-toolkit.js"></script>
+
+    <script>
+        // Test Functions
+        function testActionToast() {
+            VapeUltra.Toast.show('File ready to download', 'success', {
+                action: 'Download',
+                onAction: () => {
+                    alert('Download started!');
+                }
+            });
+        }
+
+        function testSimpleModal() {
+            VapeUltra.Modal.show({
+                title: 'Hello World!',
+                content: '<p>This is a simple modal with custom content.</p><p>You can put anything here!</p>',
+                footer: '<button class="vu-btn vu-btn-primary" onclick="VapeUltra.Modal.hide(this.closest(\'[data-modal-id]\').dataset.modalId)">Close</button>'
+            });
+        }
+
+        async function testConfirm() {
+            const confirmed = await VapeUltra.Modal.confirm({
+                title: 'Delete Item',
+                message: 'Are you sure you want to delete this item? This action cannot be undone.',
+                confirmText: 'Yes, Delete',
+                cancelText: 'Cancel'
+            });
+
+            if (confirmed) {
+                VapeUltra.Toast.success('Item deleted!');
+            } else {
+                VapeUltra.Toast.info('Cancelled');
+            }
+        }
+
+        async function testAlert() {
+            await VapeUltra.Modal.alert('This is an alert message!', 'Important');
+            VapeUltra.Toast.info('Alert was closed');
+        }
+
+        function testLargeModal() {
+            VapeUltra.Modal.show({
+                title: 'Large Modal Example',
+                content: `
+                    <h4>Features</h4>
+                    <ul>
+                        <li>Multiple sizes (small, medium, large, fullscreen)</li>
+                        <li>Custom content with HTML</li>
+                        <li>Promise-based confirmations</li>
+                        <li>ESC key support</li>
+                        <li>Click outside to close</li>
+                        <li>Smooth animations</li>
+                    </ul>
+                    <h4>Usage</h4>
+                    <pre><code>VapeUltra.Modal.show({
+    title: 'My Modal',
+    content: 'Content here',
+    size: 'large'
+});</code></pre>
+                `,
+                size: 'large'
+            });
+        }
+
+        function testLoading() {
+            const loader = VapeUltra.Loading.show('#loading-test', {
+                text: 'Loading data...'
+            });
+
+            setTimeout(() => {
+                VapeUltra.Loading.updateText(loader, 'Processing...');
+            }, 1000);
+
+            setTimeout(() => {
+                VapeUltra.Loading.updateText(loader, 'Almost done...');
+            }, 2000);
+
+            setTimeout(() => {
+                VapeUltra.Loading.hide(loader);
+                VapeUltra.Toast.success('Loading complete!');
+            }, 3000);
+        }
+
+        async function testIntegration() {
+            // Show loading
+            const loader = VapeUltra.Loading.show('body', {
+                text: 'Starting integration test...'
+            });
+
+            await new Promise(r => setTimeout(r, 1500));
+            VapeUltra.Loading.hide(loader);
+
+            // Show modal
+            const confirmed = await VapeUltra.Modal.confirm({
+                title: 'Integration Test',
+                message: 'Continue with the test?',
+                confirmText: 'Yes, Continue'
+            });
+
+            if (confirmed) {
+                // Show success
+                VapeUltra.Toast.success('Integration test completed successfully!', {
+                    duration: 5000
+                });
+            } else {
+                VapeUltra.Toast.warning('Test cancelled');
+            }
+        }
+
+        // Show welcome message on load
+        setTimeout(() => {
+            VapeUltra.Toast.success('Toolkit loaded successfully!', {
+                duration: 3000
+            });
+        }, 500);
+    </script>
+</body>
+</html>

@@ -10,8 +10,25 @@ if ($uid && function_exists('getUserInformation')) {
     elseif (is_object($ud)) { $userDetails = ['first_name' => $ud->first_name ?? 'User']; }
   } catch (Throwable $e) { /* ignore */ }
 }
+
+// Apply theme settings as data-* attributes on body
+$ts = class_exists('Theme') ? \Theme::getSettings() : [];
+$sidebar = $ts['sidebar'] ?? [];
+$topbar  = $ts['topbar']  ?? [];
+
+$dataAttrs = [];
+$dataAttrs[] = 'data-cis-sidebar-collapsed="' . (!empty($sidebar['collapsed']) ? 'true' : 'false') . '"';
+$dataAttrs[] = 'data-cis-sidebar-hover="' . ((isset($sidebar['hoverExpand']) ? (bool)$sidebar['hoverExpand'] : true) ? 'true' : 'false') . '"';
+$dataAttrs[] = 'data-cis-sidebar-width="' . (int)($sidebar['width'] ?? 256) . '"';
+$dataAttrs[] = 'data-cis-topbar-sticky="' . (!empty($topbar['sticky']) ? 'true' : 'false') . '"';
+$dataAttrsStr = implode(' ', $dataAttrs);
+
+// Body classes (retain existing; toggle header-fixed by topbar.sticky)
+$bodyClasses = ['app','sidebar-fixed','aside-menu-fixed','sidebar-lg-show'];
+if (!isset($topbar['sticky']) || $topbar['sticky']) { $bodyClasses[] = 'header-fixed'; }
+$bodyClassStr = implode(' ', $bodyClasses);
 ?>
-<body class="app header-fixed sidebar-fixed aside-menu-fixed sidebar-lg-show">
+<body class="<?php echo $bodyClassStr; ?>" <?php echo $dataAttrsStr; ?>>
 <header class="app-header navbar" style="position: sticky; top: 0; z-index: 1030;">
   <button class="navbar-toggler sidebar-toggler d-lg-none mr-auto" type="button" data-toggle="sidebar-show">
     <span class="navbar-toggler-icon"></span>

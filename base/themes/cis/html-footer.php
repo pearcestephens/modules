@@ -7,6 +7,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@3.4.0/dist/js/coreui.bundle.min.js"></script>
 <!-- App JS -->
 <script src="/assets/js/main.js"></script>
+<!-- Global client error handlers -->
+<link rel="stylesheet" href="/modules/base/public/error.css">
+<script src="/modules/base/public/error.js"></script>
 <!-- jQuery UI -->
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <!-- Sidebar Enhancements -->

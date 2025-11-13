@@ -1,7 +1,7 @@
 <?php
 /**
  * Global Error & Exception Handler
- * 
+ *
  * Provides pretty error pages for browser and JSON responses for AJAX
  */
 
@@ -10,7 +10,13 @@ namespace CIS\Base;
 class ErrorHandler {
     private static $initialized = false;
     private static $debugMode = false;
-    
+    private static $dbPolicy = [
+        'driver' => 'pdo',
+        'mysqli_available' => true,
+        'mysqli_default_initialized' => false,
+        'action' => 'Use db() helper to obtain PDO. Do not instantiate mysqli. MySQLi wrapper exists for legacy but is not initialized by default.'
+    ];
+
     /**
      * Initialize error handlers
      */
@@ -18,38 +24,38 @@ class ErrorHandler {
         if (self::$initialized) {
             return;
         }
-        
+
         self::$debugMode = $debug;
-        
+
         // Set error reporting
         error_reporting(E_ALL);
         ini_set('display_errors', $debug ? '1' : '0');
         ini_set('log_errors', '1');
-        
+
         // Set error handlers
         set_error_handler([self::class, 'handleError']);
         set_exception_handler([self::class, 'handleException']);
         register_shutdown_function([self::class, 'handleShutdown']);
-        
+
         self::$initialized = true;
     }
-    
+
     /**
      * Check if request is AJAX
      */
     private static function isAjaxRequest(): bool {
         return (
-            !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+            !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
             strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
         ) || (
-            isset($_SERVER['CONTENT_TYPE']) && 
+            isset($_SERVER['CONTENT_TYPE']) &&
             strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false
         ) || (
-            isset($_SERVER['HTTP_ACCEPT']) && 
+            isset($_SERVER['HTTP_ACCEPT']) &&
             strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false
         );
     }
-    
+
     /**
      * Handle PHP errors
      */
@@ -57,7 +63,7 @@ class ErrorHandler {
         if (!(error_reporting() & $errno)) {
             return false;
         }
-        
+
         // Log error
         $error = sprintf(
             "[%s] PHP Error [%d]: %s in %s on line %d",
@@ -68,7 +74,7 @@ class ErrorHandler {
             $errline
         );
         error_log($error);
-        
+
         // Check if AJAX request
         if (self::isAjaxRequest()) {
             if (!headers_sent()) {
@@ -85,10 +91,10 @@ class ErrorHandler {
                 exit;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * Handle uncaught exceptions
      */
@@ -104,7 +110,7 @@ class ErrorHandler {
             $exception->getTraceAsString()
         );
         error_log($error);
-        
+
         // Check if AJAX request
         if (self::isAjaxRequest()) {
             if (!headers_sent()) {
@@ -136,13 +142,60 @@ class ErrorHandler {
         }
         exit;
     }
-    
+
+    /**
+     * Respond with a standardized HTTP error for both HTML and JSON
+     */
+    public static function respondHttpError(int $statusCode, string $message = ''): void
+    {
+        $titles = [
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            409 => 'Conflict',
+            422 => 'Unprocessable Entity',
+            429 => 'Too Many Requests',
+            500 => 'Server Error',
+            502 => 'Bad Gateway',
+            503 => 'Service Unavailable'
+        ];
+
+        $title = $titles[$statusCode] ?? ('HTTP ' . $statusCode);
+        $msg = $message !== '' ? $message : $title;
+
+        if (self::isAjaxRequest()) {
+            if (!headers_sent()) {
+                http_response_code($statusCode);
+                header('Content-Type: application/json');
+            }
+            self::renderJsonError($title, $msg, __FILE__, __LINE__, $statusCode);
+            exit;
+        }
+
+        if (!headers_sent()) {
+            http_response_code($statusCode);
+        }
+        self::renderErrorPage($title, $msg, __FILE__, __LINE__, $statusCode, []);
+        exit;
+    }
+
+    public static function notFound(string $message = 'The requested resource could not be found.'): void
+    { self::respondHttpError(404, $message); }
+
+    public static function forbidden(string $message = 'You do not have permission to access this resource.'): void
+    { self::respondHttpError(403, $message); }
+
+    public static function methodNotAllowed(string $message = 'The requested HTTP method is not allowed for this resource.'): void
+    { self::respondHttpError(405, $message); }
+
     /**
      * Handle fatal errors on shutdown
      */
     public static function handleShutdown(): void {
         $error = error_get_last();
-        
+
         if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
             // Log fatal error
             $errorLog = sprintf(
@@ -154,12 +207,12 @@ class ErrorHandler {
                 $error['line']
             );
             error_log($errorLog);
-            
+
             // Clean any output buffers
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
-            
+
             // Check if AJAX request
             if (self::isAjaxRequest()) {
                 if (!headers_sent()) {
@@ -188,7 +241,7 @@ class ErrorHandler {
             }
         }
     }
-    
+
     /**
      * Render JSON error for AJAX
      */
@@ -198,7 +251,7 @@ class ErrorHandler {
             'error' => self::$debugMode ? $message : 'An unexpected error occurred. Please try again later.',
             'error_title' => $title
         ];
-        
+
         if (self::$debugMode) {
             $response['error_details'] = sprintf(
                 "File: %s\nLine: %d\nCode: %s",
@@ -207,10 +260,17 @@ class ErrorHandler {
                 $code ?? 'N/A'
             );
         }
-        
+
+        // If likely a database error, include automation guidance for bots/tools
+        if (self::looksLikeDatabaseError($title, $message, (string)($code ?? ''))) {
+            $response['automation'] = [
+                'database_policy' => self::$dbPolicy,
+            ];
+        }
+
         echo json_encode($response, JSON_PRETTY_PRINT);
     }
-    
+
     /**
      * Render pretty error page
      */
@@ -225,7 +285,7 @@ class ErrorHandler {
         // Clean message for production
         $safeMessage = self::$debugMode ? $message : 'An unexpected error occurred. Please try again later.';
         $showDetails = self::$debugMode;
-        
+
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -371,24 +431,34 @@ class ErrorHandler {
                         <span class="debug-badge">DEBUG MODE</span>
                     <?php endif; ?>
                 </div>
-                
+
                 <div class="error-body">
                     <div class="error-message">
                         <p><?= htmlspecialchars($safeMessage) ?></p>
                     </div>
-                    
+
                     <?php if ($showDetails): ?>
                         <div class="error-details">
                             <div class="error-details-title">Error Details:</div>
                             <?php if ($code): ?>
-                                <div><strong>Code:</strong> <?= htmlspecialchars($code) ?></div>
+                                <div><strong>Code:</strong> <?= htmlspecialchars((string)$code) ?></div>
                             <?php endif; ?>
                             <div class="error-file">
                                 <strong>File:</strong> <?= htmlspecialchars($file) ?><br>
-                                <strong>Line:</strong> <?= $line ?>
+                                <strong>Line:</strong> <?= (int)$line ?>
                             </div>
                         </div>
-                        
+
+                        <?php if (self::looksLikeDatabaseError($title, $message, (string)($code ?? ''))): ?>
+                            <div class="error-details">
+                                <div class="error-details-title">Automation Guidance (Database)</div>
+                                <div><strong>Default Driver:</strong> <?= htmlspecialchars(self::$dbPolicy['driver']) ?></div>
+                                <div><strong>MySQLi Available:</strong> <?= self::$dbPolicy['mysqli_available'] ? 'Yes' : 'No' ?></div>
+                                <div><strong>MySQLi Initialized by Default:</strong> <?= self::$dbPolicy['mysqli_default_initialized'] ? 'Yes' : 'No' ?></div>
+                                <div><strong>Action:</strong> <?= htmlspecialchars(self::$dbPolicy['action']) ?></div>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if (!empty($trace)): ?>
                             <div class="error-trace">
                                 <div class="error-details-title">Stack Trace:</div>
@@ -398,7 +468,7 @@ class ErrorHandler {
                                         $traceLine = $t['line'] ?? 0;
                                         $traceFunction = $t['function'] ?? 'unknown';
                                         $traceClass = isset($t['class']) ? $t['class'] . $t['type'] : '';
-                                        
+
                                         echo sprintf(
                                             "#%d %s%s() called at [%s:%d]\n",
                                             $i,
@@ -416,7 +486,7 @@ class ErrorHandler {
                             This error has been logged and will be reviewed by our team.
                         </p>
                     <?php endif; ?>
-                    
+
                     <div class="error-actions">
                         <a href="javascript:history.back()" class="btn btn-secondary">← Go Back</a>
                         <a href="/" class="btn btn-primary">🏠 Go to Dashboard</a>
@@ -426,5 +496,17 @@ class ErrorHandler {
         </body>
         </html>
         <?php
+    }
+
+    /**
+     * Heuristic: identify database-related errors to attach guidance
+     */
+    private static function looksLikeDatabaseError(string $title, string $message, string $code): bool {
+        $hay = strtolower($title . ' ' . $message . ' ' . $code);
+        $needles = ['sqlstate', 'pdo', 'mysql', 'mysqli', 'database', 'sql syntax', 'table', 'column', 'connection refused'];
+        foreach ($needles as $n) {
+            if (strpos($hay, $n) !== false) { return true; }
+        }
+        return false;
     }
 }

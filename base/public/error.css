@@ -1,0 +1,8 @@
+/* Minimal professional toasts for error notifications */
+.cis-toast{position:fixed;right:16px;bottom:16px;min-width:280px;max-width:420px;background:#fff;border-left:4px solid #6c757d;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:12px 14px;margin-top:10px;opacity:0;transform:translateY(10px);transition:all .3s ease;z-index:2147483000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.cis-toast.show{opacity:1;transform:translateY(0)}
+.cis-toast-title{font-weight:600;margin-bottom:6px}
+.cis-toast-body{color:#444;font-size:.95rem}
+.cis-toast-warning{border-left-color:#ffc107}
+.cis-toast-danger{border-left-color:#dc3545}
+.cis-toast-info{border-left-color:#17a2b8}

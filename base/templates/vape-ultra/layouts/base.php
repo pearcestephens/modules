@@ -19,6 +19,21 @@ $layoutType = $layoutType ?? 'main';
 $moduleContent = $moduleContent ?? '';
 $moduleScripts = $moduleScripts ?? [];
 $moduleStyles = $moduleStyles ?? [];
+
+// Load dynamic asset loader
+require_once __DIR__ . '/../includes/VapeUltraAssets.php';
+$assetLoader = new VapeUltraAssets();
+
+// Get module paths if set
+$modulePaths = $modulePaths ?? [];
+
+// Merge dynamic assets with module assets
+$dynamicCSS = $assetLoader->getCSS($modulePaths);
+$dynamicJS = $assetLoader->getJS($modulePaths);
+
+// Combine all styles and scripts
+$allStyles = array_merge($config['assets']['css'], $dynamicCSS, $moduleStyles);
+$allScripts = array_merge($config['assets']['js'], $dynamicJS, $moduleScripts);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,14 +49,9 @@ $moduleStyles = $moduleStyles ?? [];
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-    <!-- Core CSS Stack -->
-    <?php foreach ($config['assets']['css'] as $css): ?>
+    <!-- CSS Stack (Core + Dynamic + Module) -->
+    <?php foreach ($allStyles as $css): ?>
     <link rel="stylesheet" href="<?= $css ?>">
-    <?php endforeach; ?>
-
-    <!-- Module-specific CSS -->
-    <?php foreach ($moduleStyles as $style): ?>
-    <link rel="stylesheet" href="<?= $style ?>">
     <?php endforeach; ?>
 
     <!-- Critical inline CSS for immediate render -->
@@ -94,14 +104,9 @@ $moduleStyles = $moduleStyles ?? [];
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3"></div>
 
-    <!-- Core JS Stack -->
-    <?php foreach ($config['assets']['js'] as $js): ?>
+    <!-- JS Stack (Core + Dynamic + Module) -->
+    <?php foreach ($allScripts as $js): ?>
     <script src="<?= $js ?>"></script>
-    <?php endforeach; ?>
-
-    <!-- Module-specific JS -->
-    <?php foreach ($moduleScripts as $script): ?>
-    <script src="<?= $script ?>"></script>
     <?php endforeach; ?>
 
     <!-- Initialization Script -->

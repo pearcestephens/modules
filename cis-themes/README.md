@@ -8,6 +8,8 @@ Built with MVC architecture, component-based design, and real-time data integrat
 
 ## 🚀 Quick Start
 
+This repository is being consolidated. Experimental and half-finished tools have been moved to `archived/` for safekeeping. See `archived/README.md`.
+
 ### Access the Demo
 
 ```
@@ -51,8 +53,9 @@ cis-themes/
 │           ├── facebook-feed.php     # News feed layout
 │           ├── card-grid.php         # Product grid layout
 │           └── store-outlet.php      # Store management layout
-├── components/                  # Reusable components (coming soon)
-├── layouts/                     # Layout templates (coming soon)
+├── components/                  # Reusable components (planned)
+├── layouts/                     # Layout templates (planned)
+├── archived/                    # Consolidated deprecated/experimental assets
 └── README.md                    # This file
 ```
 

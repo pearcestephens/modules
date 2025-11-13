@@ -1,0 +1,8 @@
+ErrorDocument 400 /modules/base/public/status/400.php
+ErrorDocument 401 /modules/base/public/status/401.php
+ErrorDocument 403 /modules/base/public/status/403.php
+ErrorDocument 404 /modules/base/public/status/404.php
+ErrorDocument 405 /modules/base/public/status/405.php
+ErrorDocument 500 /modules/base/public/status/500.php
+ErrorDocument 502 /modules/base/public/status/502.php
+ErrorDocument 503 /modules/base/public/status/503.php

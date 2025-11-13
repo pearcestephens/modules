@@ -47,6 +47,8 @@
           if(collapsed){ document.documentElement.classList.add('cis-sidebar-collapsed'); }
         }catch(e){}
       })();
+      // Surface debug flag for client error handling
+      window.CIS_DEBUG = <?php echo $config->get('APP_DEBUG', false) ? 'true' : 'false'; ?>;
     </script>
 
     <?php

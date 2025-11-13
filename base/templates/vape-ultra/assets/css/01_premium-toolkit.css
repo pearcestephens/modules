@@ -1,0 +1,429 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * VAPEULTRA PREMIUM TOOLKIT STYLES v2.0
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES (Theme Variables)
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+    /* Button Colors */
+    --vu-primary: #2563eb;
+    --vu-primary-hover: #1d4ed8;
+    --vu-success: #059669;
+    --vu-success-hover: #047857;
+    --vu-danger: #dc2626;
+    --vu-danger-hover: #b91c1c;
+    --vu-warning: #d97706;
+    --vu-warning-hover: #b45309;
+    --vu-secondary: #6b7280;
+    --vu-secondary-hover: #4b5563;
+
+    /* Toast Backgrounds */
+    --vu-toast-success-bg: #f0fdf4;
+    --vu-toast-success-border: #059669;
+    --vu-toast-success-text: #065f46;
+
+    --vu-toast-error-bg: #fef2f2;
+    --vu-toast-error-border: #dc2626;
+    --vu-toast-error-text: #991b1b;
+
+    --vu-toast-warning-bg: #fffbeb;
+    --vu-toast-warning-border: #d97706;
+    --vu-toast-warning-text: #92400e;
+
+    --vu-toast-info-bg: #eff6ff;
+    --vu-toast-info-border: #2563eb;
+    --vu-toast-info-text: #1e40af;
+
+    /* Modal Colors */
+    --vu-modal-header-bg: #f9fafb;
+    --vu-modal-body-bg: #ffffff;
+    --vu-modal-overlay: rgba(15, 23, 42, 0.75);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS - Professional Business Style
+   ═══════════════════════════════════════════════════════════════════════════ */
+.vu-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 420px;
+}
+
+.vu-toast {
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    min-width: 320px;
+    position: relative;
+    border: 1px solid #e5e7eb;
+}
+
+.vu-toast-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+}
+
+.vu-toast-content i {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.vu-toast-message {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #374151;
+    font-weight: 500;
+}
+
+.vu-toast-action {
+    background: none;
+    border: none;
+    color: inherit;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 3px;
+    transition: background 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.vu-toast-action:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.vu-toast-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: all 0.15s;
+    margin-top: 2px;
+}
+
+.vu-toast-close:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #4b5563;
+}
+
+.vu-toast-progress {
+    height: 3px;
+    background: currentColor;
+    opacity: 0.25;
+    animation: vu-toast-progress linear;
+    transform-origin: left;
+}
+
+@keyframes vu-toast-progress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+/* Toast Types - Professional Color Palette */
+.vu-toast-success {
+    border-left: 3px solid var(--vu-toast-success-border);
+    background: var(--vu-toast-success-bg);
+    border-top: 1px solid #d1fae5;
+    border-right: 1px solid #d1fae5;
+    border-bottom: 1px solid #d1fae5;
+}
+
+.vu-toast-success i {
+    color: var(--vu-toast-success-border);
+}
+
+.vu-toast-success .vu-toast-message {
+    color: var(--vu-toast-success-text);
+}
+
+.vu-toast-error {
+    border-left: 3px solid var(--vu-toast-error-border);
+    background: var(--vu-toast-error-bg);
+    border-top: 1px solid #fecaca;
+    border-right: 1px solid #fecaca;
+    border-bottom: 1px solid #fecaca;
+}
+
+.vu-toast-error i {
+    color: var(--vu-toast-error-border);
+}
+
+.vu-toast-error .vu-toast-message {
+    color: var(--vu-toast-error-text);
+}
+
+.vu-toast-warning {
+    border-left: 3px solid var(--vu-toast-warning-border);
+    background: var(--vu-toast-warning-bg);
+    border-top: 1px solid #fde68a;
+    border-right: 1px solid #fde68a;
+    border-bottom: 1px solid #fde68a;
+}
+
+.vu-toast-warning i {
+    color: var(--vu-toast-warning-border);
+}
+
+.vu-toast-warning .vu-toast-message {
+    color: var(--vu-toast-warning-text);
+}
+
+.vu-toast-info {
+    border-left: 3px solid var(--vu-toast-info-border);
+    background: var(--vu-toast-info-bg);
+    border-top: 1px solid #bfdbfe;
+    border-right: 1px solid #bfdbfe;
+    border-bottom: 1px solid #bfdbfe;
+}
+
+.vu-toast-info i {
+    color: var(--vu-toast-info-border);
+}
+
+.vu-toast-info .vu-toast-message {
+    color: var(--vu-toast-info-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL SYSTEM - Professional Business Style
+   ═══════════════════════════════════════════════════════════════════════════ */
+.vu-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--vu-modal-overlay);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.vu-modal {
+    background: var(--vu-modal-body-bg);
+    border-radius: 6px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid #e5e7eb;
+}
+
+.vu-modal-small { max-width: 400px; width: 100%; }
+.vu-modal-medium { max-width: 600px; width: 100%; }
+.vu-modal-large { max-width: 900px; width: 100%; }
+.vu-modal-fullscreen { max-width: 95vw; width: 100%; max-height: 95vh; }
+
+.vu-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    z-index: 1;
+    color: #6b7280;
+}
+
+.vu-modal-close:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.vu-modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: var(--vu-modal-header-bg);
+}
+
+.vu-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    letter-spacing: -0.025em;
+}
+
+.vu-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    background: #ffffff;
+}
+
+.vu-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOADING OVERLAY - Professional Business Style
+   ═══════════════════════════════════════════════════════════════════════════ */
+.vu-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(249, 250, 251, 0.96);
+    backdrop-filter: blur(1px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+}
+
+.vu-loading-content {
+    text-align: center;
+    background: #ffffff;
+    padding: 32px 40px;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+}
+
+.vu-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: vu-spin 0.7s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes vu-spin {
+    to { transform: rotate(360deg); }
+}
+
+.vu-loading-text {
+    color: #4b5563;
+    font-size: 13px;
+    margin: 0;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUTTONS - Professional Business Style
+   ═══════════════════════════════════════════════════════════════════════════ */
+.vu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    letter-spacing: 0.025em;
+}
+
+.vu-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vu-btn-primary {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.vu-btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.vu-btn-secondary {
+    background: #ffffff;
+    color: #374151;
+    border-color: #d1d5db;
+}
+
+.vu-btn-secondary:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.vu-btn-success {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+}
+
+.vu-btn-success:hover:not(:disabled) {
+    background: #047857;
+    border-color: #047857;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+.vu-btn-danger {
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+.vu-btn-danger:hover:not(:disabled) {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .vu-toast-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+
+    .vu-toast {
+        min-width: auto;
+    }
+
+    .vu-modal {
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}
