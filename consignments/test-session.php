@@ -39,10 +39,10 @@ try {
 }
 
 echo "<h2>5. Auth Check</h2>";
-echo "userID (legacy): " . ($_SESSION['userID'] ?? 'NOT SET') . "<br>";
-echo "user_id (modules): " . ($_SESSION['userID'] ?? 'NOT SET') . "<br>";
+echo "userID (legacy): " . ($_SESSION['user_id'] ?? 'NOT SET') . "<br>";
+echo "user_id (modules): " . ($_SESSION['user_id'] ?? 'NOT SET') . "<br>";
 
-if (isset($_SESSION['userID']) || isset($_SESSION['userID'])) {
+if (isset($_SESSION['user_id']) || isset($_SESSION['user_id'])) {
     echo "✅ User is logged in<br>";
 } else {
     echo "⚠️ No user session found - you may need to log in to CIS first<br>";

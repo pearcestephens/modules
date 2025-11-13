@@ -66,10 +66,10 @@ class PayrollLogger
         $this->requestId = $this->generateRequestId();
 
         // Get current user if in session (support both legacy and CIS keys)
-        if (isset($_SESSION['userID'])) {
-            $this->userId = (int)$_SESSION['userID'];
-        } elseif (isset($_SESSION['userID'])) {
-            $this->userId = (int)$_SESSION['userID'];
+        if (isset($_SESSION['user_id'])) {
+            $this->userId = (int)$_SESSION['user_id'];
+        } elseif (isset($_SESSION['user_id'])) {
+            $this->userId = (int)$_SESSION['user_id'];
         }
     }
 

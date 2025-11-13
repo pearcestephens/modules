@@ -24,7 +24,7 @@ header('Content-Type: application/json');
 
 try {
     // Authentication check
-    if (!isset($_SESSION['userID'])) {
+    if (!isset($_SESSION['user_id'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -88,7 +88,7 @@ try {
 
     // Check permissions
     $canView = (
-        $po['created_by'] === $_SESSION['userID'] ||
+        $po['created_by'] === $_SESSION['user_id'] ||
         $po['outlet_id'] === $_SESSION['outlet_id'] ||
         hasPermission('po.view_all')
     );

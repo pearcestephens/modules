@@ -16,7 +16,7 @@ require_once ROOT_PATH . '/assets/functions/config.php';
 header('Content-Type: application/json');
 
 // Authentication check
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Authentication required']);
     exit;

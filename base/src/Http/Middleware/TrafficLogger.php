@@ -103,7 +103,7 @@ class TrafficLogger
                     $request->ip(),
                     substr($request->userAgent(), 0, 500),
                     $request->referer(),
-                    $_SESSION['userID'] ?? null,
+                    $_SESSION['user_id'] ?? null,
                     $botInfo['is_bot'] ? 1 : 0,
                     $botInfo['type'],
                     $geo['country_code'] ?? null,

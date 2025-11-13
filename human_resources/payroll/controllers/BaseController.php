@@ -61,9 +61,9 @@ abstract class BaseController
         }
 
         if (empty($this->user)) {
-            if (!empty($_SESSION['userID']) && !empty($_SESSION['authenticated'])) {
+            if (!empty($_SESSION['user_id']) && !empty($_SESSION['authenticated'])) {
                 $this->user = [
-                    'id' => (int)$_SESSION['userID'],
+                    'id' => (int)$_SESSION['user_id'],
                     'email' => $_SESSION['username'] ?? '',
                     'name' => $_SESSION['username'] ?? 'User',
                     'role' => $_SESSION['role'] ?? 'staff',
@@ -236,7 +236,7 @@ abstract class BaseController
      */
     protected function requireAuthOrRedirect(?string $message = null): void
     {
-        if (empty($_SESSION['authenticated']) || empty($_SESSION['userID'])) {
+        if (empty($_SESSION['authenticated']) || empty($_SESSION['user_id'])) {
             $redirect = $_SERVER['REQUEST_URI'] ?? '/';
             $loginUrl = '/login.php?redirect=' . urlencode($redirect);
 

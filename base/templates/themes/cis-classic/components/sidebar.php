@@ -7,7 +7,7 @@
  */
 
 // Get user ID from session
-$userID = isset($_SESSION["userID"]) ? (int)$_SESSION["userID"] : 0;
+$userID = isset($_SESSION["user_id"]) ? (int)$_SESSION["user_id"] : 0;
 
 // Get PDO connection (assumes it's available globally or in session)
 global $pdo;

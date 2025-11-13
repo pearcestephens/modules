@@ -186,7 +186,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 let currentLevel = 'user';
-let currentUserId = <?php echo $_SESSION['userID'] ?? 1; ?>;
+let currentUserId = <?php echo $_SESSION['user_id'] ?? 1; ?>;
 let currentOutletId = '<?php echo $_SESSION['outlet_id'] ?? 'OUTLET001'; ?>';
 let selectedPreset = null;
 let allPresets = [];

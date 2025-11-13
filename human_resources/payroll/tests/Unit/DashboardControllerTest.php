@@ -24,7 +24,7 @@ class DashboardControllerTest extends TestCase
             $_SESSION = [];
         }
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
 
         $this->controller = new DashboardController();
 
@@ -56,7 +56,7 @@ class DashboardControllerTest extends TestCase
     {
         // Clear session
         $_SESSION['authenticated'] = false;
-        $_SESSION['userID'] = null;
+        $_SESSION['user_id'] = null;
 
         // Expect redirect to login
         ob_start();
@@ -72,7 +72,7 @@ class DashboardControllerTest extends TestCase
     public function testIndexChecksPermissions(): void
     {
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
 
         ob_start();
         $this->controller->index();

@@ -25,7 +25,7 @@ class BonusControllerTest extends TestCase
             $_SESSION = [];
         }
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
 
         $this->db = Mockery::mock(\PDO::class);
         $this->bonusService = Mockery::mock(BonusService::class);

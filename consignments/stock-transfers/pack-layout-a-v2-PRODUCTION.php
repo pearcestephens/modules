@@ -17,10 +17,17 @@
  * @quality TOP QUALITY BEST INTERFACE HIGHEST QUALITY
  */
 
+// Health/Status: respond OK to HEAD probes
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+    http_response_code(200);
+    exit;
+}
+
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../lib/CISTemplate.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/assets/services/core/freight/FreightEngine.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/TransferManager/functions/transfer_functions.php';
+// Safe-include external dependencies if present
+@include_once ($_SERVER['DOCUMENT_ROOT'] . '/assets/services/core/freight/FreightEngine.php');
+@include_once ($_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/TransferManager/functions/transfer_functions.php');
 
 // Security & Auth
 // Allow demo mode without login
@@ -37,15 +44,17 @@ if ($transfer_id <= 0 && ! $__demo) {
 }
 
 // Load transfer data
-$transfer = $transfer_id > 0 ? get_transfer_by_id($transfer_id) : null;
+if (function_exists('get_transfer_by_id')) {
+    $transfer = $transfer_id > 0 ? get_transfer_by_id($transfer_id) : null;
+} else { $transfer = null; }
 // Load transfer products
-$products = $transfer_id > 0 ? get_transfer_products($transfer_id) : [];
+if (function_exists('get_transfer_products')) {
+    $products = $transfer_id > 0 ? get_transfer_products($transfer_id) : [];
+} else { $products = []; }
 
 // Initialize FreightEngine if available
 $freightEngine = null;
-if (class_exists('FreightEngine')) {
-    $freightEngine = new FreightEngine($pdo);
-}
+if (class_exists('FreightEngine')) { $freightEngine = new FreightEngine($pdo); }
 
 // Load outlet data
 if ($transfer) {
@@ -69,6 +78,9 @@ if (!$transfer && $__demo) {
         ['product_id' => 'SKU-3003', 'name' => 'Pod Kit XROS 3', 'sku' => 'KIT-XR3', 'quantity' => 3, 'image_url' => null],
     ];
 }
+// Fallback outlet names to avoid notices
+if (!isset($outlet_from)) { $outlet_from = ['name' => 'From']; }
+if (!isset($outlet_to)) { $outlet_to = ['name' => 'To']; }
 
 // Page metadata
 $page_title = "Pack Transfer: {$outlet_from['name']} → {$outlet_to['name']}";

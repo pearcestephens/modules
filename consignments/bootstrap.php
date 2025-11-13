@@ -298,3 +298,16 @@ function db_rw_or_null(): ?PDO {
     // In future multi-master setup, this would check for write permissions
     return CIS\Base\Database::pdo();
 }
+
+// ============================================================================
+// 9. VAPEULTRA TEMPLATE RENDERER (Use Existing Template System)
+// ============================================================================
+
+/**
+ * Load the existing VapeUltra Template Renderer from base module
+ * This uses the CORRECT template in /modules/base/templates/vape-ultra/
+ */
+require_once ROOT_PATH . '/modules/base/Template/Renderer.php';
+
+// Create global renderer instance
+$renderer = new \App\Template\Renderer();

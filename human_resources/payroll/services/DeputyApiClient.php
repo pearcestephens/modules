@@ -47,12 +47,59 @@ class DeputyApiClient
      */
     public function __construct(?string $baseUrl = null, ?string $apiToken = null, ?int $timeout = null)
     {
-        $this->baseUrl = $baseUrl ?? $this->requireEnv('DEPUTY_API_BASE_URL');
-        $this->apiToken = $apiToken ?? $this->requireEnv('DEPUTY_API_TOKEN');
-        $this->timeout = $timeout ?? (int)($_ENV['DEPUTY_API_TIMEOUT'] ?? 45);
+        // Prefer explicit args, then modern env vars, then legacy fallbacks
+        $rawBase = $baseUrl ?? ($_ENV['DEPUTY_API_BASE_URL'] ?? getenv('DEPUTY_API_BASE_URL') ?: null);
 
-        // Ensure base URL doesn't have trailing slash
-        $this->baseUrl = rtrim($this->baseUrl, '/');
+        if ($rawBase === null || $rawBase === '') {
+            // Legacy support: DEPUTY_ENDPOINT (domain only) → build full base URL
+            $legacyEndpoint = $_ENV['DEPUTY_ENDPOINT'] ?? getenv('DEPUTY_ENDPOINT') ?: null;
+            if ($legacyEndpoint) {
+                $legacyEndpoint = trim($legacyEndpoint);
+                // Strip any accidental scheme to avoid double-prefix
+                $legacyEndpoint = preg_replace('#^https?://#i', '', $legacyEndpoint);
+                $rawBase = 'https://' . $legacyEndpoint;
+                // Ensure API path present
+                if (!preg_match('#/api/\dv\d$#', rtrim($rawBase, '/'))) {
+                    $rawBase = rtrim($rawBase, '/') . '/api/v1';
+                }
+            }
+        }
+
+        if ($rawBase === null || $rawBase === '') {
+            // Fall back to strict requirement to make failure explicit
+            $rawBase = $this->requireEnv('DEPUTY_API_BASE_URL');
+        }
+
+        $this->apiToken = $apiToken
+            ?? ($_ENV['DEPUTY_API_TOKEN'] ?? getenv('DEPUTY_API_TOKEN')
+            ?: ($_ENV['DEPUTY_TOKEN'] ?? getenv('DEPUTY_TOKEN') ?: null));
+
+        if ($this->apiToken === null || $this->apiToken === '') {
+            // Keep legacy message but clarify alternatives
+            throw new RuntimeException(
+                'Required environment variable not set: DEPUTY_API_TOKEN (or legacy DEPUTY_TOKEN)'
+            );
+        }
+
+        $this->timeout = $timeout ?? (int)($_ENV['DEPUTY_API_TIMEOUT'] ?? getenv('DEPUTY_API_TIMEOUT') ?: 45);
+
+        // Normalize base URL: remove duplicates, ensure scheme, ensure api path, remove trailing slash
+        $normalized = trim((string)$rawBase);
+        // Collapse accidental double schemes like https://https://
+        $normalized = preg_replace('#^(https?://)+#i', '$1', $normalized);
+        // If no scheme, default to https
+        if (!preg_match('#^https?://#i', $normalized)) {
+            $normalized = 'https://' . ltrim($normalized, '/');
+        }
+        // Remove whitespace and trailing slashes
+        $normalized = rtrim($normalized, "/\t\n\r ");
+        // Ensure API path present (accept v1 or v2 if already supplied)
+        $path = parse_url($normalized, PHP_URL_PATH) ?? '';
+        if (!preg_match('#/api/\dv\d#', $path ?? '')) {
+            $normalized = rtrim($normalized, '/') . '/api/v1';
+        }
+
+        $this->baseUrl = $normalized;
     }
 
     /**
@@ -181,6 +228,17 @@ class DeputyApiClient
     }
 
     /**
+     * Fetch Operational Unit details by ID
+     *
+     * @param int $operationalUnitId
+     * @return array OperationalUnit object
+     */
+    public function fetchOperationalUnit(int $operationalUnitId): array
+    {
+        return $this->get('/resource/OperationalUnit/' . $operationalUnitId);
+    }
+
+    /**
      * Execute HTTP POST request with retry logic
      *
      * @param string $endpoint API endpoint (relative to base URL)
@@ -207,14 +265,14 @@ class DeputyApiClient
             ]
         ]);
 
-        $response = curl_exec($ch);
+    $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
 
         // Handle cURL errors
         if ($response === false) {
-            return $this->handleNetworkError($endpoint, $payload, $error, $attempt);
+            return $this->handleNetworkError($endpoint, $payload, $error, $attempt, $url);
         }
 
         // Handle HTTP errors
@@ -251,16 +309,16 @@ class DeputyApiClient
         // Handle cURL errors
         if ($response === false) {
             if ($attempt < 2) {
-                error_log("DeputyApiClient: Network error on GET, retrying: $error");
+                error_log("DeputyApiClient: Network error on GET to {$url}, retrying: $error");
                 sleep(2);
                 return $this->get($endpoint, $attempt + 1);
             }
-            throw new RuntimeException("Deputy API network error: $error");
+            throw new RuntimeException("Deputy API network error: $error (url: {$url})");
         }
 
         // Handle HTTP errors
         if ($httpCode < 200 || $httpCode >= 300) {
-            throw new RuntimeException("Deputy API error: HTTP $httpCode - $response");
+            throw new RuntimeException("Deputy API error: HTTP $httpCode - $response (url: {$url})");
         }
 
         $data = json_decode($response, true);
@@ -281,16 +339,16 @@ class DeputyApiClient
      * @return array Response on retry success
      * @throws RuntimeException On final failure
      */
-    private function handleNetworkError(string $endpoint, array $payload, string $error, int $attempt): array
+    private function handleNetworkError(string $endpoint, array $payload, string $error, int $attempt, string $fullUrl): array
     {
         if ($attempt < 2) {
-            error_log("DeputyApiClient: Network error, retrying ($attempt/" . self::MAX_RETRIES . "): $error");
+            error_log("DeputyApiClient: Network error on POST to {$fullUrl}, retrying ($attempt/" . self::MAX_RETRIES . "): $error");
             sleep(2 * $attempt); // Exponential backoff
             return $this->post($endpoint, $payload, $attempt + 1);
         }
 
-        error_log("DeputyApiClient: Network error after retries: $error");
-        throw new RuntimeException("Deputy API network error after retries: $error");
+        error_log("DeputyApiClient: Network error after retries to {$fullUrl}: $error");
+        throw new RuntimeException("Deputy API network error after retries: $error (url: {$fullUrl})");
     }
 
     /**

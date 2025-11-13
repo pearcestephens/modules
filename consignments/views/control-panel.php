@@ -1,55 +1,35 @@
 <?php
 /**
- * Consignments Module - Control Panel
- *
- * @package CIS\Consignments
- * @version 3.0.0
- */
-
-declare(strict_types=1);
-
-// Load CIS Template
-require_once __DIR__ . '/../lib/CISTemplate.php';
-
-// Initialize template
-$template = new CISTemplate();
-$template->setTitle('Control Panel');
-$template->setBreadcrumbs([
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Control Panel', 'url' => '/modules/consignments/?route=control-panel', 'active' => true]
-]);
-
-// Start content capture
-$template->startContent();
-?>
-
-<div class="container-fluid">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h2 class="mb-0"><i class="fas fa-gauge mr-2"></i>Control Panel</h2>
-        </div>
-    </div>
-
-/**
  * Control Panel - System Monitoring Dashboard
  *
  * Professional admin interface for managing stock transfers.
  * Shows statistics, queue status, and system health.
  *
  * @package CIS\Consignments
- * @version 3.0.0
+ * @version 5.0.0 - Bootstrap 5 + Modern Theme
+ * @updated 2025-11-11 - Bootstrap 5 conversion
  */
 
 declare(strict_types=1);
 
-// Page metadata
+// Modern Theme Setup
 $pageTitle = 'Transfer System Control Panel';
 $breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Control Panel', 'url' => '', 'active' => true]
+    ['label' => 'Home', 'url' => '/', 'icon' => 'bi-house-door'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'icon' => 'bi-box-seam'],
+    ['label' => 'Control Panel', 'url' => '/modules/consignments/?route=control-panel', 'active' => true]
 ];
+
+$pageCSS = [
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
+    '/modules/admin-ui/css/cms-design-system.css',
+    '/modules/shared/css/tokens.css'
+];
+
+$pageJS = [];
+
+// Start content capture
+ob_start();
 
 // Get database connection
 $pdo = CIS\Base\Database::pdo();
@@ -146,14 +126,18 @@ while ($row = $routeStmt->fetch(PDO::FETCH_ASSOC)) {
 }
 </style>
 
-<!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h2 mb-1">
-            <i class="fas fa-exchange-alt text-primary me-2"></i>
-            Transfer System Control Panel
-        </h1>
-        <p class="text-muted mb-0">Manage stock transfers and sync operations</p>
+<!-- Page Header with Purple Gradient -->
+<div class="card mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-white">
+                <h1 class="h2 mb-2 text-white">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    Transfer System Control Panel
+                </h1>
+                <p class="mb-0 opacity-90">Manage stock transfers and sync operations</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -220,9 +204,10 @@ while ($row = $routeStmt->fetch(PDO::FETCH_ASSOC)) {
     </div>
 </div>
 
-<?php ?>
-</div>
-
 <?php
-$template->endContent();
-$template->render();
+// Capture content
+$content = ob_get_clean();
+
+// Load the Modern Theme (Bootstrap 5)
+require_once __DIR__ . '/../../base/templates/themes/modern/layouts/dashboard.php';
+?>

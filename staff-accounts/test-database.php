@@ -124,9 +124,9 @@ header('Content-Type: text/html; charset=UTF-8');
 
     // Test 5: User session check
     echo '<div class="test info"><strong>TEST 5:</strong> Session Check</div>';
-    if (isset($_SESSION['userID'])) {
+    if (isset($_SESSION['user_id'])) {
         echo '<div class="test pass">✓ User logged in</div>';
-        echo '<pre>User ID: ' . $_SESSION['userID'] . '</pre>';
+        echo '<pre>User ID: ' . $_SESSION['user_id'] . '</pre>';
 
         // Try to fetch this user's account
         try {
@@ -135,7 +135,7 @@ header('Content-Type: text/html; charset=UTF-8');
                 WHERE vend_user_id = ?
                 LIMIT 1
             ");
-            $stmt->execute([$_SESSION['userID']]);
+            $stmt->execute([$_SESSION['user_id']]);
             $account = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($account) {
@@ -143,7 +143,7 @@ header('Content-Type: text/html; charset=UTF-8');
                 echo '<h3>Your Account Data:</h3>';
                 echo '<pre>' . print_r($account, true) . '</pre>';
             } else {
-                echo '<div class="test fail">✗ No account record for user ID: ' . $_SESSION['userID'] . '</div>';
+                echo '<div class="test fail">✗ No account record for user ID: ' . $_SESSION['user_id'] . '</div>';
                 echo '<div class="test info">This user needs an account record created</div>';
             }
         } catch (Exception $e) {
@@ -151,14 +151,14 @@ header('Content-Type: text/html; charset=UTF-8');
         }
 
     } else {
-        echo '<div class="test fail">✗ No user logged in (SESSION userID not set)</div>';
+        echo '<div class="test fail">✗ No user logged in (SESSION user_id not set)</div>';
     }
 
     // Test 6: Sample query test
     echo '<div class="test info"><strong>TEST 6:</strong> Test My Account Query</div>';
     echo '<div class="sql">SQL: SELECT * FROM staff_account_reconciliation WHERE vend_user_id = ? LIMIT 1</div>';
 
-    if (isset($_SESSION['userID'])) {
+    if (isset($_SESSION['user_id'])) {
         try {
             $stmt = $db->prepare("
                 SELECT
@@ -175,14 +175,14 @@ header('Content-Type: text/html; charset=UTF-8');
                 WHERE vend_user_id = ?
                 LIMIT 1
             ");
-            $stmt->execute([$_SESSION['userID']]);
+            $stmt->execute([$_SESSION['user_id']]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($result) {
                 echo '<div class="test pass">✓ Query executed successfully</div>';
                 echo '<pre>' . print_r($result, true) . '</pre>';
             } else {
-                echo '<div class="test fail">✗ Query returned no results for user ' . $_SESSION['userID'] . '</div>';
+                echo '<div class="test fail">✗ Query returned no results for user ' . $_SESSION['user_id'] . '</div>';
             }
 
         } catch (Exception $e) {

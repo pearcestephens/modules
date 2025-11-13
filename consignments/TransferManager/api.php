@@ -91,8 +91,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
       'data' => [
         'session_name' => session_name(),
         'session_id' => session_id(),
-        'has_userID' => isset($_SESSION['userID']),
-        'userID' => $_SESSION['userID'] ?? null,
+        'has_userID' => isset($_SESSION['user_id']),
+        'userID' => $_SESSION['user_id'] ?? null,
         'cookies' => array_keys($_COOKIE ?? []),
         'cookie_session_id' => $_COOKIE[session_name()] ?? null,
         'headers' => [
@@ -127,7 +127,7 @@ if (!headers_sent()) {
 // Authentication guard - always return JSON for API endpoints (no HTML redirects)
 // Consider user authenticated if either isLoggedIn() is true OR a valid session userID exists.
 // This aligns with the rest of CIS and avoids false negatives during transitional templates.
-$uid = $_SESSION['userID'] ?? null;
+$uid = $_SESSION['user_id'] ?? null;
 $authed = false;
 if (function_exists('isLoggedIn')) {
   try { $authed = (bool)isLoggedIn(); } catch (Throwable $e) { $authed = false; }
@@ -337,7 +337,7 @@ switch ($act) {
     $pin = tm_generate_pin(6);
     $payload = [
       'pin' => $pin,
-      'issued_by' => (int)($_SESSION['userID'] ?? 0),
+      'issued_by' => (int)($_SESSION['user_id'] ?? 0),
       'created_at' => time(),
       'expires_at' => time() + $ttl
     ];
@@ -399,7 +399,7 @@ switch ($act) {
     $pdo=\CIS\Base\Database::pdo();
     $t=$pdo->prepare("SELECT * FROM vend_consignments WHERE id=? LIMIT 1"); $t->execute([$id]); $transfer=$t->fetch(PDO::FETCH_ASSOC);
     if (!$transfer) sendError('NOT_FOUND','Transfer not found');
-    $i=$pdo->prepare("SELECT * FROM vend_consignment_products WHERE consignment_id=? ORDER BY id ASC"); $i->execute([$id]); $items=$i->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $i=$pdo->prepare("SELECT * FROM vend_consignment_line_items WHERE transfer_id=? ORDER BY id ASC"); $i->execute([$id]); $items=$i->fetchAll(PDO::FETCH_ASSOC) ?: [];
     $totals=['items'=>count($items),'qty'=>array_sum(array_map(function($x){ return (int)($x['qty'] ?? $x['qty_requested'] ?? 0); }, $items))];
     sendSuccess(['transfer'=>$transfer,'items'=>$items,'totals'=>$totals]);
   }

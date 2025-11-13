@@ -286,7 +286,7 @@
 
     <?php if ($userData && $userData['logged_in']): ?>
         <script>
-            var staffID = <?php echo (int)($_SESSION["userID"] ?? 0); ?>;
+            var staffID = <?php echo (int)($_SESSION["user_id"] ?? 0); ?>;
         </script>
     <?php endif; ?>
 

@@ -5,15 +5,24 @@
  * View all employees with sync status across all systems
  */
 
-require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../shared/bootstrap.php';
 require_once __DIR__ . '/services/UniversalOnboardingService.php';
 
 use CIS\EmployeeOnboarding\UniversalOnboardingService;
 
 // Check authentication
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
+}
+
+// Ensure PDO instance is available from shared bootstrap
+if (!isset($pdo) || !$pdo) {
+    if (function_exists('cis_resolve_pdo')) {
+        $pdo = cis_resolve_pdo();
+    } elseif (isset($GLOBALS['pdo'])) {
+        $pdo = $GLOBALS['pdo'];
+    }
 }
 
 $onboarding = new UniversalOnboardingService($pdo);

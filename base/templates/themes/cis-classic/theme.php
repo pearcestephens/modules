@@ -122,7 +122,7 @@ class CISClassicTheme {
      * Load user data from session
      */
     private function loadUserData(): void {
-        $uid = $_SESSION["userID"] ?? null;
+        $uid = $_SESSION["user_id"] ?? null;
 
         if (!$uid) {
             $this->userData = ['first_name' => 'Guest', 'logged_in' => false];

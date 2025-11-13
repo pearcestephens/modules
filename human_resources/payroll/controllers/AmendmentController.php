@@ -355,11 +355,11 @@ class AmendmentController extends BaseController
             return parent::getCurrentUserId();
         } catch (\Throwable $e) {
             // Fallback to common CIS session keys
-            if (isset($_SESSION['userID'])) {
-                return (int)$_SESSION['userID'];
+            if (isset($_SESSION['user_id'])) {
+                return (int)$_SESSION['user_id'];
             }
-            if (isset($_SESSION['userID'])) {
-                return (int)$_SESSION['userID'];
+            if (isset($_SESSION['user_id'])) {
+                return (int)$_SESSION['user_id'];
             }
         }
         return null;

@@ -8,13 +8,13 @@
 session_start();
 
 // Get user info from MAIN CIS SESSION STRUCTURE
-// CIS uses: $_SESSION['userID'], $_SESSION['username'], $_SESSION['authenticated']
-$isAuthenticated = !empty($_SESSION['userID']) && !empty($_SESSION['authenticated']);
+// CIS uses: $_SESSION['user_id'], $_SESSION['username'], $_SESSION['authenticated']
+$isAuthenticated = !empty($_SESSION['user_id']) && !empty($_SESSION['authenticated']);
 $user = null;
 
 if ($isAuthenticated) {
     $user = [
-        'id' => $_SESSION['userID'] ?? null,
+        'id' => $_SESSION['user_id'] ?? null,
         'name' => $_SESSION['username'] ?? 'Unknown',
         'email' => $_SESSION['username'] ?? '',
         'role' => $_SESSION['role'] ?? 'staff'

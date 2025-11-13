@@ -68,7 +68,7 @@ class AmendmentService extends BaseService
                 ':new_end' => $data['new_end'],
                 ':new_break' => $data['new_break_minutes'] ?? 0,
                 ':reason' => $data['reason'],
-                ':submitted_by' => $data['submitted_by'] ?? $_SESSION['userID'] ?? null
+                ':submitted_by' => $data['submitted_by'] ?? $_SESSION['user_id'] ?? null
             ]);
 
             // Log history
@@ -194,7 +194,7 @@ class AmendmentService extends BaseService
 
             $affected = $this->execute($sql, [
                 ':id' => $amendmentId,
-                ':approved_by' => $data['approved_by'] ?? $_SESSION['userID'] ?? 'AI'
+                ':approved_by' => $data['approved_by'] ?? $_SESSION['user_id'] ?? 'AI'
             ]);
 
             if ($affected === 0) {
@@ -261,7 +261,7 @@ class AmendmentService extends BaseService
 
             $affected = $this->execute($sql, [
                 ':id' => $amendmentId,
-                ':declined_by' => $data['declined_by'] ?? $_SESSION['userID'] ?? 'AI'
+                ':declined_by' => $data['declined_by'] ?? $_SESSION['user_id'] ?? 'AI'
             ]);
 
             if ($affected === 0) {
@@ -356,7 +356,7 @@ class AmendmentService extends BaseService
             ':amendment_id2' => $amendmentId,
             ':action' => $action,
             ':new_status' => $newStatus,
-            ':changed_by' => $_SESSION['userID'] ?? null,
+            ':changed_by' => $_SESSION['user_id'] ?? null,
             ':notes' => $notes
         ]);
     }

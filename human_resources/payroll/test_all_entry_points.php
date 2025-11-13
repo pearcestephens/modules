@@ -40,7 +40,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $_SESSION['authenticated'] = true;
-$_SESSION['userID'] = 1;
+$_SESSION['user_id'] = 1;
 $_SESSION['is_admin'] = true;
 
 echo "✅ Test environment ready\n\n";

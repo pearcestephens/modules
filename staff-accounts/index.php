@@ -559,5 +559,17 @@ $content = ob_get_clean();
 $pageTitle = 'Staff Accounts Management Dashboard';
 
 // Load modern CIS dashboard template (same as consignments)
-require_once dirname(__DIR__) . '/base/_templates/layouts/dashboard-modern.php';
+// Prefer new templates path; keep a fallback to modern theme layout
+$__baseDir = dirname(__DIR__) . '/base';
+$__tplPrimary = $__baseDir . '/templates/layouts/dashboard-modern.php';
+$__tplModern  = $__baseDir . '/templates/themes/modern/layouts/dashboard.php';
+
+if (file_exists($__tplPrimary)) {
+    require_once $__tplPrimary;
+} elseif (file_exists($__tplModern)) {
+    require_once $__tplModern;
+} else {
+    // Last-resort fallback: render content without chrome to avoid hard fatal
+    echo $content;
+}
 ?>

@@ -117,6 +117,34 @@ class VendPaymentController extends BaseController
                 return;
             }
 
+            // Check if tables exist - graceful fallback
+            try {
+                $checkTable = $this->db->query("SHOW TABLES LIKE 'payroll_vend_payment_requests'");
+                if ($checkTable->rowCount() === 0) {
+                    // Tables don't exist yet - return empty result
+                    $this->jsonResponse([
+                        'success' => true,
+                        'data' => [],
+                        'pagination' => [
+                            'total' => 0,
+                            'limit' => $limit,
+                            'offset' => $offset,
+                            'has_more' => false
+                        ],
+                        'message' => 'Payment history tables are being set up'
+                    ]);
+                    return;
+                }
+            } catch (\PDOException $e) {
+                // Error checking tables - return empty
+                $this->jsonResponse([
+                    'success' => true,
+                    'data' => [],
+                    'pagination' => ['total' => 0, 'limit' => $limit, 'offset' => $offset, 'has_more' => false]
+                ]);
+                return;
+            }
+
             $params = [];
             $where = "1=1";
 
@@ -161,7 +189,7 @@ class VendPaymentController extends BaseController
                 WHERE {$where}
             ");
             $countStmt->execute(array_slice($params, 0, -2));
-            $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+            $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 
             // Decode JSON fields
             foreach ($requests as &$request) {

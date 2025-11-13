@@ -9,8 +9,8 @@ const $$ = s => Array.from(document.querySelectorAll(s));
 const esc = s => (s ?? '').toString().replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
 /* ===== API Helper ===== */
-function backoffDelay(attempt) { 
-  return Math.min(15000, 500 * Math.pow(2, attempt)); 
+function backoffDelay(attempt) {
+  return Math.min(15000, 500 * Math.pow(2, attempt));
 }
 
 // ✅ CRITICAL FIX: Add max retry limit to prevent infinite loop
@@ -18,19 +18,19 @@ async function api(action, payload = {}) {
   const MAX_ATTEMPTS = 5;  // ✅ Prevent infinite retry loop
   const body = JSON.stringify(Object.assign({action, csrf: CSRF, sync: $('#syncToggle')?.checked}, payload));
   let attempt = 0;
-  
+
   for (;;) {
     if (attempt >= MAX_ATTEMPTS) {
       const errorMsg = `Max retry attempts (${MAX_ATTEMPTS}) exceeded. Please try again later.`;
       toast(errorMsg, 'danger');
       throw new Error(errorMsg);
     }
-    
+
     let resp, data;
     try {
       resp = await fetch('backend.php?api=1', {method:'POST', headers:{'Content-Type':'application/json'}, body});
       data = await resp.json().catch(()=> ({}));
-    } catch(e) { 
+    } catch(e) {
       attempt++;
       if (attempt >= MAX_ATTEMPTS) {
         const errorMsg = 'Network error - unable to connect';
@@ -40,24 +40,24 @@ async function api(action, payload = {}) {
       await new Promise(r=>setTimeout(r, backoffDelay(attempt)));
       continue;
     }
-    
-    if (resp.status === 429) { 
+
+    if (resp.status === 429) {
       attempt++;
-      await new Promise(r=>setTimeout(r, backoffDelay(attempt))); 
-      continue; 
+      await new Promise(r=>setTimeout(r, backoffDelay(attempt)));
+      continue;
     }
-    
+
     // ✅ FIX: Handle all CSRF token expiry status codes (403, 419, 422)
     // Check if error message indicates CSRF issue
     const isCsrfError = data.error && (
-      data.error.includes('CSRF') || 
+      data.error.includes('CSRF') ||
       data.error === 'CSRF_INVALID' ||
       resp.status === 419
     );
-    
+
     if ([403, 419, 422].includes(resp.status) && isCsrfError) {
       console.error('❌ CSRF token invalid (status ' + resp.status + '). Forcing page reload...');
-      
+
       // Prevent infinite reload loop - only reload once per session
       if (!sessionStorage.getItem('csrf_reloading')) {
         sessionStorage.setItem('csrf_reloading', '1');
@@ -69,20 +69,20 @@ async function api(action, payload = {}) {
       }
       throw new Error('Session expired. Please wait...');
     }
-    
+
     // Show detailed error modal for non-CSRF errors
     if (!resp.ok || !data.ok) {
       const errorMessage = data.error || data.detail || `HTTP ${resp.status}`;
       console.error('❌ API Error:', errorMessage, data);
-      
+
       // Show detailed error modal if we have response data
       if (data.error || data.request || data.system) {
         showDetailedError(new Error(errorMessage), data);
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     return data.data;
   }
 }
@@ -115,10 +115,10 @@ function showDetailedError(error, response) {
     `;
     document.body.appendChild(errorModal);
   }
-  
+
   const content = document.getElementById('errorDetailsContent');
   if (!content) return;
-  
+
   // Build error display with copy buttons
   let html = `
     <!-- Error Information -->
@@ -139,7 +139,7 @@ function showDetailedError(error, response) {
         </div>
       </div>
     </div>
-    
+
     <!-- Request Details -->
     <div class="mb-4">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -154,7 +154,7 @@ function showDetailedError(error, response) {
         </div>
       </div>
     </div>
-    
+
     <!-- System Stats -->
     <div class="mb-0">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -170,10 +170,14 @@ function showDetailedError(error, response) {
       </div>
     </div>
   `;
-  
+
   content.innerHTML = html;
-  
-  // Show modal
+
+  // Show modal - errorModal is already a DOM element from getElementById above
+  if (!errorModal) {
+    console.error('❌ errorDetailModal element not found');
+    return;
+  }
   const modal = new bootstrap.Modal(errorModal);
   modal.show();
 }
@@ -182,9 +186,9 @@ function showDetailedError(error, response) {
 window.copyToClipboard = function(elementId, button) {
   const element = document.getElementById(elementId);
   if (!element) return;
-  
+
   const text = element.textContent;
-  
+
   // Try modern clipboard API first
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
@@ -220,7 +224,7 @@ function showCopyFeedback(button) {
   button.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
   button.classList.remove('btn-outline-secondary');
   button.classList.add('btn-success');
-  
+
   setTimeout(() => {
     button.innerHTML = originalHTML;
     button.classList.remove('btn-success');

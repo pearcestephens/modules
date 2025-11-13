@@ -1,230 +1,222 @@
 <?php
 /**
- * Consignments Module - Stock Transfers
+ * Stock Transfers - Modern List View (Bootstrap 5)
  *
- * @package CIS\Consignments
- * @version 3.0.0
+ * Enterprise-grade transfer management with live AJAX data and modal interactions.
+ * Uses Modern Theme for Bootstrap 5 UI/UX.
+ *
+ * @package CIS\Consignments\StockTransfers
+ * @version 5.0.0 - Bootstrap 5
+ * @updated 2025-11-10
  */
 
 declare(strict_types=1);
 
-// Load CIS Template and Consignments bootstrap (shared helpers)
+// Load bootstrap
 require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../lib/CISTemplate.php';
 
-// Prepare data via shared enrichment helper (DB-driven)
-$limit = 25;
+// Get filter state from URL
 $state = isset($_GET['state']) ? (string)$_GET['state'] : '';
-$opts = [];
-if ($state !== '') { $opts['state'] = $state; }
-$my = isset($_GET['scope']) && $_GET['scope'] === 'mine';
-if ($my) {
-    $uid = $_SESSION['userID'] ?? null;
-    if ($uid) { $opts['created_by'] = (int)$uid; }
-}
-$transfers = getRecentTransfersEnrichedDB($limit, 'STOCK', $opts);
+$scope = isset($_GET['scope']) ? (string)$_GET['scope'] : '';
+$uid = $_SESSION['user_id'] ?? null;
 
-// Counts for filter badges
-$countsAll = getTransferCountsByState('STOCK');
-$countsMine = [];
-if (!empty($uid)) { $countsMine = getTransferCountsByState('STOCK', ['created_by' => (int)$uid]); }
-
-// Initialize template
-$template = new CISTemplate();
-$template->setTitle('Stock Transfers');
-$template->setBreadcrumbs([
+// ===== MODERN THEME SETUP (Bootstrap 5) =====
+$pageTitle = 'Stock Transfers';
+$breadcrumbs = [
     ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
     ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Stock Transfers', 'url' => '/modules/consignments/?route=stock-transfers', 'active' => true]
-]);
+    ['label' => 'Stock Transfers', 'active' => true]
+];
 
-// Start content capture
-$template->startContent();
+$pageCSS = [
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
+    '/modules/admin-ui/css/cms-design-system.css',
+    '/modules/consignments/assets/css/tokens.css',
+    '/modules/consignments/stock-transfers/css/stock-transfers.css'
+];
+
+$pageJS = [
+    '/modules/consignments/stock-transfers/js/stock-transfers.js'
+];
+
+// Start output buffering
+ob_start();
 ?>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<!-- Page Header with Gradient -->
+<div class="page-header fade-in mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div>
-            <h2 class="mb-0"><i class="fas fa-box mr-2"></i>Stock Transfers</h2>
-            <div class="text-muted small">Manage inter-outlet inventory transfers</div>
+            <h1 class="page-title mb-2">
+                <i class="bi bi-box-seam"></i> Stock Transfers
+            </h1>
+            <p class="page-subtitle text-muted mb-0">
+                Manage inter-outlet inventory transfers and track shipments
+            </p>
         </div>
-        <div class="left-actions">
-            <a href="/modules/consignments/?route=transfer-manager" class="btn btn-left-solid-pill btn-success">
-                <i class="fas fa-plus mr-2"></i> New Transfer
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary" id="btnRefresh">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+            <a href="/modules/consignments/?route=transfer-manager" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> New Transfer
             </a>
         </div>
     </div>
+</div>
 
-                <?php
-                $allActive = ($state === '' && !$my);
-                $openActive = ($state === 'OPEN');
-                $sentActive = ($state === 'SENT');
-                $receivingActive = ($state === 'RECEIVING');
-                $receivedActive = ($state === 'RECEIVED');
-                $mineActive = $my;
-            ?>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                <div class="btn-group btn-group-sm" role="group" aria-label="Quick filters">
-                            <a href="?route=stock-transfers" class="btn <?= $allActive ? 'btn-secondary' : 'btn-outline-secondary' ?>">
-                                All <?php if (!empty($countsAll['TOTAL'])): ?><span class="badge badge-light ml-1"><?= (int)$countsAll['TOTAL'] ?></span><?php endif; ?>
-                            </a>
-                            <a href="?route=stock-transfers&state=OPEN" class="btn <?= $openActive ? 'btn-info' : 'btn-outline-info' ?>">
-                                Open <?php if (!empty($countsAll['OPEN'])): ?><span class="badge badge-light ml-1"><?= (int)$countsAll['OPEN'] ?></span><?php endif; ?>
-                            </a>
-                            <a href="?route=stock-transfers&state=SENT" class="btn <?= $sentActive ? 'btn-warning' : 'btn-outline-warning' ?>">
-                                Sent <?php if (!empty($countsAll['SENT'])): ?><span class="badge badge-light ml-1"><?= (int)$countsAll['SENT'] ?></span><?php endif; ?>
-                            </a>
-                            <a href="?route=stock-transfers&state=RECEIVING" class="btn <?= $receivingActive ? 'btn-warning' : 'btn-outline-warning' ?>">
-                                Receiving <?php if (!empty($countsAll['RECEIVING'])): ?><span class="badge badge-light ml-1"><?= (int)$countsAll['RECEIVING'] ?></span><?php endif; ?>
-                            </a>
-                            <a href="?route=stock-transfers&state=RECEIVED" class="btn <?= $receivedActive ? 'btn-success' : 'btn-outline-success' ?>">
-                                Received <?php if (!empty($countsAll['RECEIVED'])): ?><span class="badge badge-light ml-1"><?= (int)$countsAll['RECEIVED'] ?></span><?php endif; ?>
-                            </a>
-                            <a href="?route=stock-transfers&scope=mine" class="btn <?= $mineActive ? 'btn-primary' : 'btn-outline-primary' ?>">
-                                My Transfers <?php if (!empty($countsMine['TOTAL'])): ?><span class="badge badge-light ml-1"><?= (int)$countsMine['TOTAL'] ?></span><?php endif; ?>
-                            </a>
-                </div>
-                    <?php if (!$allActive): ?>
-                        <a href="?route=stock-transfers" class="small text-muted">Clear filters</a>
-                    <?php endif; ?>
-            </div>
+<!-- Hidden data for JS -->
+<div id="pageData"
+     data-state="<?= htmlspecialchars($state) ?>"
+     data-scope="<?= htmlspecialchars($scope) ?>"
+     data-user-id="<?= $uid ?>"
+     style="display:none;"></div>
 
-<!-- Transfers Table -->
-<div class="card">
+<!-- Filters Card -->
+<div class="card shadow-sm mb-4 fade-in" style="animation-delay: 0.1s">
     <div class="card-body">
-        <?php $hasValue = !empty($transfers) && array_key_exists('total_cost', (array)$transfers[0]); ?>
-        <table class="table table-hover" id="transfersTable">
-            <thead>
-                <tr>
-                    <th>Consignment</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Status</th>
-                    <th>Items</th>
-                    <th>Shipments</th>
-                    <th>Progress</th>
-                    <th>Contact</th>
-                    <?php if ($hasValue): ?><th>Value</th><?php endif; ?>
-                    <th>Created (NZ)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (count($transfers) > 0): ?>
-                    <?php foreach ($transfers as $t): ?>
-                        <tr class="transfer-row" style="cursor:pointer;">
-                            <td>
-                                <strong><?= htmlspecialchars($t['consignment_number'] ?? ($t['name'] ?? $t['cis_internal_id'] ?? '')) ?></strong>
-                                <i class="fas fa-chevron-down text-muted ml-1 small exp-icon" aria-hidden="true"></i><br>
-                                <small class="text-muted">Vend ID: <?= htmlspecialchars($t['id'] ?? '') ?></small>
-                            </td>
-                            <td><?= htmlspecialchars($t['from_outlet_name'] ?? '-') ?></td>
-                            <td><?= htmlspecialchars($t['to_outlet_name'] ?? '-') ?></td>
-                            <td>
-                                <?php
-                                $badgeClass = 'secondary';
-                                $state = (string)($t['status'] ?? $t['state'] ?? '');
-                                switch ($state) {
-                                    case 'RECEIVED':
-                                        $badgeClass = 'success';
-                                        break;
-                                    case 'SENT':
-                                    case 'RECEIVING':
-                                        $badgeClass = 'warning';
-                                        break;
-                                    case 'OPEN':
-                                        $badgeClass = 'info';
-                                        break;
-                                }
-                                ?>
-                                <span class="badge bg-<?= $badgeClass ?>"><?= htmlspecialchars($state) ?></span>
-                            </td>
-                            <td><?= number_format((int)($t['item_count_total'] ?? 0)) ?></td>
-                            <td>
-                                <span title="Parcels">📦 <?= (int)($t['parcels_count'] ?? 0) ?></span>
-                                <span class="ml-2" title="Shipments">🚚 <?= (int)($t['shipments_count'] ?? 0) ?></span>
-                            </td>
-                            <td>
-                                <?php
-                                $received = (int)($t['items_received'] ?? 0);
-                                $total = (int)($t['item_count_total'] ?? 0);
-                                $pct = ($total > 0) ? max(0, min(100, (int)round(($received / $total) * 100))) : 0;
-                                $pctClass = $pct >= 90 ? 'success' : ($pct >= 50 ? 'warning' : ($pct > 0 ? 'danger' : 'secondary'));
-                                ?>
-                                <span class="badge bg-<?= $pctClass ?>"><?= $pct ?>%</span>
-                                <div class="small text-muted"><?= $received ?> / <?= $total ?></div>
-                            </td>
-                            <td>
-                                <?php $phone = (string)($t['to_outlet_phone'] ?? ''); $email = (string)($t['to_outlet_email'] ?? ''); ?>
-                                <?php if ($phone): ?><div><a href="tel:<?= htmlspecialchars($phone) ?>" class="text-decoration-none"><i class="fas fa-phone mr-1"></i> <?= htmlspecialchars($phone) ?></a></div><?php endif; ?>
-                                <?php if (!$phone && $email): ?><div><a href="mailto:<?= htmlspecialchars($email) ?>" class="text-decoration-none"><i class="fas fa-envelope mr-1"></i> <?= htmlspecialchars($email) ?></a></div><?php endif; ?>
-                                <?php if (!$phone && !$email): ?><div class="text-muted">—</div><?php endif; ?>
-                            </td>
-                            <?php if ($hasValue): ?>
-                            <td><?= isset($t['total_cost']) ? ('$'.number_format((float)$t['total_cost'], 2)) : '—' ?></td>
-                            <?php endif; ?>
-                            <td>
-                                <?php $dt = $t['created_at_nz'] ?? ($t['created_at'] ?? null); ?>
-                                <?= $dt ? date('Y-m-d H:i', strtotime($dt)) : '-' ?>
-                                <?php if (isset($t['age_hours_nz'])): ?>
-                                    <div class="text-muted small">~<?= htmlspecialchars((string)$t['age_hours_nz']) ?>h ago</div>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <a href="/modules/consignments/stock-transfers/pack.php?id=<?= urlencode((string)($t['cis_internal_id'] ?? $t['id'] ?? '')) ?>" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-box"></i> Pack
-                                </a>
-                            </td>
-                        </tr>
-                        <tr class="transfer-expander" style="display:none;background:#f8f9fa;">
-                          <td colspan="<?= 9 + ($hasValue ? 1 : 0) ?>" style="padding:8px 12px;">
-                            <div class="d-flex justify-content-between align-items-start">
-                              <div class="small text-muted">
-                                <strong>Latest note:</strong>
-                                <?= htmlspecialchars($t['latest_note'] ?? 'No notes') ?>
-                              </div>
-                              <div class="text-right small">
-                                <div><strong>Tracking:</strong> <?= htmlspecialchars($t['latest_shipment_carrier'] ?? '-') ?> <?= htmlspecialchars($t['latest_tracking'] ?? '') ?></div>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="8" class="text-center text-muted py-4">No stock transfers found</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filters</h5>
+            <button class="btn btn-sm btn-outline-secondary" id="btnClearFilters">
+                <i class="bi bi-x-circle"></i> Clear All
+            </button>
+        </div>
+        <div class="filter-pills" id="filterPills">
+            <!-- JS will populate -->
+            <div class="text-center py-2">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="ms-2 text-muted">Loading filters...</span>
+            </div>
+        </div>
     </div>
 </div>
 
-<script>
-        (function($){
-                $(function(){
-                    if ($.fn.DataTable) {
-                        // Order by Created (NZ) column, which index depends on value column presence
-                        var hasValue = <?= $hasValue ? 'true' : 'false' ?>;
-                        var createdIdx = hasValue ? 9 : 8;
-                        $('#transfersTable').DataTable({ order:[[createdIdx,'desc']], pageLength:25, responsive:true });
-                    }
-                    // Row expander toggle
-                                $('#transfersTable').on('click', 'tr.transfer-row', function(){
-                                    var $exp = $(this).next('tr.transfer-expander');
-                                    $exp.toggle();
-                                    var $ico = $(this).find('.exp-icon');
-                                    if ($exp.is(':visible')) { $ico.removeClass('fa-chevron-down').addClass('fa-chevron-up'); }
-                                    else { $ico.removeClass('fa-chevron-up').addClass('fa-chevron-down'); }
-                                });
-                });
-        })(jQuery);
-</script>
-
-<!-- end-of-view: stock-transfers -->
+<!-- Transfers Table Card -->
+<div class="card shadow-sm fade-in" style="animation-delay: 0.2s">
+    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-table"></i> Stock Transfers</h5>
+            <span class="badge bg-white text-primary" id="totalCount">0</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="transfersTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0">Consignment</th>
+                        <th class="border-0">From → To</th>
+                        <th class="border-0">Status</th>
+                        <th class="border-0">Items</th>
+                        <th class="border-0">Progress</th>
+                        <th class="border-0">Updated</th>
+                        <th class="border-0 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transfersBody">
+                    <!-- JS will populate -->
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="text-muted">Loading transfers...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
+<!-- Transfer Detail Modal (Bootstrap 5) -->
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="modalTitle">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="modal-title" id="modalTitle">
+                    <i class="bi bi-info-circle"></i> Transfer Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2 text-muted">Loading details...</div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Additional animations and polish */
+.fade-in {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-pill:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.filter-pill.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.table-hover tbody tr {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+    background: #f9fafb;
+    transform: translateX(2px);
+}
+</style>
+
 <?php
-// End content capture and render
-$template->endContent();
-$template->render();
+// Capture content
+$content = ob_get_clean();
+
+// Load the Modern Theme (Bootstrap 5)
+require_once __DIR__ . '/../../base/templates/themes/modern/layouts/dashboard.php';
+?>

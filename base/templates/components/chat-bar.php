@@ -33,7 +33,7 @@ if (!$CHAT_ENABLED) {
 
 // Load current user info (from session or database)
 $currentUser = [
-    'id' => $_SESSION['userID'] ?? 0,
+    'id' => $_SESSION['user_id'] ?? 0,
     'name' => $_SESSION['user_name'] ?? 'Guest',
     'initials' => $_SESSION['user_initials'] ?? 'GU',
     'avatar' => $_SESSION['user_avatar'] ?? null,

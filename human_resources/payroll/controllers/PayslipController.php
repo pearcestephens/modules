@@ -509,11 +509,11 @@ class PayslipController
 
     private function getCurrentUserId(): int
     {
-        if (!isset($_SESSION['userID'])) {
+        if (!isset($_SESSION['user_id'])) {
             throw new \RuntimeException('User not authenticated');
         }
 
-        return (int)$_SESSION['userID'];
+        return (int)$_SESSION['user_id'];
     }
 
     private function handleError(\Exception $e): void

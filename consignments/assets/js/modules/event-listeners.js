@@ -19,9 +19,9 @@ function setupEventListeners() {
   const btnHardRefresh = $('#btnHardRefresh');
   const prevPage = $('#prevPage');
   const nextPage = $('#nextPage');
-  
+
   if (btnRefresh) btnRefresh.addEventListener('click', ()=>{ page=1; refresh(); });
-  if (btnHardRefresh) btnHardRefresh.addEventListener('click', ()=>{ 
+  if (btnHardRefresh) btnHardRefresh.addEventListener('click', ()=>{
     // Hard refresh: bypass cache (Ctrl+Shift+R / Cmd+Shift+R)
     window.location.reload(true);
   });
@@ -33,38 +33,45 @@ function setupEventListeners() {
   const filterState = $('#filterState');
   const filterOutlet = $('#filterOutlet');
   const filterQ = $('#filterQ');
-  
+
   if (filterType) filterType.addEventListener('change', ()=>{ page=1; refresh(); });
   if (filterState) filterState.addEventListener('change', ()=>{ page=1; refresh(); });
   if (filterOutlet) filterOutlet.addEventListener('change', ()=>{ page=1; refresh(); });
   if (filterQ) {
-    filterQ.addEventListener('input', ()=>{ 
-      clearTimeout(window.__qDeb); 
-      window.__qDeb = setTimeout(()=>{ page=1; refresh(); }, 350); 
+    filterQ.addEventListener('input', ()=>{
+      clearTimeout(window.__qDeb);
+      window.__qDeb = setTimeout(()=>{ page=1; refresh(); }, 350);
     });
   }
 
   // Keyboard shortcut: / to focus search
-  document.addEventListener('keydown', (e)=>{ 
-    if(e.key==='/' && !e.target.matches('input,textarea')){ 
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='/' && !e.target.matches('input,textarea')){
       e.preventDefault();
       const searchBox = $('#filterQ');
-      if (searchBox) searchBox.focus(); 
-    } 
+      if (searchBox) searchBox.focus();
+    }
   });
 
   // New transfer button
   const btnNew = $('#btnNew');
   if (btnNew) {
-    const createModal = new bootstrap.Modal('#modalCreate');
     btnNew.addEventListener('click', ()=>{
+      // Bootstrap 5 - show modal using DOM element
+      const createModalElement = document.getElementById('modalCreate');
+      if (!createModalElement) {
+        console.error('❌ modalCreate element not found');
+        return;
+      }
+      const createModal = new bootstrap.Modal(createModalElement);
+
       const ctType = $('#ct_type');
       const ctSupplierWrap = $('#ct_supplier_wrap');
       const ctSupplierSelect = $('#ct_supplier_select');
       const ctFromSelect = $('#ct_from_select');
       const ctToSelect = $('#ct_to_select');
       const ctAddProducts = $('#ct_add_products');
-      
+
       if (ctType) ctType.value='STOCK';
       if (ctSupplierWrap) ctSupplierWrap.style.display='none';
       if (ctSupplierSelect) ctSupplierSelect.value='';
@@ -79,9 +86,9 @@ function setupEventListeners() {
   const ctType = $('#ct_type');
   const ctSupplierWrap = $('#ct_supplier_wrap');
   if (ctType && ctSupplierWrap) {
-    ctType.addEventListener('change', (e)=>{ 
-      const po = e.target.value==='PURCHASE_ORDER'; 
-      ctSupplierWrap.style.display = po ? '' : 'none'; 
+    ctType.addEventListener('change', (e)=>{
+      const po = e.target.value==='PURCHASE_ORDER';
+      ctSupplierWrap.style.display = po ? '' : 'none';
     });
   }
 
@@ -92,13 +99,13 @@ function setupEventListeners() {
   if (syncToggle) {
     syncToggle.addEventListener('change', async (e)=>{
       const checked = e.target.checked;
-      try { 
-        await api('toggle_sync',{enabled:checked}); 
-        toast(`Lightspeed Sync ${checked?'enabled':'disabled'}`,'success'); 
+      try {
+        await api('toggle_sync',{enabled:checked});
+        toast(`Lightspeed Sync ${checked?'enabled':'disabled'}`,'success');
       }
-      catch(err){ 
-        e.target.checked = !checked; 
-        toast('Failed to toggle','danger'); 
+      catch(err){
+        e.target.checked = !checked;
+        toast('Failed to toggle','danger');
       }
     });
   } else {
@@ -113,7 +120,7 @@ function setupEventListeners() {
       const originalHTML = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Verifying...';
-      
+
       try {
         const result = await api('verify_sync');
         showVerificationModal(result);
@@ -125,13 +132,13 @@ function setupEventListeners() {
       }
     });
   }
-  
+
   // ✅ FIX: Add cleanup on page unload
   window.addEventListener('beforeunload', () => {
     clearTimeout(window.__qDeb);
     delete window.__qDeb;
   });
-  
+
   console.log('✅ Event listeners attached');
 }
 
@@ -154,15 +161,15 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
     </div>
   `;
   showModal(loadingHtml, 'lg');
-  
+
   try {
     // Get transfer details from our database
     const localData = await api('get_transfer_detail', { id: transferId });
-    
+
     // Get live data from Lightspeed (via backend which calls Vend API)
     const vendData = localData.ls || null;
     const totals = localData.totals || null;
-    
+
     // Compare and build verification report
     const verification = {
       transfer_id: transferId,
@@ -184,7 +191,7 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
       },
       sync_status: 'unknown'
     };
-    
+
     // Determine sync status
     if (!verification.vend.connected) {
       verification.sync_status = 'error';
@@ -199,10 +206,10 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
       verification.sync_status = 'ok';
       verification.sync_message = 'All data synchronized';
     }
-    
+
     // Show verification modal
     showVendVerificationResultModal(verification, vendTransferId);
-    
+
   } catch (err) {
     const errorHtml = `
       <div class="modal-header bg-danger">
@@ -227,7 +234,7 @@ window.showVendVerificationModal = async function(transferId, vendTransferId) {
  */
 function showVendVerificationResultModal(verification, vendTransferId) {
   const v = verification;
-  
+
   // Determine status badge
   let statusBadge = '';
   let statusClass = '';
@@ -241,7 +248,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
     statusBadge = '<span class="badge bg-danger fs-6">❌ Sync Error</span>';
     statusClass = 'danger';
   }
-  
+
   const html = `
     <div class="modal-header bg-gradient" style="background: linear-gradient(135deg, #86efac 0%, #4ade80 100%);">
       <h5 class="modal-title text-white"><i class="bi bi-shield-check me-2"></i>Transfer Sync Verification</h5>
@@ -254,13 +261,13 @@ function showVendVerificationResultModal(verification, vendTransferId) {
           <div class="text-muted small mt-1">Transfer ID: ${esc(v.transfer_id)} | Vend ID: ${esc(v.vend_transfer_id)}</div>
         </div>
       </div>
-      
+
       ${v.sync_message ? `
       <div class="alert alert-${statusClass} mb-4">
         <strong>${v.sync_status === 'ok' ? '✅' : v.sync_status === 'warning' ? '⚠️' : '❌'}</strong> ${esc(v.sync_message)}
       </div>
       ` : ''}
-      
+
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <div class="card">
@@ -293,7 +300,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
             </div>
           </div>
         </div>
-        
+
         <div class="col-md-6">
           <div class="card">
             <div class="card-header bg-light">
@@ -325,7 +332,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
           </div>
         </div>
       </div>
-      
+
       <div class="card bg-light">
         <div class="card-body">
           <h6 class="mb-2">🔍 Verification Summary:</h6>
@@ -344,7 +351,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
       </a>
     </div>
   `;
-  
+
   showModal(html, 'lg');
 }
 
@@ -353,7 +360,7 @@ function showVendVerificationResultModal(verification, vendTransferId) {
  */
 function showVerificationModal(data) {
   const { sync_enabled, timestamp, tables, errors, warnings, summary } = data;
-  
+
   // Determine overall badge
   let statusBadge = '';
   if (summary.overall_status === 'ok') {
@@ -372,7 +379,7 @@ function showVerificationModal(data) {
   tablesHTML += '<thead class="sticky-top bg-light"><tr>';
   tablesHTML += '<th>Table Name</th><th>Status</th><th>Rows</th><th>Columns</th><th>Issues</th>';
   tablesHTML += '</tr></thead><tbody>';
-  
+
   tables.forEach(t => {
     let statusIcon = '';
     let rowClass = '';
@@ -388,10 +395,10 @@ function showVerificationModal(data) {
       statusIcon = '<span class="badge bg-dark">🚫 Missing</span>';
       rowClass = 'table-danger';
     }
-    
+
     const criticalBadge = t.critical ? '<span class="badge bg-danger ms-1">CRITICAL</span>' : '';
     const issues = t.missing_columns.length > 0 ? `Missing: ${t.missing_columns.join(', ')}` : '—';
-    
+
     tablesHTML += `<tr class="${rowClass}">`;
     tablesHTML += `<td><code>${esc(t.name)}</code> ${criticalBadge}</td>`;
     tablesHTML += `<td>${statusIcon}</td>`;
@@ -400,7 +407,7 @@ function showVerificationModal(data) {
     tablesHTML += `<td><small>${esc(issues)}</small></td>`;
     tablesHTML += `</tr>`;
   });
-  
+
   tablesHTML += '</tbody></table></div>';
 
   // Build errors/warnings HTML

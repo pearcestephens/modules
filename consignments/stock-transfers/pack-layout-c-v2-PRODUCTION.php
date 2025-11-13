@@ -15,10 +15,16 @@
  * @quality TOP QUALITY BEST INTERFACE HIGHEST QUALITY
  */
 
+// Health/Status: respond OK to HEAD probes
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+    http_response_code(200);
+    exit;
+}
+
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/../lib/CISTemplate.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/assets/services/core/freight/FreightEngine.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/TransferManager/functions/transfer_functions.php';
+@include_once ($_SERVER['DOCUMENT_ROOT'] . '/assets/services/core/freight/FreightEngine.php');
+@include_once ($_SERVER['DOCUMENT_ROOT'] . '/modules/consignments/TransferManager/functions/transfer_functions.php');
 
 // Security & Auth
 // Allow demo mode without login
@@ -36,11 +42,11 @@ if ($transfer_id <= 0 && ! $__demo) {
 }
 
 // Load transfer data/products
-$transfer = $transfer_id > 0 ? get_transfer_by_id($transfer_id) : null;
-$products = $transfer_id > 0 ? get_transfer_products($transfer_id) : [];
+if (function_exists('get_transfer_by_id')) { $transfer = $transfer_id > 0 ? get_transfer_by_id($transfer_id) : null; } else { $transfer = null; }
+if (function_exists('get_transfer_products')) { $products = $transfer_id > 0 ? get_transfer_products($transfer_id) : []; } else { $products = []; }
 
-// Initialize FreightEngine
-$freightEngine = new FreightEngine($pdo);
+// Initialize FreightEngine if available
+if (class_exists('FreightEngine')) { $freightEngine = new FreightEngine($pdo); } else { $freightEngine = null; }
 
 // Load outlet data (or demo)
 if ($transfer) {
@@ -56,6 +62,8 @@ if ($transfer) {
         ['product_id' => 'SKU-3303', 'name' => 'Battery 18650', 'sku' => 'BAT-18650', 'quantity' => 4],
     ];
 }
+if (!isset($outlet_from)) { $outlet_from = ['name' => 'From']; }
+if (!isset($outlet_to)) { $outlet_to = ['name' => 'To']; }
 
 // Page metadata
 $page_title = "Pack Transfer: {$outlet_from['name']} → {$outlet_to['name']}";

@@ -91,7 +91,7 @@ if ($action === 'outlet_transfer_create') {
 if ($action === 'outlet_transfer_approve') {
     try {
         $transferId = (int)($input['transfer_id'] ?? 0);
-        $approverId = (int)($_SESSION['userID'] ?? 0);
+        $approverId = (int)($_SESSION['user_id'] ?? 0);
 
         $result = $outletTransferService->approve($transferId, $approverId);
         api_ok(['approved' => $result]);
@@ -176,7 +176,7 @@ if ($action === 'supplier_return_attach_evidence') {
 if ($action === 'supplier_return_approve') {
     try {
         $returnId = (int)($input['return_id'] ?? 0);
-        $approverId = (int)($_SESSION['userID'] ?? 0);
+        $approverId = (int)($_SESSION['user_id'] ?? 0);
 
         $result = $supplierReturnService->approve($returnId, $approverId);
         api_ok(['approved' => $result]);
@@ -250,7 +250,7 @@ if ($action === 'stocktake_calculate_variances') {
 if ($action === 'stocktake_approve') {
     try {
         $stocktakeId = (int)($input['stocktake_id'] ?? 0);
-        $approverId = (int)($_SESSION['userID'] ?? 0);
+        $approverId = (int)($_SESSION['user_id'] ?? 0);
 
         $result = $stocktakeService->approve($stocktakeId, $approverId);
         api_ok(['approved' => $result]);

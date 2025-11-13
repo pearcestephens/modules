@@ -17,7 +17,7 @@ require_once __DIR__ . '/../lib/csrf.php';
 header('Content-Type: application/json');
 
 // Check authentication (use CIS standard userID)
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $action = $_REQUEST['action'] ?? '';
-$userId = $_SESSION['userID'];
+$userId = $_SESSION['user_id'];
 $nuvei = new NuveiPayment($pdo);
 
 switch ($action) {

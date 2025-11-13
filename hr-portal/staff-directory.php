@@ -9,7 +9,7 @@ require_once __DIR__ . '/includes/DeputyIntegration.php';
 require_once __DIR__ . '/includes/XeroIntegration.php';
 
 // Security check
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
 }

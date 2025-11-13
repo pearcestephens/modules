@@ -1,57 +1,35 @@
 <?php
 /**
- * Consignments Module - Receiving
- *
- * @package CIS\Consignments
- * @version 3.0.0
- */
-
-declare(strict_types=1);
-
-// Load Consignments bootstrap (shared helpers) and CIS Template
-require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../lib/CISTemplate.php';
-
-// Initialize template
-$template = new CISTemplate();
-$template->setTitle('Receiving');
-$template->setBreadcrumbs([
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Receiving', 'url' => '/modules/consignments/?route=receiving', 'active' => true]
-]);
-
-// Start content capture
-$template->startContent();
-?>
-
-<div class="container-fluid">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h2 class="mb-0"><i class="fas fa-inbox mr-2"></i>Receiving</h2>
-        </div>
-    </div>
-
-/**
  * Consignments Module - Enhanced Receiving Interface
  *
  * Modern receiving interface with barcode scanning, photo uploads,
  * partial receiving, damage reporting, and real-time validation.
  *
  * @package CIS\Consignments
- * @version 3.0.0
- * @updated 2025-11-05 - Enhanced receiving with modern template
+ * @version 5.0.0 - Bootstrap 5 + Modern Theme
+ * @updated 2025-11-11 - Bootstrap 5 conversion
  */
 
 declare(strict_types=1);
 
-// Page metadata
+// Load Consignments bootstrap (shared helpers)
+require_once __DIR__ . '/../bootstrap.php';
+
+// Modern Theme Setup
 $pageTitle = 'Receive Stock Transfer';
 $breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'icon' => 'fa-boxes'],
-    ['label' => 'Receive Transfer', 'active' => true]
+    ['label' => 'Home', 'url' => '/', 'icon' => 'bi-house-door'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'icon' => 'bi-box-seam'],
+    ['label' => 'Receiving', 'url' => '/modules/consignments/?route=receiving', 'active' => true]
 ];
+
+$pageCSS = [
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
+    '/modules/admin-ui/css/cms-design-system.css',
+    '/modules/shared/css/tokens.css'
+];
+
+$pageJS = [];
 
 // Get database connection
 $pdo = CIS\Base\Database::pdo();
@@ -93,15 +71,15 @@ if ($transferId) {
     }
 }
 
-// Start output buffering
+// Start content capture
 ob_start();
 ?>
 
 <style>
 .receiving-container { max-width: 1600px; margin: 0 auto; }
-.page-header-modern { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(102,126,234,0.25); }
-.page-header-modern h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px 0; }
-.page-header-modern p { margin: 0; opacity: 0.95; font-size: 15px; }
+.page-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(102,126,234,0.25); }
+.page-header h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px 0; }
+.page-header p { margin: 0; opacity: 0.95; font-size: 15px; }
 .transfer-info-card { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
 .info-item { display: flex; flex-direction: column; }
@@ -186,13 +164,13 @@ ob_start();
 <div class="receiving-container">
     <?php if (!$transfer): ?>
         <!-- No transfer selected -->
-        <div class="page-header-modern">
-            <h1><i class="fas fa-inbox me-2"></i>Receive Stock Transfer</h1>
+        <div class="page-header">
+            <h1><i class="bi bi-inbox me-2"></i>Receive Stock Transfer</h1>
             <p>Select a transfer to begin receiving</p>
         </div>
 
-                <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
             Please select a transfer from the <a href="/modules/consignments/?route=stock-transfers">Stock Transfers</a> page to begin receiving.
         </div>
 
@@ -200,7 +178,7 @@ ob_start();
                 try { $recentTransfers = getRecentTransfersEnrichedDB(8, 'STOCK'); } catch (Throwable $e) { $recentTransfers = []; }
                 if (!empty($recentTransfers)): ?>
                 <div class="card mb-4">
-                    <div class="card-header bg-light"><strong><i class="fas fa-clock mr-2"></i>Recent Stock Transfers</strong></div>
+                    <div class="card-header bg-light"><strong><i class="bi bi-clock me-2"></i>Recent Stock Transfers</strong></div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead class="thead-light"><tr><th>Consignment</th><th>From</th><th>To</th><th>Progress</th><th>Contact</th><th>Action</th></tr></thead>
@@ -216,7 +194,7 @@ ob_start();
                                     <td><?= htmlspecialchars($rt['from_outlet_name'] ?? '-') ?></td>
                                     <td><?= htmlspecialchars($rt['to_outlet_name'] ?? '-') ?></td>
                                     <td><span class="badge badge-<?= $pctClass ?>"><?= $pct ?>%</span> <small class="text-muted"><?= $received ?>/<?= $total ?></small></td>
-                                    <td><?php if (!empty($rt['to_outlet_phone'])): ?><a href="tel:<?= htmlspecialchars($rt['to_outlet_phone']) ?>" class="text-decoration-none"><i class="fas fa-phone mr-1"></i><?= htmlspecialchars($rt['to_outlet_phone']) ?></a><?php else: ?>—<?php endif; ?></td>
+                                    <td><?php if (!empty($rt['to_outlet_phone'])): ?><a href="tel:<?= htmlspecialchars($rt['to_outlet_phone']) ?>" class="text-decoration-none"><i class="bi bi-phone me-1"></i><?= htmlspecialchars($rt['to_outlet_phone']) ?></a><?php else: ?>—<?php endif; ?></td>
                                     <td><a class="btn btn-sm btn-primary" href="/modules/consignments/stock-transfers/pack.php?id=<?= urlencode((string)($rt['cis_internal_id'] ?? $rt['id'] ?? '')) ?>">Open</a></td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -227,8 +205,8 @@ ob_start();
                 <?php endif; ?>
     <?php else: ?>
         <!-- Transfer loaded -->
-        <div class="page-header-modern">
-            <h1><i class="fas fa-inbox me-2"></i>Receive Stock Transfer #<?= htmlspecialchars($transfer['consignment_number']) ?></h1>
+        <div class="page-header">
+            <h1><i class="bi bi-inbox me-2"></i>Receive Stock Transfer #<?= htmlspecialchars($transfer['consignment_number']) ?></h1>
             <p>Scan items to receive them into your outlet</p>
         </div>
 
@@ -236,25 +214,25 @@ ob_start();
         <div class="transfer-info-card">
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label"><i class="fas fa-store me-1"></i>From Outlet</div>
+                    <div class="info-label"><i class="bi bi-shop me-1"></i>From Outlet</div>
                     <div class="info-value"><?= htmlspecialchars($transfer['outlet_from_name']) ?></div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label"><i class="fas fa-store me-1"></i>To Outlet</div>
+                    <div class="info-label"><i class="bi bi-shop me-1"></i>To Outlet</div>
                     <div class="info-value"><?= htmlspecialchars($transfer['outlet_to_name']) ?></div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label"><i class="fas fa-calendar me-1"></i>Sent Date</div>
+                    <div class="info-label"><i class="bi bi-calendar me-1"></i>Sent Date</div>
                     <div class="info-value"><?= date('d M Y', strtotime($transfer['date'])) ?></div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label"><i class="fas fa-box me-1"></i>Total Items</div>
+                    <div class="info-label"><i class="bi bi-box me-1"></i>Total Items</div>
                     <div class="info-value"><?= count($transferItems) ?> products</div>
                 </div>
                 <div class="info-item">
-                    <div class="info-label"><i class="fas fa-info-circle me-1"></i>Status</div>
+                    <div class="info-label"><i class="bi bi-info-circle me-1"></i>Status</div>
                     <div class="info-value">
-                        <span class="badge bg-warning"><?= htmlspecialchars($transfer['status']) ?></span>
+                        <span class="badge bg-warning text-dark"><?= htmlspecialchars($transfer['status']) ?></span>
                     </div>
                 </div>
             </div>
@@ -263,11 +241,11 @@ ob_start();
         <!-- Barcode Scan Panel -->
         <div class="scan-panel">
             <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700;">
-                <i class="fas fa-barcode me-2"></i>Scan Barcode
+                <i class="bi bi-upc-scan me-2"></i>Scan Barcode
             </h3>
 
             <div id="barcodeFeedback" class="barcode-feedback">
-                <i class="fas fa-check-circle"></i>
+                <i class="bi bi-check-circle"></i>
                 <span id="feedbackText">Item scanned successfully!</span>
             </div>
 
@@ -278,24 +256,25 @@ ob_start();
                     placeholder="Scan barcode or enter SKU..."
                     autofocus
                     autocomplete="off"
+                    class="form-control form-control-lg"
                 >
-                <button class="btn btn-primary" onclick="processBarcodeScan()">
-                    <i class="fas fa-search me-2"></i>Search
+                <button class="btn btn-primary btn-lg" onclick="processBarcodeScan()">
+                    <i class="bi bi-search me-2"></i>Search
                 </button>
             </div>
 
             <div style="color: #6c757d; font-size: 13px;">
-                <i class="fas fa-lightbulb me-1"></i>
+                <i class="bi bi-lightbulb me-1"></i>
                 <strong>Tip:</strong> Use a barcode scanner or type the SKU manually. Press Enter to search.
             </div>
         </div>
 
         <!-- Items Table -->
         <div class="items-table">
-            <table id="itemsTable">
+            <table id="itemsTable" class="table">
                 <thead>
                     <tr>
-                        <th style="width: 40px;"><i class="fas fa-check-circle"></i></th>
+                        <th style="width: 40px;"><i class="bi bi-check-circle"></i></th>
                         <th>Product</th>
                         <th style="width: 120px; text-align: center;">Expected</th>
                         <th style="width: 150px; text-align: center;">Received</th>
@@ -308,7 +287,7 @@ ob_start();
                         <tr id="item-<?= $item['id'] ?>" data-item-id="<?= $item['id'] ?>" data-sku="<?= htmlspecialchars($item['sku']) ?>">
                             <td style="text-align: center;">
                                 <span class="status-icon pending" id="status-icon-<?= $item['id'] ?>">
-                                    <i class="fas fa-clock"></i>
+                                    <i class="bi bi-clock"></i>
                                 </span>
                             </td>
                             <td>
@@ -317,7 +296,7 @@ ob_start();
                                         <img src="<?= htmlspecialchars($item['image_url']) ?>" alt="Product" class="product-image">
                                     <?php else: ?>
                                         <div class="product-image-placeholder">
-                                            <i class="fas fa-box"></i>
+                                            <i class="bi bi-box"></i>
                                         </div>
                                     <?php endif; ?>
                                     <div class="product-info">
@@ -332,7 +311,7 @@ ob_start();
                             <td style="text-align: center;">
                                 <div class="qty-input-group">
                                     <button onclick="decrementQty(<?= $item['id'] ?>)">
-                                        <i class="fas fa-minus"></i>
+                                        <i class="bi bi-dash"></i>
                                     </button>
                                     <input
                                         type="number"
@@ -343,7 +322,7 @@ ob_start();
                                         onchange="updateItemStatus(<?= $item['id'] ?>)"
                                     >
                                     <button onclick="incrementQty(<?= $item['id'] ?>)">
-                                        <i class="fas fa-plus"></i>
+                                        <i class="bi bi-plus"></i>
                                     </button>
                                 </div>
                             </td>
@@ -358,21 +337,21 @@ ob_start();
                                         onclick="openPhotoModal(<?= $item['id'] ?>)"
                                         id="photo-btn-<?= $item['id'] ?>"
                                     >
-                                        <i class="fas fa-camera"></i>
+                                        <i class="bi bi-camera"></i>
                                     </button>
                                     <button
                                         class="btn-icon btn-damage"
                                         title="Report Damage"
                                         onclick="reportDamage(<?= $item['id'] ?>)"
                                     >
-                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <i class="bi bi-exclamation-triangle"></i>
                                     </button>
                                     <button
                                         class="btn-icon btn-notes"
                                         title="Add Notes"
                                         onclick="addNotes(<?= $item['id'] ?>)"
                                     >
-                                        <i class="fas fa-comment"></i>
+                                        <i class="bi bi-chat-left-text"></i>
                                     </button>
                                 </div>
                             </td>
@@ -405,10 +384,10 @@ ob_start();
                 </div>
                 <div class="receive-actions">
                     <button class="btn-cancel" onclick="window.location.href='/modules/consignments/?route=stock-transfers'">
-                        <i class="fas fa-times me-2"></i>Cancel
+                        <i class="bi bi-x me-2"></i>Cancel
                     </button>
                     <button class="btn-complete" id="completeBtn" onclick="completeReceiving()" disabled>
-                        <i class="fas fa-check-circle me-2"></i>Complete Receiving
+                        <i class="bi bi-check-circle me-2"></i>Complete Receiving
                     </button>
                 </div>
             </div>
@@ -423,12 +402,12 @@ ob_start();
 <div id="photoModal" class="photo-upload-modal">
     <div class="photo-modal-content">
         <div class="photo-modal-header">
-            <h3><i class="fas fa-camera me-2"></i>Upload Photos</h3>
+            <h3><i class="bi bi-camera me-2"></i>Upload Photos</h3>
             <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
         </div>
 
         <div class="photo-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-cloud-upload-alt"></i>
+            <i class="bi bi-cloud-upload"></i>
             <h4 style="margin: 16px 0 8px 0; font-weight: 700;">Click or Drag Photos Here</h4>
             <p>Upload photos of received items (Required for completion)</p>
             <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" onchange="handleFileSelect(event)">
@@ -439,7 +418,7 @@ ob_start();
         <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
             <button class="btn btn-secondary" onclick="closePhotoModal()">Cancel</button>
             <button class="btn btn-primary" onclick="uploadPhotos()">
-                <i class="fas fa-upload me-2"></i>Upload Photos
+                <i class="bi bi-upload me-2"></i>Upload Photos
             </button>
         </div>
     </div>
@@ -528,7 +507,7 @@ function displayPhotoPreview(file) {
         preview.innerHTML = `
             <img src="${e.target.result}" alt="Preview">
             <button class="photo-preview-remove" onclick="removePhoto(this)">
-                <i class="fas fa-times"></i>
+                <i class="bi bi-x"></i>
             </button>
         `;
         grid.appendChild(preview);
@@ -620,17 +599,17 @@ function updateItemStatus(itemId) {
 
     if (received === 0) {
         statusIcon.className = 'status-icon pending';
-        statusIcon.innerHTML = '<i class="fas fa-clock"></i>';
+        statusIcon.innerHTML = '<i class="bi bi-clock"></i>';
         statusBadge.className = 'qty-badge pending';
         statusBadge.textContent = 'Pending';
     } else if (received < expected) {
         statusIcon.className = 'status-icon partial';
-        statusIcon.innerHTML = '<i class="fas fa-exclamation"></i>';
+        statusIcon.innerHTML = '<i class="bi bi-exclamation-circle"></i>';
         statusBadge.className = 'qty-badge partial';
         statusBadge.textContent = 'Partial';
     } else {
         statusIcon.className = 'status-icon complete';
-        statusIcon.innerHTML = '<i class="fas fa-check"></i>';
+        statusIcon.innerHTML = '<i class="bi bi-check"></i>';
         statusBadge.className = 'qty-badge received';
         statusBadge.textContent = 'Complete';
     }
@@ -683,7 +662,7 @@ function updatePhotoButton(itemId) {
 
     if (count > 0) {
         photoBtn.style.background = '#28a745';
-        photoBtn.innerHTML = `<i class="fas fa-camera"></i> <span style="font-size: 10px; position: absolute; top: 2px; right: 2px; background: white; color: #28a745; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">${count}</span>`;
+        photoBtn.innerHTML = `<i class="bi bi-camera"></i> <span style="font-size: 10px; position: absolute; top: 2px; right: 2px; background: white; color: #28a745; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">${count}</span>`;
     }
 }
 
@@ -750,5 +729,9 @@ function completeReceiving() {
 </div>
 
 <?php
-$template->endContent();
-$template->render();
+// Capture content
+$content = ob_get_clean();
+
+// Load the Modern Theme (Bootstrap 5)
+require_once __DIR__ . '/../../base/templates/themes/modern/layouts/dashboard.php';
+?>

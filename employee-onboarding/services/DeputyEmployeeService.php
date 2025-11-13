@@ -26,8 +26,19 @@ class DeputyEmployeeService
         $envFile = $_SERVER['DOCUMENT_ROOT'] . '/.env';
         if (file_exists($envFile)) {
             $env = parse_ini_file($envFile);
-            $this->apiEndpoint = 'https://' . ($env['DEPUTY_ENDPOINT'] ?? 'vapeshed.au.deputy.com');
-            $this->apiToken = $env['DEPUTY_TOKEN'] ?? null;
+            $rawEndpoint = $env['DEPUTY_API_BASE_URL'] ?? $env['DEPUTY_ENDPOINT'] ?? 'vapeshed.au.deputy.com';
+            $rawEndpoint = trim($rawEndpoint);
+            // Remove any accidental leading scheme from legacy domain-only value
+            $rawEndpoint = preg_replace('#^(https?://)+#i', '$1', $rawEndpoint);
+            if (!preg_match('#^https?://#i', $rawEndpoint)) {
+                $rawEndpoint = 'https://' . ltrim($rawEndpoint, '/');
+            }
+            // Ensure API path present
+            if (!preg_match('#/api/\dv\d#', parse_url($rawEndpoint, PHP_URL_PATH) ?: '')) {
+                $rawEndpoint = rtrim($rawEndpoint, '/') . '/api/v1';
+            }
+            $this->apiEndpoint = rtrim($rawEndpoint, '/');
+            $this->apiToken = $env['DEPUTY_API_TOKEN'] ?? $env['DEPUTY_TOKEN'] ?? null;
         }
 
         if (!$this->apiToken) {
@@ -158,7 +169,8 @@ class DeputyEmployeeService
      */
     private function deputyApiCall(string $method, string $endpoint, ?array $data = null): array
     {
-        $url = $this->apiEndpoint . '/api/v1' . $endpoint;
+    // apiEndpoint already normalized to include /api/vX; avoid duplicating path
+    $url = $this->apiEndpoint . $endpoint;
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

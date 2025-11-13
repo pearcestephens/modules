@@ -213,7 +213,7 @@ class ProductAPI extends BaseAPI {
      */
     protected function authenticate(): void {
         // Check session
-        if (empty($_SESSION['userID'])) {
+        if (empty($_SESSION['user_id'])) {
             throw new \Exception('Not authenticated', 401);
         }
 
@@ -223,7 +223,7 @@ class ProductAPI extends BaseAPI {
         }
 
         $this->logInfo('User authenticated', [
-            'user_id' => $_SESSION['userID']
+            'user_id' => $_SESSION['user_id']
         ]);
     }
 
@@ -280,14 +280,14 @@ class ProductAPI extends BaseAPI {
             'price' => (float)$data['price'],
             'sku' => $this->sanitize($data['sku']),
             'stock' => $data['stock'] ?? 0,
-            'created_by' => $_SESSION['userID'],
+            'created_by' => $_SESSION['user_id'],
             'created_at' => date('Y-m-d H:i:s')
         ];
 
         $this->logInfo('Product created', [
             'product_id' => $productId,
             'sku' => $data['sku'],
-            'user_id' => $_SESSION['userID']
+            'user_id' => $_SESSION['user_id']
         ]);
 
         return $this->success(
@@ -675,7 +675,7 @@ $userAPI->handleRequest();
 
 // Example 2: Authenticated Product API
 session_start();
-$_SESSION['userID'] = 123;
+$_SESSION['user_id'] = 123;
 $_SESSION['user_role'] = 'admin';
 $_SESSION['user_status'] = 'active';
 

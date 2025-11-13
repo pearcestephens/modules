@@ -5,7 +5,8 @@
  * Shows: Box # of Total, From/To Store, Transfer ID, (Optional Tracking)
  */
 
-require_once __DIR__ . '/../../base/_templates/themes/cis-classic/theme.php';
+// Corrected theme include path (was _templates)
+require_once __DIR__ . '/../../base/templates/themes/cis-classic/theme.php';
 
 $theme = new CISClassicTheme();
 $theme->setTitle('Print Box Labels - Transfer #12345');

@@ -1,7 +1,7 @@
 <?php
 // Enhanced top header with personalization bar, notifications, avatar, and logout
 // Pull user details if available
-$uid = $_SESSION['userID'] ?? null;
+$uid = $_SESSION['user_id'] ?? null;
 $userDetails = ['first_name' => 'User'];
 if ($uid && function_exists('getUserInformation')) {
   try {
@@ -41,12 +41,16 @@ if ($uid && function_exists('getUserInformation')) {
         </div>
       </a>
       <?php
-        if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/assets/template/personalisation-menu.php')) {
-          // Ensure helper functions exist for the dropdown (time_ago_in_php)
+        // Prefer theme component if present, otherwise fallback to legacy path
+        $themePersonalised = __DIR__ . '/personalised-menu.php';
+        $legacyPersonalised = $_SERVER['DOCUMENT_ROOT'] . '/assets/template/personalisation-menu.php';
+        if (file_exists($themePersonalised)) {
+          include $themePersonalised;
+        } elseif (file_exists($legacyPersonalised)) {
           if (!function_exists('time_ago_in_php') && file_exists($_SERVER['DOCUMENT_ROOT'] . '/assets/functions/helpers.php')) {
             include_once $_SERVER['DOCUMENT_ROOT'] . '/assets/functions/helpers.php';
           }
-          include $_SERVER['DOCUMENT_ROOT'] . '/assets/template/personalisation-menu.php';
+          include $legacyPersonalised;
         }
       ?>
     </li>
@@ -65,27 +69,5 @@ if ($uid && function_exists('getUserInformation')) {
     </li>
   </ul>
 </header>
-<?php
-  // Render second-layer (breadcrumbs/action bar) inside header if provided
-  $__crumbs = $GLOBALS['CIS_BREADCRUMBS_DATA'] ?? [];
-  if (is_array($__crumbs) && count($__crumbs) > 0): ?>
-  <div class="app-breadcrumb" style="background:#fff;border-bottom:1px solid #c8ced3;padding:0.5rem 1rem;">
-    <nav aria-label="breadcrumb" class="mb-0">
-      <ol class="breadcrumb mb-0">
-        <?php foreach ($__crumbs as $crumb): ?>
-          <?php if (!empty($crumb['active'])): ?>
-            <li class="breadcrumb-item active"><?php echo htmlspecialchars($crumb['label']); ?></li>
-          <?php else: ?>
-            <li class="breadcrumb-item">
-              <a href="<?php echo htmlspecialchars($crumb['url'] ?? '#'); ?>">
-                <?php if (!empty($crumb['icon'])): ?><i class="fas <?php echo htmlspecialchars($crumb['icon']); ?> mr-1"></i><?php endif; ?>
-                <?php echo htmlspecialchars($crumb['label']); ?>
-              </a>
-            </li>
-          <?php endif; ?>
-        <?php endforeach; ?>
-      </ol>
-    </nav>
-  </div>
-<?php endif; ?>
+<!-- Breadcrumbs moved to CISTemplate to match legacy layout placing them inside <main>. -->
 <!-- app-body, sidemenu, and main container are opened by CISTemplate -->

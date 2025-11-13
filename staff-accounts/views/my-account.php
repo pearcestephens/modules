@@ -19,7 +19,7 @@ require_once __DIR__ . '/../bootstrap.php';
 cis_require_login();
 
 // Get current user ID
-$user_id = $_SESSION['userID'];
+$user_id = $_SESSION['user_id'];
 
 // Fetch user account details - USING ACTUAL COLUMN NAMES (NO ALIASES)
 $stmt = $pdo->prepare("

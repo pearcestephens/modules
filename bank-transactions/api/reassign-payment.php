@@ -180,7 +180,7 @@ try {
         if ($transaction['payment_id']) {
             $oldPayment = $paymentModel->findById((int)$transaction['payment_id']);
             if ($oldPayment) {
-                $paymentModel->void((int)$transaction['payment_id'], $_SESSION['userID'], 'Reassigned to order ' . $newOrderId);
+                $paymentModel->void((int)$transaction['payment_id'], $_SESSION['user_id'], 'Reassigned to order ' . $newOrderId);
             }
         }
 
@@ -192,7 +192,7 @@ try {
             'payment_type' => $transaction['transaction_type'],
             'reference' => $transaction['transaction_reference'],
             'notes' => 'Reassigned from order ' . $oldOrderId . '. Reason: ' . $reason,
-            'created_by' => $_SESSION['userID']
+            'created_by' => $_SESSION['user_id']
         ];
 
         $newPaymentId = $paymentModel->create($newPaymentData);
@@ -216,13 +216,13 @@ try {
             'old_payment_id' => $transaction['payment_id'],
             'new_payment_id' => $newPaymentId,
             'reason' => $reason,
-            'performed_by' => $_SESSION['userID'],
+            'performed_by' => $_SESSION['user_id'],
             'performed_at' => date('Y-m-d H:i:s')
         ];
 
         $auditAction = 'reassign';
         $auditDetails = json_encode($auditData);
-        $userId = (int)$_SESSION['userID'];
+        $userId = (int)$_SESSION['user_id'];
 
         $auditStmt = $con->prepare("INSERT INTO audit_trail (transaction_id, action, details, user_id, created_at) VALUES (?, ?, ?, ?, NOW())");
         $auditStmt->bind_param('issi', $transactionId, $auditAction, $auditDetails, $userId);

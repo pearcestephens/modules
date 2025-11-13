@@ -7,7 +7,7 @@
 require_once __DIR__ . '/../base/bootstrap.php';
 require_once __DIR__ . '/includes/order-sorting-engine.php';
 
-$user_id = $_SESSION['userID'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     header('Location: /login.php');
     exit;

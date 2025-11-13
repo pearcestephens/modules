@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../bootstrap.php';
 require_once __DIR__ . '/includes/XeroIntegration.php';
 require_once __DIR__ . '/includes/AIPayrollEngine.php';
 
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
 }

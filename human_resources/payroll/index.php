@@ -165,10 +165,10 @@ function payroll_get_current_user(): ?array {
     }
 
     // Check main CIS session structure (CORRECTED)
-    // Main CIS uses: $_SESSION['userID'], $_SESSION['username'], $_SESSION['authenticated']
-    if (!empty($_SESSION['userID']) && !empty($_SESSION['authenticated'])) {
+    // Main CIS uses: $_SESSION['user_id'], $_SESSION['username'], $_SESSION['authenticated']
+    if (!empty($_SESSION['user_id']) && !empty($_SESSION['authenticated'])) {
         return [
-            'id' => (int)$_SESSION['userID'],
+            'id' => (int)$_SESSION['user_id'],
             'email' => $_SESSION['username'] ?? '',
             'name' => $_SESSION['username'] ?? 'User',
             'role' => $_SESSION['role'] ?? 'staff',

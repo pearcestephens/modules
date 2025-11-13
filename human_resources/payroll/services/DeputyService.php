@@ -50,6 +50,15 @@ class DeputyService
     }
 
     /**
+     * Check if automatic overlapping-timesheet merge is enabled via env.
+     */
+    private function isAutoMergeEnabled(): bool
+    {
+        $val = $_ENV['DEPUTY_AUTOMERGE_ENABLED'] ?? getenv('DEPUTY_AUTOMERGE_ENABLED') ?: '0';
+        return $val === '1' || strtolower((string)$val) === 'true';
+    }
+
+    /**
      * Parse datetime-local input value to UNIX timestamp and MySQL datetime string
      *
      * Converts HTML5 datetime-local format (YYYY-MM-DDTHH:MM) to:
@@ -146,6 +155,7 @@ class DeputyService
     {
         $tsId = (int)($row['Id'] ?? 0);
         $ouId = (int)($row['OperationalUnitObject']['Id'] ?? 0);
+        $deputyEmployeeId = (int)($row['Employee'] ?? 0);
 
         if ($tsId <= 0 || $ouId <= 0) {
             return [
@@ -166,6 +176,53 @@ class DeputyService
         if ($wasApproved) {
             // APPROVED timesheets cannot be updated - must create new one
             error_log("DeputyService: Timesheet $tsId is APPROVED (locked). Creating NEW timesheet instead.");
+
+            // Optional auto-merge path to avoid Deputy overlap constraint
+            if ($this->isAutoMergeEnabled()) {
+                // Before creating a new timesheet, detect other overlapping timesheets for the day
+                $day = date('Y-m-d', $startTs);
+                try {
+                    $otherRows = getDeputyTimeSheetsSpecificDay($deputyEmployeeId, $day, $day);
+                } catch (\Throwable $e) {
+                    $otherRows = [];
+                    error_log("DeputyService WARNING: Could not fetch other timesheets for overlap check: " . $e->getMessage());
+                }
+
+                // Filter out the current approved timesheet and find overlaps with proposed window
+                $overlapping = [];
+                foreach ($otherRows as $r) {
+                    $otherId = (int)($r['Id'] ?? 0);
+                    if ($otherId === $tsId) { continue; }
+                    $s = (int)($r['StartTime'] ?? 0);
+                    $e = (int)($r['EndTime'] ?? 0);
+                    // same OU only to avoid cross-location merges
+                    $rOu = (int)($r['OperationalUnitObject']['Id'] ?? 0);
+                    if ($rOu !== $ouId) { continue; }
+                    if ($s > 0 && $e > 0 && $e > $s) {
+                        // Overlap if start < newEnd && end > newStart
+                        if ($s < $endTs && $e > $startTs) {
+                            $overlapping[] = $r;
+                        }
+                    }
+                }
+
+                if (!empty($overlapping)) {
+                    error_log("DeputyService: Found " . count($overlapping) . " overlapping timesheet(s) with approved timesheet replacement window (same OU). Initiating merge to avoid HTTP 400 overlap.");
+                    $mergeInput = array_merge([$row], $overlapping);
+                    $mergeResult = $this->autoMergeOverlappingSet($deputyEmployeeId, $startTs, $endTs, $mergeInput, $overrideBreakMin);
+                    if ($mergeResult['updated'] ?? false) {
+                        return $mergeResult; // Merged successfully
+                    } elseif (!empty($mergeResult['error'])) {
+                        // If merge fails, bubble up a clear error rather than performing risky replacements
+                        return [
+                            'updated' => false,
+                            'error' => 'Failed merged replacement: ' . $mergeResult['error']
+                        ];
+                    }
+                    // Fall through to legacy replacement only if nothing else possible
+                    error_log("DeputyService: Merge attempt returned no success, falling back to single replacement creation.");
+                }
+            }
 
             try {
                 // Create replacement timesheet
@@ -239,6 +296,80 @@ class DeputyService
                 'updated' => false,
                 'error' => 'Failed to update timesheet: ' . $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Automatically merge a set of overlapping timesheets (including approved) into one normalized window.
+     * Ensures no Deputy overlap errors by creating a single replacement timesheet covering amendment window.
+     * Existing timesheets are left intact (Deputy API does not allow deletion here) but reference is logged.
+     *
+     * @param int   $deputyEmployeeId Employee ID in Deputy
+     * @param int   $targetStart      Amendment desired start
+     * @param int   $targetEnd        Amendment desired end
+     * @param array $rows             Overlapping timesheet rows (including the approved one)
+     * @param int|null $overrideBreakMin Optional break override
+     * @return array {updated:bool, timesheetId?:int, replacedIds?:array, error?:string, merged?:bool}
+     */
+    private function autoMergeOverlappingSet(int $deputyEmployeeId, int $targetStart, int $targetEnd, array $rows, ?int $overrideBreakMin = null): array
+    {
+        if ($targetEnd <= $targetStart) {
+            return ['updated' => false, 'error' => 'Invalid amendment window'];
+        }
+        $ouId = 0;
+        $originalIds = [];
+        $hadApproved = false;
+        $ouMismatch = false;
+        foreach ($rows as $r) {
+            $originalIds[] = (int)($r['Id'] ?? 0);
+            if (!empty($r['TimeApproved'])) { $hadApproved = true; }
+            $thisOu = (int)($r['OperationalUnitObject']['Id'] ?? 0);
+            if ($ouId === 0) { $ouId = $thisOu; }
+            if ($thisOu !== 0 && $ouId !== 0 && $thisOu !== $ouId) { $ouMismatch = true; }
+        }
+        if ($ouId <= 0) { return ['updated' => false, 'error' => 'Missing OperationalUnit for merge']; }
+        if ($ouMismatch) { return ['updated' => false, 'error' => 'Cannot merge across different Operational Units']; }
+        // Clamp merged window to min/max of both amendment and existing to ensure full coverage
+        $earliestExisting = min(array_map(fn($r) => (int)($r['StartTime'] ?? $targetStart), $rows));
+        $latestExisting   = max(array_map(fn($r) => (int)($r['EndTime'] ?? $targetEnd), $rows));
+        $mergedStart = min($earliestExisting, $targetStart);
+        $mergedEnd   = max($latestExisting, $targetEnd);
+        // Use exact amendment window if it fully encloses existing range
+        if ($targetStart <= $earliestExisting && $targetEnd >= $latestExisting) {
+            $mergedStart = $targetStart;
+            $mergedEnd = $targetEnd;
+        }
+        $hours = max(0, ($mergedEnd - $mergedStart) / 3600);
+        $breakMin = $overrideBreakMin !== null ? max(0, (int)$overrideBreakMin) : (int)calculateDeputyHourBreaksInMinutesBasedOnHoursWorked($hours);
+        try {
+            $createResult = deputyCreateTimeSheet(
+                $deputyEmployeeId,
+                $mergedStart,
+                $mergedEnd,
+                $breakMin,
+                $ouId,
+                'Auto-merged overlapping timesheets [' . implode(',', $originalIds) . '] via amendment'
+            );
+            if (empty($createResult['Id'])) {
+                return ['updated' => false, 'error' => 'Deputy API returned no ID for merged timesheet'];
+            }
+            $newId = (int)$createResult['Id'];
+            if ($hadApproved) {
+                try { deputyApproveTimeSheet($newId); } catch (\Throwable $e) { error_log('DeputyService: Failed to auto-approve merged timesheet ' . $e->getMessage()); }
+            }
+            return [
+                'updated' => true,
+                'merged' => true,
+                'timesheetId' => $newId,
+                'ouId' => $ouId,
+                'breakMin' => $breakMin,
+                'replacedIds' => $originalIds,
+                'wasApprovedSet' => $hadApproved,
+                'normalisedWindowStart' => $mergedStart,
+                'normalisedWindowEnd' => $mergedEnd
+            ];
+        } catch (\Throwable $e) {
+            return ['updated' => false, 'error' => 'Merge creation failed: ' . $e->getMessage()];
         }
     }
 

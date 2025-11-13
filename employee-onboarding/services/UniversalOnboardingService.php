@@ -142,7 +142,7 @@ class UniversalOnboardingService
             'password_hash' => isset($data['password']) ? password_hash($data['password'], PASSWORD_DEFAULT) : null,
             'status' => $data['status'] ?? 'active',
             'notes' => $data['notes'] ?? null,
-            'created_by' => $_SESSION['userID'] ?? null
+            'created_by' => $_SESSION['user_id'] ?? null
         ]);
 
         return (int) $this->pdo->lastInsertId();
@@ -157,7 +157,7 @@ class UniversalOnboardingService
         $stmt = $this->pdo->prepare($sql);
 
         foreach ($roleIds as $roleId) {
-            $stmt->execute([$userId, $roleId, $_SESSION['userID'] ?? null]);
+            $stmt->execute([$userId, $roleId, $_SESSION['user_id'] ?? null]);
         }
     }
 
@@ -303,7 +303,7 @@ class UniversalOnboardingService
             json_encode($data['request'] ?? null),
             json_encode($data['response'] ?? $data),
             $data['error'] ?? null,
-            $_SESSION['userID'] ?? null,
+            $_SESSION['user_id'] ?? null,
             $_SERVER['REMOTE_ADDR'] ?? null,
             $_SERVER['HTTP_USER_AGENT'] ?? null
         ]);

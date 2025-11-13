@@ -17,7 +17,7 @@ use CIS\Modules\StaffAccounts\PaymentService;
 header('Content-Type: application/json');
 
 // Authentication check
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Authentication required']);
     exit;
@@ -75,7 +75,7 @@ try {
                     allocated_by = ?
                 WHERE id = ?
             ");
-            $stmt->execute([$_SESSION['userID'], $paymentId]);
+            $stmt->execute([$_SESSION['user_id'], $paymentId]);
 
             // Get full payment details for statement
             $stmt = $pdo->prepare("

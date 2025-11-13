@@ -26,7 +26,7 @@ $_SERVER['DOCUMENT_ROOT'] = '/home/master/applications/jcepnzzkmj/public_html';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
 
 // Mock user session for testing
-$_SESSION['userID'] = 1;
+$_SESSION['user_id'] = 1;
 $_SESSION['staff_id'] = 1;
 $_SESSION['logged_in'] = true;
 
@@ -191,7 +191,7 @@ echo "\n" . c('bold', "Environment:") . "\n";
 echo "  PHP Version: " . PHP_VERSION . "\n";
 echo "  Document Root: " . $_SERVER['DOCUMENT_ROOT'] . "\n";
 echo "  Bot Bypass: " . (BOT_BYPASS_AUTH ? c('green', 'ENABLED') : c('red', 'DISABLED')) . "\n";
-echo "  User ID: " . ($_SESSION['userID'] ?? 'NOT SET') . "\n";
+echo "  User ID: " . ($_SESSION['user_id'] ?? 'NOT SET') . "\n";
 echo "\n";
 
 $results = [];

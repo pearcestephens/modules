@@ -25,10 +25,9 @@ class CrawlerTool
 
     public function __construct()
     {
-        // Use absolute path from application root
-        $appRoot = dirname(dirname(dirname(__DIR__)));
-        $this->crawlerScript = $appRoot . '/frontend-tools/scripts/deep-crawler.js';
-        $this->reportsDir = $appRoot . '/frontend-tools/reports';
+        // Script is in the same directory as this class
+        $this->crawlerScript = __DIR__ . '/deep-crawler.js';
+        $this->reportsDir = __DIR__ . '/reports';
 
         // Ensure reports directory exists
         if (!is_dir($this->reportsDir)) {
@@ -66,21 +65,21 @@ class CrawlerTool
             ];
         }
 
-        // Check if crawler script exists
-        if (!file_exists($this->crawlerScript)) {
-            return [
-                'success' => false,
-                'error' => 'Crawler script not found at: ' . $this->crawlerScript
-            ];
-        }
-
-        // Get mode (default: quick)
+        // Get mode (default: quick) - VALIDATE BEFORE CHECKING SCRIPT
         $mode = $params['mode'] ?? 'quick';
         $validModes = ['quick', 'authenticated', 'interactive', 'full', 'errors_only'];
         if (!in_array($mode, $validModes)) {
             return [
                 'success' => false,
                 'error' => 'Invalid mode. Must be one of: ' . implode(', ', $validModes)
+            ];
+        }
+
+        // Check if crawler script exists
+        if (!file_exists($this->crawlerScript)) {
+            return [
+                'success' => false,
+                'error' => 'Crawler script not found at: ' . $this->crawlerScript
             ];
         }
 

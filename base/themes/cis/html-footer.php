@@ -1,4 +1,4 @@
-<?php if (isset($_SESSION['userID'])): ?>
+<?php if (isset($_SESSION['user_id'])): ?>
 <!-- CoreUI bundle includes Popper/Bootstrap 4 compatible JS -->
 <!-- Pace + Perfect Scrollbar -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js"></script>

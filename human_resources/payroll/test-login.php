@@ -86,10 +86,10 @@ if (session_status() === PHP_SESSION_NONE) {
         $sessionActive = (session_status() === PHP_SESSION_ACTIVE);
 
         // Check authentication using main CIS session structure
-        $isAuthenticated = !empty($_SESSION['userID']) && !empty($_SESSION['authenticated']);
+        $isAuthenticated = !empty($_SESSION['user_id']) && !empty($_SESSION['authenticated']);
 
         if ($isAuthenticated):
-            $userID = $_SESSION['userID'];
+            $userID = $_SESSION['user_id'];
             $username = $_SESSION['username'] ?? 'Unknown';
             $role = $_SESSION['role'] ?? 'N/A';
         ?>
@@ -169,8 +169,8 @@ if (session_status() === PHP_SESSION_NONE) {
                     <td><?php echo session_id() ?: 'No session'; ?></td>
                 </tr>
                 <tr>
-                    <td>$_SESSION['userID']:</td>
-                    <td><?php echo isset($_SESSION['userID']) ? 'Set but empty/false' : 'Not set'; ?></td>
+                    <td>$_SESSION['user_id']:</td>
+                    <td><?php echo isset($_SESSION['user_id']) ? 'Set but empty/false' : 'Not set'; ?></td>
                 </tr>
                 <tr>
                     <td>$_SESSION['authenticated']:</td>

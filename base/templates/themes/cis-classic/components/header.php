@@ -34,7 +34,7 @@
     <li class="nav-item dropdown">
       <?php
       $notificationObject = (object)["totalNotifications" => 0];
-      $uid = $_SESSION["userID"] ?? null;
+      $uid = $_SESSION["user_id"] ?? null;
 
       if ($uid && function_exists('userNotifications_getAllUnreadNotifications')) {
         try {

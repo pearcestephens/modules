@@ -230,7 +230,7 @@ abstract class BaseAPI {
      */
     protected function authenticate(): void {
         // Default implementation - override in child class
-        if (empty($_SESSION['userID'])) {
+        if (empty($_SESSION['user_id'])) {
             throw new \Exception('Authentication required', self::HTTP_UNAUTHORIZED);
         }
     }

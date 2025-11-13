@@ -86,7 +86,7 @@ function ecomm_env(string $key, $default = null) {
  * @return bool
  */
 function ecomm_check_auth(): bool {
-    if (!isset($_SESSION['userID']) || empty($_SESSION['userID'])) {
+    if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
         return false;
     }
 
@@ -151,7 +151,7 @@ function ecomm_log_error(string $message, array $context = []): void {
     }
 
     $timestamp = date('Y-m-d H:i:s');
-    $userId = $_SESSION['userID'] ?? 'guest';
+    $userId = $_SESSION['user_id'] ?? 'guest';
     $contextStr = !empty($context) ? json_encode($context) : '';
 
     $logEntry = "[$timestamp] [$userId] $message $contextStr\n";
@@ -163,6 +163,6 @@ function ecomm_log_error(string $message, array $context = []): void {
 if (ecomm_env('DEBUG_MODE', 'false') === 'true') {
     ecomm_log_error('E-Commerce Operations Module loaded', [
         'version' => ECOMMERCE_OPS_VERSION,
-        'user' => $_SESSION['userID'] ?? null
+        'user' => $_SESSION['user_id'] ?? null
     ]);
 }

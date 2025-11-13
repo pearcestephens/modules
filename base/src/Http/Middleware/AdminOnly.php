@@ -31,7 +31,7 @@ class AdminOnly
     public function handle(Request $request): ?Response
     {
         // Get current user ID from session
-        $userId = $_SESSION['userID'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
 
         if (!$userId) {
             return Response::unauthorized([

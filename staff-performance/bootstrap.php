@@ -84,13 +84,13 @@ try {
 // ============================================================================
 
 // Basic auth check - ensure user is logged in
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
 }
 
 // Get current user ID
-$current_user_id = $_SESSION['userID'];
+$current_user_id = $_SESSION['user_id'];
 
 // ============================================================================
 // 6. MODULE-SPECIFIC CONFIGURATIONS

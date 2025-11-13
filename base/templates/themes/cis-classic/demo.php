@@ -15,8 +15,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // For demo purposes, simulate a logged-in user
-if (!isset($_SESSION['userID'])) {
-    $_SESSION['userID'] = 1;
+if (!isset($_SESSION['user_id'])) {
+    $_SESSION['user_id'] = 1;
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 

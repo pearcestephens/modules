@@ -2,8 +2,8 @@
 // Compact, less-annoying sidemenu
 ?>
 <?php
-// Bring over original dynamic menu logic (using $pdo, $_SESSION['userID'])
-$userID = isset($_SESSION["userID"]) ? (int)$_SESSION["userID"] : 0;
+// Bring over original dynamic menu logic (using $pdo, $_SESSION['user_id'])
+$userID = isset($_SESSION["user_id"]) ? (int)$_SESSION["user_id"] : 0;
 
 $mainCategories = [];
 try {

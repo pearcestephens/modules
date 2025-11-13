@@ -6,7 +6,7 @@
     <div class="gamification-modal-content">
         <div class="gamification-header">
             <div class="celebration-icon">
-                <i class="fas fa-trophy"></i>
+                <i class="bi bi-trophy"></i>
             </div>
             <h2>Transfer Completed!</h2>
             <p class="subtitle">Great work! Here's your performance summary</p>
@@ -14,39 +14,39 @@
 
         <div class="stats-showcase">
             <div class="stat-card-large">
-                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-icon"><i class="bi bi-clock"></i></div>
                 <div class="stat-value" id="completionTime">2:34</div>
                 <div class="stat-label">Completion Time</div>
                 <div class="stat-comparison positive" id="timeComparison">
-                    <i class="fas fa-arrow-up"></i> 23% faster than average
+                    <i class="bi bi-arrow-up"></i> 23% faster than average
                 </div>
             </div>
 
             <div class="stat-card-large">
-                <div class="stat-icon"><i class="fas fa-barcode"></i></div>
+                <div class="stat-icon"><i class="bi bi-upc"></i></div>
                 <div class="stat-value" id="scansPerformed">47</div>
                 <div class="stat-label">Items Scanned</div>
                 <div class="stat-comparison positive" id="accuracyRate">
-                    <i class="fas fa-check-circle"></i> 100% accuracy
+                    <i class="bi bi-check-circle"></i> 100% accuracy
                 </div>
             </div>
 
             <div class="stat-card-large">
-                <div class="stat-icon"><i class="fas fa-camera"></i></div>
+                <div class="stat-icon"><i class="bi bi-camera"></i></div>
                 <div class="stat-value" id="photosUploaded">12</div>
                 <div class="stat-label">Photos Uploaded</div>
                 <div class="stat-comparison neutral">
-                    <i class="fas fa-info-circle"></i> All items documented
+                    <i class="bi bi-info-circle"></i> All items documented
                 </div>
             </div>
         </div>
 
         <div class="achievements-earned" id="achievementsEarned">
-            <h3><i class="fas fa-star me-2"></i>Achievements Earned</h3>
+            <h3><i class="bi bi-star me-2"></i>Achievements Earned</h3>
             <div class="achievement-grid">
                 <div class="achievement-card new">
                     <div class="achievement-badge">
-                        <i class="fas fa-bolt"></i>
+                        <i class="bi bi-lightning"></i>
                     </div>
                     <div class="achievement-info">
                         <div class="achievement-name">Speed Demon</div>
@@ -57,7 +57,7 @@
 
                 <div class="achievement-card new">
                     <div class="achievement-badge">
-                        <i class="fas fa-camera"></i>
+                        <i class="bi bi-camera"></i>
                     </div>
                     <div class="achievement-info">
                         <div class="achievement-name">Photo Pro</div>
@@ -68,7 +68,7 @@
 
                 <div class="achievement-card">
                     <div class="achievement-badge locked">
-                        <i class="fas fa-lock"></i>
+                        <i class="bi bi-lock"></i>
                     </div>
                     <div class="achievement-info">
                         <div class="achievement-name">Perfect Week</div>
@@ -85,7 +85,7 @@
         </div>
 
         <div class="ranking-section">
-            <h3><i class="fas fa-trophy me-2"></i>Your Ranking</h3>
+            <h3><i class="bi bi-trophy me-2"></i>Your Ranking</h3>
             <div class="ranking-card">
                 <div class="rank-position">
                     <div class="rank-number">#3</div>
@@ -106,24 +106,24 @@
                     </div>
                 </div>
                 <div class="rank-change positive">
-                    <i class="fas fa-arrow-up"></i> Moved up 2 places!
+                    <i class="bi bi-arrow-up"></i> Moved up 2 places!
                 </div>
             </div>
         </div>
 
         <div class="improvement-tips">
-            <h3><i class="fas fa-lightbulb me-2"></i>Pro Tips</h3>
+            <h3><i class="bi bi-lightbulb me-2"></i>Pro Tips</h3>
             <div class="tips-grid">
                 <div class="tip-card">
-                    <div class="tip-icon"><i class="fas fa-keyboard"></i></div>
+                    <div class="tip-icon"><i class="bi bi-keyboard"></i></div>
                     <div class="tip-text">Use keyboard shortcuts for faster scanning</div>
                 </div>
                 <div class="tip-card">
-                    <div class="tip-icon"><i class="fas fa-camera"></i></div>
+                    <div class="tip-icon"><i class="bi bi-camera"></i></div>
                     <div class="tip-text">Batch photo uploads save time</div>
                 </div>
                 <div class="tip-card">
-                    <div class="tip-icon"><i class="fas fa-barcode"></i></div>
+                    <div class="tip-icon"><i class="bi bi-upc"></i></div>
                     <div class="tip-text">Scan continuously without clicking</div>
                 </div>
             </div>
@@ -131,10 +131,10 @@
 
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="viewFullLeaderboard()">
-                <i class="fas fa-list me-2"></i>View Full Leaderboard
+                <i class="bi bi-list me-2"></i>View Full Leaderboard
             </button>
             <button class="btn btn-primary" onclick="closeGamificationModal()">
-                <i class="fas fa-check me-2"></i>Continue
+                <i class="bi bi-check me-2"></i>Continue
             </button>
         </div>
     </div>

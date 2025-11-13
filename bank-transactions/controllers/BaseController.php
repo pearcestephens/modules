@@ -32,7 +32,7 @@ abstract class BaseController
             $this->redirectToLogin();
         }
 
-        $this->currentUserId = $_SESSION['userID'] ?? null;
+        $this->currentUserId = $_SESSION['user_id'] ?? null;
         $this->currentUser = $_SESSION['user'] ?? null;
 
         // Get database connection from base module (PDO preferred)
@@ -51,7 +51,7 @@ abstract class BaseController
             return true;
         }
 
-        return isset($_SESSION['userID']) && !empty($_SESSION['userID']);
+        return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
     }
 
     /**

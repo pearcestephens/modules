@@ -2,28 +2,71 @@
 /**
  * Quick Setup: Add Pearce Stephens as Director
  *
- * Run this once to bootstrap the system with your account
+ * Run this once (CLI recommended) to bootstrap the system with the Director account.
+ * Safe to re-run; will no-op if the user already exists.
  */
 
-require_once __DIR__ . '/../../bootstrap.php';
+// Use module shared bootstrap for consistent env + DB + helpers
+require_once __DIR__ . '/../shared/bootstrap.php';
 require_once __DIR__ . '/services/UniversalOnboardingService.php';
 
 use CIS\EmployeeOnboarding\UniversalOnboardingService;
 
+// Resolve PDO defensively (pattern aligned with other onboarding pages)
+if (!isset($pdo) || !$pdo instanceof PDO) {
+    if (function_exists('cis_resolve_pdo')) {
+        $pdo = cis_resolve_pdo();
+    } elseif (isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO) {
+        $pdo = $GLOBALS['pdo'];
+    }
+}
+
+if (!$pdo instanceof PDO) {
+    fwrite(STDERR, "ERROR: Database connection unavailable. Ensure shared/bootstrap.php initialized correctly.\n");
+    exit(1);
+}
+
 $onboarding = new UniversalOnboardingService($pdo);
 
 // Get Director role ID
-$stmt = $pdo->query("SELECT id FROM roles WHERE name = 'director' LIMIT 1");
-$directorRole = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query("SELECT id FROM roles WHERE name = 'director' LIMIT 1");
+    $directorRole = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    fwrite(STDERR, "WARN: Failed querying roles table: " . $e->getMessage() . "\n");
+    $directorRole = null;
+}
 
+// If Director role is missing, attempt to create it (no-op if extra NOT NULL columns block it)
 if (!$directorRole) {
-    die("ERROR: Director role not found. Please install database schema first.\n");
+    try {
+        // Insert full role definition to satisfy NOT NULL columns
+        $ins = $pdo->prepare(
+            "INSERT INTO roles (name, display_name, description, level, is_system_role, approval_limit)
+             VALUES ('director', 'Director', 'Company Director - Full System Access', 100, TRUE, 999999.99)"
+        );
+        $ins->execute();
+        // Re-fetch
+        $stmt = $pdo->query("SELECT id FROM roles WHERE name = 'director' LIMIT 1");
+        $directorRole = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        if (!$directorRole) {
+            fwrite(STDERR, "WARN: Director role still not available; continuing without role assignment.\n");
+        }
+    } catch (Throwable $e) {
+        fwrite(STDERR, "WARN: Could not create Director role automatically: " . $e->getMessage() . "\nProceeding without role assignment.\n");
+        $directorRole = null;
+    }
 }
 
 // Check if you already exist
-$stmt = $pdo->prepare("SELECT id FROM users WHERE email = 'pearce.stephens@ecigdis.co.nz'");
-$stmt->execute();
-$existing = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+    $stmt->execute(['pearce.stephens@ecigdis.co.nz']);
+    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    fwrite(STDERR, "ERROR: Failed checking existing user: " . $e->getMessage() . "\n");
+    exit(1);
+}
 
 if ($existing) {
     echo "✅ You already exist in the system (User ID: {$existing['id']})\n";
@@ -47,7 +90,7 @@ $employeeData = [
     'password' => 'changeme123', // CHANGE THIS IMMEDIATELY
     'status' => 'active',
     'is_admin' => true, // Super admin access
-    'roles' => [$directorRole['id']], // Director role
+    'roles' => isset($directorRole['id']) ? [$directorRole['id']] : [], // Assign Director if available
     'notes' => 'Company Director and Owner - Bootstrap account'
 ];
 
@@ -60,7 +103,12 @@ $options = [
 
 echo "🚀 Creating your Director account...\n\n";
 
-$result = $onboarding->onboardEmployee($employeeData, $options);
+try {
+    $result = $onboarding->onboardEmployee($employeeData, $options);
+} catch (Throwable $e) {
+    fwrite(STDERR, "❌ FATAL during onboarding: " . $e->getMessage() . "\n");
+    exit(1);
+}
 
 if ($result['success']) {
     echo "✅ SUCCESS! Your account has been created!\n\n";

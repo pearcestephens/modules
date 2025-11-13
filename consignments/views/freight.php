@@ -1,217 +1,126 @@
 <?php
 /**
- * Consignments Module - Freight Management
- *
- * @package CIS\Consignments
- * @version 3.0.0
+ * Freight Management - Simplified Working Version
  */
-
 declare(strict_types=1);
 
-// Load CIS Template
-require_once __DIR__ . '/../lib/CISTemplate.php';
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../infra/Freight/CredentialsProvider.php';
+use Consignments\Infra\Freight\CredentialsProvider;
+requireAuth();
 
-// Initialize template
-$template = new CISTemplate();
-$template->setTitle('Freight Management');
-$template->setBreadcrumbs([
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Freight Management', 'url' => '/modules/consignments/?route=freight', 'active' => true]
-]);
+// Determine user's active outlet (fallback to 1). Adjust to match CIS session model if different.
+$activeOutletId = 1;
+if (isset($_SESSION['user_outlet_id']) && is_numeric($_SESSION['user_outlet_id'])) {
+    $activeOutletId = (int)$_SESSION['user_outlet_id'];
+} elseif (isset($_SESSION['outlet_id']) && is_numeric($_SESSION['outlet_id'])) {
+    $activeOutletId = (int)$_SESSION['outlet_id'];
+}
 
-// Start content capture
-$template->startContent();
-?>
-
-<div class="container-fluid">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h2 class="mb-0"><i class="fas fa-truck mr-2"></i>Freight Management</h2>
-        </div>
-    </div>
-
-/**
- * Freight Management View
- *
- * Manage freight bookings and track shipments.
- *
- * @package CIS\Consignments
- * @version 3.0.0
- */
-
-declare(strict_types=1);
-
-// Page metadata
-$pageTitle = 'Freight Management';
-$breadcrumbs = [
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
-    ['label' => 'Freight', 'url' => '', 'active' => true]
-];
-
-// Get database connection
-$pdo = CIS\Base\Database::pdo();
-
-// Check if freight_bookings table exists
-$tableCheck = $pdo->query("SHOW TABLES LIKE 'freight_bookings'");
-$freightTableExists = ($tableCheck->rowCount() > 0);
-
-$freightBookings = [];
-
-if ($freightTableExists) {
-    // Load recent freight bookings
-    $stmt = $pdo->query("
-        SELECT
-            id,
-            consignment_id,
-            provider,
-            tracking_number,
-            status,
-            created_at,
-            updated_at
-        FROM freight_bookings
-        ORDER BY created_at DESC
-        LIMIT 100
-    ");
-
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $freightBookings[] = $row;
+// Prefetch credential status server-side for faster first paint
+$pdo = isset($GLOBALS['pdo']) && $GLOBALS['pdo'] instanceof PDO ? $GLOBALS['pdo'] : (function(){
+    if (function_exists('cis_resolve_pdo')) { return cis_resolve_pdo(); }
+    return null;
+})();
+$freightInit = null;
+if ($pdo instanceof PDO) {
+    try {
+        $provider = new CredentialsProvider($pdo);
+        $freightInit = $provider->getOutletStatus($activeOutletId);
+    } catch (Throwable $e) {
+        $freightInit = null;
     }
 }
 
-// Render directly within CIS template content
+$pageTitle = 'Freight Management';
+$breadcrumbs = [
+    ['label' => 'Home', 'url' => '/', 'icon' => 'bi-house-door'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'icon' => 'bi-box-seam'],
+    ['label' => 'Freight Management', 'url' => '/modules/consignments/?route=freight', 'active' => true]
+];
+
+$pageCSS = [
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
+    '/modules/admin-ui/css/cms-design-system.css',
+    '/modules/shared/css/tokens.css'
+];
+
+$pageJS = [];
+
+ob_start();
 ?>
 
-<!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="h2 mb-1">
-            <i class="fas fa-shipping-fast text-primary me-2"></i>
-            Freight Management
-        </h1>
-        <p class="text-muted mb-0">Track and manage freight bookings</p>
-    </div>
-    <div>
-        <a href="/modules/consignments/purchase-orders/freight-quote.php" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i>
-            Get Freight Quote
-        </a>
-    </div>
+<div class="page-header fade-in mb-4">
+    <h1 class="page-title mb-2"><i class="bi bi-truck me-2"></i>Freight Management</h1>
+    <p class="page-subtitle text-muted mb-0">Carrier management and shipping rates</p>
 </div>
 
-<?php if (!$freightTableExists): ?>
-    <!-- Migration Notice -->
-    <div class="alert alert-warning">
-        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Freight Table Not Found</h4>
-        <p class="mb-0">
-            The freight_bookings table doesn't exist yet. Run the migration:
-            <code>mysql < database/10-freight-bookings.sql</code>
-        </p>
-    </div>
-<?php else: ?>
-    <!-- Freight Bookings Table -->
-    <div class="card">
-        <div class="card-body">
-            <?php if (count($freightBookings) > 0): ?>
-                <table class="table table-hover" id="freightTable">
-                    <thead>
-                        <tr>
-                            <th>Booking ID</th>
-                            <th>Consignment</th>
-                            <th>Provider</th>
-                            <th>Tracking Number</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th>Updated</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($freightBookings as $booking): ?>
-                            <tr>
-                                <td><strong>#<?= $booking['id'] ?></strong></td>
-                                <td><?= htmlspecialchars($booking['consignment_id']) ?></td>
-                                <td><?= htmlspecialchars($booking['provider']) ?></td>
-                                <td>
-                                    <?php if ($booking['tracking_number']): ?>
-                                        <a href="#" onclick="trackShipment('<?= htmlspecialchars($booking['tracking_number']) ?>'); return false;">
-                                            <?= htmlspecialchars($booking['tracking_number']) ?>
-                                        </a>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php
-                                    $statusBadge = 'secondary';
-                                    switch (strtolower($booking['status'])) {
-                                        case 'delivered': $statusBadge = 'success'; break;
-                                        case 'in_transit': $statusBadge = 'info'; break;
-                                        case 'pending': $statusBadge = 'warning'; break;
-                                        case 'failed': $statusBadge = 'danger'; break;
-                                    }
-                                    ?>
-                                    <span class="badge bg-<?= $statusBadge ?>">
-                                        <?= htmlspecialchars($booking['status']) ?>
-                                    </span>
-                                </td>
-                                <td><?= date('Y-m-d H:i', strtotime($booking['created_at'])) ?></td>
-                                <td><?= date('Y-m-d H:i', strtotime($booking['updated_at'])) ?></td>
-                                <td>
-                                    <a href="/modules/consignments/purchase-orders/tracking.php?id=<?= $booking['id'] ?>" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-map-marker-alt"></i> Track
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">No Freight Bookings</h4>
-                    <p class="text-muted">Create your first freight booking to get started</p>
-                    <a href="/modules/consignments/purchase-orders/freight-quote.php" class="btn btn-success mt-3">
-                        <i class="fas fa-plus me-2"></i>
-                        Get Freight Quote
-                    </a>
-                </div>
-            <?php endif; ?>
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card gradient-card-purple shadow-sm h-100">
+            <div class="card-body text-white">
+                <h5 class="mb-3"><i class="bi bi-geo-alt me-2"></i>Carrier Integration</h5>
+                <div class="display-4 mb-2">🚚</div>
+                <p class="mb-0">Ready to connect carriers</p>
+            </div>
         </div>
     </div>
-<?php endif; ?>
 
-<script>
-    <?php if (count($freightBookings) > 0): ?>
-    // Initialize DataTable
-    $(document).ready(function() {
-        $('#freightTable').DataTable({
-            order: [[5, 'desc']], // Sort by created date desc
-            pageLength: 25,
-            responsive: true
-        });
-    });
-    <?php endif; ?>
+    <div class="col-md-4">
+        <div class="card gradient-card-success shadow-sm h-100">
+            <div class="card-body text-white">
+                <h5 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Rate Calculator</h5>
+                <div class="display-4 mb-2">💰</div>
+                <p class="mb-0">Compare shipping rates</p>
+            </div>
+        </div>
+    </div>
 
-    function trackShipment(trackingNumber) {
-        Swal.fire({
-            title: 'Track Shipment',
-            html: `
-                <p>Tracking Number: <strong>${trackingNumber}</strong></p>
-                <p class="text-muted">Tracking functionality will be integrated with freight provider APIs</p>
-            `,
-            icon: 'info',
-            confirmButtonText: 'Close'
-        });
-    }
-</script>
-
-<?php
-// Close container started above and render via CIS template
-?>
+    <div class="col-md-4">
+        <div class="card gradient-card-blue shadow-sm h-100">
+            <div class="card-body text-white">
+                <h5 class="mb-3"><i class="bi bi-pin-map me-2"></i>Track Shipments</h5>
+                <div class="display-4 mb-2">📦</div>
+                <p class="mb-0">Real-time tracking</p>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div class="card shadow-sm">
+    <div class="card-body py-4">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+            <div>
+                <h3 class="mb-1"><i class="bi bi-truck-front-fill text-primary me-2"></i>Freight Configuration Status</h3>
+                <div class="text-muted">Outlet <span class="badge bg-secondary" id="freight-outlet-id"></span></div>
+            </div>
+            <div>
+                <button id="btn-refresh-freight" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+            </div>
+        </div>
+        <hr/>
+                <div id="freight-status" class="row g-3"></div>
+                <script>
+                    window.FREIGHT_BOOT = window.FREIGHT_BOOT || {};
+                    window.FREIGHT_BOOT.outlet_id = <?php echo (int)$activeOutletId; ?>;
+                    <?php if ($freightInit): ?>
+                    window.FREIGHT_BOOT.initial = <?php echo json_encode($freightInit, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE); ?>;
+                    <?php endif; ?>
+                </script>
+                <script src="/modules/consignments/assets/js/freight-status.js" defer></script>
+        <div class="mt-4 small text-muted">Notes: Credentials are validated server-side. Secrets are never exposed in the browser.</div>
+    </div>
+</div>
+
+<style>
+.gradient-card-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+.gradient-card-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border: none; }
+.gradient-card-blue { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); border: none; }
+.fade-in { animation: fadeInUp 0.6s ease-out; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
 <?php
-$template->endContent();
-$template->render();
+$content = ob_get_clean();
+require_once __DIR__ . '/../../base/templates/themes/modern/layouts/dashboard.php';
+?>

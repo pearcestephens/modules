@@ -90,7 +90,7 @@ final class ConsignAuth
     public static function requireRole(string $role): void
     {
         // Check if user is logged in
-        if (!isset($_SESSION['userID']) || !isset($_SESSION['user_role'])) {
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
             api_fail('Authentication required', 401);
         }
 
@@ -113,7 +113,7 @@ final class ConsignAuth
      */
     public static function requireAuth(): void
     {
-        if (!isset($_SESSION['userID'])) {
+        if (!isset($_SESSION['user_id'])) {
             api_fail('Authentication required', 401);
         }
     }
@@ -127,7 +127,7 @@ final class ConsignAuth
     public static function hasPermission(string $permission): bool
     {
         // SIMPLIFIED: No permission checks - logged in only
-        return isset($_SESSION['userID']) && !empty($_SESSION['userID']);
+        return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
     }
 }
 

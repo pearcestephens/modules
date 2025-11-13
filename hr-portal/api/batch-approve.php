@@ -12,7 +12,7 @@ require_once __DIR__ . '/../includes/PayrollDashboard.php';
 
 // Check authentication
 session_start();
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
@@ -33,7 +33,7 @@ try {
     // Batch approve
     $result = $dashboard->batchApproveHighConfidence(
         (float)$minConfidence,
-        (int)$_SESSION['userID']
+        (int)$_SESSION['user_id']
     );
 
     echo json_encode($result);

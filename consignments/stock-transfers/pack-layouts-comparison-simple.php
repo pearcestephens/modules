@@ -8,7 +8,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once __DIR__ . '/../../base/_templates/themes/cis-classic/theme.php';
+// Corrected theme include path (was _templates)
+require_once __DIR__ . '/../../base/templates/themes/cis-classic/theme.php';
 
 $theme = new CISClassicTheme();
 $theme->setTitle('Advanced Pack Page - Layout Comparison');

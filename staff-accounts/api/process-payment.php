@@ -70,11 +70,11 @@ try {
     // ========================================================================
     
     // Check if user is logged in
-    if (!isset($_SESSION['userID']) || empty($_SESSION['userID'])) {
+    if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
         throw new Exception('Authentication required. Please log in.', 401);
     }
     
-    $user_id = (int)$_SESSION['userID'];
+    $user_id = (int)$_SESSION['user_id'];
     $user_name = $_SESSION['name'] ?? 'Unknown User';
     $user_email = $_SESSION['email'] ?? '';
     

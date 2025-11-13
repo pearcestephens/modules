@@ -484,7 +484,7 @@ final class XeroControllerTest extends TestCase
 
     public function testOAuthCallbackExchangesToken(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_GET = [
             'code' => 'test-auth-code',
             'state' => 'valid-state'
@@ -503,7 +503,7 @@ final class XeroControllerTest extends TestCase
 
     public function testOAuthCallbackStoresTokensEncrypted(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_GET = [
             'code' => 'test-auth-code',
             'state' => 'valid-state'
@@ -523,7 +523,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreatePayRunRequiresAuth(): void
     {
-        unset($_SESSION['userID']);
+        unset($_SESSION['user_id']);
 
         $response = $this->callCreatePayRun(123);
 
@@ -532,7 +532,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreatePayRunRequiresPermission(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.view']; // Not xero.export
 
         $response = $this->callCreatePayRun(123);
@@ -542,7 +542,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreatePayRunValidatesPayrunExists(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.xero.export'];
 
         // Non-existent payrun
@@ -553,7 +553,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreatePayRunSendsToXero(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.xero.export'];
 
         $payrunId = 123;
@@ -568,7 +568,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreatePayRunHandlesXeroError(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.xero.export'];
 
         $response = $this->callCreatePayRunWithXeroError(123, 'Invalid employee ID');
@@ -579,7 +579,7 @@ final class XeroControllerTest extends TestCase
 
     public function testGetPayRunFetchesFromXero(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.xero.view'];
 
         $xeroPayRunId = 'xero-payrun-789';
@@ -597,7 +597,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreateBatchPaymentsRequiresPermission(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.view']; // Not payments
 
         $response = $this->callCreateBatchPayments(123);
@@ -607,7 +607,7 @@ final class XeroControllerTest extends TestCase
 
     public function testCreateBatchPaymentsSendsToXero(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.xero.payments'];
 
         $response = $this->callCreateBatchPaymentsWithSuccess(123, [

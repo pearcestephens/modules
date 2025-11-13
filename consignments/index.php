@@ -25,11 +25,12 @@ $route = $_GET['route'] ?? 'home';
 switch ($route) {
     case 'home':
     case '':
-        // Home dashboard - central hub with quick access to all features
-        require_once __DIR__ . '/views/home.php';
+        // Main dashboard - Vape Ultra template
+        require_once __DIR__ . '/views/dashboard.php';
         break;
 
     case 'transfer-manager':
+        // Transfer Manager - Canonical name, Vape Ultra template
         require_once __DIR__ . '/views/transfer-manager.php';
         break;
 
@@ -50,10 +51,12 @@ switch ($route) {
         break;
 
     case 'freight':
+        // Freight Management - Canonical name, Vape Ultra template
         require_once __DIR__ . '/views/freight.php';
         break;
 
     case 'queue-status':
+        // Queue Status - Canonical name, Vape Ultra template
         require_once __DIR__ . '/views/queue-status.php';
         break;
 

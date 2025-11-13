@@ -652,18 +652,18 @@ function getTransferCountsByState(string $transferType = 'STOCK', array $opts = 
     $out = ['TOTAL' => 0, 'OPEN' => 0, 'SENT' => 0, 'RECEIVING' => 0, 'RECEIVED' => 0];
     try {
         $tcat = strtoupper($transferType);
-        $where = 'qc.transfer_category = :tcat';
+        $where = 'vc.transfer_category = :tcat AND vc.deleted_at IS NULL';
         $params = [':tcat' => $tcat];
         if (!empty($opts['created_by'])) {
-            $where .= ' AND qc.cis_user_id = :uid';
+            $where .= ' AND vc.created_by = :uid';
             $params[':uid'] = (int)$opts['created_by'];
         }
         // Total
-        $stmt = $pdo->prepare("SELECT COUNT(*) AS c FROM queue_consignments qc WHERE $where");
+        $stmt = $pdo->prepare("SELECT COUNT(*) AS c FROM vend_consignments vc WHERE $where");
         $stmt->execute($params);
         $out['TOTAL'] = (int)$stmt->fetchColumn();
         // Per-state
-        $stmt = $pdo->prepare("SELECT qc.state, COUNT(*) AS c FROM queue_consignments qc WHERE $where GROUP BY qc.state");
+        $stmt = $pdo->prepare("SELECT vc.state, COUNT(*) AS c FROM vend_consignments vc WHERE $where GROUP BY vc.state");
         $stmt->execute($params);
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $state = strtoupper((string)$row['state']);
@@ -725,13 +725,15 @@ if (!function_exists('getRecentTransfersEnrichedDB')) {
             }
             $sql = "
             SELECT
-                qc.id AS cis_internal_id,
-                qc.vend_consignment_id AS vend_id,
-                qc.name AS consignment_number,
-                qc.state,
-                qc.created_at,
-                qc.source_outlet_id,
-                qc.destination_outlet_id,
+                vc.id AS cis_internal_id,
+                vc.vend_transfer_id AS id,
+                vc.vend_number AS consignment_number,
+                vc.state,
+                vc.status,
+                vc.created_at,
+                vc.updated_at,
+                vc.outlet_from,
+                vc.outlet_to,
                 of.name AS from_outlet_name,
                 ot.name AS to_outlet_name,
                 of.physical_phone_number AS from_outlet_phone,
@@ -739,49 +741,28 @@ if (!function_exists('getRecentTransfersEnrichedDB')) {
                 of.email AS from_outlet_email,
                 ot.email AS to_outlet_email,
                 (
-                    SELECT COALESCE(SUM(qcp.count_ordered),0)
-                    FROM queue_consignment_products qcp
-                    WHERE qcp.consignment_id = qc.id
+                    SELECT COALESCE(SUM(vcli.quantity),0)
+                    FROM vend_consignment_line_items vcli
+                    WHERE vcli.transfer_id = vc.id AND vcli.deleted_at IS NULL
                 ) AS item_count_total,
                 (
-                    SELECT COALESCE(SUM(qcp.count_received),0)
-                    FROM queue_consignment_products qcp
-                    WHERE qcp.consignment_id = qc.id
+                    SELECT COALESCE(SUM(vcli.quantity_received),0)
+                    FROM vend_consignment_line_items vcli
+                    WHERE vcli.transfer_id = vc.id AND vcli.deleted_at IS NULL
                 ) AS items_received,
-                (
-                    SELECT COUNT(*)
-                    FROM consignment_shipments s
-                    WHERE (s.transfer_id = qc.id OR s.consignment_id = qc.id)
-                ) AS shipments_count,
-                (
-                    SELECT COUNT(*)
-                    FROM consignment_parcels cp
-                    JOIN consignment_shipments s2 ON s2.id = cp.shipment_id
-                    WHERE (s2.transfer_id = qc.id OR s2.consignment_id = qc.id)
-                ) AS parcels_count,
-                (
-                    SELECT tn.note_text FROM consignment_notes tn
-                    WHERE tn.transfer_id = qc.id
-                    ORDER BY tn.created_at DESC
-                    LIMIT 1
-                ) AS latest_note,
-                (
-                    SELECT s.carrier_name FROM consignment_shipments s
-                    WHERE (s.transfer_id = qc.id OR s.consignment_id = qc.id)
-                    ORDER BY s.created_at DESC
-                    LIMIT 1
-                ) AS latest_shipment_carrier,
-                (
-                    SELECT s.tracking_number FROM consignment_shipments s
-                    WHERE (s.transfer_id = qc.id OR s.consignment_id = qc.id)
-                    ORDER BY s.created_at DESC
-                    LIMIT 1
-                ) AS latest_tracking
-            FROM queue_consignments qc
-            LEFT JOIN vend_outlets of ON of.id = qc.source_outlet_id
-            LEFT JOIN vend_outlets ot ON ot.id = qc.destination_outlet_id
-            WHERE qc.transfer_category = :tcat $whereExtra
-            ORDER BY qc.created_at DESC
+                vc.total_boxes AS parcels_count,
+                0 AS shipments_count,
+                vc.consignment_notes AS latest_note,
+                vc.tracking_carrier AS latest_shipment_carrier,
+                vc.tracking_number AS latest_tracking,
+                vc.total_cost
+            FROM vend_consignments vc
+            LEFT JOIN vend_outlets of ON of.id = vc.outlet_from
+            LEFT JOIN vend_outlets ot ON ot.id = vc.outlet_to
+            WHERE vc.transfer_category = :tcat
+              AND vc.deleted_at IS NULL
+              $whereExtra
+            ORDER BY vc.created_at DESC
             LIMIT :lim
         ";
             $stmt = $pdo->prepare($sql);

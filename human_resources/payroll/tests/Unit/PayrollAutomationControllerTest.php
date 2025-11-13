@@ -23,7 +23,7 @@ class PayrollAutomationControllerTest extends TestCase
             $_SESSION = [];
         }
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['admin'] = true;
 
         $this->controller = new PayrollAutomationController();

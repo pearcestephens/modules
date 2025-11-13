@@ -25,12 +25,12 @@ require_once __DIR__ . '/../lib/Services/PurchaseOrderService.php';
 use CIS\Consignments\Services\PurchaseOrderService;
 
 // Check authentication
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
 }
 
-$userId = $_SESSION['userID'];
+$userId = $_SESSION['user_id'];
 
 // Initialize service
 $db = get_db();

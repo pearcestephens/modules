@@ -5,7 +5,8 @@
  * Classic pack-pro.php style with modern enhancements
  */
 
-require_once __DIR__ . '/../../base/_templates/themes/cis-classic/theme.php';
+// Corrected theme include path (was _templates)
+require_once __DIR__ . '/../../base/templates/themes/cis-classic/theme.php';
 
 $theme = new CISClassicTheme();
 $theme->setTitle('Pack Transfer #12345 - Layout A');

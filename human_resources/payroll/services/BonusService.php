@@ -254,37 +254,53 @@ class BonusService
             'total_amount' => 0.0
         ];
 
-        // Vape drops
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) as count
-            FROM vape_drops
-            WHERE staff_id = ? AND completed = 1 AND bonus_paid = 0
-        ");
-        $stmt->execute([$staffId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $summary['vape_drops'] = (int)($result['count'] ?? 0);
+        try {
+            // Vape drops - graceful fallback if table doesn't exist
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT COUNT(*) as count
+                    FROM vape_drops
+                    WHERE staff_id = ? AND completed = 1 AND bonus_paid = 0
+                ");
+                $stmt->execute([$staffId]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $summary['vape_drops'] = (int)($result['count'] ?? 0);
+            } catch (\PDOException $e) {
+                // Table doesn't exist yet - return 0
+                $summary['vape_drops'] = 0;
+            }
 
-        // Google reviews
-        // TODO: google_reviews uses staff_mentions JSON field, not staff_id
-        // Need to implement JSON_CONTAINS or similar query
-        // For now, return 0 to prevent SQL errors
-        $summary['google_reviews'] = 0;
+            // Google reviews
+            // TODO: google_reviews uses staff_mentions JSON field, not staff_id
+            // Need to implement JSON_CONTAINS or similar query
+            // For now, return 0 to prevent SQL errors
+            $summary['google_reviews'] = 0;
 
-        // Monthly bonuses
-        $stmt = $this->db->prepare("
-            SELECT SUM(bonus_amount) as total
-            FROM monthly_bonuses
-            WHERE staff_id = ? AND approved = 1 AND paid_in_payslip_id IS NULL
-        ");
-        $stmt->execute([$staffId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $summary['monthly_bonuses'] = (float)($result['total'] ?? 0.0);
+            // Monthly bonuses - graceful fallback if table doesn't exist
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT SUM(bonus_amount) as total
+                    FROM monthly_bonuses
+                    WHERE staff_id = ? AND approved = 1 AND paid_in_payslip_id IS NULL
+                ");
+                $stmt->execute([$staffId]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $summary['monthly_bonuses'] = (float)($result['total'] ?? 0.0);
+            } catch (\PDOException $e) {
+                // Table doesn't exist yet - return 0
+                $summary['monthly_bonuses'] = 0.0;
+            }
 
-        // Calculate total
-        $summary['total_amount'] =
-            ($summary['vape_drops'] * self::VAPE_DROP_RATE) +
-            ($summary['google_reviews'] * self::GOOGLE_REVIEW_BONUS) +
-            $summary['monthly_bonuses'];
+            // Calculate total
+            $summary['total_amount'] =
+                ($summary['vape_drops'] * self::VAPE_DROP_RATE) +
+                ($summary['google_reviews'] * self::GOOGLE_REVIEW_BONUS) +
+                $summary['monthly_bonuses'];
+
+        } catch (\Exception $e) {
+            // Any other error - return empty summary
+            error_log('BonusService::getUnpaidBonusSummary error: ' . $e->getMessage());
+        }
 
         return $summary;
     }

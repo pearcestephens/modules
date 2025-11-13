@@ -32,7 +32,7 @@ class AuthCsrfEnforcementTest extends TestCase
     public function test_protected_routes_require_authentication(): void
     {
         // Simulate unauthenticated request
-        unset($_SESSION['authenticated'], $_SESSION['userID']);
+        unset($_SESSION['authenticated'], $_SESSION['user_id']);
 
         $route = [
             'auth' => true,
@@ -41,7 +41,7 @@ class AuthCsrfEnforcementTest extends TestCase
         ];
 
         // Should fail auth check
-        $isAuthenticated = !empty($_SESSION['authenticated']) && !empty($_SESSION['userID']);
+        $isAuthenticated = !empty($_SESSION['authenticated']) && !empty($_SESSION['user_id']);
 
         $this->assertFalse($isAuthenticated, 'User should not be authenticated');
     }
@@ -53,7 +53,7 @@ class AuthCsrfEnforcementTest extends TestCase
     {
         // Simulate authenticated session
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 123;
+        $_SESSION['user_id'] = 123;
         $_SESSION['username'] = 'test@example.com';
 
         $route = [
@@ -63,7 +63,7 @@ class AuthCsrfEnforcementTest extends TestCase
         ];
 
         // Should pass auth check
-        $isAuthenticated = !empty($_SESSION['authenticated']) && !empty($_SESSION['userID']);
+        $isAuthenticated = !empty($_SESSION['authenticated']) && !empty($_SESSION['user_id']);
 
         $this->assertTrue($isAuthenticated, 'User should be authenticated');
     }
@@ -198,7 +198,7 @@ class AuthCsrfEnforcementTest extends TestCase
     public function test_authentication_bypass_attempts_blocked(): void
     {
         // Attacker tries to forge session
-        $_SESSION['userID'] = 999;
+        $_SESSION['user_id'] = 999;
         // But forgets authenticated flag
         unset($_SESSION['authenticated']);
 
@@ -209,7 +209,7 @@ class AuthCsrfEnforcementTest extends TestCase
         ];
 
         // Router check
-        $isAuthenticated = !empty($_SESSION['authenticated']) && !empty($_SESSION['userID']);
+        $isAuthenticated = !empty($_SESSION['authenticated']) && !empty($_SESSION['user_id']);
 
         $this->assertFalse($isAuthenticated, 'Partial session should not authenticate');
     }
@@ -221,7 +221,7 @@ class AuthCsrfEnforcementTest extends TestCase
     {
         // Staff user
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 123;
+        $_SESSION['user_id'] = 123;
         $_SESSION['permissions'] = ['payroll.view_dashboard'];
 
         $route = [
@@ -343,7 +343,7 @@ class AuthCsrfEnforcementTest extends TestCase
         ];
 
         // User not authenticated
-        unset($_SESSION['authenticated'], $_SESSION['userID']);
+        unset($_SESSION['authenticated'], $_SESSION['user_id']);
 
         // Route explicitly allows no auth
         $requiresAuth = $oauthRoute['auth'] ?? true;

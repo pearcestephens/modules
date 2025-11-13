@@ -10,7 +10,7 @@ header('Content-Type: text/event-stream');
 header('Cache-Control: no-cache');
 header('X-Accel-Buffering: no'); // Disable nginx buffering
 
-$user_id = $_SESSION['userID'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     echo "data: {\"error\":\"unauthorized\"}\n\n";
     exit;

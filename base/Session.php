@@ -1,17 +1,17 @@
 <?php
 /**
  * CIS Base Session Manager
- * 
+ *
  * Integrates with existing CIS session from app.php while adding:
  * - Secure session configuration
  * - Session regeneration on privilege escalation
  * - CSRF token management
  * - Optional database session storage
- * 
+ *
  * IMPORTANT: This does NOT start a new session - it configures the
  * existing session started by app.php. Both CIS and modules share
  * the SAME session data seamlessly.
- * 
+ *
  * @package CIS\Base
  */
 
@@ -22,14 +22,14 @@ namespace CIS\Base;
 class Session
 {
     private static bool $initialized = false;
-    
+
     /**
      * Initialize secure session (integrates with existing session from app.php)
      */
     public static function init(): void
     {
         if (self::$initialized) return;
-        
+
         // Session already started by app.php - just configure security
         if (session_status() === PHP_SESSION_ACTIVE) {
             self::configureExistingSession();
@@ -38,29 +38,43 @@ class Session
             self::configureSessionSettings();
             session_start();
         }
-        
+
         // Regenerate session ID on first base module access (one-time)
         if (!isset($_SESSION['base_initialized'])) {
             session_regenerate_id(true);
             $_SESSION['base_initialized'] = true;
             $_SESSION['base_init_time'] = time();
         }
-        
-        // Normalize session variables (create user_id from userID for consistency)
-        // Bots prefer user_id, but CIS legacy uses userID - keep both in sync
-        if (isset($_SESSION['userID']) && !isset($_SESSION['userID'])) {
-            $_SESSION['userID'] = $_SESSION['userID'];
+
+        // Normalize session variables for backwards compatibility
+        // NEW STANDARD: user_id (snake_case) - Modern PHP standard
+        // OLD LEGACY: userID (camelCase) - Old CIS apps may still use this
+        // Keep BOTH in sync for cross-compatibility
+
+        // If old CIS sets userID, copy to new user_id
+        if (isset($_SESSION['userID']) && !isset($_SESSION['user_id'])) {
+            $_SESSION['user_id'] = $_SESSION['userID'];
         }
-        if (isset($_SESSION['userID']) && !isset($_SESSION['userID'])) {
-            $_SESSION['userID'] = $_SESSION['userID'];
+
+        // If new code sets user_id, copy to old userID for legacy compatibility
+        if (isset($_SESSION['user_id']) && !isset($_SESSION['userID'])) {
+            $_SESSION['userID'] = $_SESSION['user_id'];
         }
-        
+
+        // Keep them in sync if both exist but differ
+        if (isset($_SESSION['user_id']) && isset($_SESSION['userID'])) {
+            if ($_SESSION['user_id'] !== $_SESSION['userID']) {
+                // Prefer user_id (new standard) as source of truth
+                $_SESSION['userID'] = $_SESSION['user_id'];
+            }
+        }
+
         // Check session timeout (30 minutes of inactivity)
         self::checkTimeout();
-        
+
         self::$initialized = true;
     }
-    
+
     /**
      * Configure existing session with security settings
      */
@@ -79,7 +93,7 @@ class Session
             ]);
         }
     }
-    
+
     /**
      * Configure session settings before starting
      */
@@ -89,21 +103,21 @@ class Session
         ini_set('session.use_strict_mode', '1');
         ini_set('session.cookie_httponly', '1');
         ini_set('session.cookie_samesite', 'Lax');
-        
+
         if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
             ini_set('session.cookie_secure', '1');
         }
-        
+
         // Session storage (file-based by default, compatible with app.php)
         // Both CIS and base modules use the SAME session files
         $sessionPath = $_ENV['SESSION_SAVE_PATH'] ?? sys_get_temp_dir();
         if (is_writable($sessionPath)) {
             ini_set('session.save_path', $sessionPath);
         }
-        
+
         session_name('CIS_SESSION'); // Shared session name for all CIS apps
     }
-    
+
     /**
      * Check session timeout
      */
@@ -111,17 +125,17 @@ class Session
     {
         if (isset($_SESSION['LAST_ACTIVITY'])) {
             $inactive = time() - $_SESSION['LAST_ACTIVITY'];
-            
+
             if ($inactive > $maxInactiveSeconds) {
                 self::destroy();
                 // Optionally redirect to login
                 return;
             }
         }
-        
+
         $_SESSION['LAST_ACTIVITY'] = time();
     }
-    
+
     /**
      * Get session value
      */
@@ -129,7 +143,7 @@ class Session
     {
         return $_SESSION[$key] ?? $default;
     }
-    
+
     /**
      * Set session value
      */
@@ -137,7 +151,7 @@ class Session
     {
         $_SESSION[$key] = $value;
     }
-    
+
     /**
      * Check if key exists
      */
@@ -145,7 +159,7 @@ class Session
     {
         return isset($_SESSION[$key]);
     }
-    
+
     /**
      * Remove session value
      */
@@ -153,14 +167,14 @@ class Session
     {
         unset($_SESSION[$key]);
     }
-    
+
     /**
      * Destroy session completely
      */
     public static function destroy(): void
     {
         $_SESSION = [];
-        
+
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
             setcookie(
@@ -173,10 +187,10 @@ class Session
                 $params['httponly']
             );
         }
-        
+
         session_destroy();
     }
-    
+
     /**
      * Regenerate session ID (call on privilege escalation)
      */
@@ -184,15 +198,17 @@ class Session
     {
         session_regenerate_id(true);
     }
-    
+
     /**
      * Get user ID from session
+     * Checks both new standard (user_id) and legacy (userID) for compatibility
      */
     public static function getUserId(): ?int
     {
-        return $_SESSION['userID'] ?? null;
+        // Prefer new standard, fallback to legacy
+        return $_SESSION['user_id'] ?? $_SESSION['userID'] ?? null;
     }
-    
+
     /**
      * Get user name from session
      */
@@ -202,15 +218,18 @@ class Session
         $last = $_SESSION['last_name'] ?? '';
         return trim($first . ' ' . $last) ?: null;
     }
-    
+
     /**
      * Check if user is logged in
+     * Checks both new standard (user_id) and legacy (userID) for compatibility
      */
     public static function isLoggedIn(): bool
     {
-        return isset($_SESSION['userID']) && !empty($_SESSION['userID']);
+        // Check new standard first, fallback to legacy
+        return (isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])) ||
+               (isset($_SESSION['userID']) && !empty($_SESSION['userID']));
     }
-    
+
     /**
      * Flash message system (one-time messages)
      */
@@ -220,7 +239,7 @@ class Session
             $_SESSION['_flash'][$key] = $message;
             return null;
         }
-        
+
         $value = $_SESSION['_flash'][$key] ?? null;
         unset($_SESSION['_flash'][$key]);
         return $value;

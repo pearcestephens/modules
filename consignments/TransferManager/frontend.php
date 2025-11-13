@@ -4,20 +4,15 @@
 
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
-// Load core CIS application for authentication
-require_once $_SERVER['DOCUMENT_ROOT'] . '/app.php';
+// Load modern bootstrap only (NOT legacy app.php to avoid function redeclaration)
+require_once __DIR__ . '/../bootstrap.php';
 
-// Check authentication - redirect to login if not authenticated
-if (function_exists('require_auth_or_redirect')) {
-    require_auth_or_redirect();
-} else {
-    // Fallback check if function not available
-    if (function_exists('isLoggedIn') && !isLoggedIn()) {
-        $currentUrl = $_SERVER['REQUEST_URI'] ?? '/assets/cron/utility_scripts/consignments/frontend.php';
-        $loginUrl = 'https://staff.vapeshed.co.nz/login.php?redirect=' . urlencode($currentUrl);
-        header('Location: ' . $loginUrl);
-        exit;
-    }
+// Check authentication
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    $currentUrl = $_SERVER['REQUEST_URI'] ?? '/modules/consignments/?route=transfer-manager';
+    $loginUrl = 'https://staff.vapeshed.co.nz/login.php?redirect=' . urlencode($currentUrl);
+    header('Location: ' . $loginUrl);
+    exit;
 }
 
 /**
@@ -28,11 +23,11 @@ if (function_exists('require_auth_or_redirect')) {
 function fetch_init(): array
 {
   try {
-    // Database connection using CIS credentials
-    $host = defined('DB_HOST') ? DB_HOST : '127.0.0.1';
-    $user = defined('DB_USERNAME') ? DB_USERNAME : (defined('DB_USER') ? DB_USER : 'jcepnzzkmj');
-    $pass = defined('DB_PASSWORD') ? DB_PASSWORD : (defined('DB_PASS') ? DB_PASS : '');
-    $name = defined('DB_DATABASE') ? DB_DATABASE : (defined('DB_NAME') ? DB_NAME : 'jcepnzzkmj');
+    // Database connection using modern bootstrap env vars
+    $host = $_ENV['DB_HOST'] ?? 'localhost';
+    $user = $_ENV['DB_USER'] ?? 'jcepnzzkmj';
+    $pass = $_ENV['DB_PASS'] ?? '';
+    $name = $_ENV['DB_NAME'] ?? 'jcepnzzkmj';
 
     $db = new mysqli($host, $user, $pass, $name);
     if ($db->connect_error) {

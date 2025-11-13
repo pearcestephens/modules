@@ -72,59 +72,59 @@ ob_start();
 
 <div class="consignments-home">
     <div class="page-header-box">
-        <h1><i class="fas fa-boxes me-2"></i>Consignments Management</h1>
+        <h1><i class="bi bi-boxes me-2"></i>Consignments Management</h1>
         <p>Central hub for all consignment operations, transfers, and inventory management</p>
     </div>
 
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-arrow-left-right me-1"></i>Active Transfers</div>
+            <div class="stat-label"><i class="bi bi-arrow-left-right me-1"></i>Active Transfers</div>
             <div class="stat-value"><?= number_format($stats['active_transfers']) ?></div>
         </div>
         <div class="stat-card success">
-            <div class="stat-label"><i class="fas fa-check-circle me-1"></i>Completed Today</div>
+            <div class="stat-label"><i class="bi bi-check-circle me-1"></i>Completed Today</div>
             <div class="stat-value"><?= number_format($stats['completed_today']) ?></div>
         </div>
         <div class="stat-card warning">
-            <div class="stat-label"><i class="fas fa-clock me-1"></i>Pending Receive</div>
+            <div class="stat-label"><i class="bi bi-clock me-1"></i>Pending Receive</div>
             <div class="stat-value"><?= number_format($stats['pending_receive']) ?></div>
         </div>
         <div class="stat-card info">
-            <div class="stat-label"><i class="fas fa-cart-shopping me-1"></i>Active Purchase Orders</div>
+            <div class="stat-label"><i class="bi bi-cart me-1"></i>Active Purchase Orders</div>
             <div class="stat-value"><?= number_format($stats['active_pos']) ?></div>
         </div>
     </div>
 
-    <div class="section-title"><i class="fas fa-bolt me-2"></i>Quick Actions</div>
+    <div class="section-title"><i class="bi bi-lightning me-2"></i>Quick Actions</div>
 
     <div class="quick-actions-grid">
         <a href="/modules/consignments/?route=transfer-manager" class="action-card">
-            <h3><i class="fas fa-arrow-left-right me-2"></i>Transfer Manager</h3>
+            <h3><i class="bi bi-arrow-left-right me-2"></i>Transfer Manager</h3>
             <p>Manage stock transfers, create new consignments, and track shipments between outlets.</p>
             <span class="action-badge">Most Used</span>
         </a>
         <a href="/modules/consignments/?route=purchase-orders" class="action-card">
-            <h3><i class="fas fa-cart-plus me-2"></i>Purchase Orders</h3>
+            <h3><i class="bi bi-cart-plus me-2"></i>Purchase Orders</h3>
             <p>View and manage purchase orders, supplier shipments, and incoming inventory.</p>
             <span class="action-badge">Active</span>
         </a>
         <a href="/modules/consignments/?route=stock-transfers" class="action-card">
-            <h3><i class="fas fa-box me-2"></i>Stock Transfers</h3>
+            <h3><i class="bi bi-box me-2"></i>Stock Transfers</h3>
             <p>Browse all stock transfer history, search transfers, and view detailed reports.</p>
             <span class="action-badge">View All</span>
         </a>
         <a href="/modules/consignments/analytics/" class="action-card">
-            <h3><i class="fas fa-chart-line me-2"></i>Analytics Dashboard</h3>
+            <h3><i class="bi bi-graph-up me-2"></i>Analytics Dashboard</h3>
             <p>Performance tracking, leaderboards, achievements, and security monitoring.</p>
             <span class="action-badge">Analytics</span>
         </a>
         <a href="/modules/consignments/?route=freight" class="action-card">
-            <h3><i class="fas fa-truck me-2"></i>Freight Management</h3>
+            <h3><i class="bi bi-truck me-2"></i>Freight Management</h3>
             <p>Track freight shipments, manage carriers, and view delivery schedules.</p>
             <span class="action-badge">Logistics</span>
         </a>
         <a href="/modules/consignments/?route=control-panel" class="action-card">
-            <h3><i class="fas fa-gauge me-2"></i>Control Panel</h3>
+            <h3><i class="bi bi-speedometer me-2"></i>Control Panel</h3>
             <p>System monitoring, queue status, admin controls, and configuration settings.</p>
             <span class="action-badge">Admin</span>
         </a>
@@ -133,30 +133,30 @@ ob_start();
     <div class="row">
         <div class="col-md-6">
             <div class="links-section">
-                <div class="section-title"><i class="fas fa-chart-bar me-2"></i>Analytics & Performance</div>
+                <div class="section-title"><i class="bi bi-bar-chart me-2"></i>Analytics & Performance</div>
                 <a href="/modules/consignments/analytics/performance-dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="link-icon"><i class="bi bi-speedometer2"></i></div>
                     <div>
                         <div class="link-title">Performance Dashboard</div>
                         <div class="link-desc">Track scanning stats, achievements, and personal bests</div>
                     </div>
                 </a>
                 <a href="/modules/consignments/analytics/leaderboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-trophy"></i></div>
+                    <div class="link-icon"><i class="bi bi-trophy"></i></div>
                     <div>
                         <div class="link-title">Leaderboard Rankings</div>
                         <div class="link-desc">See how you rank against colleagues</div>
                     </div>
                 </a>
                 <a href="/modules/consignments/analytics/security-dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="link-icon"><i class="bi bi-shield-check"></i></div>
                     <div>
                         <div class="link-title">Security Dashboard</div>
                         <div class="link-desc">Monitor suspicious scans and fraud alerts</div>
                     </div>
                 </a>
                 <a href="/modules/consignments/analytics/" class="link-item">
-                    <div class="link-icon"><i class="fas fa-vial"></i></div>
+                    <div class="link-icon"><i class="bi bi-tools"></i></div>
                     <div>
                         <div class="link-title">Testing Tools</div>
                         <div class="link-desc">Access system testing and health checks</div>
@@ -167,30 +167,30 @@ ob_start();
 
         <div class="col-md-6">
             <div class="links-section">
-                <div class="section-title"><i class="fas fa-tools me-2"></i>System Tools</div>
+                <div class="section-title"><i class="bi bi-tools me-2"></i>System Tools</div>
                 <a href="/modules/consignments/?route=queue-status" class="link-item">
-                    <div class="link-icon"><i class="fas fa-tasks"></i></div>
+                    <div class="link-icon"><i class="bi bi-list-task"></i></div>
                     <div>
                         <div class="link-title">Queue Status</div>
                         <div class="link-desc">Monitor background jobs and queue workers</div>
                     </div>
                 </a>
                 <a href="/modules/consignments/?route=admin-controls" class="link-item">
-                    <div class="link-icon"><i class="fas fa-cog"></i></div>
+                    <div class="link-icon"><i class="bi bi-gear"></i></div>
                     <div>
                         <div class="link-title">Admin Controls</div>
                         <div class="link-desc">System configuration and settings</div>
                     </div>
                 </a>
                 <a href="/modules/consignments/?route=ai-insights" class="link-item">
-                    <div class="link-icon"><i class="fas fa-brain"></i></div>
+                    <div class="link-icon"><i class="bi bi-robot"></i></div>
                     <div>
                         <div class="link-title">AI Insights</div>
                         <div class="link-desc">AI-powered recommendations and analytics</div>
                     </div>
                 </a>
                 <a href="/modules/consignments/purchase-orders/approvals/dashboard.php" class="link-item">
-                    <div class="link-icon"><i class="fas fa-check-square"></i></div>
+                    <div class="link-icon"><i class="bi bi-check-square"></i></div>
                     <div>
                         <div class="link-title">PO Approvals</div>
                         <div class="link-desc">Review and approve purchase orders</div>
@@ -201,7 +201,7 @@ ob_start();
     </div>
 
     <div class="text-center mt-4 mb-4" style="color: #6c757d; font-size: 13px;">
-        <p class="mb-1"><i class="fas fa-info-circle me-1"></i>Consignments Module v3.0.0 | Last Updated: November 2025</p>
+        <p class="mb-1"><i class="bi bi-info-circle me-1"></i>Consignments Module v3.0.0 | Last Updated: November 2025</p>
         <p class="mb-0">For support, contact IT Department</p>
     </div>
 </div>

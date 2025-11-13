@@ -23,7 +23,7 @@ class WageDiscrepancyControllerTest extends TestCase
             $_SESSION = [];
         }
         $_SESSION['authenticated'] = true;
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
 
         $this->controller = new WageDiscrepancyController();
         $this->db = Mockery::mock(\PDO::class);

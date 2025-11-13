@@ -45,7 +45,7 @@ class FlaggedProductController
         $stmt->close();
 
         // Get current user
-        $userID = $_SESSION['userID'] ?? 0;
+        $userID = $_SESSION['user_id'] ?? 0;
         $userName = $_SESSION['userName'] ?? 'User';
 
         // Render view

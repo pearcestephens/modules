@@ -23,7 +23,7 @@ if (file_exists(__DIR__ . '/../../lib/PurchaseOrderLogger.php')) {
 header('Content-Type: application/json');
 
 // Check authentication
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
@@ -101,7 +101,7 @@ try {
                     updated_at = NOW()
                 WHERE id = ?
             ");
-            $stmt->execute([$_SESSION['userID'], $insightId]);
+            $stmt->execute([$_SESSION['user_id'], $insightId]);
 
             $dismissedCount++;
 

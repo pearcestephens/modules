@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../app.php';
 
 header('Content-Type: application/json');
 
-$user_id = $_SESSION['userID'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);

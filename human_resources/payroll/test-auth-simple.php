@@ -97,7 +97,7 @@ header('Content-Type: text/html; charset=utf-8');
         <h1>🔐 Payroll Authentication Test</h1>
 
         <?php
-        $isLoggedIn = !empty($_SESSION['userID']) && !empty($_SESSION['authenticated']);
+        $isLoggedIn = !empty($_SESSION['user_id']) && !empty($_SESSION['authenticated']);
 
         if ($isLoggedIn):
         ?>
@@ -112,8 +112,8 @@ header('Content-Type: text/html; charset=utf-8');
                     <th>Value</th>
                 </tr>
                 <tr>
-                    <td><code>$_SESSION['userID']</code></td>
-                    <td><?= htmlspecialchars($_SESSION['userID'] ?? 'NOT SET') ?></td>
+                    <td><code>$_SESSION['user_id']</code></td>
+                    <td><?= htmlspecialchars($_SESSION['user_id'] ?? 'NOT SET') ?></td>
                 </tr>
                 <tr>
                     <td><code>$_SESSION['username']</code></td>
@@ -170,8 +170,8 @@ header('Content-Type: text/html; charset=utf-8');
                     <td><?= htmlspecialchars(session_id() ?: 'NONE') ?></td>
                 </tr>
                 <tr>
-                    <td><code>$_SESSION['userID']</code></td>
-                    <td><?= isset($_SESSION['userID']) ? '✅ Set' : '❌ Not Set' ?></td>
+                    <td><code>$_SESSION['user_id']</code></td>
+                    <td><?= isset($_SESSION['user_id']) ? '✅ Set' : '❌ Not Set' ?></td>
                 </tr>
                 <tr>
                     <td><code>$_SESSION['authenticated']</code></td>

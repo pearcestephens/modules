@@ -1,3 +1,32 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <?php include '../partials/header.php'; ?>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <img src="/assets/images/company-logo.png" alt="Company Logo" class="img-fluid mb-4" style="max-width: 200px;">
+            <h1>Welcome to the Onboarding Wizard</h1>
+            <p class="lead">We’re excited to have you join our team! Please complete the steps below to get started.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Onboarding Steps</h4>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>Fill out your personal details.</li>
+                        <li>Provide your tax and banking information.</li>
+                        <li>Review and accept company policies.</li>
+                        <li>Complete your profile setup.</li>
+                    </ol>
+                    <p>If you have any questions, please contact our HR team at <a href="mailto:hr@company.com">hr@company.com</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php include '../partials/footer.php'; ?>
 <?php
 /**
  * UNIVERSAL EMPLOYEE ONBOARDING WIZARD
@@ -9,21 +38,35 @@
  * - Lightspeed POS
  */
 
-require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../shared/bootstrap.php';
 require_once __DIR__ . '/services/UniversalOnboardingService.php';
 
 use CIS\EmployeeOnboarding\UniversalOnboardingService;
 
 // Check authentication
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
+}
+
+// CSRF token for onboarding form
+if (!isset($_SESSION['csrf_onboard'])) {
+    $_SESSION['csrf_onboard'] = bin2hex(random_bytes(24));
+}
+
+// Ensure PDO instance is available from shared bootstrap
+if (!isset($pdo) || !$pdo) {
+    if (function_exists('cis_resolve_pdo')) {
+        $pdo = cis_resolve_pdo();
+    } elseif (isset($GLOBALS['pdo'])) {
+        $pdo = $GLOBALS['pdo'];
+    }
 }
 
 $onboarding = new UniversalOnboardingService($pdo);
 
 // Check permission
-if (!$onboarding->checkPermission($_SESSION['userID'], 'system.manage_users')) {
+if (!$onboarding->checkPermission($_SESSION['user_id'], 'system.manage_users')) {
     die('Unauthorized: You do not have permission to onboard employees');
 }
 
@@ -279,6 +322,7 @@ $pageTitle = 'Employee Onboarding Wizard';
                 </div>
 
                 <form id="onboardingForm">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_onboard']); ?>">
                     <!-- Step 1: Personal Information -->
                     <div class="wizard-content active" data-step="1">
                         <h3 class="mb-4"><i class="fas fa-user"></i> Personal Information</h3>

@@ -674,7 +674,7 @@ class WageDiscrepancyService extends BaseService
 
             $this->execute($sql, [
                 ':id' => $discrepancyId,
-                ':approved_by' => $data['approved_by'] ?? $_SESSION['userID'] ?? 0,
+                ':approved_by' => $data['approved_by'] ?? $_SESSION['user_id'] ?? 0,
                 ':admin_notes' => $data['admin_notes'] ?? null
             ]);
 
@@ -683,7 +683,7 @@ class WageDiscrepancyService extends BaseService
 
             // Log event
             $this->logDiscrepancyEvent($discrepancyId, 'approved', [
-                'approved_by' => $data['approved_by'] ?? $_SESSION['userID'] ?? 0,
+                'approved_by' => $data['approved_by'] ?? $_SESSION['user_id'] ?? 0,
                 'amendment_id' => $amendmentResult['amendment_id']
             ]);
 
@@ -748,14 +748,14 @@ class WageDiscrepancyService extends BaseService
 
             $this->execute($sql, [
                 ':id' => $discrepancyId,
-                ':declined_by' => $data['declined_by'] ?? $_SESSION['userID'] ?? 0,
+                ':declined_by' => $data['declined_by'] ?? $_SESSION['user_id'] ?? 0,
                 ':decline_reason' => $data['decline_reason'],
                 ':admin_notes' => $data['admin_notes'] ?? null
             ]);
 
             // Log event
             $this->logDiscrepancyEvent($discrepancyId, 'declined', [
-                'declined_by' => $data['declined_by'] ?? $_SESSION['userID'] ?? 0,
+                'declined_by' => $data['declined_by'] ?? $_SESSION['user_id'] ?? 0,
                 'reason' => $data['decline_reason']
             ]);
 

@@ -70,7 +70,7 @@ $bot_bypass = isset($_GET['bot_test']) && $_GET['bot_test'] === 'comprehensive_2
 
 // Check if user is logged in (session variable is 'userID' not 'user_id')
 // Skip authentication check in CLI mode or bot bypass mode
-if (!defined('CIS_CLI_MODE') && !$bot_bypass && !isset($_SESSION['userID'])) {
+if (!defined('CIS_CLI_MODE') && !$bot_bypass && !isset($_SESSION['user_id'])) {
     header('Location: ' . BASE_URL . '/login.php');
     exit;
 }

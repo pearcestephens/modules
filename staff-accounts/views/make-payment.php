@@ -27,7 +27,7 @@ require_once __DIR__ . '/../bootstrap.php';
 // Require authentication
 cis_require_login();
 
-$user_id = $_SESSION['userID'];
+$user_id = $_SESSION['user_id'];
 
 // STEP 1: CHECK TABLE - Fetch account details from staff_account_reconciliation
 $stmt = $pdo->prepare("

@@ -15,12 +15,12 @@ require_once __DIR__ . '/includes/AIPayrollEngine.php';
 require_once __DIR__ . '/includes/PayrollDashboard.php';
 
 // Security check - LOGGED IN ONLY
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
 }
 
-$userID = (int)$_SESSION['userID'];
+$userID = (int)$_SESSION['user_id'];
 
 // Get PDO connection from bootstrap DB class
 $pdo = DB::pdo();

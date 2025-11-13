@@ -1,39 +1,46 @@
 <?php
 /**
  * Consignments Module - Admin Controls
- * 
+ *
  * @package CIS\Consignments
- * @version 3.0.0
+ * @version 5.0.0 - Bootstrap 5 + Modern Theme
+ * @updated 2025-11-11 - Bootstrap 5 conversion
  */
 
 declare(strict_types=1);
 
-// Load CIS Template
-require_once __DIR__ . '/../lib/CISTemplate.php';
-
-// Initialize template
-$template = new CISTemplate();
-$template->setTitle('Admin Controls');
-$template->setBreadcrumbs([
-    ['label' => 'Home', 'url' => '/', 'icon' => 'fa-home'],
-    ['label' => 'Consignments', 'url' => '/modules/consignments/'],
+// Modern Theme Setup
+$pageTitle = 'Admin Controls';
+$breadcrumbs = [
+    ['label' => 'Home', 'url' => '/', 'icon' => 'bi-house-door'],
+    ['label' => 'Consignments', 'url' => '/modules/consignments/', 'icon' => 'bi-box-seam'],
     ['label' => 'Admin Controls', 'url' => '/modules/consignments/?route=admin-controls', 'active' => true]
-]);
+];
+
+$pageCSS = [
+    'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
+    '/modules/admin-ui/css/cms-design-system.css',
+    '/modules/shared/css/tokens.css'
+];
+
+$pageJS = [];
 
 // Start content capture
-$template->startContent();
+ob_start();
 ?>
 
+<div class="page-header fade-in mb-4">
+    <h1 class="page-title mb-2"><i class="bi bi-gear me-2"></i>Admin Controls</h1>
+    <p class="page-subtitle text-muted mb-0">System configuration and management</p>
+</div>
+
 <div class="container-fluid">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h2 class="mb-0"><i class="fas fa-cog mr-2"></i>Admin Controls</h2>
         </div>
     </div>
 
 /**
  * Employee Mapping System - Admin Controls & Settings Interface
- * 
+ *
  * Comprehensive administrative interface for:
  * - System configuration and settings
  * - Bulk operations management
@@ -41,7 +48,7 @@ $template->startContent();
  * - User permissions and access control
  * - Audit trail management
  * - Advanced system diagnostics
- * 
+ *
  * @package CIS\Consignments\Views
  * @version 2.0.0
  * @since 2025-01-01
@@ -66,17 +73,17 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="mb-1">
-                    <i class="fas fa-cogs text-primary mr-2"></i>
+                    <i class="bi bi-gears text-primary me-2"></i>
                     Admin Controls & Settings
                 </h2>
                 <p class="text-muted mb-0">System configuration, bulk operations, and data management</p>
             </div>
             <div class="admin-actions">
                 <button class="btn btn-outline-primary btn-sm" id="systemHealthCheck">
-                    <i class="fas fa-heartbeat mr-1"></i> System Health Check
+                    <i class="bi bi-heart-pulse me-1"></i> System Health Check
                 </button>
                 <button class="btn btn-outline-secondary btn-sm" id="exportSystemData">
-                    <i class="fas fa-download mr-1"></i> Export Data
+                    <i class="bi bi-download me-1"></i> Export Data
                 </button>
             </div>
         </div>
@@ -86,32 +93,32 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     <ul class="nav nav-tabs" id="adminTabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="system-config-tab" data-toggle="tab" href="#system-config" role="tab">
-                <i class="fas fa-sliders-h mr-1"></i> System Configuration
+                <i class="bi bi-sliders me-1"></i> System Configuration
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="bulk-operations-tab" data-toggle="tab" href="#bulk-operations" role="tab">
-                <i class="fas fa-tasks mr-1"></i> Bulk Operations
+                <i class="bi bi-list-task me-1"></i> Bulk Operations
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="data-management-tab" data-toggle="tab" href="#data-management" role="tab">
-                <i class="fas fa-database mr-1"></i> Data Management
+                <i class="bi bi-database me-1"></i> Data Management
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="user-permissions-tab" data-toggle="tab" href="#user-permissions" role="tab">
-                <i class="fas fa-users-cog mr-1"></i> User Permissions
+                <i class="bi bi-people-cog me-1"></i> User Permissions
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="audit-trails-tab" data-toggle="tab" href="#audit-trails" role="tab">
-                <i class="fas fa-clipboard-list mr-1"></i> Audit Trails
+                <i class="bi bi-clipboard-check me-1"></i> Audit Trails
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" id="system-diagnostics-tab" data-toggle="tab" href="#system-diagnostics" role="tab">
-                <i class="fas fa-stethoscope mr-1"></i> Diagnostics
+                <i class="bi bi-heart-pulse me-1"></i> Diagnostics
             </a>
         </li>
     </ul>
@@ -126,15 +133,15 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-cog mr-2"></i>General Settings
+                                <i class="bi bi-gear me-2"></i>General Settings
                             </h5>
                         </div>
                         <div class="card-body">
                             <form id="generalSettingsForm">
                                 <div class="form-group">
                                     <label for="autoMatchThreshold">Auto-Match Confidence Threshold</label>
-                                    <input type="range" class="form-control-range" id="autoMatchThreshold" 
-                                           min="50" max="95" value="85" 
+                                    <input type="range" class="form-control-range" id="autoMatchThreshold"
+                                           min="50" max="95" value="85"
                                            oninput="document.getElementById('thresholdValue').textContent = this.value + '%'">
                                     <small class="form-text text-muted">
                                         Current: <span id="thresholdValue">85%</span> - Higher values = fewer but more accurate matches
@@ -153,7 +160,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 
                                 <div class="form-group">
                                     <label for="maxBatchSize">Maximum Batch Processing Size</label>
-                                    <input type="number" class="form-control" id="maxBatchSize" 
+                                    <input type="number" class="form-control" id="maxBatchSize"
                                            value="100" min="10" max="1000" step="10">
                                     <small class="form-text text-muted">Number of records processed in one batch</small>
                                 </div>
@@ -180,7 +187,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                 </div>
 
                                 <button type="submit" class="btn btn-primary mt-3">
-                                    <i class="fas fa-save mr-1"></i> Save Settings
+                                    <i class="bi bi-save me-1"></i> Save Settings
                                 </button>
                             </form>
                         </div>
@@ -192,14 +199,14 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-bell mr-2"></i>Alert & Notification Settings
+                                <i class="bi bi-bell me-2"></i>Alert & Notification Settings
                             </h5>
                         </div>
                         <div class="card-body">
                             <form id="alertSettingsForm">
                                 <div class="form-group">
                                     <label for="alertEmail">Alert Email Address</label>
-                                    <input type="email" class="form-control" id="alertEmail" 
+                                    <input type="email" class="form-control" id="alertEmail"
                                            value="admin@vapeshed.co.nz" placeholder="admin@example.com">
                                 </div>
 
@@ -241,7 +248,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                 </div>
 
                                 <button type="submit" class="btn btn-success mt-3">
-                                    <i class="fas fa-bell mr-1"></i> Update Alerts
+                                    <i class="bi bi-bell me-1"></i> Update Alerts
                                 </button>
                             </form>
                         </div>
@@ -258,23 +265,23 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-layer-group mr-2"></i>Bulk Mapping Operations
+                                <i class="bi bi-layers me-2"></i>Bulk Mapping Operations
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-info">
-                                <i class="fas fa-info-circle mr-2"></i>
+                                <i class="bi bi-info-circle me-2"></i>
                                 <strong>Current Status:</strong> 56 unmapped employees, $9,543.36 blocked
                             </div>
 
                             <div class="operation-group mb-4">
                                 <h6>Auto-Match Operations</h6>
                                 <button class="btn btn-primary btn-block mb-2" id="bulkAutoMatch">
-                                    <i class="fas fa-magic mr-1"></i> 
+                                    <i class="bi bi-magic me-1"></i>
                                     Process All Auto-Matches (31 pending)
                                 </button>
                                 <button class="btn btn-outline-primary btn-block mb-2" id="bulkApproveHighConfidence">
-                                    <i class="fas fa-check-double mr-1"></i> 
+                                    <i class="bi bi-check2-all me-1"></i>
                                     Approve High Confidence Matches Only (>90%)
                                 </button>
                             </div>
@@ -282,11 +289,11 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                             <div class="operation-group mb-4">
                                 <h6>Manual Operations</h6>
                                 <button class="btn btn-warning btn-block mb-2" id="bulkResetMappings">
-                                    <i class="fas fa-undo mr-1"></i> 
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
                                     Reset All Pending Mappings
                                 </button>
                                 <button class="btn btn-outline-warning btn-block mb-2" id="bulkFlagForReview">
-                                    <i class="fas fa-flag mr-1"></i> 
+                                    <i class="bi bi-flag me-1"></i>
                                     Flag Low Confidence for Manual Review
                                 </button>
                             </div>
@@ -294,11 +301,11 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                             <div class="operation-group">
                                 <h6>Data Operations</h6>
                                 <button class="btn btn-info btn-block mb-2" id="refreshAllData">
-                                    <i class="fas fa-refresh mr-1"></i> 
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
                                     Refresh All Employee Data
                                 </button>
                                 <button class="btn btn-outline-info btn-block mb-2" id="recalculateAmounts">
-                                    <i class="fas fa-calculator mr-1"></i> 
+                                    <i class="bi bi-calculator me-1"></i>
                                     Recalculate Blocked Amounts
                                 </button>
                             </div>
@@ -322,7 +329,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-exchange-alt mr-2"></i>Data Import/Export
+                                <i class="bi bi-arrow-left-right me-2"></i>Data Import/Export
                             </h5>
                         </div>
                         <div class="card-body">
@@ -331,7 +338,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                 <div class="form-group">
                                     <label for="importFile">Upload Mapping File (CSV/Excel)</label>
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="importFile" 
+                                        <input type="file" class="custom-file-input" id="importFile"
                                                accept=".csv,.xlsx,.xls">
                                         <label class="custom-file-label" for="importFile">Choose file...</label>
                                     </div>
@@ -340,7 +347,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                     </small>
                                 </div>
                                 <button class="btn btn-success btn-block" id="importMappings">
-                                    <i class="fas fa-upload mr-1"></i> Import Mappings
+                                    <i class="bi bi-upload me-1"></i> Import Mappings
                                 </button>
                             </div>
 
@@ -348,16 +355,16 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                 <h6>Export Operations</h6>
                                 <div class="btn-group-vertical w-100">
                                     <button class="btn btn-outline-primary mb-2" id="exportUnmapped">
-                                        <i class="fas fa-download mr-1"></i> Export Unmapped Employees
+                                        <i class="bi bi-download me-1"></i> Export Unmapped Employees
                                     </button>
                                     <button class="btn btn-outline-primary mb-2" id="exportMapped">
-                                        <i class="fas fa-download mr-1"></i> Export Mapped Employees
+                                        <i class="bi bi-download me-1"></i> Export Mapped Employees
                                     </button>
                                     <button class="btn btn-outline-primary mb-2" id="exportAutoMatches">
-                                        <i class="fas fa-download mr-1"></i> Export Auto-Match Suggestions
+                                        <i class="bi bi-download me-1"></i> Export Auto-Match Suggestions
                                     </button>
                                     <button class="btn btn-outline-primary mb-2" id="exportFullReport">
-                                        <i class="fas fa-file-pdf mr-1"></i> Export Full Report (PDF)
+                                        <i class="bi bi-file-pdf me-1"></i> Export Full Report (PDF)
                                     </button>
                                 </div>
                             </div>
@@ -365,7 +372,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                             <div class="template-section">
                                 <h6>Templates</h6>
                                 <button class="btn btn-outline-secondary btn-block" id="downloadTemplate">
-                                    <i class="fas fa-file-download mr-1"></i> Download Import Template
+                                    <i class="bi bi-file-earmark-arrow-down me-1"></i> Download Import Template
                                 </button>
                             </div>
                         </div>
@@ -382,45 +389,45 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-database mr-2"></i>Database Operations
+                                <i class="bi bi-database me-2"></i>Database Operations
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <i class="bi bi-exclamation-triangle me-1"></i>
                                 <strong>Warning:</strong> These operations affect live data
                             </div>
 
                             <div class="operation-group mb-3">
                                 <h6>Maintenance</h6>
                                 <button class="btn btn-outline-primary btn-sm btn-block mb-2" id="optimizeDatabase">
-                                    <i class="fas fa-wrench mr-1"></i> Optimize Database
+                                    <i class="bi bi-wrench me-1"></i> Optimize Database
                                 </button>
                                 <button class="btn btn-outline-primary btn-sm btn-block mb-2" id="rebuildIndexes">
-                                    <i class="fas fa-list mr-1"></i> Rebuild Indexes
+                                    <i class="bi bi-list me-1"></i> Rebuild Indexes
                                 </button>
                                 <button class="btn btn-outline-primary btn-sm btn-block mb-2" id="cleanupOldData">
-                                    <i class="fas fa-broom mr-1"></i> Cleanup Old Data (>90 days)
+                                    <i class="bi bi-trash me-1"></i> Cleanup Old Data (>90 days)
                                 </button>
                             </div>
 
                             <div class="operation-group mb-3">
                                 <h6>Backup & Restore</h6>
                                 <button class="btn btn-success btn-sm btn-block mb-2" id="createBackup">
-                                    <i class="fas fa-save mr-1"></i> Create Manual Backup
+                                    <i class="bi bi-save me-1"></i> Create Manual Backup
                                 </button>
                                 <button class="btn btn-info btn-sm btn-block mb-2" id="viewBackups">
-                                    <i class="fas fa-history mr-1"></i> View Backup History
+                                    <i class="bi bi-clock-history me-1"></i> View Backup History
                                 </button>
                             </div>
 
                             <div class="operation-group">
                                 <h6>Data Integrity</h6>
                                 <button class="btn btn-outline-warning btn-sm btn-block mb-2" id="validateDataIntegrity">
-                                    <i class="fas fa-shield-alt mr-1"></i> Validate Data Integrity
+                                    <i class="bi bi-shield-check me-1"></i> Validate Data Integrity
                                 </button>
                                 <button class="btn btn-outline-danger btn-sm btn-block" id="repairCorruptedData">
-                                    <i class="fas fa-tools mr-1"></i> Repair Corrupted Data
+                                    <i class="bi bi-tools me-1"></i> Repair Corrupted Data
                                 </button>
                             </div>
                         </div>
@@ -432,7 +439,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-memory mr-2"></i>Cache Management
+                                <i class="bi bi-cpu me-2"></i>Cache Management
                             </h5>
                         </div>
                         <div class="card-body">
@@ -454,23 +461,23 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                             <div class="operation-group mb-3">
                                 <h6>Cache Operations</h6>
                                 <button class="btn btn-warning btn-sm btn-block mb-2" id="clearAllCache">
-                                    <i class="fas fa-trash mr-1"></i> Clear All Cache
+                                    <i class="bi bi-trash me-1"></i> Clear All Cache
                                 </button>
                                 <button class="btn btn-outline-warning btn-sm btn-block mb-2" id="clearMappingCache">
-                                    <i class="fas fa-eraser mr-1"></i> Clear Mapping Cache Only
+                                    <i class="bi bi-eraser me-1"></i> Clear Mapping Cache Only
                                 </button>
                                 <button class="btn btn-outline-info btn-sm btn-block mb-2" id="preloadCache">
-                                    <i class="fas fa-rocket mr-1"></i> Preload Frequently Used Data
+                                    <i class="bi bi-rocket me-1"></i> Preload Frequently Used Data
                                 </button>
                             </div>
 
                             <div class="operation-group">
                                 <h6>Session Management</h6>
                                 <button class="btn btn-outline-secondary btn-sm btn-block mb-2" id="viewActiveSessions">
-                                    <i class="fas fa-users mr-1"></i> View Active Sessions (3)
+                                    <i class="bi bi-people me-1"></i> View Active Sessions (3)
                                 </button>
                                 <button class="btn btn-outline-danger btn-sm btn-block" id="terminateOldSessions">
-                                    <i class="fas fa-sign-out-alt mr-1"></i> Terminate Old Sessions
+                                    <i class="bi bi-box-arrow-right me-1"></i> Terminate Old Sessions
                                 </button>
                             </div>
                         </div>
@@ -482,7 +489,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-heartbeat mr-2"></i>System Health
+                                <i class="bi bi-heart-pulse me-2"></i>System Health
                             </h5>
                         </div>
                         <div class="card-body">
@@ -526,7 +533,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                             </div>
 
                             <button class="btn btn-primary btn-sm btn-block mt-3" id="refreshHealthMetrics">
-                                <i class="fas fa-sync mr-1"></i> Refresh Metrics
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh Metrics
                             </button>
                         </div>
                     </div>
@@ -542,10 +549,10 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-users mr-2"></i>User Management
+                                <i class="bi bi-people me-2"></i>User Management
                             </h5>
                             <button class="btn btn-primary btn-sm" id="addNewUser">
-                                <i class="fas fa-plus mr-1"></i> Add User
+                                <i class="bi bi-plus me-1"></i> Add User
                             </button>
                         </div>
                         <div class="card-body">
@@ -565,7 +572,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-2">
+                                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
                                                         PS
                                                     </div>
                                                     <div>
@@ -580,17 +587,17 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                             <td><span class="badge badge-success">Active</span></td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-primary" title="Edit">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-info" title="View Activity">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="bi bi-eye"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar-sm bg-info text-white rounded-circle d-flex align-items-center justify-content-center mr-2">
+                                                    <div class="avatar-sm bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2">
                                                         JD
                                                     </div>
                                                     <div>
@@ -605,20 +612,20 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                             <td><span class="badge badge-success">Active</span></td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-primary" title="Edit">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-info" title="View Activity">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="bi bi-eye"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-danger" title="Suspend">
-                                                    <i class="fas fa-ban"></i>
+                                                    <i class="bi bi-ban"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mr-2">
+                                                    <div class="avatar-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
                                                         JS
                                                     </div>
                                                     <div>
@@ -633,13 +640,13 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                             <td><span class="badge badge-warning">Inactive</span></td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-primary" title="Edit">
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-info" title="View Activity">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="bi bi-eye"></i>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-success" title="Activate">
-                                                    <i class="fas fa-play"></i>
+                                                    <i class="bi bi-play"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -655,7 +662,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-shield-alt mr-2"></i>Role Permissions
+                                <i class="bi bi-shield-check me-2"></i>Role Permissions
                             </h5>
                         </div>
                         <div class="card-body">
@@ -707,7 +714,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                             </div>
 
                             <button class="btn btn-outline-primary btn-sm btn-block mt-3" id="manageRoles">
-                                <i class="fas fa-cogs mr-1"></i> Manage Roles
+                                <i class="bi bi-gears me-1"></i> Manage Roles
                             </button>
                         </div>
                     </div>
@@ -723,10 +730,10 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-clipboard-list mr-2"></i>Audit Trail
+                                <i class="bi bi-clipboard-check me-2"></i>Audit Trail
                             </h5>
                             <div class="audit-controls">
-                                <select class="form-control form-control-sm d-inline-block w-auto mr-2" id="auditFilter">
+                                <select class="form-control form-control-sm d-inline-block w-auto me-2" id="auditFilter">
                                     <option value="all">All Activities</option>
                                     <option value="mapping">Mapping Operations</option>
                                     <option value="admin">Admin Actions</option>
@@ -734,7 +741,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                                     <option value="errors">Errors & Warnings</option>
                                 </select>
                                 <button class="btn btn-outline-primary btn-sm" id="exportAuditLog">
-                                    <i class="fas fa-download mr-1"></i> Export
+                                    <i class="bi bi-download me-1"></i> Export
                                 </button>
                             </div>
                         </div>
@@ -843,7 +850,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card mb-3">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-chart-bar mr-2"></i>Audit Statistics
+                                <i class="bi bi-bar-chart me-2"></i>Audit Statistics
                             </h5>
                         </div>
                         <div class="card-body">
@@ -873,7 +880,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-clock mr-2"></i>Recent Activity
+                                <i class="bi bi-clock me-2"></i>Recent Activity
                             </h5>
                         </div>
                         <div class="card-body">
@@ -917,46 +924,46 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-stethoscope mr-2"></i>Diagnostic Tools
+                                <i class="bi bi-heart-pulse me-2"></i>Diagnostic Tools
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="diagnostic-group mb-4">
                                 <h6>Connection Tests</h6>
                                 <button class="btn btn-outline-primary btn-block mb-2" id="testDatabaseConnection">
-                                    <i class="fas fa-database mr-1"></i> Test Database Connection
+                                    <i class="bi bi-database me-1"></i> Test Database Connection
                                 </button>
                                 <button class="btn btn-outline-primary btn-block mb-2" id="testVendAPI">
-                                    <i class="fas fa-plug mr-1"></i> Test Vend API Connection
+                                    <i class="bi bi-plug me-1"></i> Test Vend API Connection
                                 </button>
                                 <button class="btn btn-outline-primary btn-block mb-2" id="testEmailService">
-                                    <i class="fas fa-envelope mr-1"></i> Test Email Service
+                                    <i class="bi bi-envelope me-1"></i> Test Email Service
                                 </button>
                             </div>
 
                             <div class="diagnostic-group mb-4">
                                 <h6>Performance Tests</h6>
                                 <button class="btn btn-outline-info btn-block mb-2" id="testQueryPerformance">
-                                    <i class="fas fa-tachometer-alt mr-1"></i> Test Query Performance
+                                    <i class="bi bi-speedometer2 me-1"></i> Test Query Performance
                                 </button>
                                 <button class="btn btn-outline-info btn-block mb-2" id="testMemoryUsage">
-                                    <i class="fas fa-memory mr-1"></i> Test Memory Usage
+                                    <i class="bi bi-cpu me-1"></i> Test Memory Usage
                                 </button>
                                 <button class="btn btn-outline-info btn-block mb-2" id="testLoadCapacity">
-                                    <i class="fas fa-weight-hanging mr-1"></i> Test Load Capacity
+                                    <i class="bi bi-app me-1"></i> Test Load Capacity
                                 </button>
                             </div>
 
                             <div class="diagnostic-group">
                                 <h6>System Validation</h6>
                                 <button class="btn btn-outline-success btn-block mb-2" id="validateSystemIntegrity">
-                                    <i class="fas fa-check-circle mr-1"></i> Validate System Integrity
+                                    <i class="bi bi-check-circle me-1"></i> Validate System Integrity
                                 </button>
                                 <button class="btn btn-outline-success btn-block mb-2" id="validateDataConsistency">
-                                    <i class="fas fa-balance-scale mr-1"></i> Validate Data Consistency
+                                    <i class="bi bi-scales me-1"></i> Validate Data Consistency
                                 </button>
                                 <button class="btn btn-outline-warning btn-block" id="runFullDiagnostic">
-                                    <i class="fas fa-play-circle mr-1"></i> Run Full Diagnostic Suite
+                                    <i class="bi bi-play-circle me-1"></i> Run Full Diagnostic Suite
                                 </button>
                             </div>
                         </div>
@@ -968,13 +975,13 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-clipboard-check mr-2"></i>Diagnostic Results
+                                <i class="bi bi-clipboard-check me-2"></i>Diagnostic Results
                             </h5>
                         </div>
                         <div class="card-body">
                             <div id="diagnosticResults">
                                 <div class="text-center text-muted py-5">
-                                    <i class="fas fa-flask fa-3x mb-3"></i>
+                                    <i class="bi bi-cup fa-3x mb-3"></i>
                                     <p>Run diagnostic tests to see results here</p>
                                 </div>
                             </div>
@@ -989,20 +996,20 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-file-alt mr-2"></i>System Logs
+                                <i class="bi bi-file-text me-2"></i>System Logs
                             </h5>
                             <div class="log-controls">
-                                <select class="form-control form-control-sm d-inline-block w-auto mr-2" id="logLevel">
+                                <select class="form-control form-control-sm d-inline-block w-auto me-2" id="logLevel">
                                     <option value="all">All Levels</option>
                                     <option value="error">Errors Only</option>
                                     <option value="warning">Warnings & Errors</option>
                                     <option value="info">Info & Above</option>
                                 </select>
                                 <button class="btn btn-outline-primary btn-sm" id="refreshLogs">
-                                    <i class="fas fa-sync mr-1"></i> Refresh
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
                                 </button>
                                 <button class="btn btn-outline-secondary btn-sm" id="downloadLogs">
-                                    <i class="fas fa-download mr-1"></i> Download
+                                    <i class="bi bi-download me-1"></i> Download
                                 </button>
                             </div>
                         </div>
@@ -1230,11 +1237,11 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
         flex-direction: column;
         text-align: center;
     }
-    
+
     .admin-actions {
         margin-top: 15px;
     }
-    
+
     .admin-actions .btn {
         margin: 5px;
     }
@@ -1322,6 +1329,9 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 </div>
 
 <?php
-// End content capture and render
-$template->endContent();
-$template->render();
+// Capture content
+$content = ob_get_clean();
+
+// Load the Modern Theme (Bootstrap 5)
+require_once __DIR__ . '/../../base/templates/themes/modern/layouts/dashboard.php';
+?>

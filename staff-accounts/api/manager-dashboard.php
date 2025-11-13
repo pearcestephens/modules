@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Simple user authentication check - just verify logged in (use CIS standard userID)
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'Access denied - Login required']);
     exit;
@@ -153,7 +153,7 @@ switch ($action) {
         // Log reminder
         $query2 = "INSERT INTO staff_reminder_log (user_id, sent_at, sent_by) VALUES (?, NOW(), ?)";
         $stmt2 = $pdo->prepare($query2);
-        $stmt2->execute([$userId, $_SESSION['userID']]);
+        $stmt2->execute([$userId, $_SESSION['user_id']]);
         
         echo json_encode([
             'success' => $sent,
@@ -197,7 +197,7 @@ switch ($action) {
                 // Log reminder
                 $query2 = "INSERT INTO staff_reminder_log (user_id, sent_at, sent_by) VALUES (?, NOW(), ?)";
                 $stmt2 = $pdo->prepare($query2);
-                $stmt2->execute([$staff['id'], $_SESSION['userID']]);
+                $stmt2->execute([$staff['id'], $_SESSION['user_id']]);
             }
         }
         

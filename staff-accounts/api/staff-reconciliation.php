@@ -330,7 +330,7 @@ try {
                 
                 $db->commit();
                 
-                Log::info("Saved $saved allocations", ['user_id' => $_SESSION['userID'] ?? 0]);
+                Log::info("Saved $saved allocations", ['user_id' => $_SESSION['user_id'] ?? 0]);
                 
                 echo json_encode([
                     'success' => true,

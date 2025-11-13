@@ -168,6 +168,34 @@ class PayRunController extends BaseController
             $limit = (int)($_GET['limit'] ?? 20);
             $offset = ($page - 1) * $limit;
 
+            // Check if table exists - graceful fallback
+            try {
+                $checkTable = $this->db->query("SHOW TABLES LIKE 'payroll_payslips'");
+                if ($checkTable->rowCount() === 0) {
+                    // Table doesn't exist yet - return empty result
+                    $this->jsonResponse([
+                        'success' => true,
+                        'data' => [],
+                        'pagination' => [
+                            'total' => 0,
+                            'page' => $page,
+                            'limit' => $limit,
+                            'pages' => 1
+                        ],
+                        'message' => 'Payroll tables are being set up'
+                    ]);
+                    return;
+                }
+            } catch (\PDOException $e) {
+                // Error checking table - return empty
+                $this->jsonResponse([
+                    'success' => true,
+                    'data' => [],
+                    'pagination' => ['total' => 0, 'page' => $page, 'limit' => $limit, 'pages' => 1]
+                ]);
+                return;
+            }
+
             // Get pay runs grouped by period
             $query = "
                 SELECT

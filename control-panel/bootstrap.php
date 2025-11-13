@@ -60,13 +60,13 @@ try {
 // 4. AUTHENTICATION - ADMIN ONLY
 // ============================================================================
 
-if (!isset($_SESSION['userID'])) {
+if (!isset($_SESSION['user_id'])) {
     header('Location: /login.php');
     exit;
 }
 
 // Check if user is admin (you can adjust this logic)
-$current_user_id = $_SESSION['userID'];
+$current_user_id = $_SESSION['user_id'];
 $is_admin = false;
 
 try {

@@ -1,7 +1,7 @@
 /**
  * 05-detail-modal.js
  * Detail modal rendering and item handlers
- * 
+ *
  * ✅ FULL IMPLEMENTATION RESTORED FROM scripts.js (lines 200-1560)
  * Contains ALL workflow functionality:
  * - Complete modal UI with workflow stepper
@@ -13,9 +13,23 @@
  * - Complete event handlers
  */
 
-function openModal(id){ const m=new bootstrap.Modal('#modalQuick'); m.show(); return m; }
-function actionModal(){ return new bootstrap.Modal('#modalAction'); }
-function confirmModal(){ return new bootstrap.Modal('#modalConfirm'); }
+function openModal(id){
+  const el = document.getElementById('modalQuick');
+  if (!el) { console.error('❌ modalQuick not found'); return null; }
+  const m = new bootstrap.Modal(el);
+  m.show();
+  return m;
+}
+function actionModal(){
+  const el = document.getElementById('modalAction');
+  if (!el) { console.error('❌ modalAction not found'); return null; }
+  return new bootstrap.Modal(el);
+}
+function confirmModal(){
+  const el = document.getElementById('modalConfirm');
+  if (!el) { console.error('❌ modalConfirm not found'); return null; }
+  return new bootstrap.Modal(el);
+}
 
 // Global product selection state
 let selectedProduct = null;
@@ -28,15 +42,15 @@ async function openQuick(id){
   const modal = openModal(id);
   const body  = $('#qBody');
   body.innerHTML = `<div class="text-center py-5"><div class="spinner-border mb-3"></div><div class="text-muted">Loading details…</div></div>`;
-  
+
   try {
     const d = await api('get_transfer_detail', {id});
     const t = d.transfer, items=d.items||[], ships=d.shipments||[], notes=d.notes||[], ls=d.ls||null, totals=d.totals||null;
-    
+
     // Define outlet objects
     const sourceOutlet = d.source_outlet || { name: t.outlet_from_label || t.outlet_from_name || (typeof OUTLET_MAP !== 'undefined' ? OUTLET_MAP[t.outlet_from] : null) || t.outlet_from };
     const destOutlet = d.dest_outlet || { name: t.outlet_to_label || t.outlet_to_name || (typeof OUTLET_MAP !== 'undefined' ? OUTLET_MAP[t.outlet_to] : null) || t.outlet_to };
-    
+
     const from = sourceOutlet.name;
     const to = destOutlet.name;
     const lsUrl = t.vend_transfer_id ? (typeof LS_CONSIGNMENT_BASE !== 'undefined' ? LS_CONSIGNMENT_BASE + encodeURIComponent(t.vend_transfer_id) : null) : null;
@@ -73,11 +87,11 @@ async function openQuick(id){
 
     // Generate smart transfer ID for modal
     const modalTransferID = smartTransferID(t.id, cat, t.vend_number);
-    
+
     // Format transfer category display name
-    const catDisplay = cat === 'PURCHASE_ORDER' ? 'PURCHASE ORDER' : 
-                       cat === 'STOCK' ? 'STOCK TRANSFER' : 
-                       cat === 'JUICE' ? 'JUICE TRANSFER' : 
+    const catDisplay = cat === 'PURCHASE_ORDER' ? 'PURCHASE ORDER' :
+                       cat === 'STOCK' ? 'STOCK TRANSFER' :
+                       cat === 'JUICE' ? 'JUICE TRANSFER' :
                        cat === 'STAFF' ? 'STAFF TRANSFER' :
                        cat + ' TRANSFER';
 
@@ -123,7 +137,7 @@ async function openQuick(id){
       <!-- 🏆 HERO SECTION - Ultra Compact 200px -->
       <div class="transfer-hero-section">
         <div class="hero-compact-grid">
-          
+
           <!-- Left Column: Type + ID -->
           <div class="hero-left">
             <div class="hero-type-badge">
@@ -133,7 +147,7 @@ async function openQuick(id){
             <div class="hero-transfer-id">${modalTransferID}</div>
             ${t.vend_number ? `<div class="hero-vend-badge"><i class="bi bi-cloud-check-fill"></i> #${esc(t.vend_number)}</div>` : ''}
           </div>
-          
+
           <!-- Center Column: Route -->
           <div class="hero-center">
             <div class="hero-route">
@@ -148,7 +162,7 @@ async function openQuick(id){
               </div>
             </div>
           </div>
-          
+
           <!-- Right Column: Metrics + Status -->
           <div class="hero-right">
             <div class="hero-stats">
@@ -170,7 +184,7 @@ async function openQuick(id){
               ${esc(t.state)}
             </div>
           </div>
-          
+
         </div>
       </div>
 
@@ -180,12 +194,12 @@ async function openQuick(id){
           <h6><i class="bi bi-diagram-3-fill me-2"></i>Workflow Progress</h6>
           <span class="workflow-progress-percentage">${Math.round((currentStep / workflow.length) * 100)}% Complete</span>
         </div>
-        
+
         <div class="workflow-timeline">
           ${workflow.map((step, i) => {
             const status = i < currentStep ? 'completed' : i === currentStep ? 'active' : 'pending';
             const icon = status === 'completed' ? '<i class="bi bi-check-circle-fill"></i>' : (i + 1);
-            
+
             let tooltipText = step;
             if (status === 'completed') {
               tooltipText += ' - Completed ✓';
@@ -194,7 +208,7 @@ async function openQuick(id){
             } else {
               tooltipText += ' - Pending';
             }
-            
+
             return `
               <div class="workflow-step-item ${status}">
                 <div class="workflow-step-circle">${icon}</div>
@@ -210,7 +224,7 @@ async function openQuick(id){
       <!-- 🎴 ACTION CARDS SECTION - Card-Based UI -->
       <div class="action-cards-section">
         <div class="action-cards-grid">
-          
+
           <!-- ⚙️ SETUP CARD -->
           ${!terminal && beforeSent ? `
           <div class="action-card">
@@ -356,7 +370,7 @@ async function openQuick(id){
             </div>
           </div>
           ` : ''}
-          
+
           <!-- ♻️ RECREATE CARD - CANCELLED OR COMPLETED -->
           ${(terminal || s === 'RECEIVED' || s === 'CLOSED') ? `
           <div class="action-card">
@@ -420,7 +434,7 @@ async function openQuick(id){
               </div>
             </div>
             ` : ''}
-            
+
             <div class="items-table-container">
               <table class="table-premium">
                 <thead>
@@ -439,7 +453,7 @@ async function openQuick(id){
                   const cost = parseFloat(item.supply_price) || parseFloat(item.cost) || 0;
                   const qty = parseInt(item.qty) || 0;
                   const total = cost * qty;
-                  
+
                   return `
                   <tr data-item="${item.id}">
                     <td class="product-cell">
@@ -448,8 +462,8 @@ async function openQuick(id){
                     </td>
                     <td style="text-align: center;">
                       ${perms.canEditItems ? `
-                      <input type="number" 
-                             class="qty-input-modern" 
+                      <input type="number"
+                             class="qty-input-modern"
                              value="${item.qty || 0}"
                              min="0"
                              data-item="${item.id}"
@@ -458,8 +472,8 @@ async function openQuick(id){
                     </td>
                     <td style="text-align: center;">
                       ${perms.canEditItems ? `
-                      <input type="number" 
-                             class="qty-input-modern" 
+                      <input type="number"
+                             class="qty-input-modern"
                              value="${item.sent || 0}"
                              min="0"
                              data-item="${item.id}"
@@ -468,8 +482,8 @@ async function openQuick(id){
                     </td>
                     <td style="text-align: center;">
                       ${perms.canEditItems && (s === 'RECEIVING' || s === 'PARTIAL') ? `
-                      <input type="number" 
-                             class="qty-input-modern" 
+                      <input type="number"
+                             class="qty-input-modern"
                              value="${item.received || 0}"
                              min="0"
                              data-item="${item.id}"
@@ -513,7 +527,7 @@ async function openQuick(id){
               </table>
             </div>
           </div>
-          
+
           <div class="tab-pane fade" id="tabShipments">
             ${ships.length ? `
             <table class="enhanced-table">
@@ -543,7 +557,7 @@ async function openQuick(id){
             </div>
             `}
           </div>
-          
+
           <div class="tab-pane fade" id="tabNotes">
             ${notes.length ? `
             <div class="notes-list">
@@ -586,11 +600,11 @@ async function openQuick(id){
           <input id="vendUUIDInput" class="form-control" placeholder="uuid…">
           <div class="small-note mt-1">Leave blank to create a new consignment (when Sync is ON).</div>
         </div>
-        
+
         <div class="alert alert-info mb-3" style="padding: 10px 12px; font-size: 0.85rem;">
           <i class="bi bi-info-circle me-2"></i><strong>Choose action:</strong>
         </div>
-        
+
         <div class="d-flex gap-2 flex-column">
           <label class="consignment-option-card" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease;">
             <input type="radio" name="linkMode" value="link_only" id="linkModeOnly" style="margin-right: 8px;">
@@ -599,7 +613,7 @@ async function openQuick(id){
               <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Just create/link the consignment. Products remain in "pending" state. You'll push them manually later.</div>
             </div>
           </label>
-          
+
           <label class="consignment-option-card" style="border: 2px solid #3b82f6; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s ease; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
             <input type="radio" name="linkMode" value="link_and_push" id="linkModeAndPush" checked style="margin-right: 8px;">
             <div style="display: inline-block; vertical-align: top;">
@@ -609,7 +623,7 @@ async function openQuick(id){
           </label>
         </div>
       `;
-      
+
       // Add hover effects
       const optionCards = $('#maBody')?.querySelectorAll('.consignment-option-card');
       if (optionCards) {
@@ -637,17 +651,17 @@ async function openQuick(id){
           });
         });
       }
-      
+
       $('#maSubmit').onclick = async ()=>{
         try {
           $('#maSubmit').disabled=true;
           const vend_number = $('#vendNumInput').value || undefined;
           const vend_uuid   = $('#vendUUIDInput').value || undefined;
           const mode = document.querySelector('input[name="linkMode"]:checked')?.value || 'link_and_push';
-          
+
           showActivity('Linking…','Creating/storing identifiers');
           await api('create_consignment', {id: t.id, vend_number, vend_transfer_id: vend_uuid});
-          
+
           if (mode === 'link_and_push') {
             showActivity('Pushing products…','Sending product lines to Lightspeed');
             await api('push_consignment_lines', {id: t.id});
@@ -657,7 +671,7 @@ async function openQuick(id){
             hideActivity();
             toast('Consignment linked (products not pushed yet)','info');
           }
-          
+
           ma.hide(); await openQuick(t.id); await refresh();
         } catch(e){ hideActivity(); toast(e.message||'Failed','danger'); $('#maSubmit').disabled=false; }
       };
@@ -666,12 +680,12 @@ async function openQuick(id){
 
     // 2. PUSH LINES TO LIGHTSPEED BUTTON
     $('#qa_push_lines')?.addEventListener('click', async ()=>{
-      try { 
-        showActivity('Pushing lines…'); 
-        await api('push_consignment_lines', {id: t.id}); 
-        hideActivity(); 
-        toast('Pushed','success'); 
-        await openQuick(t.id); 
+      try {
+        showActivity('Pushing lines…');
+        await api('push_consignment_lines', {id: t.id});
+        hideActivity();
+        toast('Pushed','success');
+        await openQuick(t.id);
       }
       catch(e){ hideActivity(); toast(e.message||'Failed','danger'); }
     });
@@ -682,12 +696,12 @@ async function openQuick(id){
       $('#maTitle').textContent = 'Mark as Sent';
       $('#maBody').innerHTML = `<label class="form-label">Total boxes</label><input id="boxesInput" type="number" class="form-control" value="1" min="0">`;
       $('#maSubmit').onclick = async ()=>{
-        try { 
-          $('#maSubmit').disabled=true; 
-          await api('mark_sent',{id:t.id,total_boxes:parseInt($('#boxesInput').value||'1',10)}); 
-          toast('Marked sent','success'); 
-          ma.hide(); 
-          await openQuick(t.id); 
+        try {
+          $('#maSubmit').disabled=true;
+          await api('mark_sent',{id:t.id,total_boxes:parseInt($('#boxesInput').value||'1',10)});
+          toast('Marked sent','success');
+          ma.hide();
+          await openQuick(t.id);
           await refresh();
         }
         catch(e){ toast(e.message||'Failed','danger'); $('#maSubmit').disabled=false; }
@@ -698,37 +712,42 @@ async function openQuick(id){
     // 4. START RECEIVING BUTTON
     $('#qa_receiving')?.addEventListener('click', ()=>{
       // Show receiving modal with two options
-      const receivingModal = new bootstrap.Modal('#modalReceiving');
+      const receivingModalElement = document.getElementById('modalReceiving');
+      if (!receivingModalElement) {
+        console.error('❌ modalReceiving not found');
+        return;
+      }
+      const receivingModal = new bootstrap.Modal(receivingModalElement);
       $('#receivingTitle').textContent = cat === 'PURCHASE_ORDER' ? 'Begin Receiving Items' : 'Start Receiving';
       $('#receivingItemCount').textContent = items.length;
       $('#receivingTotalQty').textContent = items.reduce((sum, i) => sum + (parseInt(i.qty) || 0), 0);
-      
+
       // Reset previous selection
       document.querySelectorAll('input[name="receivingMode"]').forEach(r => r.checked = false);
-      
+
       receivingModal.show();
     });
-    
+
     // Handle "Begin Receiving" - Manual entry mode
     $('#btnBeginReceiving')?.addEventListener('click', async ()=>{
       const modal = bootstrap.Modal.getInstance('#modalReceiving');
       modal?.hide();
-      try { 
-        showActivity('Starting receiving mode…'); 
-        await api('mark_receiving', {id: t.id}); 
-        hideActivity(); 
-        toast('Receiving mode activated - enter quantities manually', 'success'); 
-        await openQuick(t.id); 
-        await refresh(); 
+      try {
+        showActivity('Starting receiving mode…');
+        await api('mark_receiving', {id: t.id});
+        hideActivity();
+        toast('Receiving mode activated - enter quantities manually', 'success');
+        await openQuick(t.id);
+        await refresh();
       }
       catch(e){ hideActivity(); toast(e.message || 'Failed to start receiving', 'danger'); }
     });
-    
+
     // Handle "Receive All" - Auto-fill and complete
     $('#btnReceiveAll')?.addEventListener('click', ()=>{
       const modal = bootstrap.Modal.getInstance('#modalReceiving');
       modal?.hide();
-      
+
       // Show confirmation for auto-complete
       const cm = confirmModal();
       $('#mcTitle').textContent = 'Receive All Items (Auto-Fill)';
@@ -748,13 +767,13 @@ async function openQuick(id){
       `;
       $('#mcYes').onclick = async ()=> {
         cm.hide();
-        try { 
-          showActivity('Auto-receiving all items…'); 
-          await api('receive_all', {id: t.id, auto_fill: true}); 
-          hideActivity(); 
-          toast('All items received and inventory updated!', 'success'); 
-          await openQuick(t.id); 
-          await refresh(); 
+        try {
+          showActivity('Auto-receiving all items…');
+          await api('receive_all', {id: t.id, auto_fill: true});
+          hideActivity();
+          toast('All items received and inventory updated!', 'success');
+          await openQuick(t.id);
+          await refresh();
         }
         catch(e){ hideActivity(); toast(e.message || 'Failed to receive all', 'danger'); }
       };
@@ -771,13 +790,13 @@ async function openQuick(id){
       `;
       $('#mcYes').onclick = async ()=> {
         cm.hide();
-        try { 
-          showActivity('Receiving all…'); 
-          await api('receive_all', {id: t.id, auto_fill: true}); 
-          hideActivity(); 
-          toast('All received', 'success'); 
-          await openQuick(t.id); 
-          await refresh(); 
+        try {
+          showActivity('Receiving all…');
+          await api('receive_all', {id: t.id, auto_fill: true});
+          hideActivity();
+          toast('All received', 'success');
+          await openQuick(t.id);
+          await refresh();
         }
         catch(e){ hideActivity(); toast(e.message || 'Failed', 'danger'); }
       };
@@ -788,17 +807,17 @@ async function openQuick(id){
     $('#qa_cancel')?.addEventListener('click', ()=>{
       const ma = actionModal();
       $('#maTitle').textContent = '🚨 Cancel Transfer';
-      
+
       // For STOCK/JUICE transfers after SENT: stock was deducted, offer reversion option
       // For PURCHASE_ORDER: stock only adds on RECEIVED, so no reversion needed
       const needsStockReversion = (cat === 'STOCK' || cat === 'JUICE') && afterSent;
-      
+
       $('#maBody').innerHTML = `
         <div class="alert alert-warning mb-3" style="padding: 10px 12px; font-size: 0.85rem;">
           <i class="bi bi-exclamation-triangle me-2"></i>
           <strong>You are about to cancel this transfer.</strong>
         </div>
-        
+
         ${needsStockReversion ? `
         <div class="mb-3">
           <label class="form-label fw-bold" style="font-size: 0.9rem;">
@@ -807,7 +826,7 @@ async function openQuick(id){
           <div class="mb-2" style="font-size: 0.8rem; color: #64748b;">
             This transfer has stock deducted from <strong>${from}</strong>. Do you want to revert stock quantities?
           </div>
-          
+
           <div class="d-flex gap-2 flex-column">
             <label class="revert-option-card" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px; cursor: pointer;">
               <input type="radio" name="revertStock" value="yes" id="revertYes" style="margin-right: 8px;">
@@ -819,7 +838,7 @@ async function openQuick(id){
                 </div>
               </div>
             </label>
-            
+
             <label class="revert-option-card" style="border: 2px solid #3b82f6; border-radius: 8px; padding: 10px; cursor: pointer; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
               <input type="radio" name="revertStock" value="no" id="revertNo" checked style="margin-right: 8px;">
               <div style="display: inline-block; vertical-align: top;">
@@ -832,23 +851,23 @@ async function openQuick(id){
         ` : `
         <div class="alert alert-info mb-3" style="padding: 10px 12px; font-size: 0.85rem;">
           <i class="bi bi-info-circle me-2"></i>
-          ${cat === 'PURCHASE_ORDER' ? 
-            '<strong>Hey!</strong> By default, consignment stock only changes the quantity of the destination source once they are all received in.<br><br><strong>Cancelling now has not affected any stock levels.</strong>' : 
+          ${cat === 'PURCHASE_ORDER' ?
+            '<strong>Hey!</strong> By default, consignment stock only changes the quantity of the destination source once they are all received in.<br><br><strong>Cancelling now has not affected any stock levels.</strong>' :
             'This transfer hasn\'t been sent yet, so no stock has been deducted. Only the transfer record will be cancelled.'
           }
         </div>
         `}
-        
+
         <div class="small-note text-danger" style="font-size: 0.75rem;">
           <i class="bi bi-exclamation-circle me-1"></i>
           <strong>Note:</strong> Cancelled transfers cannot be un-cancelled. This action is permanent.
         </div>
-        
+
         <div class="mt-3" style="font-size: 0.85rem; color: #64748b;">
           <strong>Cancel anyway?</strong>
         </div>
       `;
-      
+
       // Add hover effects for revert options
       const optionCards = $('#maBody')?.querySelectorAll('.revert-option-card');
       if (optionCards) {
@@ -876,23 +895,23 @@ async function openQuick(id){
           });
         });
       }
-      
+
       $('#maSubmit').textContent = 'Cancel Transfer';
       $('#maSubmit').className = 'btn btn-danger';
-      $('#maSubmit').onclick = async ()=>{ 
+      $('#maSubmit').onclick = async ()=>{
         try {
           $('#maSubmit').disabled = true;
           const revertStock = document.querySelector('input[name="revertStock"]:checked')?.value === 'yes';
-          
+
           showActivity('Cancelling transfer…', revertStock ? 'Reverting stock quantities…' : 'Updating status…');
           await api('cancel_transfer', {id: t.id, revert_stock: revertStock});
           hideActivity();
           toast(revertStock ? 'Transfer cancelled & stock reverted' : 'Transfer cancelled', 'success');
           ma.hide();
           await refresh();
-        } catch(e){ 
-          hideActivity(); 
-          toast(e.message||'Failed','danger'); 
+        } catch(e){
+          hideActivity();
+          toast(e.message||'Failed','danger');
           $('#maSubmit').disabled = false;
         }
       };
@@ -908,14 +927,14 @@ async function openQuick(id){
           <i class="bi bi-info-circle me-2"></i>
           <strong>Create a fresh transfer with the same details</strong>
         </div>
-        
+
         <div class="mb-3" style="padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem;">
           <div class="mb-2"><strong>From:</strong> ${esc(from)}</div>
           <div class="mb-2"><strong>To:</strong> ${esc(to)}</div>
           <div class="mb-2"><strong>Items:</strong> ${items.length} products</div>
           <div><strong>Type:</strong> ${esc(cat)}</div>
         </div>
-        
+
         <div class="form-check mb-3" style="padding-left: 1.5rem;">
           <input class="form-check-input" type="checkbox" id="revertStockCheck" ${s === 'SENT' ? 'checked' : ''} style="margin-top: 0.3rem;">
           <label class="form-check-label" for="revertStockCheck" style="font-size: 0.85rem; font-weight: 600;">
@@ -925,13 +944,13 @@ async function openQuick(id){
             Restores inventory that was deducted when this transfer was sent
           </div>
         </div>
-        
+
         <div class="small-note text-muted" style="font-size: 0.75rem;">
           <i class="bi bi-info-circle me-1"></i>
           Products, quantities, and notes will be copied to the new transfer
         </div>
       `;
-      
+
       $('#maSubmit').textContent = 'Create New Transfer';
       $('#maSubmit').className = 'btn btn-success';
       $('#maSubmit').onclick = async ()=>{
@@ -939,17 +958,17 @@ async function openQuick(id){
           $('#maSubmit').disabled = true;
           $('#maSubmit').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
           const revertStock = $('#revertStockCheck').checked;
-          
+
           showActivity('Creating new transfer…', 'Duplicating transfer details…');
           const result = await api('recreate_transfer', {
-            id: t.id, 
+            id: t.id,
             revert_stock: revertStock
           });
-          
+
           hideActivity();
           toast(`Transfer recreated: ${result.new_public_id} (${result.items_copied} items)`, 'success');
           ma.hide();
-          
+
           // Close current modal and open the new transfer
           $('#quickModal')?.hide();
           await openQuick(result.new_id);
@@ -976,22 +995,22 @@ async function openQuick(id){
           <li>Update Lightspeed consignment status</li>
         </ul>
       </div>`;
-      $('#mcYes').onclick = async ()=>{ 
-        cm.hide(); 
-        try{ 
-          showActivity('Reverting to OPEN…'); 
-          const result = await api('revert_to_open',{id:t.id}); 
-          hideActivity(); 
+      $('#mcYes').onclick = async ()=>{
+        cm.hide();
+        try{
+          showActivity('Reverting to OPEN…');
+          const result = await api('revert_to_open',{id:t.id});
+          hideActivity();
           let msg = result.message || 'Reverted to OPEN';
           if (result.inventory_adjustments?.length > 0) {
-            msg += '\n\nInventory restored:\n' + result.inventory_adjustments.map(a => 
+            msg += '\n\nInventory restored:\n' + result.inventory_adjustments.map(a =>
               `• Product ${a.product_id}: +${a.quantity_added} units`
             ).join('\n');
           }
           alert(msg);
-          await refresh(); 
+          await refresh();
           await openQuick(t.id);
-        } catch(e){ hideActivity(); toast(e.message||'Revert failed','danger'); } 
+        } catch(e){ hideActivity(); toast(e.message||'Revert failed','danger'); }
       };
       cm.show();
     });
@@ -1008,22 +1027,22 @@ async function openQuick(id){
           <li>Reset all received quantities to 0</li>
         </ul>
       </div>`;
-      $('#mcYes').onclick = async ()=>{ 
-        cm.hide(); 
-        try{ 
-          showActivity('Cancelling receiving…'); 
-          const result = await api('revert_to_sent',{id:t.id}); 
-          hideActivity(); 
+      $('#mcYes').onclick = async ()=>{
+        cm.hide();
+        try{
+          showActivity('Cancelling receiving…');
+          const result = await api('revert_to_sent',{id:t.id});
+          hideActivity();
           let msg = result.message || 'Receiving cancelled';
           if (result.inventory_adjustments?.length > 0) {
-            msg += '\n\nInventory adjustments:\n' + result.inventory_adjustments.map(a => 
+            msg += '\n\nInventory adjustments:\n' + result.inventory_adjustments.map(a =>
               `• Product ${a.product_id}: -${a.quantity_removed} units`
             ).join('\n');
           }
           alert(msg);
-          await refresh(); 
+          await refresh();
           await openQuick(t.id);
-        } catch(e){ hideActivity(); toast(e.message||'Revert failed','danger'); } 
+        } catch(e){ hideActivity(); toast(e.message||'Revert failed','danger'); }
       };
       cm.show();
     });
@@ -1045,27 +1064,27 @@ async function openQuick(id){
         <label class="form-label fw-bold">Type <code>UNDO</code> to confirm:</label>
         <input type="text" id="undoConfirm" class="form-control" placeholder="Type UNDO">
       </div>`;
-      $('#mcYes').onclick = async ()=>{ 
+      $('#mcYes').onclick = async ()=>{
         const confirmation = $('#undoConfirm')?.value;
         if (confirmation !== 'UNDO') {
           toast('You must type exactly UNDO to confirm','danger');
           return;
         }
-        cm.hide(); 
-        try{ 
-          showActivity('Reverting to RECEIVING…'); 
-          const result = await api('revert_to_receiving',{id:t.id}); 
-          hideActivity(); 
+        cm.hide();
+        try{
+          showActivity('Reverting to RECEIVING…');
+          const result = await api('revert_to_receiving',{id:t.id});
+          hideActivity();
           let msg = '⚠️ ' + (result.message || 'Reverted to RECEIVING');
           if (result.inventory_adjustments?.length > 0) {
-            msg += '\n\nInventory removed:\n' + result.inventory_adjustments.map(a => 
+            msg += '\n\nInventory removed:\n' + result.inventory_adjustments.map(a =>
               `• Product ${a.product_id}: -${a.quantity_removed} units`
             ).join('\n');
           }
           alert(msg);
-          await refresh(); 
+          await refresh();
           await openQuick(t.id);
-        } catch(e){ hideActivity(); toast(e.message||'Revert failed','danger'); } 
+        } catch(e){ hideActivity(); toast(e.message||'Revert failed','danger'); }
       };
       cm.show();
     });
@@ -1077,10 +1096,10 @@ async function openQuick(id){
       $('#maBody').innerHTML = `<div class="mb-2"><label class="form-label">Vend Number</label><input id="vendNumInput" class="form-control" value="${esc(t.vend_number||'')}"></div>
                                 <div class="mb-2"><label class="form-label">Vend UUID</label><input id="vendUUIDInput" class="form-control" value="${esc(t.vend_transfer_id||'')}"></div>`;
       $('#maSubmit').onclick = async ()=>{
-        try{ 
-          $('#maSubmit').disabled=true; 
-          await api('store_vend_numbers',{id:t.id, vend_number:$('#vendNumInput').value||null, vend_transfer_id:$('#vendUUIDInput').value||null}); 
-          toast('Saved','success'); 
+        try{
+          $('#maSubmit').disabled=true;
+          await api('store_vend_numbers',{id:t.id, vend_number:$('#vendNumInput').value||null, vend_transfer_id:$('#vendUUIDInput').value||null});
+          toast('Saved','success');
           await openQuick(t.id);
         }
         catch(e){ toast(e.message||'Failed','danger'); $('#maSubmit').disabled=false; }
@@ -1108,7 +1127,7 @@ async function openQuick(id){
         <div class="small text-muted mt-2" id="pp_selected"><i class="bi bi-info-circle me-1"></i>No product selected</div>
       `;
       ma.show();
-      
+
       // Setup product search after modal is shown
       setupProductSearch(t.id, perms);
     });
@@ -1116,13 +1135,13 @@ async function openQuick(id){
     // 13. INLINE QUANTITY EDITING WITH AUTO-SAVE
     document.querySelectorAll('#itemsTbody .qty-input-modern').forEach(inp=>{
       let original = inp.value;
-      
-      inp.addEventListener('focus', ()=>{ 
+
+      inp.addEventListener('focus', ()=>{
         original=inp.value;
         inp.style.background = '#fffbeb';
         inp.style.borderColor = '#f59e0b';
       });
-      
+
       inp.addEventListener('blur', async ()=>{
         const val = parseInt(inp.value||'0',10);
         if (String(val)===String(original)) {
@@ -1130,44 +1149,44 @@ async function openQuick(id){
           inp.style.borderColor = '';
           return;
         }
-        
-        const tr = inp.closest('tr'); 
+
+        const tr = inp.closest('tr');
         const itemId = parseInt(tr.dataset.item,10);
         const field = inp.dataset.field;
-        
+
         try {
           inp.style.background = '#dbeafe';
           inp.style.borderColor = '#3b82f6';
           inp.disabled = true;
-          
+
           const spinner = document.createElement('span');
           spinner.className = 'saving-spinner';
           spinner.innerHTML = '<i class="bi bi-arrow-repeat" style="animation: spin 1s linear infinite; margin-left: 4px; color: #3b82f6;"></i>';
           spinner.style.cssText = 'position: absolute; right: -24px; top: 50%; transform: translateY(-50%);';
           inp.parentElement.style.position = 'relative';
           inp.parentElement.appendChild(spinner);
-          
+
           await api('update_transfer_item_qty',{id:t.id, item_id:itemId, field, value:val});
-          
+
           spinner.remove();
           inp.style.background = '#d1fae5';
           inp.style.borderColor = '#10b981';
           inp.disabled = false;
           original = inp.value;
-          
+
           const checkmark = document.createElement('span');
           checkmark.innerHTML = '<i class="bi bi-check-circle-fill" style="color: #10b981; margin-left: 4px;"></i>';
           checkmark.style.cssText = 'position: absolute; right: -24px; top: 50%; transform: translateY(-50%);';
           inp.parentElement.appendChild(checkmark);
-          
+
           toast(`${field.toUpperCase()} quantity saved: ${val}`, 'success');
-          
+
           setTimeout(() => {
             inp.style.background = '';
             inp.style.borderColor = '';
             checkmark.remove();
           }, 1500);
-          
+
         } catch(e) {
           if (inp.parentElement.querySelector('.saving-spinner')) {
             inp.parentElement.querySelector('.saving-spinner').remove();
@@ -1175,15 +1194,15 @@ async function openQuick(id){
           inp.style.background = '#fee2e2';
           inp.style.borderColor = '#ef4444';
           inp.disabled = false;
-          
+
           const errorIcon = document.createElement('span');
           errorIcon.innerHTML = '<i class="bi bi-x-circle-fill" style="color: #ef4444; margin-left: 4px;"></i>';
           errorIcon.style.cssText = 'position: absolute; right: -24px; top: 50%; transform: translateY(-50%);';
           inp.parentElement.appendChild(errorIcon);
-          
+
           toast(e.message||'Failed to save','danger');
           inp.value = original;
-          
+
           setTimeout(() => {
             inp.style.background = '';
             inp.style.borderColor = '';
@@ -1191,7 +1210,7 @@ async function openQuick(id){
           }, 2000);
         }
       });
-      
+
       inp.addEventListener('input', ()=>{
         if (inp.value !== original) {
           inp.style.background = '#fffbeb';
@@ -1206,13 +1225,13 @@ async function openQuick(id){
     // 14. REMOVE ITEM BUTTONS
     document.querySelectorAll('#itemsTbody .remove-item-btn').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
-        const tr = btn.closest('tr'); 
+        const tr = btn.closest('tr');
         const itemId = parseInt(tr.dataset.item,10);
         if (!confirm('Remove this item?')) return;
-        try{ 
-          await api('remove_transfer_item', {item_id:itemId}); 
-          tr.remove(); 
-          toast('Removed','success'); 
+        try{
+          await api('remove_transfer_item', {item_id:itemId});
+          tr.remove();
+          toast('Removed','success');
         }
         catch(e){ toast(e.message||'Failed','danger'); }
       });
@@ -1230,7 +1249,7 @@ async function openQuick(id){
 function setupProductSearch(transferId, perms) {
   let sel = null;
   let timer = null;
-  
+
   function renderResults(list){
     const el = $('#pp_dropdown');
     el.innerHTML = list.length ? list.map((p,i)=>`
@@ -1241,35 +1260,35 @@ function setupProductSearch(transferId, perms) {
       `<div class="p-3 text-center text-muted">No results</div>`;
     el.classList.add('show');
   }
-  
+
   $('#pp_search').addEventListener('input', ()=>{
     clearTimeout(timer);
     const q = $('#pp_search').value.trim();
-    if (q.length < 2){ 
-      $('#pp_dropdown').classList.remove('show'); 
-      sel=null; 
-      $('#pp_selected').innerHTML='<i class="bi bi-info-circle me-1"></i>No product selected'; 
-      return; 
+    if (q.length < 2){
+      $('#pp_dropdown').classList.remove('show');
+      sel=null;
+      $('#pp_selected').innerHTML='<i class="bi bi-info-circle me-1"></i>No product selected';
+      return;
     }
-    $('#pp_dropdown').innerHTML='<div class="p-3 text-center"><span class="spinner-border spinner-border-sm"></span> Searching…</div>'; 
+    $('#pp_dropdown').innerHTML='<div class="p-3 text-center"><span class="spinner-border spinner-border-sm"></span> Searching…</div>';
     $('#pp_dropdown').classList.add('show');
     timer = setTimeout(async ()=>{
-      try{ 
-        const r = await api('search_products',{q,limit:25}); 
-        renderResults(r.results||[]); 
+      try{
+        const r = await api('search_products',{q,limit:25});
+        renderResults(r.results||[]);
       }
       catch(e){ $('#pp_dropdown').innerHTML='<div class="p-3 text-danger">Search failed</div>'; }
     }, 250);
   });
-  
+
   $('#pp_dropdown').addEventListener('click', (e)=>{
-    const row = e.target.closest('.pp-item'); 
+    const row = e.target.closest('.pp-item');
     if(!row) return;
     sel = {id: row.dataset.id, name: row.dataset.name, sku: row.dataset.sku};
     $('#pp_selected').innerHTML = `<i class="bi bi-check-circle text-success me-1"></i> Selected: <strong>${esc(sel.name||sel.id)}</strong> ${sel.sku?`(${esc(sel.sku)})`:''}`;
     $('#pp_dropdown').classList.remove('show');
   });
-  
+
   async function addItem(){
     const productId = (sel ? sel.id : null);
     const qty = parseInt($('#pp_qty').value||'1',10) || 1;
@@ -1277,8 +1296,8 @@ function setupProductSearch(transferId, perms) {
     try{
       await api('add_transfer_item',{id:transferId, product_id:productId, qty});
       toast('Item added','success');
-      $('#pp_search').value=''; 
-      $('#pp_qty').value='1'; 
+      $('#pp_search').value='';
+      $('#pp_qty').value='1';
       sel=null;
       $('#pp_selected').innerHTML = '<i class="bi bi-info-circle me-1"></i>No product selected';
       const dropdown = bootstrap.Modal.getInstance('#modalAction');
@@ -1286,6 +1305,6 @@ function setupProductSearch(transferId, perms) {
       await openQuick(transferId);
     }catch(e){ toast(e.message||'Failed','danger'); }
   }
-  
+
   $('#pp_add')?.addEventListener('click', ()=>addItem());
 }

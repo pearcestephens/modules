@@ -332,7 +332,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testCreateRequiresAuth(): void
     {
-        unset($_SESSION['userID']);
+        unset($_SESSION['user_id']);
 
         $response = $this->callCreate();
 
@@ -345,7 +345,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testCreateValidatesRequiredFields(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.create'];
         $_POST = []; // Missing required fields
 
@@ -360,7 +360,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testCreateValidatesAmountNumeric(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.create'];
         $_POST = [
             'employee_id' => '123',
@@ -381,7 +381,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testCreateValidatesAmountPositive(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.create'];
         $_POST = [
             'employee_id' => '123',
@@ -402,7 +402,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testCreateValidatesTypeValid(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.create'];
         $_POST = [
             'employee_id' => '123',
@@ -423,7 +423,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testCreateInsertsCorrectData(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.create'];
         $_POST = [
             'employee_id' => '123',
@@ -465,7 +465,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testViewRequiresAuth(): void
     {
-        unset($_SESSION['userID']);
+        unset($_SESSION['user_id']);
 
         $response = $this->callView(123);
 
@@ -477,7 +477,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testViewReturnsCorrectData(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.view'];
 
         $expectedData = [
@@ -516,7 +516,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testViewReturns404ForNonExistent(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.view'];
 
         $this->mockStmt->expects($this->once())
@@ -537,7 +537,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testApproveRequiresAdminPermission(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.view']; // Not approve
 
         $response = $this->callApprove(123);
@@ -550,7 +550,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testApproveUpdatesStatus(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.approve'];
 
         $this->mockStmt->expects($this->once())
@@ -578,7 +578,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testDeclineRequiresReason(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.approve'];
         $_POST = []; // No reason provided
 
@@ -593,7 +593,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testDeclineUpdatesStatusWithReason(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.approve'];
         $_POST = [
             'reason' => 'Insufficient documentation',
@@ -626,7 +626,7 @@ final class AmendmentControllerTest extends TestCase
      */
     public function testGetPendingReturnsOnlyPending(): void
     {
-        $_SESSION['userID'] = 1;
+        $_SESSION['user_id'] = 1;
         $_SESSION['permissions'] = ['payroll.amendments.view'];
 
         $this->mockStmt->expects($this->once())

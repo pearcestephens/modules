@@ -35,10 +35,10 @@ class APIHelper
         }
 
         // Normal authentication check
-        if (isset($_SESSION['userID']) && $_SESSION['userID'] > 0) {
+        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0) {
             return [
                 'authenticated' => true,
-                'user_id' => (int)$_SESSION['userID'],
+                'user_id' => (int)$_SESSION['user_id'],
                 'bypass' => false
             ];
         }

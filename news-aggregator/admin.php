@@ -14,7 +14,7 @@ require_once __DIR__ . '/../../engine/ThemeEngine.php';
 require_once __DIR__ . '/AdminController.php';
 
 // TODO: Replace with real auth check
-// if (!isset($_SESSION['userID']) || !in_array($_SESSION['role'], ['admin', 'manager'])) {
+// if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'manager'])) {
 //     header('Location: /login.php');
 //     exit;
 // }
@@ -37,7 +37,7 @@ $action = $_GET['action'] ?? 'dashboard';
 $message = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userId = $_SESSION['userID'] ?? 1; // TODO: Get from session
+    $userId = $_SESSION['user_id'] ?? 1; // TODO: Get from session
 
     switch ($_POST['action']) {
         case 'create_source':

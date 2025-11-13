@@ -26,7 +26,7 @@ if (!isset($_SESSION['photo_access_tokens'][$token])) {
     http_response_code(403);
     ecomm_log_error("Invalid photo access token", [
         'token' => substr($token, 0, 10) . '...',
-        'staff_id' => $_SESSION['userID'] ?? null,
+        'staff_id' => $_SESSION['user_id'] ?? null,
         'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
     ]);
     die('Invalid or expired access token');
@@ -42,11 +42,11 @@ if ($tokenData['expires'] < time()) {
 }
 
 // Verify requesting user matches token
-if ($tokenData['staff_id'] != $_SESSION['userID']) {
+if ($tokenData['staff_id'] != $_SESSION['user_id']) {
     http_response_code(403);
     ecomm_log_error("Photo access token mismatch", [
         'expected_staff_id' => $tokenData['staff_id'],
-        'actual_staff_id' => $_SESSION['userID'] ?? null,
+        'actual_staff_id' => $_SESSION['user_id'] ?? null,
         'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
     ]);
     die('Access denied');

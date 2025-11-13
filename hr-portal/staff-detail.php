@@ -10,7 +10,7 @@ require_once __DIR__ . '/includes/XeroIntegration.php';
 require_once __DIR__ . '/includes/AIPayrollEngine.php';
 require_once __DIR__ . '/includes/PayrollDashboard.php';
 
-if (!isset($_SESSION['userID']) || !isset($_GET['id'])) {
+if (!isset($_SESSION['user_id']) || !isset($_GET['id'])) {
     header('Location: /login.php');
     exit;
 }

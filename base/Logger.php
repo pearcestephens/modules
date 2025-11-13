@@ -209,7 +209,7 @@ class CISLogger {
         
         global $con;
         
-        $userId = $_SESSION['userID'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
         $userName = isset($_SESSION['first_name'], $_SESSION['last_name']) 
             ? $_SESSION['first_name'] . ' ' . $_SESSION['last_name']
             : null;
@@ -284,7 +284,7 @@ class CISLogger {
     ): ?int {
         self::init();
         
-        $userId = $_SESSION['userID'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
         $outletId = $_SESSION['outlet_id'] ?? null;
         
         try {
@@ -324,7 +324,7 @@ class CISLogger {
             return Database::insert('cis_security_log', [
                 'event_type' => $eventType,
                 'severity' => $severity,
-                'user_id' => $userId ?: ($_SESSION['userID'] ?? null),
+                'user_id' => $userId ?: ($_SESSION['user_id'] ?? null),
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
                 'threat_indicators' => json_encode($threatIndicators),
@@ -356,7 +356,7 @@ class CISLogger {
                 'value' => $value,
                 'unit' => $unit,
                 'page_url' => $_SERVER['REQUEST_URI'] ?? null,
-                'user_id' => $_SESSION['userID'] ?? null,
+                'user_id' => $_SESSION['user_id'] ?? null,
                 'outlet_id' => $_SESSION['outlet_id'] ?? null,
                 'context_json' => json_encode($context)
             ]);
@@ -404,7 +404,7 @@ class CISLogger {
      * Start user session tracking
      */
     private static function startSession(): void {
-        $userId = $_SESSION['userID'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
         if (!$userId) return;
         
         try {

@@ -30,7 +30,7 @@ require_once __DIR__ . '/../bootstrap.php';
 // Require authentication
 cis_require_login();
 
-$user_id = $_SESSION['userID'];
+$user_id = $_SESSION['user_id'];
 
 // Pagination settings
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;

@@ -1770,7 +1770,7 @@ switch ($action) {
       // Generate new public_id
       $newPublicId = 'T-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
       $state = 'OPEN';
-      $createdById = isset($_SESSION['userID']) ? (int)$_SESSION['userID'] : 0;
+      $createdById = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
       $creationMethod = 'AUTOMATED'; // ENUM values: MANUAL, AUTOMATED (only 2 values in schema)
       $totalBoxes = (int)($original['total_boxes'] ?? 0);
 
@@ -1892,9 +1892,9 @@ switch ($action) {
 
       // 4.5. Add automatic note about recreation with user's name
       $userName = 'Unknown User';
-      if (isset($_SESSION['userID']) && $_SESSION['userID'] > 0) {
+      if (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0) {
         $userStmt = $db->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
-        $userStmt->bind_param('i', $_SESSION['userID']);
+        $userStmt->bind_param('i', $_SESSION['user_id']);
         $userStmt->execute();
         $userResult = $userStmt->get_result();
         if ($userRow = $userResult->fetch_assoc()) {
@@ -1902,7 +1902,7 @@ switch ($action) {
           $lastName = trim($userRow['last_name'] ?? '');
           $userName = trim($firstName . ' ' . $lastName);
           if (empty($userName)) {
-            $userName = 'User #' . $_SESSION['userID'];
+            $userName = 'User #' . $_SESSION['user_id'];
           }
         }
         $userStmt->close();

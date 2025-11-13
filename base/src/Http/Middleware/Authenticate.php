@@ -63,7 +63,7 @@ class Authenticate
         }
 
         // User is authenticated, add to request context
-        $_SESSION['userID'] = $userId;
+        $_SESSION['user_id'] = $userId;
 
         return null; // Continue to next middleware
     }
