@@ -29,18 +29,17 @@ class CsrfMiddleware
         $submittedToken = $this->getSubmittedToken();
 
         if (!$submittedToken || !$this->verifyToken($submittedToken)) {
-            http_response_code(403);
+            // Log CSRF violation
+            error_log(sprintf(
+                "[CSRF VIOLATION] IP: %s | URI: %s | Method: %s",
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                $_SERVER['REQUEST_URI'] ?? 'unknown',
+                $_SERVER['REQUEST_METHOD']
+            ));
 
-            if ($this->isAjaxRequest()) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => 'Invalid CSRF token'
-                ]);
-            } else {
-                echo 'CSRF token validation failed';
-            }
-
-            exit;
+            // Throw exception with 403 code (will be caught by bootstrap error handler)
+            $exception = new \Exception('CSRF token validation failed', 403);
+            throw $exception;
         }
 
         // Continue to next middleware

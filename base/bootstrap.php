@@ -114,26 +114,26 @@ if (PHP_SAPI !== 'cli') {
         require_once __DIR__ . '/middleware/LoggingMiddleware.php';
         require_once __DIR__ . '/middleware/RateLimitMiddleware.php';
         require_once __DIR__ . '/middleware/CsrfMiddleware.php';
-        
+
         // Create middleware pipeline
         $middlewarePipeline = new \App\Middleware\MiddlewarePipeline();
-        
+
         // Add middleware in execution order
         $middlewarePipeline
             ->add(new \App\Middleware\LoggingMiddleware())      // Log all requests
             ->add(new \App\Middleware\RateLimitMiddleware())    // Prevent abuse
             ->add(new \App\Middleware\CsrfMiddleware());        // CSRF protection
-        
+
         // Execute middleware pipeline
         $middlewarePipeline->handle($_REQUEST, function() {
             // Continue to application
             return null;
         });
-        
+
     } catch (Exception $e) {
         // Log middleware errors but don't break application
         error_log("[MIDDLEWARE ERROR] " . $e->getMessage());
-        
+
         // Handle specific middleware failures
         if ($e->getCode() === 429) {
             http_response_code(429);
@@ -239,22 +239,22 @@ function getCurrentUser(): ?array {
  *
  * BOT BYPASS: Add HTTP header "X-Bot-Bypass: your_token_here"
  * Token is stored in .env as BOT_BYPASS_TOKEN
- * 
+ *
  * Example usage:
  * curl -H "X-Bot-Bypass: your_token_from_env" https://example.com/admin
- * 
+ *
  * @param string $redirectUrl Where to redirect if not authenticated
  */
 function requireAuth(string $redirectUrl = '/login.php'): void {
     global $config;
-    
+
     // BOT BYPASS via HTTP header (simple, secure, works every time)
     $botBypassToken = $config->get('BOT_BYPASS_TOKEN', '');
-    
-    if (!empty($botBypassToken) && 
-        isset($_SERVER['HTTP_X_BOT_BYPASS']) && 
+
+    if (!empty($botBypassToken) &&
+        isset($_SERVER['HTTP_X_BOT_BYPASS']) &&
         hash_equals($botBypassToken, $_SERVER['HTTP_X_BOT_BYPASS'])) {
-        
+
         // Log bot bypass usage for monitoring
         error_log(sprintf(
             "[BOT BYPASS] IP: %s | URI: %s | Time: %s",
@@ -262,7 +262,7 @@ function requireAuth(string $redirectUrl = '/login.php'): void {
             $_SERVER['REQUEST_URI'] ?? 'unknown',
             date('Y-m-d H:i:s')
         ));
-        
+
         // Create bot test session if not already logged in
         if (!isset($_SESSION['user_id'])) {
             $_SESSION['user_id'] = 1;
@@ -538,17 +538,21 @@ function loginUser(array $user): void
     // CRITICAL: Prevent concurrent login race condition with file locking
     $lockKey = "login_lock_user_{$user['id']}";
     $lockFile = sys_get_temp_dir() . "/{$lockKey}.lock";
-    
+
     // Try to acquire exclusive lock (non-blocking)
-    $lockHandle = @fopen($lockFile, 'c');
-    if ($lockHandle === false || !flock($lockHandle, LOCK_EX | LOCK_NB)) {
+    $lockHandle = fopen($lockFile, 'c');
+    if ($lockHandle === false) {
+        error_log("[LOGIN ERROR] Failed to create lock file: {$lockFile}");
+        throw new \RuntimeException('Unable to process login. Please try again.');
+    }
+
+    if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
         // Another login attempt in progress
-        if ($lockHandle) {
-            fclose($lockHandle);
-        }
+        fclose($lockHandle);
+        error_log("[LOGIN] Concurrent login attempt blocked for user {$user['id']}");
         throw new \RuntimeException('Login already in progress. Please wait a moment and try again.');
     }
-    
+
     try {
         // Check if already logged in (prevent duplicate session creation)
         if (isset($_SESSION['user_id']) && $_SESSION['user_id'] === (int)$user['id']) {
@@ -603,22 +607,28 @@ function loginUser(array $user): void
                 'session_id' => session_id()
             ]);
         }
-        
+
     } finally {
         // Always release lock
         if ($lockHandle) {
             flock($lockHandle, LOCK_UN);
             fclose($lockHandle);
         }
-        
+
         // Cleanup old lock files (older than 1 hour)
-        $oldLocks = @glob(sys_get_temp_dir() . "/login_lock_user_*.lock");
-        if ($oldLocks) {
-            foreach ($oldLocks as $oldLock) {
-                if (@filemtime($oldLock) < time() - 3600) {
-                    @unlink($oldLock);
+        try {
+            $oldLocks = glob(sys_get_temp_dir() . "/login_lock_user_*.lock");
+            if ($oldLocks !== false) {
+                foreach ($oldLocks as $oldLock) {
+                    $mtime = filemtime($oldLock);
+                    if ($mtime !== false && $mtime < time() - 3600) {
+                        unlink($oldLock);
+                    }
                 }
             }
+        } catch (\Exception $e) {
+            // Log but don't fail - cleanup is non-critical
+            error_log("[LOGIN] Failed to cleanup old lock files: " . $e->getMessage());
         }
     }
 }

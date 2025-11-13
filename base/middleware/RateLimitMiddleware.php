@@ -27,23 +27,24 @@ class RateLimitMiddleware
         if ($data['count'] >= $this->maxRequests) {
             $retryAfter = $data['reset_at'] - time();
 
-            http_response_code(429);
+            // Log rate limit violation
+            error_log(sprintf(
+                "[RATE LIMIT] Identifier: %s | IP: %s | URI: %s | Retry After: %ds",
+                $identifier,
+                $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                $_SERVER['REQUEST_URI'] ?? 'unknown',
+                $retryAfter
+            ));
+
+            // Set headers before throwing exception
             header("Retry-After: {$retryAfter}");
             header("X-RateLimit-Limit: {$this->maxRequests}");
             header("X-RateLimit-Remaining: 0");
             header("X-RateLimit-Reset: {$data['reset_at']}");
 
-            if ($this->isAjaxRequest()) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => 'Rate limit exceeded',
-                    'retry_after' => $retryAfter
-                ]);
-            } else {
-                echo 'Too many requests. Please try again later.';
-            }
-
-            exit;
+            // Throw exception with 429 code (will be caught by bootstrap error handler)
+            $exception = new \Exception('Rate limit exceeded. Please try again later.', 429);
+            throw $exception;
         }
 
         // Increment counter

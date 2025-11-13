@@ -235,20 +235,10 @@ function get_user_by_username(string $username): ?array
 // - verify_password()       → Use password_verify() (native PHP)
 // ============================================================================
 
-// Initialize session if not already started
-if (session_status() === PHP_SESSION_NONE) {
-    session_start([
-        'cookie_httponly' => true,
-        'cookie_secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-        'cookie_samesite' => 'Lax',
-        'use_strict_mode' => true
-    ]);
-}
-
-// Regenerate session ID periodically for security
-if (!isset($_SESSION['last_regeneration'])) {
-    $_SESSION['last_regeneration'] = time();
-} elseif (time() - $_SESSION['last_regeneration'] > 1800) { // 30 minutes
-    session_regenerate_id(true);
-    $_SESSION['last_regeneration'] = time();
-}
+// ============================================================================
+// SESSION MANAGEMENT: Handled by BASE module
+// ============================================================================
+// Session is already started and configured in BASE bootstrap.php
+// No need to duplicate session management here
+// BASE handles: session_start(), cookie settings, regeneration timing
+// ============================================================================
