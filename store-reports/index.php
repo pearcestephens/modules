@@ -1,3 +1,4 @@
+<?php
 function sr_base_prefix(): string {
 	// 1) Env override if set
 	$p = getenv('APP_URL_PREFIX');
@@ -19,7 +20,6 @@ function sr_base_prefix(): string {
 	// 3) Default: no prefix
 	return '';
 }
-<?php
 // Store Reports Module Entry Point / Lightweight Router
 require_once __DIR__ . '/bootstrap.php';
 

@@ -268,7 +268,9 @@ function ls_req(string $method, string $endpoint, ?array $data=null): array {
     $token = tm_cfg_get('VEND_ACCESS_TOKEN');
   }
   if (!$token) {
-    error_log('[TransferManager] CRITICAL: LS_API_TOKEN not set');
+    if (getenv('APP_DEBUG') === 'true') {
+      error_log('[TransferManager] CRITICAL: LS_API_TOKEN not set');
+    }
     return ['success'=>false, 'status_code'=>0, 'error'=>'CONFIG_ERROR', 'message'=>'Lightspeed API token not configured'];
   }
 

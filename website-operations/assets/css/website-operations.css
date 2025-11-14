@@ -1,0 +1,637 @@
+/**
+ * Website Operations Module - Master Stylesheet
+ *
+ * Enterprise-grade CSS for VapeShed & Ecigdis web operations
+ * Built for production use with full responsiveness
+ *
+ * @version 1.0.0
+ * @author Ecigdis Development Team
+ * @date 2025-11-14
+ */
+
+/* ============================================================================
+   ROOT VARIABLES
+   ============================================================================ */
+
+:root {
+    /* Brand Colors - VapeShed */
+    --color-primary: #2563eb;
+    --color-primary-dark: #1e40af;
+    --color-primary-light: #3b82f6;
+
+    --color-secondary: #7c3aed;
+    --color-secondary-dark: #6d28d9;
+    --color-secondary-light: #8b5cf6;
+
+    /* Status Colors */
+    --color-success: #10b981;
+    --color-success-light: #d1fae5;
+    --color-warning: #f59e0b;
+    --color-warning-light: #fef3c7;
+    --color-danger: #ef4444;
+    --color-danger-light: #fee2e2;
+    --color-info: #3b82f6;
+    --color-info-light: #dbeafe;
+
+    /* Neutral Colors */
+    --color-gray-50: #f9fafb;
+    --color-gray-100: #f3f4f6;
+    --color-gray-200: #e5e7eb;
+    --color-gray-300: #d1d5db;
+    --color-gray-400: #9ca3af;
+    --color-gray-500: #6b7280;
+    --color-gray-600: #4b5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1f2937;
+    --color-gray-900: #111827;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+
+    /* Typography */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+    /* Borders */
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-xl: 1rem;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 300ms ease-in-out;
+    --transition-slow: 500ms ease-in-out;
+}
+
+/* ============================================================================
+   MODULE CONTAINER
+   ============================================================================ */
+
+.website-operations-module {
+    font-family: var(--font-sans);
+    color: var(--color-gray-900);
+    background-color: var(--color-gray-50);
+    min-height: 100vh;
+}
+
+/* ============================================================================
+   HEADER & NAVIGATION
+   ============================================================================ */
+
+.webops-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: white;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.webops-header-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.webops-header-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin-top: var(--spacing-xs);
+}
+
+.webops-nav {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.webops-nav-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    transition: background var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.webops-nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.webops-nav-link.active {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================================
+   LAYOUT GRID
+   ============================================================================ */
+
+.webops-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+.webops-grid {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+.webops-grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.webops-grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.webops-grid-4 {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* ============================================================================
+   CARDS & PANELS
+   ============================================================================ */
+
+.webops-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-lg);
+    transition: box-shadow var(--transition-fast);
+}
+
+.webops-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.webops-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--color-gray-100);
+}
+
+.webops-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-gray-900);
+    margin: 0;
+}
+
+.webops-card-body {
+    color: var(--color-gray-700);
+}
+
+.webops-card-footer {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ============================================================================
+   STAT WIDGETS
+   ============================================================================ */
+
+.webops-stat-widget {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.webops-stat-widget:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.webops-stat-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.webops-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-gray-900);
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+}
+
+.webops-stat-change {
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.webops-stat-change.positive {
+    color: var(--color-success);
+}
+
+.webops-stat-change.negative {
+    color: var(--color-danger);
+}
+
+.webops-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.webops-stat-icon.primary {
+    background: var(--color-info-light);
+    color: var(--color-info);
+}
+
+.webops-stat-icon.success {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.webops-stat-icon.warning {
+    background: var(--color-warning-light);
+    color: var(--color-warning);
+}
+
+.webops-stat-icon.danger {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.webops-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    text-decoration: none;
+    text-align: center;
+    justify-content: center;
+}
+
+.webops-btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.webops-btn-primary:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.webops-btn-secondary {
+    background: var(--color-gray-200);
+    color: var(--color-gray-700);
+}
+
+.webops-btn-secondary:hover {
+    background: var(--color-gray-300);
+}
+
+.webops-btn-success {
+    background: var(--color-success);
+    color: white;
+}
+
+.webops-btn-success:hover {
+    background: #059669;
+}
+
+.webops-btn-danger {
+    background: var(--color-danger);
+    color: white;
+}
+
+.webops-btn-danger:hover {
+    background: #dc2626;
+}
+
+.webops-btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.75rem;
+}
+
+.webops-btn-lg {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 1rem;
+}
+
+/* ============================================================================
+   BADGES & LABELS
+   ============================================================================ */
+
+.webops-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.webops-badge-success {
+    background: var(--color-success-light);
+    color: var(--color-success);
+}
+
+.webops-badge-warning {
+    background: var(--color-warning-light);
+    color: #92400e;
+}
+
+.webops-badge-danger {
+    background: var(--color-danger-light);
+    color: var(--color-danger);
+}
+
+.webops-badge-info {
+    background: var(--color-info-light);
+    color: var(--color-info);
+}
+
+.webops-badge-gray {
+    background: var(--color-gray-200);
+    color: var(--color-gray-700);
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+
+.webops-table-container {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.webops-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.webops-table thead {
+    background: var(--color-gray-50);
+}
+
+.webops-table th {
+    padding: var(--spacing-md);
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.webops-table td {
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--color-gray-200);
+}
+
+.webops-table tbody tr {
+    transition: background var(--transition-fast);
+}
+
+.webops-table tbody tr:hover {
+    background: var(--color-gray-50);
+}
+
+/* ============================================================================
+   FORMS
+   ============================================================================ */
+
+.webops-form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.webops-label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--color-gray-700);
+    margin-bottom: var(--spacing-xs);
+}
+
+.webops-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.webops-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.webops-select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    background: white;
+    cursor: pointer;
+}
+
+.webops-textarea {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    font-family: var(--font-sans);
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* ============================================================================
+   ALERTS & NOTIFICATIONS
+   ============================================================================ */
+
+.webops-alert {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+}
+
+.webops-alert-success {
+    background: var(--color-success-light);
+    border-left: 4px solid var(--color-success);
+    color: #065f46;
+}
+
+.webops-alert-warning {
+    background: var(--color-warning-light);
+    border-left: 4px solid var(--color-warning);
+    color: #92400e;
+}
+
+.webops-alert-danger {
+    background: var(--color-danger-light);
+    border-left: 4px solid var(--color-danger);
+    color: #991b1b;
+}
+
+.webops-alert-info {
+    background: var(--color-info-light);
+    border-left: 4px solid var(--color-info);
+    color: #1e40af;
+}
+
+/* ============================================================================
+   LOADING & SPINNERS
+   ============================================================================ */
+
+.webops-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+}
+
+.webops-spinner {
+    border: 3px solid var(--color-gray-200);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: webops-spin 0.8s linear infinite;
+}
+
+@keyframes webops-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .webops-container {
+        padding: var(--spacing-md);
+    }
+
+    .webops-header {
+        padding: var(--spacing-md);
+    }
+
+    .webops-header-title {
+        font-size: 1.25rem;
+    }
+
+    .webops-grid-2,
+    .webops-grid-3,
+    .webops-grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .webops-stat-value {
+        font-size: 1.5rem;
+    }
+
+    .webops-card {
+        padding: var(--spacing-md);
+    }
+
+    .webops-table-container {
+        overflow-x: auto;
+    }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.webops-text-center { text-align: center; }
+.webops-text-right { text-align: right; }
+.webops-mt-0 { margin-top: 0; }
+.webops-mt-sm { margin-top: var(--spacing-sm); }
+.webops-mt-md { margin-top: var(--spacing-md); }
+.webops-mt-lg { margin-top: var(--spacing-lg); }
+.webops-mb-0 { margin-bottom: 0; }
+.webops-mb-sm { margin-bottom: var(--spacing-sm); }
+.webops-mb-md { margin-bottom: var(--spacing-md); }
+.webops-mb-lg { margin-bottom: var(--spacing-lg); }
+.webops-flex { display: flex; }
+.webops-flex-col { flex-direction: column; }
+.webops-items-center { align-items: center; }
+.webops-justify-between { justify-content: space-between; }
+.webops-gap-sm { gap: var(--spacing-sm); }
+.webops-gap-md { gap: var(--spacing-md); }
+.webops-gap-lg { gap: var(--spacing-lg); }
+.webops-w-full { width: 100%; }
+.webops-hidden { display: none; }
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+    .webops-nav,
+    .webops-btn {
+        display: none;
+    }
+
+    .webops-card {
+        box-shadow: none;
+        border: 1px solid var(--color-gray-300);
+    }
+}

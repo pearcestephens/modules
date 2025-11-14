@@ -1,0 +1,98 @@
+{
+  "name": "website-operations",
+  "version": "1.0.0",
+  "title": "Enterprise Website Operations",
+  "description": "Complete e-commerce operations suite for VapeShed.co.nz, Ecigdis.co.nz, and all retail channels",
+  "author": "Ecigdis Development Team",
+  "type": "enterprise-module",
+  "features": [
+    "multi-channel-order-management",
+    "wholesale-operations",
+    "retail-integration",
+    "product-catalog-management",
+    "customer-account-management",
+    "inventory-sync",
+    "performance-analytics",
+    "cms-content-management",
+    "addon-template-system",
+    "shipping-optimization",
+    "real-time-order-tracking",
+    "api-integration-vapeshed",
+    "api-integration-ecigdis",
+    "multi-store-support",
+    "advanced-reporting"
+  ],
+  "requires": {
+    "php": ">=7.4",
+    "mysql": ">=5.7",
+    "extensions": [
+      "pdo",
+      "curl",
+      "json",
+      "mbstring"
+    ]
+  },
+  "endpoints": {
+    "api": "/modules/website-operations/api/",
+    "views": "/modules/website-operations/views/",
+    "assets": "/modules/website-operations/assets/"
+  },
+  "database": "jcepnzzkmj",
+  "databases": {
+    "primary": "jcepnzzkmj",
+    "tables": [
+      "web_orders",
+      "web_customers",
+      "web_products",
+      "web_categories",
+      "web_content_pages",
+      "web_addon_templates",
+      "wholesale_accounts",
+      "store_configurations",
+      "shipping_rates",
+      "order_performance_metrics"
+    ]
+  },
+  "permissions": {
+    "admin": [
+      "view_all_orders",
+      "manage_products",
+      "manage_customers",
+      "manage_wholesale",
+      "view_analytics",
+      "manage_content",
+      "configure_stores"
+    ],
+    "manager": [
+      "view_orders",
+      "manage_products",
+      "view_customers",
+      "view_analytics"
+    ],
+    "staff": [
+      "view_orders",
+      "view_products",
+      "view_customers"
+    ]
+  },
+  "integrations": {
+    "vapeshed": {
+      "enabled": true,
+      "base_url": "https://vapeshed.co.nz",
+      "api_version": "v2",
+      "features": ["orders", "products", "customers", "inventory"]
+    },
+    "ecigdis": {
+      "enabled": true,
+      "base_url": "https://ecigdis.co.nz",
+      "api_version": "v2",
+      "features": ["wholesale", "bulk-orders", "pricing"]
+    },
+    "shipping": {
+      "providers": ["nz-post", "courier-post", "fastway"],
+      "optimization": "cost-minimization"
+    }
+  },
+  "status": "active",
+  "priority": 10
+}

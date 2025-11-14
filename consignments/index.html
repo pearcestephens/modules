@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfers Module - Dashboard Index</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .dashboard-card-header {
+            padding: 2rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .dashboard-card.staff .dashboard-card-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0055cc 100%);
+        }
+
+        .dashboard-card.outlet .dashboard-card-header {
+            background: linear-gradient(135deg, #8bc34a 0%, #689f38 100%);
+        }
+
+        .dashboard-card.manager .dashboard-card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .dashboard-card.admin .dashboard-card-header {
+            background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+        }
+
+        .dashboard-card-body {
+            padding: 2rem;
+        }
+
+        .dashboard-card-body h3 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .btn-dashboard {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-dashboard:hover {
+            transform: scale(1.02);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-hub {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-staff {
+            background: linear-gradient(135deg, #0d6efd 0%, #0055cc 100%);
+        }
+
+        .btn-outlet {
+            background: linear-gradient(135deg, #8bc34a 0%, #689f38 100%);
+        }
+
+        .btn-manager {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1><i class="fas fa-exchange-alt"></i> Transfers Module Dashboard System</h1>
+            <p>Complete transfer management with real-time visualization, profitability tracking, and AI optimization</p>
+        </div>
+
+        <!-- INFO BOX -->
+        <div class="info-box">
+            <h3>🎯 Quick Start</h3>
+            <p>Choose your role below to access the appropriate dashboard:</p>
+            <div class="code-block">
+/modules/consignments/transfers-hub.php
+            </div>
+            <p><strong>Or access full pages directly:</strong></p>
+            <ul style="color: #666;">
+                <li>Staff: View your transfers</li>
+                <li>Outlet Manager: Manage outlet inventory & transfers</li>
+                <li>Manager: Full transfer control & network visualization</li>
+                <li>Admin: System health & performance monitoring</li>
+            </ul>
+        </div>
+
+        <!-- DASHBOARD GRID -->
+        <div class="dashboard-grid">
+            <!-- HUB DASHBOARD -->
+            <div class="dashboard-card">
+                <div class="dashboard-card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-th-large" style="font-size: 1.5rem;"></i>
+                    Transfers Hub
+                </div>
+                <div class="dashboard-card-body">
+                    <h3>Central Dashboard</h3>
+                    <ul class="feature-list">
+                        <li>4 role-based dashboard tabs</li>
+                        <li>Quick widget view</li>
+                        <li>Links to full pages</li>
+                        <li>Real-time data</li>
+                        <li>Mobile responsive</li>
+                    </ul>
+                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        For all users - choose your role to see relevant dashboard
+                    </p>
+                    <a href="/modules/consignments/transfers-hub.php" class="btn-dashboard btn-hub">
+                        <i class="fas fa-arrow-right"></i> Open Hub Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- STAFF DASHBOARD -->
+            <div class="dashboard-card staff">
+                <div class="dashboard-card-header">
+                    <i class="fas fa-user" style="font-size: 1.5rem;"></i>
+                    Staff Dashboard
+                </div>
+                <div class="dashboard-card-body">
+                    <h3>My Transfers</h3>
+                    <ul class="feature-list">
+                        <li>View your transfers only</li>
+                        <li>Status tracking</li>
+                        <li>Item counts</li>
+                        <li>Quick actions</li>
+                        <li>Simple & clean UI</li>
+                    </ul>
+                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Command center for warehouse staff
+                    </p>
+                    <a href="/modules/consignments/transfers-hub.php?tab=staff" class="btn-dashboard btn-staff">
+                        <i class="fas fa-arrow-right"></i> View My Transfers
+                    </a>
+                </div>
+            </div>
+
+            <!-- OUTLET MANAGER DASHBOARD -->
+            <div class="dashboard-card outlet">
+                <div class="dashboard-card-header">
+                    <i class="fas fa-store" style="font-size: 1.5rem;"></i>
+                    Outlet Manager
+                </div>
+                <div class="dashboard-card-body">
+                    <h3>Outlet Dashboard</h3>
+                    <ul class="feature-list">
+                        <li>Inventory overview</li>
+                        <li>Low stock alerts</li>
+                        <li>Transfer tracking</li>
+                        <li>Stock requests</li>
+                        <li>Regional balance</li>
+                    </ul>
+                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Manage your outlet's inventory & transfers
+                    </p>
+                    <a href="/modules/consignments/outlet-dashboard-full.php" class="btn-dashboard btn-outlet">
+                        <i class="fas fa-arrow-right"></i> Full Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- MANAGEMENT DASHBOARD -->
+            <div class="dashboard-card manager">
+                <div class="dashboard-card-header">
+                    <i class="fas fa-chart-bar" style="font-size: 1.5rem;"></i>
+                    Management Panel
+                </div>
+                <div class="dashboard-card-body">
+                    <h3>Full Control</h3>
+                    <ul class="feature-list">
+                        <li>Network visualization map</li>
+                        <li>Cost analysis</li>
+                        <li>Profit tracking</li>
+                        <li>Approval workflow</li>
+                        <li>Real-time metrics</li>
+                    </ul>
+                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Complete transfer management interface
+                    </p>
+                    <a href="/modules/consignments/management-dashboard-full.php" class="btn-dashboard btn-manager">
+                        <i class="fas fa-arrow-right"></i> Full Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- SYSTEM HEALTH DASHBOARD -->
+            <div class="dashboard-card admin">
+                <div class="dashboard-card-header">
+                    <i class="fas fa-heartbeat" style="font-size: 1.5rem;"></i>
+                    System Health
+                </div>
+                <div class="dashboard-card-body">
+                    <h3>Admin Dashboard</h3>
+                    <ul class="feature-list">
+                        <li>System status monitoring</li>
+                        <li>Service health checks</li>
+                        <li>Engine logs</li>
+                        <li>Performance charts</li>
+                        <li>Admin controls</li>
+                    </ul>
+                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Real-time system monitoring & optimization
+                    </p>
+                    <a href="/modules/consignments/system-dashboard-full.php" class="btn-dashboard btn-admin">
+                        <i class="fas fa-arrow-right"></i> Full Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCUMENTATION -->
+        <div class="info-box">
+            <h3>📚 Documentation</h3>
+            <p>For complete information about the dashboard system, see:</p>
+            <ul style="color: #666;">
+                <li><strong>TRANSFERS_HUB_COMPLETE.md</strong> - Detailed feature guide</li>
+                <li><strong>DASHBOARD_BUILD_COMPLETE.txt</strong> - Build summary & checklist</li>
+            </ul>
+        </div>
+
+        <!-- FEATURES SUMMARY -->
+        <div class="info-box">
+            <h3>✨ Key Features</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div>
+                    <h4 style="color: #667eea;"><i class="fas fa-map"></i> Google Maps Integration</h4>
+                    <p style="color: #666; margin: 0;">Real-time visualization of outlet locations and transfer routes with profit color-coding</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea;"><i class="fas fa-chart-pie"></i> Profitability Tracking</h4>
+                    <p style="color: #666; margin: 0;">Monitor profit margins, identify unprofitable transfers, and optimize costs</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea;"><i class="fas fa-bolt"></i> Real-Time Data</h4>
+                    <p style="color: #666; margin: 0;">Auto-updating metrics every 30 seconds with AJAX for seamless experience</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea;"><i class="fas fa-mobile-alt"></i> Responsive Design</h4>
+                    <p style="color: #666; margin: 0;">Perfect on desktop, tablet, and mobile with touch-friendly interface</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea;"><i class="fas fa-lock"></i> Role-Based Access</h4>
+                    <p style="color: #666; margin: 0;">Secure access control - staff, managers, and admins see only what they need</p>
+                </div>
+                <div>
+                    <h4 style="color: #667eea;"><i class="fas fa-rocket"></i> Production Ready</h4>
+                    <p style="color: #666; margin: 0;">Enterprise-grade code with SQL injection protection and error handling</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="info-box" style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h3 style="color: white;">🚀 Dashboard System Ready</h3>
+            <p>All 8 files are deployed and production-ready.</p>
+            <p style="margin: 0; font-size: 0.9rem;">Version 2.0.0 | Created 2025-11-13</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

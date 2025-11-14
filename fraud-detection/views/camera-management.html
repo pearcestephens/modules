@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Network Management - Fraud Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .camera-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .camera-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .status-online {
+            color: #28a745;
+        }
+        .status-offline {
+            color: #dc3545;
+        }
+        .badge-priority-high {
+            background-color: #dc3545;
+        }
+        .badge-priority-medium {
+            background-color: #ffc107;
+        }
+        .badge-priority-low {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-camera-video"></i> Camera Network Management
+            </a>
+            <div class="d-flex align-items-center text-white">
+                <span id="health-indicator" class="me-3"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="refreshData()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header Controls -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h2>Camera Network</h2>
+                <p class="text-muted">Manage cameras for AI behavioral analysis</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn btn-primary" onclick="showAddCameraModal()">
+                    <i class="bi bi-plus-circle"></i> Add Camera
+                </button>
+                <button class="btn btn-success" onclick="showBulkImportModal()">
+                    <i class="bi bi-upload"></i> Bulk Import
+                </button>
+                <button class="btn btn-info" onclick="testAllCameras()">
+                    <i class="bi bi-check-circle"></i> Test All
+                </button>
+            </div>
+        </div>
+
+        <!-- Health Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 id="stat-total">-</h3>
+                        <p class="text-muted mb-0">Total Cameras</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-success">
+                    <div class="card-body">
+                        <h3 id="stat-online" class="text-success">-</h3>
+                        <p class="text-muted mb-0">Online</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-danger">
+                    <div class="card-body">
+                        <h3 id="stat-offline" class="text-danger">-</h3>
+                        <p class="text-muted mb-0">Offline</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-warning">
+                    <div class="card-body">
+                        <h3 id="stat-stale" class="text-warning">-</h3>
+                        <p class="text-muted mb-0">Stale (>5min)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Grid -->
+        <div id="camera-grid" class="row g-3">
+            <!-- Cameras will be loaded here -->
+        </div>
+
+        <!-- No Cameras Message -->
+        <div id="no-cameras-msg" class="text-center py-5 d-none">
+            <i class="bi bi-camera-video-off text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3">No Cameras Configured</h4>
+            <p class="text-muted">Add cameras to start AI behavioral monitoring</p>
+            <button class="btn btn-primary" onclick="showAddCameraModal()">
+                <i class="bi bi-plus-circle"></i> Add Your First Camera
+            </button>
+        </div>
+    </div>
+
+    <!-- Add/Edit Camera Modal -->
+    <div class="modal fade" id="cameraModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraModalTitle">Add Camera</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="cameraForm">
+                        <input type="hidden" id="camera_id" name="camera_id">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Camera Name *</label>
+                                <input type="text" class="form-control" id="camera_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Location *</label>
+                                <input type="text" class="form-control" id="location" placeholder="e.g., Cash Register 1, Entrance">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Outlet *</label>
+                                <select class="form-select" id="outlet_id" required>
+                                    <option value="">Select Outlet...</option>
+                                    <!-- Will be populated from database -->
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Camera Type</label>
+                                <select class="form-select" id="camera_type">
+                                    <option value="fixed">Fixed</option>
+                                    <option value="ptz">PTZ (Pan-Tilt-Zoom)</option>
+                                    <option value="dome">Dome</option>
+                                    <option value="bullet">Bullet</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Stream URL (RTSP/HTTP) *</label>
+                            <input type="text" class="form-control" id="stream_url"
+                                   placeholder="rtsp://username:password@192.168.1.100:554/stream">
+                            <small class="text-muted">
+                                <i class="bi bi-shield-lock"></i> This will be encrypted in the database
+                            </small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Resolution</label>
+                                <select class="form-select" id="resolution">
+                                    <option value="1920x1080">1920x1080 (1080p)</option>
+                                    <option value="1280x720">1280x720 (720p)</option>
+                                    <option value="3840x2160">3840x2160 (4K)</option>
+                                    <option value="640x480">640x480 (VGA)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">FPS</label>
+                                <input type="number" class="form-control" id="fps" value="30" min="1" max="60">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Priority (1-10)</label>
+                                <input type="number" class="form-control" id="priority" value="5" min="1" max="10">
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="ptz_capable">
+                            <label class="form-check-label" for="ptz_capable">
+                                PTZ Capable (Can Pan, Tilt, Zoom)
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="testCameraForm()">
+                        <i class="bi bi-wifi"></i> Test Connection
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="saveCamera()">
+                        <i class="bi bi-save"></i> Save Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div class="modal fade" id="bulkImportModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bulk Import Cameras</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Upload a CSV file with camera information:</p>
+                    <div class="alert alert-info">
+                        <strong>CSV Format:</strong><br>
+                        <code>camera_name,location,outlet_id,stream_url,camera_type,resolution,fps,priority</code>
+                    </div>
+                    <input type="file" class="form-control" id="csv_file" accept=".csv">
+                    <div id="import-progress" class="mt-3 d-none">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="bulkImport()">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = 'api/camera-management.php';
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCameras();
+            loadHealthStats();
+            setInterval(loadHealthStats, 30000); // Refresh every 30s
+        });
+
+        // Load all cameras
+        async function loadCameras() {
+            try {
+                const response = await fetch(`${API_URL}?action=list`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    showError('Failed to load cameras: ' + data.error);
+                    return;
+                }
+
+                renderCameras(data.cameras);
+
+                if (data.cameras.length === 0) {
+                    document.getElementById('no-cameras-msg').classList.remove('d-none');
+                    document.getElementById('camera-grid').classList.add('d-none');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Render camera cards
+        function renderCameras(cameras) {
+            const grid = document.getElementById('camera-grid');
+            grid.innerHTML = '';
+            grid.classList.remove('d-none');
+            document.getElementById('no-cameras-msg').classList.add('d-none');
+
+            cameras.forEach(camera => {
+                const statusIcon = camera.online ?
+                    '<i class="bi bi-circle-fill status-online"></i>' :
+                    '<i class="bi bi-circle-fill status-offline"></i>';
+
+                const priorityBadge = camera.priority >= 8 ? 'badge-priority-high' :
+                                     camera.priority >= 5 ? 'badge-priority-medium' :
+                                     'badge-priority-low';
+
+                const card = `
+                    <div class="col-md-4 col-lg-3">
+                        <div class="card camera-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0">${camera.camera_name}</h6>
+                                    ${statusIcon}
+                                </div>
+                                <p class="text-muted small mb-2">
+                                    <i class="bi bi-geo-alt"></i> ${camera.location}
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge ${priorityBadge}">Priority ${camera.priority}</span>
+                                    <small class="text-muted">${camera.resolution} @ ${camera.fps}fps</small>
+                                </div>
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="testCamera(${camera.camera_id})">
+                                        <i class="bi bi-wifi"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="editCamera(${camera.camera_id})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCamera(${camera.camera_id}, '${camera.camera_name}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        // Load health stats
+        async function loadHealthStats() {
+            try {
+                const response = await fetch(`${API_URL}?action=health_check`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('stat-total').textContent = data.health.total_cameras;
+                    document.getElementById('stat-online').textContent = data.health.online;
+                    document.getElementById('stat-offline').textContent = data.health.offline;
+                    document.getElementById('stat-stale').textContent = data.health.stale;
+                }
+            } catch (error) {
+                console.error('Failed to load health stats:', error);
+            }
+        }
+
+        // Show add camera modal
+        function showAddCameraModal() {
+            document.getElementById('cameraModalTitle').textContent = 'Add Camera';
+            document.getElementById('cameraForm').reset();
+            document.getElementById('camera_id').value = '';
+            new bootstrap.Modal(document.getElementById('cameraModal')).show();
+        }
+
+        // Edit camera
+        async function editCamera(cameraId) {
+            try {
+                const response = await fetch(`${API_URL}?action=get&camera_id=${cameraId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    showError('Failed to load camera: ' + data.error);
+                    return;
+                }
+
+                const camera = data.camera;
+                document.getElementById('cameraModalTitle').textContent = 'Edit Camera';
+                document.getElementById('camera_id').value = camera.camera_id;
+                document.getElementById('camera_name').value = camera.camera_name;
+                document.getElementById('location').value = camera.location;
+                document.getElementById('outlet_id').value = camera.outlet_id;
+                document.getElementById('camera_type').value = camera.camera_type;
+                document.getElementById('stream_url').value = camera.stream_url || '';
+                document.getElementById('resolution').value = camera.resolution;
+                document.getElementById('fps').value = camera.fps;
+                document.getElementById('priority').value = camera.priority;
+                document.getElementById('ptz_capable').checked = camera.ptz_capable;
+
+                new bootstrap.Modal(document.getElementById('cameraModal')).show();
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Save camera
+        async function saveCamera() {
+            const cameraId = document.getElementById('camera_id').value;
+            const data = {
+                camera_id: cameraId || undefined,
+                camera_name: document.getElementById('camera_name').value,
+                location: document.getElementById('location').value,
+                outlet_id: document.getElementById('outlet_id').value,
+                camera_type: document.getElementById('camera_type').value,
+                stream_url: document.getElementById('stream_url').value,
+                resolution: document.getElementById('resolution').value,
+                fps: parseInt(document.getElementById('fps').value),
+                priority: parseInt(document.getElementById('priority').value),
+                ptz_capable: document.getElementById('ptz_capable').checked
+            };
+
+            const action = cameraId ? 'update' : 'add';
+
+            try {
+                const response = await fetch(`${API_URL}?action=${action}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess(result.message);
+                    bootstrap.Modal.getInstance(document.getElementById('cameraModal')).hide();
+                    loadCameras();
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Test camera
+        async function testCamera(cameraId) {
+            showInfo('Testing camera connection...');
+
+            try {
+                const response = await fetch(`${API_URL}?action=test&camera_id=${cameraId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(`Camera reachable! Latency: ${data.test_result.latency_ms}ms`);
+                } else {
+                    showError(`Camera unreachable: ${data.test_result.error}`);
+                }
+
+                loadCameras();
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Delete camera
+        async function deleteCamera(cameraId, cameraName) {
+            if (!confirm(`Delete camera "${cameraName}"?`)) return;
+
+            try {
+                const response = await fetch(`${API_URL}?action=delete&camera_id=${cameraId}`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('Camera deleted');
+                    loadCameras();
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadCameras();
+            loadHealthStats();
+            showInfo('Refreshed camera data');
+        }
+
+        // Show notification
+        function showSuccess(message) { showNotification(message, 'success'); }
+        function showError(message) { showNotification(message, 'danger'); }
+        function showInfo(message) { showNotification(message, 'info'); }
+
+        function showNotification(message, type) {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+            toast.style.zIndex = '9999';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

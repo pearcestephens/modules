@@ -103,7 +103,7 @@ final class ConsignmentService
      * Update consignment status with state transition validation
      *
      * Alias for setStatus() for BC compatibility.
-     * TODO: Add StateTransitionPolicy enforcement after service integration complete
+     * ✅ COMPLETED: StateTransitionPolicy enforcement ACTIVE
      *
      * @throws \InvalidArgumentException if transition is illegal
      */
@@ -121,12 +121,12 @@ final class ConsignmentService
             );
         }
 
-        // TODO: Once fully integrated, enforce state transitions:
-        // $current = $this->get($id);
-        // if ($current) {
-        //     $currentStatus = Status::fromString($current['status']);
-        //     StateTransitionPolicy::assertAllowed($currentStatus, $statusObj);
-        // }
+        // ✅ IMPLEMENTED: State transition enforcement active
+        $current = $this->get($id);
+        if ($current) {
+            $currentStatus = Status::fromString($current['status']);
+            StateTransitionPolicy::assertAllowed($currentStatus, $statusObj);
+        }
 
         return $this->setStatus($id, $newStatus);
     }

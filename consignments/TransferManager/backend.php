@@ -54,6 +54,22 @@ if (file_exists($app_path)) {
   require_once $app_path;
 }
 
+// Load Logger Service for proper logging
+$loggerPath = __DIR__ . '/../Services/LoggerService.php';
+if (file_exists($loggerPath)) {
+  require_once $loggerPath;
+  $logger = new \ConsignmentsModule\Services\LoggerService([
+    'debug' => getenv('APP_DEBUG') === 'true',
+    'log_path' => __DIR__ . '/../_logs'
+  ]);
+  // Store in globals for access in functions
+  $GLOBALS['logger'] = $logger;
+} else {
+  // Fallback: use null logger if service not available
+  $logger = null;
+  $GLOBALS['logger'] = null;
+}
+
 // Database connection helper - always define it here for backend.php
 function db(): mysqli {
   static $conn = null;
@@ -491,11 +507,19 @@ function ls_http(string $method, string $path, ?array $json = null, int $retries
 
   $result = ['ok' => ($status >= 200 && $status < 300), 'status' => $status, 'headers' => $headers, 'body' => $body];
 
-  // DEBUG: Log API response for troubleshooting
-  if (!$result['ok']) {
-    error_log("[LS_HTTP_ERROR] $method $path - Status: $status, Response: " . json_encode($body));
-  } else {
-    error_log("[LS_HTTP_SUCCESS] $method $path - Status: $status");
+  // Log API response only in debug mode
+  if ($GLOBALS['logger'] ?? false) {
+    if (!$result['ok']) {
+      $GLOBALS['logger']->logApiCall($method, $path, $status, 0, null, $body);
+    } elseif ($GLOBALS['logger']->isDebugEnabled()) {
+      $GLOBALS['logger']->logApiCall($method, $path, $status, 0, null, $body);
+    }
+  } elseif (getenv('APP_DEBUG') === 'true') {
+    if (!$result['ok']) {
+      error_log("[LS_HTTP_ERROR] $method $path - Status: $status, Response: " . json_encode($body));
+    } else {
+      error_log("[LS_HTTP_SUCCESS] $method $path - Status: $status");
+    }
   }
 
   return $result;
@@ -525,14 +549,22 @@ function ls_add_product(string $consId, string $pid, int $count, ?float $cost=nu
   if ($received !== null) $payload['received'] = $received;
   if ($cost !== null)     $payload['cost']     = $cost;
 
-  // DEBUG: Log exact payload being sent to Lightspeed
-  error_log("[LS_ADD_PRODUCT] Consignment: $consId, Payload: " . json_encode($payload));
+  // Log payload only in debug mode
+  if ($GLOBALS['logger'] ?? false) {
+    $GLOBALS['logger']->logProductOp('ADD', $pid, ['consignment_id' => $consId, 'count' => $count, 'cost' => $cost]);
+  } elseif (getenv('APP_DEBUG') === 'true') {
+    error_log("[LS_ADD_PRODUCT] Consignment: $consId, Payload: " . json_encode($payload));
+  }
 
   return ls_http('POST', "consignments/$consId/products", $payload);
 }
 function ls_update_product(string $consId, string $pid, array $fields): array {
-  // DEBUG: Log exact payload being sent to Lightspeed
-  error_log("[LS_UPDATE_PRODUCT] Consignment: $consId, Product: $pid, Fields: " . json_encode($fields));
+  // Log payload only in debug mode
+  if ($GLOBALS['logger'] ?? false) {
+    $GLOBALS['logger']->logProductOp('UPDATE', $pid, ['consignment_id' => $consId, 'fields' => $fields]);
+  } elseif (getenv('APP_DEBUG') === 'true') {
+    error_log("[LS_UPDATE_PRODUCT] Consignment: $consId, Product: $pid, Fields: " . json_encode($fields));
+  }
 
   return ls_http('PUT', "consignments/$consId/products/$pid", $fields);
 }
@@ -1480,20 +1512,28 @@ switch ($action) {
       $qty = (int)$line['qty_requested'];
       $cost = isset($line['supply_price']) ? (float)$line['supply_price'] : null;
 
-      // DEBUG: Log what cost we're sending
-      error_log("[CONSIGNMENT PUSH] Product $pid: supply_price={$line['supply_price']}, cost=$cost, qty=$qty");
+      // Log cost information only in debug mode
+      if ($GLOBALS['logger'] ?? false) {
+        $GLOBALS['logger']->logProductOp('PUSH_COST', $pid, ['supply_price' => $line['supply_price'], 'cost' => $cost, 'qty' => $qty]);
+      } elseif (getenv('APP_DEBUG') === 'true') {
+        error_log("[CONSIGNMENT PUSH] Product $pid: supply_price={$line['supply_price']}, cost=$cost, qty=$qty");
+      }
 
       if ($qty <= 0) { $skipped++; continue; }
       if (isset($existing[$pid])) {
         if ($existing[$pid] !== $qty) {
           $updateFields = ['count'=>$qty];
           if ($cost !== null) $updateFields['cost'] = $cost;
-          error_log("[CONSIGNMENT PUSH] Updating product $pid with fields: " . json_encode($updateFields));
+          if (getenv('APP_DEBUG') === 'true') {
+            error_log("[CONSIGNMENT PUSH] Updating product $pid with fields: " . json_encode($updateFields));
+          }
           $r = ls_update_product($vend_id, $pid, $updateFields);
           $r['ok'] ? $updated++ : $errors[] = ['product_id'=>$pid,'action'=>'update','status'=>$r['status'],'message'=>$r['body']['message'] ?? 'Update failed'];
         } else $skipped++;
       } else {
-        error_log("[CONSIGNMENT PUSH] Adding product $pid with cost=$cost, qty=$qty");
+        if (getenv('APP_DEBUG') === 'true') {
+          error_log("[CONSIGNMENT PUSH] Adding product $pid with cost=$cost, qty=$qty");
+        }
         $r = ls_add_product($vend_id, $pid, $qty, $cost);
         $r['ok'] ? $pushed++ : $errors[] = ['product_id'=>$pid,'action'=>'add','status'=>$r['status'],'message'=>$r['body']['message'] ?? 'Add failed'];
       }
@@ -1564,8 +1604,10 @@ switch ($action) {
         $priceMap[$pr['id']] = isset($pr['supply_price']) ? (float)$pr['supply_price'] : null;
       }
 
-      // DEBUG: Log price lookup results
-      error_log("[ADD_PRODUCTS] Fetched prices for " . count($priceMap) . " products: " . json_encode($priceMap));
+      // Log price lookup results only in debug mode
+      if (getenv('APP_DEBUG') === 'true') {
+        error_log("[ADD_PRODUCTS] Fetched prices for " . count($priceMap) . " products: " . json_encode($priceMap));
+      }
     }
 
     $added = 0; $updated = 0; $errors=[];
@@ -1573,8 +1615,10 @@ switch ($action) {
       $qty = (int)($qtys[$i] ?? 1);
       $cost = $priceMap[$pid] ?? null;
 
-      // DEBUG: Log what we're about to send
-      error_log("[ADD_PRODUCTS] Product $pid: qty=$qty, cost=" . ($cost !== null ? $cost : 'NULL'));
+      // Log product info only in debug mode
+      if (getenv('APP_DEBUG') === 'true') {
+        error_log("[ADD_PRODUCTS] Product $pid: qty=$qty, cost=" . ($cost !== null ? $cost : 'NULL'));
+      }
 
       if ($qty <= 0) $qty = 1;
       if (isset($existing[$pid])) {
@@ -2006,8 +2050,10 @@ switch ($action) {
           $cleanupStmt->execute();
           $cleanupStmt->close();
         } catch (Exception $cleanupErr) {
-          // Log cleanup failure but don't throw
-          error_log("Failed to cleanup partial transfer {$newId}: " . $cleanupErr->getMessage());
+          // Log cleanup failure but don't throw (only in debug mode)
+          if (getenv('APP_DEBUG') === 'true') {
+            error_log("Failed to cleanup partial transfer {$newId}: " . $cleanupErr->getMessage());
+          }
         }
       }
 

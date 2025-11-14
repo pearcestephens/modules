@@ -1,0 +1,235 @@
+{
+    "total": 36,
+    "passed": 36,
+    "failed": 0,
+    "tests": [
+        {
+            "name": "Database Connection",
+            "status": "PASS",
+            "message": "Connected to database",
+            "data": null
+        },
+        {
+            "name": "Web Tables Exist",
+            "status": "PASS",
+            "message": "30 web tables found",
+            "data": null
+        },
+        {
+            "name": "Store Configurations Table",
+            "status": "PASS",
+            "message": "3 stores configured",
+            "data": {
+                "count": 3
+            }
+        },
+        {
+            "name": "Load WebsiteOperationsService",
+            "status": "PASS",
+            "message": "Service class loaded",
+            "data": null
+        },
+        {
+            "name": "Load OrderManagementService",
+            "status": "PASS",
+            "message": "Order service loaded",
+            "data": null
+        },
+        {
+            "name": "Load ShippingOptimizationService",
+            "status": "PASS",
+            "message": "Shipping optimization loaded",
+            "data": null
+        },
+        {
+            "name": "Load ProductManagementService",
+            "status": "PASS",
+            "message": "Product service loaded",
+            "data": null
+        },
+        {
+            "name": "Load CustomerManagementService",
+            "status": "PASS",
+            "message": "Customer service loaded",
+            "data": null
+        },
+        {
+            "name": "Instantiate OrderManagementService",
+            "status": "PASS",
+            "message": "Service instantiated",
+            "data": null
+        },
+        {
+            "name": "Instantiate ProductManagementService",
+            "status": "PASS",
+            "message": "Service instantiated",
+            "data": null
+        },
+        {
+            "name": "Instantiate ShippingOptimizationService",
+            "status": "PASS",
+            "message": "Service instantiated",
+            "data": null
+        },
+        {
+            "name": "Get Recent Orders",
+            "status": "PASS",
+            "message": "0 orders retrieved",
+            "data": 0
+        },
+        {
+            "name": "Get Products",
+            "status": "PASS",
+            "message": "0 total products, showing 10",
+            "data": 0
+        },
+        {
+            "name": "Get Product Statistics",
+            "status": "PASS",
+            "message": "Total: 0, Active: 0",
+            "data": {
+                "total": 0,
+                "active": 0,
+                "low_stock": 0,
+                "out_of_stock": 0
+            }
+        },
+        {
+            "name": "Get Customer Statistics",
+            "status": "PASS",
+            "message": "Total: 0, Active: 0",
+            "data": {
+                "total": 0,
+                "active": 0,
+                "new": 0,
+                "wholesale": 0
+            }
+        },
+        {
+            "name": "Distance Calculation (Haversine)",
+            "status": "PASS",
+            "message": "Auckland to Wellington: 493.48 km",
+            "data": null
+        },
+        {
+            "name": "Package Details Calculation",
+            "status": "PASS",
+            "message": "Package: 400g, 1000cm\u00b3",
+            "data": null
+        },
+        {
+            "name": "Carrier Rate Estimation",
+            "status": "PASS",
+            "message": "2 shipping options found",
+            "data": null
+        },
+        {
+            "name": "API Index File Exists",
+            "status": "PASS",
+            "message": "API file exists",
+            "data": null
+        },
+        {
+            "name": "API File Syntax Valid",
+            "status": "PASS",
+            "message": "API syntax valid",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/WebsiteOperationsService.php",
+            "status": "PASS",
+            "message": "File exists (12,656 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/OrderManagementService.php",
+            "status": "PASS",
+            "message": "File exists (17,595 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/ShippingOptimizationService.php",
+            "status": "PASS",
+            "message": "File exists (18,343 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/ProductManagementService.php",
+            "status": "PASS",
+            "message": "File exists (20,181 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/CustomerManagementService.php",
+            "status": "PASS",
+            "message": "File exists (5,862 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/WholesaleService.php",
+            "status": "PASS",
+            "message": "File exists (2,631 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: services\/PerformanceService.php",
+            "status": "PASS",
+            "message": "File exists (3,707 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: api\/index.php",
+            "status": "PASS",
+            "message": "File exists (11,865 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: views\/dashboard.php",
+            "status": "PASS",
+            "message": "File exists (17,183 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: migrations\/001_create_tables.sql",
+            "status": "PASS",
+            "message": "File exists (14,076 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: module.json",
+            "status": "PASS",
+            "message": "File exists (2,414 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: README.md",
+            "status": "PASS",
+            "message": "File exists (13,267 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: BUILD_STATUS.md",
+            "status": "PASS",
+            "message": "File exists (12,936 bytes)",
+            "data": null
+        },
+        {
+            "name": "File exists: DELIVERY_REPORT.md",
+            "status": "PASS",
+            "message": "File exists (15,588 bytes)",
+            "data": null
+        },
+        {
+            "name": "Module.json Valid",
+            "status": "PASS",
+            "message": "Module config valid",
+            "data": null
+        },
+        {
+            "name": "Module.json Has Required Fields",
+            "status": "PASS",
+            "message": "All required fields present",
+            "data": null
+        }
+    ]
+}

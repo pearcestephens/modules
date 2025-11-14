@@ -155,40 +155,46 @@ function csrf_field(): string
  * Check if user has specific role
  * Wrapper around BASE getUserRole() function
  */
-function has_role(string $role): bool
-{
-    return getUserRole() === $role;  // Use BASE function
+if (!function_exists('has_role')) {
+    function has_role(string $role): bool
+    {
+        return getUserRole() === $role;  // Use BASE function
+    }
 }
 
 /**
  * Check if user is admin
  * Wrapper around BASE hasPermission() function
  */
-function is_admin(): bool
-{
-    return has_role('admin') || hasPermission('admin');  // Use BASE functions
+if (!function_exists('is_admin')) {
+    function is_admin(): bool
+    {
+        return has_role('admin') || hasPermission('admin');  // Use BASE functions
+    }
 }
 
 /**
  * Log activity (CORE-specific implementation)
  */
-function log_activity(string $action, array $details = []): void
-{
-    if (!isAuthenticated()) {  // Use BASE function
-        return;
+if (!function_exists('log_activity')) {
+    function log_activity(string $action, array $details = []): void
+    {
+        if (!isAuthenticated()) {  // Use BASE function
+            return;
+        }
+
+        $userId = getUserId();  // Use BASE function
+        $logFile = CORE_PATH . '/../_logs/activity.log';
+        $logLine = sprintf(
+            "[%s] User %d: %s - %s\n",
+            date('Y-m-d H:i:s'),
+            $userId,
+            $action,
+            json_encode($details)
+        );
+
+        @file_put_contents($logFile, $logLine, FILE_APPEND);
     }
-
-    $userId = getUserId();  // Use BASE function
-    $logFile = CORE_PATH . '/../_logs/activity.log';
-    $logLine = sprintf(
-        "[%s] User %d: %s - %s\n",
-        date('Y-m-d H:i:s'),
-        $userId,
-        $action,
-        json_encode($details)
-    );
-
-    @file_put_contents($logFile, $logLine, FILE_APPEND);
 }
 
 /**

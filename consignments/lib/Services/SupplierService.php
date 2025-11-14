@@ -241,8 +241,20 @@ class SupplierService
             throw new RuntimeException("Supplier has no email address");
         }
 
-        // TODO: Integrate with actual email service (Q27 implementation)
-        // For now, just log the email
+        // ✅ IMPLEMENTED: Email notification service integrated
+        require_once __DIR__ . '/../../Services/EmailNotificationService.php';
+        $mailer = new \ConsignmentsModule\Services\EmailNotificationService($this->pdo);
+
+        // Send email using the notification service
+        return $mailer->sendSupplierNotification(
+            $supplierId,
+            $subject,
+            $body,
+            $attachments ?? []
+        );
+
+        // Legacy code below kept for reference but no longer executed
+        /*
         try {
             $stmt = $this->pdo->prepare("
                 INSERT INTO supplier_email_log (

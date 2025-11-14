@@ -46,7 +46,9 @@ function fetch_init_for_config(): array {
   curl_close($ch);
 
   if ($httpCode !== 200) {
-    error_log("config.js.php: backend.php returned HTTP $httpCode");
+    if (getenv('APP_DEBUG') === 'true') {
+      error_log("config.js.php: backend.php returned HTTP $httpCode");
+    }
     return [];
   }
 
@@ -57,7 +59,9 @@ function fetch_init_for_config(): array {
     return $j['data'];
   }
 
-  error_log("config.js.php: Failed to parse backend.php response");
+  if (getenv('APP_DEBUG') === 'true') {
+    error_log("config.js.php: Failed to parse backend.php response");
+  }
   return [];
 }
 

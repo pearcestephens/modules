@@ -1,0 +1,60 @@
+{
+    "name": "ecigdis/fraud-detection",
+    "description": "Advanced AI-powered fraud detection system with ML prediction, computer vision, NLP communication analysis, customer collusion detection, and digital twin behavioral profiling",
+    "type": "library",
+    "version": "2.0.0",
+    "keywords": ["fraud-detection", "machine-learning", "computer-vision", "nlp", "behavioral-analysis", "retail"],
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Ecigdis Limited",
+            "email": "pearce.stephens@ecigdis.co.nz"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-pcntl": "*",
+        "ext-sodium": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "squizlabs/php_codesniffer": "^3.7",
+        "phpstan/phpstan": "^1.10",
+        "friendsofphp/php-cs-fixer": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FraudDetection\\": "src/",
+            "FraudDetection\\Lib\\": "lib/"
+        },
+        "files": []
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FraudDetection\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --colors=always",
+        "test-coverage": "phpunit --coverage-html coverage/",
+        "phpcs": "phpcs --standard=PSR12 src/ lib/",
+        "phpcbf": "phpcbf --standard=PSR12 src/ lib/",
+        "phpstan": "phpstan analyse src/ lib/ --level=8",
+        "lint": [
+            "@phpcs",
+            "@phpstan"
+        ],
+        "fix": "@phpcbf",
+        "generate-key": "php bin/generate-encryption-key.php"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

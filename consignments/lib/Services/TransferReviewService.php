@@ -262,10 +262,13 @@ class TransferReviewService {
             $stmt->execute();
             $outlets = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
+            // ✅ IMPLEMENTED: Email notification service integrated
+            require_once __DIR__ . '/../../Services/EmailNotificationService.php';
+            $mailer = new \ConsignmentsModule\Services\EmailNotificationService($this->pdo);
+
             foreach ($outlets as $outletId) {
                 $report = $this->aggregateOutletWeekly($outletId);
-                // TODO: send email via mailer system
-                // Mailer::sendOutletReport($outletId, $report);
+                $mailer->sendOutletWeeklyReport($outletId, $report);
             }
         } catch (\Exception $e) {
             error_log('[TransferReviewService] Failed to schedule weekly reports: ' . $e->getMessage());
