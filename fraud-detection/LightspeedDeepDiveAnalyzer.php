@@ -73,7 +73,7 @@ class LightspeedDeepDiveAnalyzer
     private const VOID_PERCENTAGE_THRESHOLD = 10; // % of transactions
     private const DISCOUNT_PERCENTAGE_THRESHOLD = 20; // % discount
     private const DEPOSIT_DELAY_THRESHOLD_DAYS = 3; // Days to deposit
-    
+
     public function __construct(PDO $pdo, array $config = [])
     {
         $this->pdo = $pdo;
@@ -142,7 +142,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 1: PAYMENT TYPE FRAUD ANALYSIS
-     * 
+     *
      * Detects:
      * - Payments to unusual/custom payment types
      * - Payment type switching patterns
@@ -160,7 +160,7 @@ class LightspeedDeepDiveAnalyzer
         try {
             // 1. Get all payment types used by this staff
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     payment_type,
                     COUNT(*) as usage_count,
                     SUM(total_price) as total_amount,
@@ -217,7 +217,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 4. Analyze split payment patterns
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     DATE(sale_date) as sale_day,
                     COUNT(*) as split_payment_count,
                     SUM(total_price) as total_amount
@@ -225,7 +225,7 @@ class LightspeedDeepDiveAnalyzer
                 WHERE user_id = :staff_id
                 AND sale_date >= DATE_SUB(NOW(), INTERVAL :days DAY)
                 AND (
-                    payment_type LIKE '%,%' 
+                    payment_type LIKE '%,%'
                     OR JSON_LENGTH(payment_types) > 1
                 )
                 GROUP BY DATE(sale_date)
@@ -251,7 +251,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 5. Cash vs Card ratio analysis (compare to outlet average)
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     SUM(CASE WHEN payment_type = 'CASH' THEN total_price ELSE 0 END) as cash_total,
                     SUM(CASE WHEN payment_type IN ('EFTPOS', 'CREDIT_CARD', 'DEBIT_CARD') THEN total_price ELSE 0 END) as card_total,
                     COUNT(CASE WHEN payment_type = 'CASH' THEN 1 END) as cash_count,
@@ -265,10 +265,10 @@ class LightspeedDeepDiveAnalyzer
             $ratios = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $cashPercentage = $ratios['cash_total'] / ($ratios['cash_total'] + $ratios['card_total']) * 100;
-            
+
             // Get outlet average for comparison
             $outletCashPercentage = $this->getOutletAverageCashPercentage($staffId, $days);
-            
+
             if (abs($cashPercentage - $outletCashPercentage) > 20) {
                 $this->addFraudIndicator(
                     'abnormal_cash_ratio',
@@ -288,7 +288,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 2: CUSTOMER ACCOUNT FRAUD ANALYSIS
-     * 
+     *
      * Detects:
      * - Sales on random/fake customer accounts
      * - Account credit manipulation
@@ -306,7 +306,7 @@ class LightspeedDeepDiveAnalyzer
         try {
             // 1. Find sales on ACCOUNT payment type
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     customer_id,
                     customer_name,
                     COUNT(*) as sales_count,
@@ -352,7 +352,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 2. Check for store credit abuse
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     customer_id,
                     customer_name,
                     COUNT(*) as credit_usage_count,
@@ -382,7 +382,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 3. Check for loyalty points manipulation
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     customer_id,
                     customer_name,
                     SUM(loyalty_points_earned) as points_earned,
@@ -450,7 +450,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 3: INVENTORY MOVEMENT FRAUD ANALYSIS
-     * 
+     *
      * Detects:
      * - Stock adjustments without proper reason
      * - Transfer manipulation between outlets
@@ -468,7 +468,7 @@ class LightspeedDeepDiveAnalyzer
         try {
             // 1. Analyze stock adjustments
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     product_id,
                     product_name,
                     outlet_id,
@@ -484,7 +484,7 @@ class LightspeedDeepDiveAnalyzer
                 ORDER BY ABS(total_adjusted) DESC
             ");
             $stmt->execute([
-                'staff_id' => $staffId, 
+                'staff_id' => $staffId,
                 'days' => $days,
                 'threshold' => self::INVENTORY_ADJUSTMENT_THRESHOLD
             ]);
@@ -516,7 +516,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 2. Analyze stock transfers
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     from_outlet_id,
                     to_outlet_id,
                     COUNT(*) as transfer_count,
@@ -546,7 +546,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 3. Receiving discrepancies
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     r.id as receiving_id,
                     r.expected_items,
                     r.received_items,
@@ -564,7 +564,7 @@ class LightspeedDeepDiveAnalyzer
             if (count($receivingDiscrepancies) > 0) {
                 $sectionData['checks_performed'][] = 'receiving_discrepancy_analysis';
                 $totalDiscrepancy = array_sum(array_column($receivingDiscrepancies, 'discrepancy'));
-                
+
                 if (abs($totalDiscrepancy) > 20) {
                     $this->addFraudIndicator(
                         'receiving_discrepancies',
@@ -578,7 +578,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 4. Shrinkage pattern analysis
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     outlet_id,
                     SUM(shrinkage_qty) as total_shrinkage,
                     SUM(shrinkage_qty * cost_price) as shrinkage_value,
@@ -613,7 +613,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 4: CASH REGISTER CLOSURE ANALYSIS
-     * 
+     *
      * Detects:
      * - Till closure discrepancies
      * - Cash-up shortages/overages
@@ -631,7 +631,7 @@ class LightspeedDeepDiveAnalyzer
         try {
             // 1. Get all register closures by this staff
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     rc.id,
                     rc.outlet_id,
                     rc.register_id,
@@ -704,7 +704,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 2. Float manipulation check
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     register_id,
                     AVG(float_amount) as avg_float,
                     STDDEV(float_amount) as float_stddev,
@@ -739,7 +739,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 5: BANKING & DEPOSIT ANALYSIS
-     * 
+     *
      * Detects:
      * - Daily banking discrepancies
      * - Missing deposits
@@ -757,7 +757,7 @@ class LightspeedDeepDiveAnalyzer
         try {
             // 1. Get deposit records
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     d.id,
                     d.outlet_id,
                     d.deposit_date,
@@ -804,7 +804,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 2. Check for missing deposits (daily sales vs deposits)
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     DATE(s.sale_date) as sale_day,
                     s.outlet_id,
                     SUM(CASE WHEN s.payment_type = 'CASH' THEN s.total_price ELSE 0 END) as daily_cash_sales,
@@ -835,7 +835,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 3. Weekly banking reconciliation
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     YEARWEEK(sale_date) as year_week,
                     SUM(CASE WHEN payment_type = 'CASH' THEN total_price ELSE 0 END) as weekly_cash_sales
                 FROM vend_sales
@@ -848,7 +848,7 @@ class LightspeedDeepDiveAnalyzer
             $weeklySales = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     YEARWEEK(deposit_date) as year_week,
                     SUM(deposited_amount) as weekly_deposits
                 FROM vend_deposits
@@ -866,7 +866,7 @@ class LightspeedDeepDiveAnalyzer
             foreach ($salesByWeek as $week => $sales) {
                 $deposits = $depositsByWeek[$week] ?? 0;
                 $gap = $sales - $deposits;
-                
+
                 if (abs($gap) > 200) {
                     $this->addFraudIndicator(
                         'weekly_reconciliation_gap',
@@ -887,7 +887,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 6: TRANSACTION MANIPULATION ANALYSIS
-     * 
+     *
      * Detects:
      * - Void patterns and timing
      * - Refund fraud schemes
@@ -914,7 +914,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 1. Void analysis
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     COUNT(*) as void_count,
                     SUM(total_price) as void_amount,
                     AVG(total_price) as avg_void_amount,
@@ -931,7 +931,7 @@ class LightspeedDeepDiveAnalyzer
 
             if ($totalTransactions > 0) {
                 $voidPercentage = ($voids['void_count'] / $totalTransactions) * 100;
-                
+
                 if ($voidPercentage > self::VOID_PERCENTAGE_THRESHOLD) {
                     $this->addFraudIndicator(
                         'excessive_voids',
@@ -953,7 +953,7 @@ class LightspeedDeepDiveAnalyzer
                         $immediateVoids++;
                     }
                 }
-                
+
                 if ($immediateVoids > 5) {
                     $this->addFraudIndicator(
                         'immediate_void_pattern',
@@ -967,7 +967,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 2. Refund analysis
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     COUNT(*) as refund_count,
                     SUM(ABS(total_price)) as refund_amount,
                     AVG(ABS(total_price)) as avg_refund
@@ -982,7 +982,7 @@ class LightspeedDeepDiveAnalyzer
 
             if ($totalTransactions > 0) {
                 $refundPercentage = ($refunds['refund_count'] / $totalTransactions) * 100;
-                
+
                 if ($refundPercentage > self::REFUND_PERCENTAGE_THRESHOLD) {
                     $this->addFraudIndicator(
                         'excessive_refunds',
@@ -996,7 +996,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 3. Discount abuse
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     COUNT(*) as discount_count,
                     AVG((total_discount / (total_price + total_discount)) * 100) as avg_discount_pct,
                     MAX((total_discount / (total_price + total_discount)) * 100) as max_discount_pct,
@@ -1024,7 +1024,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 4. Price override analysis
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     COUNT(*) as override_count,
                     SUM(price_override_amount) as total_override_amount
                 FROM vend_sale_line_items sli
@@ -1055,7 +1055,7 @@ class LightspeedDeepDiveAnalyzer
 
     /**
      * SECTION 7: END-OF-DAY/WEEK RECONCILIATION
-     * 
+     *
      * Detects:
      * - Daily totals manipulation
      * - Weekly summary discrepancies
@@ -1072,15 +1072,15 @@ class LightspeedDeepDiveAnalyzer
         try {
             // 1. Daily reconciliation check
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     DATE(s.sale_date) as sale_day,
                     s.outlet_id,
                     SUM(s.total_price) as daily_sales_total,
                     rc.total_sales as closure_total,
                     (SUM(s.total_price) - COALESCE(rc.total_sales, 0)) as discrepancy
                 FROM vend_sales s
-                LEFT JOIN vend_register_closures rc ON DATE(s.sale_date) = DATE(rc.closure_date) 
-                    AND s.outlet_id = rc.outlet_id 
+                LEFT JOIN vend_register_closures rc ON DATE(s.sale_date) = DATE(rc.closure_date)
+                    AND s.outlet_id = rc.outlet_id
                     AND s.register_id = rc.register_id
                 WHERE s.user_id = :staff_id
                 AND s.sale_date >= DATE_SUB(NOW(), INTERVAL :days DAY)
@@ -1105,7 +1105,7 @@ class LightspeedDeepDiveAnalyzer
 
             // 2. Cross-outlet analysis (if staff works at multiple outlets)
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     outlet_id,
                     COUNT(*) as transaction_count,
                     SUM(total_price) as total_sales,
@@ -1121,12 +1121,12 @@ class LightspeedDeepDiveAnalyzer
 
             if (count($outletBreakdown) > 1) {
                 $sectionData['checks_performed'][] = 'cross_outlet_analysis';
-                
+
                 // Check for unusual patterns (e.g., much higher avg transaction at one outlet)
                 $avgTransactions = array_column($outletBreakdown, 'avg_transaction');
                 $maxAvg = max($avgTransactions);
                 $minAvg = min($avgTransactions);
-                
+
                 if (($maxAvg / $minAvg) > 2) {
                     $this->addFraudIndicator(
                         'cross_outlet_anomaly',
@@ -1151,20 +1151,20 @@ class LightspeedDeepDiveAnalyzer
     private function isSuspiciousCustomerName(?string $name): bool
     {
         if (empty($name)) return false;
-        
+
         $suspiciousPatterns = [
-            'test', 'dummy', 'fake', 'random', 'temp', 
+            'test', 'dummy', 'fake', 'random', 'temp',
             'asdf', 'qwerty', 'zzz', 'aaa', 'xxx',
             'cash customer', 'walk in', 'walkin', 'no name'
         ];
-        
+
         $nameLower = strtolower($name);
         foreach ($suspiciousPatterns as $pattern) {
             if (strpos($nameLower, $pattern) !== false) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -1187,7 +1187,7 @@ class LightspeedDeepDiveAnalyzer
 
             // Get outlet average
             $stmt = $this->pdo->prepare("
-                SELECT 
+                SELECT
                     SUM(CASE WHEN payment_type = 'CASH' THEN total_price ELSE 0 END) as cash_total,
                     SUM(total_price) as all_total
                 FROM vend_sales

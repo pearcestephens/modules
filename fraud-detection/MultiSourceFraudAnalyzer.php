@@ -720,7 +720,7 @@ class MultiSourceFraudAnalyzer
 
     /**
      * PRIORITY 7: LIGHTSPEED DEEP DIVE ANALYSIS
-     * 
+     *
      * Comprehensive POS data analysis covering ALL fraud vectors:
      * - Payment type fraud (unusual/random payment types)
      * - Customer account fraud (fake accounts, credit manipulation)
@@ -771,7 +771,7 @@ class MultiSourceFraudAnalyzer
             // Critical alerts
             if (count($deepDiveResults['critical_alerts'] ?? []) > 0) {
                 foreach ($deepDiveResults['critical_alerts'] as $alert) {
-                    $this->analysisResults['recommendations'][] = 
+                    $this->analysisResults['recommendations'][] =
                         "CRITICAL: " . $alert['description'];
                 }
             }

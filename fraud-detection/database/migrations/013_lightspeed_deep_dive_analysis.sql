@@ -2,7 +2,7 @@
 -- MIGRATION 013: LIGHTSPEED DEEP DIVE ANALYSIS SCHEMA
 -- =====================================================
 -- Purpose: Complete POS data analysis covering ALL fraud vectors
--- 
+--
 -- Covers 7 major fraud categories:
 -- 1. Payment Type Fraud (unusual/random payment types)
 -- 2. Customer Account Fraud (fake accounts, credit manipulation)
@@ -317,7 +317,7 @@ COMMENT='Transaction manipulation fraud incidents';
 
 -- View: Staff with high risk scores
 CREATE OR REPLACE VIEW v_high_risk_staff_lightspeed AS
-SELECT 
+SELECT
     a.staff_id,
     s.name as staff_name,
     a.risk_score,
@@ -345,28 +345,28 @@ ORDER BY a.risk_score DESC;
 
 -- View: Uninvestigated fraud incidents
 CREATE OR REPLACE VIEW v_uninvestigated_fraud_incidents AS
-SELECT 'payment_type' as fraud_category, id, staff_id, fraud_type, severity, detected_at 
+SELECT 'payment_type' as fraud_category, id, staff_id, fraud_type, severity, detected_at
 FROM payment_type_fraud_tracking WHERE investigated = FALSE
 UNION ALL
-SELECT 'customer_account' as fraud_category, id, staff_id, fraud_type, severity, detected_at 
+SELECT 'customer_account' as fraud_category, id, staff_id, fraud_type, severity, detected_at
 FROM customer_account_fraud_tracking WHERE investigated = FALSE
 UNION ALL
-SELECT 'inventory' as fraud_category, id, staff_id, fraud_type, severity, detected_at 
+SELECT 'inventory' as fraud_category, id, staff_id, fraud_type, severity, detected_at
 FROM inventory_fraud_tracking WHERE investigated = FALSE
 UNION ALL
-SELECT 'register_closure' as fraud_category, id, staff_id, fraud_type, severity, detected_at 
+SELECT 'register_closure' as fraud_category, id, staff_id, fraud_type, severity, detected_at
 FROM register_closure_fraud_tracking WHERE investigated = FALSE
 UNION ALL
-SELECT 'banking' as fraud_category, id, staff_id, fraud_type, severity, detected_at 
+SELECT 'banking' as fraud_category, id, staff_id, fraud_type, severity, detected_at
 FROM banking_fraud_tracking WHERE investigated = FALSE
 UNION ALL
-SELECT 'transaction_manipulation' as fraud_category, id, staff_id, fraud_type, severity, detected_at 
+SELECT 'transaction_manipulation' as fraud_category, id, staff_id, fraud_type, severity, detected_at
 FROM transaction_manipulation_tracking WHERE investigated = FALSE
 ORDER BY severity DESC, detected_at DESC;
 
 -- View: Recent cash shortages (CRITICAL)
 CREATE OR REPLACE VIEW v_cash_shortage_alerts AS
-SELECT 
+SELECT
     rc.staff_id,
     s.name as staff_name,
     rc.register_id,
@@ -387,9 +387,9 @@ ORDER BY rc.detected_at DESC;
 -- =====================================================
 
 -- Verify all tables created
-SELECT 
+SELECT
     'lightspeed_deep_dive_analysis' as table_name,
-    COUNT(*) as record_count 
+    COUNT(*) as record_count
 FROM lightspeed_deep_dive_analysis
 UNION ALL
 SELECT 'vend_sales', COUNT(*) FROM vend_sales

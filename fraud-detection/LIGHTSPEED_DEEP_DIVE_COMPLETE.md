@@ -270,7 +270,7 @@ You asked me to **"deep dive into all those possibilities and really understand 
   "risk_level": "high",
   "indicator_count": 12,
   "critical_alert_count": 3,
-  
+
   "sections": {
     "payment_type_fraud": {
       "checks_performed": ["payment_type_distribution", "split_payment_analysis"],
@@ -283,7 +283,7 @@ You asked me to **"deep dive into all those possibilities and really understand 
     "transaction_manipulation": {...},
     "reconciliation_fraud": {...}
   },
-  
+
   "fraud_indicators": [
     {
       "type": "unusual_payment_type",
@@ -295,7 +295,7 @@ You asked me to **"deep dive into all those possibilities and really understand 
     },
     ...
   ],
-  
+
   "critical_alerts": [
     {
       "type": "cash_shortage",
@@ -518,7 +518,7 @@ The system is **100% production-ready**:
 **I delivered a FORENSIC-GRADE POS fraud detection system that:**
 
 ✅ Analyzes 7 major fraud categories
-✅ Detects 20+ specific fraud types  
+✅ Detects 20+ specific fraud types
 ✅ Covers 100% of POS fraud vectors
 ✅ Provides real-world fraud scenario detection
 ✅ Includes complete investigation workflow

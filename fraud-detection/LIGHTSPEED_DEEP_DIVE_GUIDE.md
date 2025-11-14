@@ -268,7 +268,7 @@ $results = $analyzer->analyzeStaff(
 if ($results['risk_level'] === 'critical') {
     echo "⚠️ CRITICAL RISK: {$results['risk_score']}/100\n";
     echo "Indicators found: " . count($results['fraud_indicators']) . "\n";
-    
+
     // Show critical alerts
     foreach ($results['critical_alerts'] as $alert) {
         echo "🚨 {$alert['description']}\n";
@@ -285,7 +285,7 @@ $staffIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 foreach ($staffIds as $staffId) {
     $results = $analyzer->analyzeStaff($staffId, 7); // Last 7 days
-    
+
     // Send alerts for high-risk staff
     if ($results['risk_score'] >= 60) {
         sendAlertToManagement($staffId, $results);

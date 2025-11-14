@@ -2,7 +2,7 @@
 
 /**
  * Lightspeed Deep Dive Analyzer - Test Script
- * 
+ *
  * Quick test to verify the analyzer works and show example usage
  */
 
@@ -47,24 +47,24 @@ $analyzer = new LightspeedDeepDiveAnalyzer($pdo, [
 try {
     echo "Analyzing staff ID {$staffId} for last {$days} days...\n";
     $results = $analyzer->analyzeStaff($staffId, $days);
-    
+
     echo "\n✅ ANALYSIS COMPLETE\n\n";
-    
+
     // Show summary
     echo "Risk Score: {$results['risk_score']}/100\n";
     echo "Risk Level: {$results['risk_level']}\n";
     echo "Fraud Indicators: {$results['indicator_count']}\n";
     echo "Critical Alerts: {$results['critical_alert_count']}\n\n";
-    
+
     // Show sections analyzed
     echo "Sections Analyzed:\n";
     foreach ($results['sections'] as $sectionName => $sectionData) {
         $issueCount = count($sectionData['issues_found'] ?? []);
         echo "  - {$sectionData['section_name']}: {$issueCount} issues\n";
     }
-    
+
     echo "\n";
-    
+
     // Show critical alerts if any
     if (count($results['critical_alerts']) > 0) {
         echo "🚨 CRITICAL ALERTS:\n";
@@ -74,7 +74,7 @@ try {
         }
         echo "\n";
     }
-    
+
     // Show top 5 fraud indicators
     if (count($results['fraud_indicators']) > 0) {
         echo "Top Fraud Indicators:\n";
@@ -85,7 +85,7 @@ try {
         }
         echo "\n";
     }
-    
+
 } catch (Exception $e) {
     echo "❌ ERROR: " . $e->getMessage() . "\n\n";
 }
@@ -102,9 +102,9 @@ $multiSource = new MultiSourceFraudAnalyzer($pdo, [
 try {
     echo "Running comprehensive multi-source analysis...\n";
     $analysis = $multiSource->analyzeStaff($staffId);
-    
+
     echo "\n✅ MULTI-SOURCE ANALYSIS COMPLETE\n\n";
-    
+
     echo "Overall Fraud Score: {$analysis['fraud_score']}\n";
     echo "Risk Level: {$analysis['risk_level']}\n";
     echo "Total Fraud Indicators: " . count($analysis['fraud_indicators']) . "\n";
@@ -112,7 +112,7 @@ try {
     foreach ($analysis['sources_analyzed'] as $source) {
         echo "  - {$source}\n";
     }
-    
+
     // Show Lightspeed-specific results
     if (isset($analysis['lightspeed_deep_dive'])) {
         echo "\n📊 LIGHTSPEED DEEP DIVE RESULTS:\n";
@@ -122,9 +122,9 @@ try {
         echo "  Indicators: {$lsResults['indicator_count']}\n";
         echo "  Critical Alerts: {$lsResults['critical_alert_count']}\n";
     }
-    
+
     echo "\n";
-    
+
 } catch (Exception $e) {
     echo "❌ ERROR: " . $e->getMessage() . "\n\n";
 }
@@ -135,7 +135,7 @@ echo "---------------------------------------------------\n";
 
 try {
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             a.id,
             a.staff_id,
             s.name as staff_name,
@@ -151,7 +151,7 @@ try {
     ");
     $stmt->execute();
     $recentAnalyses = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (count($recentAnalyses) > 0) {
         echo "Recent analyses:\n\n";
         foreach ($recentAnalyses as $analysis) {
@@ -163,7 +163,7 @@ try {
     } else {
         echo "No analysis records found. Run Test 1 first to create data.\n\n";
     }
-    
+
 } catch (Exception $e) {
     echo "❌ ERROR: " . $e->getMessage() . "\n\n";
 }
@@ -178,7 +178,7 @@ try {
         LIMIT 5
     ");
     $highRiskStaff = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (count($highRiskStaff) > 0) {
         echo "High-risk staff members:\n\n";
         foreach ($highRiskStaff as $staff) {
@@ -195,7 +195,7 @@ try {
     } else {
         echo "No high-risk staff found.\n\n";
     }
-    
+
 } catch (Exception $e) {
     echo "❌ ERROR: " . $e->getMessage() . "\n\n";
 }
@@ -211,7 +211,7 @@ try {
         LIMIT 10
     ");
     $incidents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (count($incidents) > 0) {
         echo "Uninvestigated incidents requiring attention:\n\n";
         foreach ($incidents as $incident) {
@@ -224,7 +224,7 @@ try {
     } else {
         echo "No uninvestigated incidents. All clear! ✅\n\n";
     }
-    
+
 } catch (Exception $e) {
     echo "❌ ERROR: " . $e->getMessage() . "\n\n";
 }
